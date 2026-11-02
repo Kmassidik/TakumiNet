@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pt-web — Packet Tracer assets</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">pt-web <span>assets</span></div>
+  <div id="stats" class="meta">loading…</div>
+  <input id="search" type="search" placeholder="filter files…" spellcheck="false">
+</header>
+
+<main class="layout">
+  <aside class="sidebar">
+    <nav id="crumb" class="crumb"></nav>
+    <ul id="dirs" class="dirs"></ul>
+  </aside>
+
+  <section class="content">
+    <div id="grid" class="grid"></div>
+    <p id="empty" class="empty" hidden>nothing here</p>
+  </section>
+</main>
+
+<div id="overlay" class="overlay" hidden>
+  <div class="preview">
+    <button id="close" class="close" aria-label="close">×</button>
+    <h2 id="pv-title"></h2>
+    <div id="pv-body"></div>
+    <div id="pv-meta" class="meta"></div>
+  </div>
+</div>
+
+<script src="/browser.js"></script>
+</body>
+</html>

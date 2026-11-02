@@ -1,0 +1,17 @@
+[package]
+name = "pt-web"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "pt-web"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = "z"
+lto = true
+
+[dependencies]
+cipher = "0.5.2"
+miniz_oxide = "0.9.1"
+twofish = "0.8.0"

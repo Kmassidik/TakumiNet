@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cisco Packet Tracer</title>
+<link rel="stylesheet" href="/workspace.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="menubar">
+    <span class="brand"><img src="/assets/art/app.png" alt="">Cisco Packet Tracer</span>
+    <nav id="menus">
+      <div class="menu">
+        <button>File</button>
+        <div class="drop">
+          <button data-action="new">New</button>
+          <button data-action="open">Open .pkt / .pka…</button>
+          <button data-action="open-ptw">Open Saved Topology…</button>
+          <button data-action="save">Save…</button>
+          <div class="sep"></div>
+          <button data-action="print">Print…</button>
+        </div>
+      </div>
+      <div class="menu">
+        <button>Edit</button>
+        <div class="drop">
+          <button data-action="undo">Undo</button>
+          <button data-action="redo">Redo</button>
+          <div class="sep"></div>
+          <button data-action="copy">Copy</button>
+          <button data-action="paste">Paste</button>
+          <button data-action="delete">Delete</button>
+        </div>
+      </div>
+      <div class="menu">
+        <button>Options</button>
+        <div class="drop">
+          <button data-action="preferences">Preferences…</button>
+        </div>
+      </div>
+      <div class="menu">
+        <button>View</button>
+        <div class="drop">
+          <button data-action="zoom-in">Zoom In</button>
+          <button data-action="zoom-out">Zoom Out</button>
+          <button data-action="zoom-reset">Reset Zoom</button>
+          <div class="sep"></div>
+          <button data-action="toggle-palette">Toggle Palette</button>
+          <button data-action="toggle-grid">Toggle Grid</button>
+        </div>
+      </div>
+      <div class="menu">
+        <button>Tools</button>
+        <div class="drop">
+          <button data-action="pdu">Simple PDU</button>
+          <button data-action="pdu">Complex PDU</button>
+          <div class="sep"></div>
+          <button data-action="build-bus">Build Bus Topology…</button>
+          <button data-action="mesh">Create Full Mesh</button>
+          <div class="sep"></div>
+          <button data-action="reset-sim">Reset Simulation</button>
+          <button data-action="custom-device">Custom Device…</button>
+        </div>
+      </div>
+      <div class="menu">
+        <button>Extensions</button>
+        <div class="drop"><button disabled>Extension Manager…</button></div>
+      </div>
+      <div class="menu">
+        <button>Window</button>
+        <div class="drop"><button disabled>Workspace</button></div>
+      </div>
+      <div class="menu">
+        <button>Help</button>
+        <div class="drop">
+          <button data-action="help">Contents</button>
+          <button data-action="assets">Asset Browser</button>
+          <button data-action="dialogs">Dialogs…</button>
+          <button data-action="about">About</button>
+        </div>
+      </div>
+    </nav>
+    <a class="browser-link" href="/browser">assets</a>
+  </div>
+
+  <div class="preview prefs" id="prefs-dialog" hidden>
+    <div class="devwin-title">Preferences<button class="winbtn" id="prefs-close" title="Close">×</button></div>
+    <div class="prefs-body">
+      <label><input type="checkbox" id="pref-grid"> Show canvas grid</label>
+      <label><input type="checkbox" id="pref-sound"> Sound effects</label>
+      <label><input type="checkbox" id="pref-confirm"> Confirm before deleting a device</label>
+      <p class="meta" id="prefs-note">Stored in this browser.</p>
+    </div>
+  </div>
+  <div class="preview prefs" id="about-dialog" hidden>
+    <div class="devwin-title">About<button class="winbtn" id="about-close" title="Close">×</button></div>
+    <div class="prefs-body">
+      <p><b>pt-web</b> — a clean-room network simulator.</p>
+      <p class="meta">Rust std-only server, plain HTML/SVG front end. Device artwork and
+      sounds from the mounted asset tree at runtime; the repository ships only original SVGs.</p>
+      <p class="meta">Tests: 133 unit + 24 HTTP end-to-end.</p>
+    </div>
+  </div>
+  <div class="toolbar primary" id="toolbar-primary"></div>
+  <div class="toolbar secondary" id="toolbar-secondary"></div>
+
+  <div class="main">
+    <section class="workspace">
+      <div class="tabs">
+        <button class="tab active" data-sfx="topologyTab" data-view="logical">Logical</button>
+        <button class="tab" data-sfx="topologyTab" data-view="physical"><span class="dot"></span><span id="physical-tab">Physical</span></button>
+      </div>
+
+      <div class="canvas-wrap">
+        <svg id="topology" viewBox="0 0 1000 540" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="physical-view" class="physical-view" hidden></div>
+      </div>
+
+      <div class="modebar">
+        <span class="clock" id="clock">00:00:00.0</span>
+        <span class="playgroup">
+          <button title="Reset simulation" data-sfx="movieControlButton" data-sim="reset"><img src="/assets/art/Simulation/reset.svg" alt="reset"></button>
+          <button title="Play" id="play-btn" data-sfx="movieControlButton" data-sim="play"><img src="/assets/art/Simulation/play.svg" alt="play"></button>
+          <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/assets/art/Simulation/step-next.svg" alt="step"></button>
+        </span>
+        <div class="modes">
+          <button class="mode active" data-sfx="topologyTab">Realtime</button>
+          <button class="mode" data-sfx="simulationTab">Simulation</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sim">
+      <div class="sim-head">Simulation Panel</div>
+
+      <table class="events">
+        <thead>
+          <tr><th>Vis.</th><th>Timestamps</th><th>Last Device</th><th>At Device</th><th>Type</th></tr>
+        </thead>
+        <tbody id="events"></tbody>
+      </table>
+
+      <div class="sim-row">
+        <button class="btn" data-action="reset-sim">Reset Simulation</button>
+        <label class="check"><input type="checkbox" id="const-delay"> Constant Delay</label>
+        <span class="capture" id="captured">Captured: 0/0</span>
+      </div>
+
+      <div class="playbar">
+        <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/assets/art/Simulation/step-backward.svg" alt="back"></button>
+        <button title="Play" data-sfx="movieControlButton" data-sim="play2"><img src="/assets/art/Simulation/play.svg" alt="play"></button>
+        <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/assets/art/Simulation/step-forward.svg" alt="forward"></button>
+        <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/assets/art/Simulation/ffw.svg" alt="ffw"></button>
+      </div>
+
+      <div class="filter-head">
+        <span>Event List Filters</span>
+        <span class="right">
+          <button class="mini" id="show-all">Show All</button>
+          <button class="mini" id="show-none">Hide All</button>
+        </span>
+      </div>
+
+      <div class="filters" id="filters"></div>
+    </aside>
+  </div>
+
+  <div class="palette" id="palette-bar">
+    <div class="groups" id="groups"></div>
+    <div class="devices" id="palette"></div>
+  </div>
+
+  <div class="statusbar">
+    <span id="status-msg">Ready</span>
+    <span id="status-mode">Realtime</span>
+  </div>
+
+</div>
+
+<div id="pkt-dialog" class="overlay" hidden>
+  <div class="preview">
+    <button id="pkt-close" class="close" aria-label="close">×</button>
+    <h2>Open Packet Tracer file</h2>
+    <input id="pkt-filter" class="pkt-filter" placeholder="filter…" spellcheck="false">
+    <ul id="pkt-list" class="pkt-list"></ul>
+  </div>
+</div>
+
+<div id="ip-dialog" class="overlay" hidden>
+  <div class="preview ip-dialog">
+    <div class="ip-titlebar"><span id="ip-title">IP Configuration</span>
+      <button id="ip-close" class="close" aria-label="close">×</button>
+    </div>
+
+    <div class="ip-body">
+      <label class="ipfield"><span>Interface</span>
+        <select id="ip-iface"><option>FastEthernet0</option></select>
+      </label>
+
+      <fieldset class="ip-group">
+        <legend>IP Configuration</legend>
+        <div class="ip-modes">
+          <label class="ip-radio"><input type="radio" name="ipv4mode" id="ip-dhcp"> DHCP</label>
+          <label class="ip-radio"><input type="radio" name="ipv4mode" id="ip-static" checked> Static</label>
+        </div>
+        <label class="ipfield"><span>IPv4 Address</span><input id="ip-addr" placeholder="0.0.0.0" spellcheck="false"></label>
+        <label class="ipfield"><span>Subnet Mask</span><input id="ip-mask" placeholder="255.255.255.0" spellcheck="false"></label>
+        <label class="ipfield"><span>Default Gateway</span><input id="ip-gw" placeholder="0.0.0.0" spellcheck="false"></label>
+        <label class="ipfield"><span>DNS Server</span><input id="ip-dns" placeholder="0.0.0.0" spellcheck="false"></label>
+      </fieldset>
+
+      <fieldset class="ip-group" id="ip-pool-group" hidden>
+        <legend>DHCP Pool</legend>
+        <label class="ipfield"><span>Network</span><input id="ip-pool-net" placeholder="192.168.1.0" spellcheck="false"></label>
+        <label class="ipfield"><span>Subnet Mask</span><input id="ip-pool-mask" placeholder="255.255.255.0" spellcheck="false"></label>
+        <label class="ipfield"><span>Default Gateway</span><input id="ip-pool-gw" spellcheck="false"></label>
+        <label class="ipfield"><span>DNS Server</span><input id="ip-pool-dns" spellcheck="false"></label>
+        <div class="ip-actions"><button class="btn" id="ip-pool-save">Save Pool</button>
+          <span id="ip-pool-note" class="meta"></span></div>
+      </fieldset>
+
+      <fieldset class="ip-group">
+        <legend>IPv6 Configuration</legend>
+        <div class="ip-modes">
+          <label class="ip-radio"><input type="radio" name="ipv6mode" id="ip-v6auto"> Automatic</label>
+          <label class="ip-radio"><input type="radio" name="ipv6mode" id="ip-v6static" checked> Static</label>
+        </div>
+        <label class="ipfield"><span>IPv6 Address</span>
+          <span class="ip-split">
+            <input id="ip-v6addr" placeholder="" spellcheck="false">
+            <span class="ip-slash">/</span>
+            <input id="ip-v6prefix" class="ip-prefix" value="64" spellcheck="false">
+          </span>
+        </label>
+        <label class="ipfield"><span>Link Local Address</span><input id="ip-v6ll" disabled></label>
+        <label class="ipfield"><span>Default Gateway</span><input id="ip-v6gw" spellcheck="false"></label>
+        <label class="ipfield"><span>DNS Server</span><input id="ip-v6dns" spellcheck="false"></label>
+      </fieldset>
+
+      <fieldset class="ip-group">
+        <legend>802.1X</legend>
+        <label class="ip-radio"><input type="checkbox" id="ip-8021x"> Use 802.1X Security</label>
+        <label class="ipfield"><span>Authentication</span>
+          <select id="ip-8021x-auth" disabled><option>MD5</option></select></label>
+        <label class="ipfield"><span>Username</span><input id="ip-8021x-user" spellcheck="false"></label>
+        <label class="ipfield"><span>Password</span><input id="ip-8021x-pass" type="password"></label>
+      </fieldset>
+
+      <div class="ip-actions">
+        <button class="btn" id="ip-save">Apply</button>
+        <span id="ip-note" class="meta"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="device-window" class="overlay" hidden>
+  <div class="preview devwin">
+    <div class="devwin-title">
+      <img id="dw-icon" alt="">
+      <span id="dw-name">PC0</span>
+      <span class="dw-btns">
+        <button id="dw-min" title="minimize">—</button>
+        <button id="dw-max" title="maximize">□</button>
+        <button id="dw-close" title="close">×</button>
+      </span>
+    </div>
+    <div class="devwin-tabs" id="dw-tabs">
+      <button data-tab="physical">Physical</button>
+      <button data-tab="config">Config</button>
+      <button data-tab="desktop" class="active">Desktop</button>
+      <button data-tab="programming">Programming</button>
+      <button data-tab="services">Services</button>
+      <button data-tab="attributes">Attributes</button>
+    </div>
+    <div class="devwin-body">
+      <div id="dw-pane" class="dw-pane"></div>
+      <label class="dw-top"><input type="checkbox"> Top</label>
+    </div>
+  </div>
+</div>
+
+<div id="cmd-window" class="overlay" hidden>
+  <div class="preview cmdwin">
+    <div class="devwin-title">
+      <span id="cmd-title">Command Prompt</span>
+      <span class="dw-btns"><button id="cmd-close" title="close">×</button></span>
+    </div>
+    <pre id="cmd-out" class="cmd-out"></pre>
+    <div class="cmd-line"><span id="cmd-prompt">C:\&gt;</span><input id="cmd-in" autocomplete="off" spellcheck="false"></div>
+  </div>
+</div>
+
+<div id="term-window" class="overlay" hidden>
+  <div class="preview cmdwin termwin">
+    <div class="devwin-title">
+      <span id="term-title">Terminal</span>
+      <span class="dw-btns"><button id="term-close" title="close">×</button></span>
+    </div>
+    <pre id="term-out" class="cmd-out"></pre>
+    <div class="cmd-line"><span id="term-prompt">&gt;</span><input id="term-in" autocomplete="off" spellcheck="false"></div>
+  </div>
+</div>
+
+<div id="web-dialog" class="overlay" hidden>
+  <div class="preview webwin">
+    <div class="devwin-title">
+      <span id="web-title">Web Browser</span>
+      <span class="dw-btns"><button id="web-close" title="close">×</button></span>
+    </div>
+    <div class="web-bar">
+      <span>http://</span>
+      <input id="web-url" placeholder="192.168.2.20" spellcheck="false" autocomplete="off">
+      <button class="btn" id="web-go">Go</button>
+    </div>
+    <div id="web-status" class="meta"></div>
+    <div id="web-body" class="web-body"></div>
+  </div>
+</div>
+
+<div id="editor-dialog" class="overlay" hidden>
+  <div class="preview editorwin">
+    <div class="devwin-title">
+      <span id="editor-title">Text Editor</span>
+      <span class="dw-btns"><button id="editor-close" title="close">×</button></span>
+    </div>
+    <div class="editor-bar">
+      <button class="btn" id="editor-save">Save</button>
+      <span id="editor-status" class="meta">Saved text lives in this browser</span>
+    </div>
+    <div class="editor-body">
+      <textarea id="editor-text" class="editor-area" spellcheck="false" placeholder="Type notes for this device…"></textarea>
+    </div>
+  </div>
+</div>
+
+<div id="mail-dialog" class="overlay" hidden>
+  <div class="preview mailwin">
+    <div class="devwin-title">
+      <span id="mail-title">Email</span>
+      <span class="dw-btns"><button id="mail-close" title="close">×</button></span>
+    </div>
+    <div class="mail-body">
+      <fieldset class="ip-group">
+        <legend>Account</legend>
+        <label class="ipfield"><span>Server IP</span><input id="mail-server" placeholder="192.168.2.20" spellcheck="false" autocomplete="off"></label>
+        <label class="ipfield"><span>User</span><input id="mail-user" placeholder="alice" spellcheck="false" autocomplete="off"></label>
+        <label class="ipfield"><span>Password</span><input id="mail-pass" type="password" placeholder="mailbox password" autocomplete="off"></label>
+        <div class="ip-actions"><button class="btn" id="mail-create">Create Mailbox</button>
+          <span id="mail-account-note" class="meta"></span></div>
+      </fieldset>
+      <fieldset class="ip-group">
+        <legend>Inbox</legend>
+        <div class="ip-actions mail-actions"><button class="btn" id="mail-refresh">Refresh</button>
+          <span id="mail-inbox-note" class="meta"></span></div>
+        <div id="mail-inbox" class="mail-inbox"></div>
+      </fieldset>
+      <fieldset class="ip-group">
+        <legend>Compose</legend>
+        <div class="meta mail-from">From: <span id="mail-from">—</span></div>
+        <label class="ipfield"><span>To</span><input id="mail-to" placeholder="bob" spellcheck="false" autocomplete="off"></label>
+        <label class="ipfield"><span>Subject</span><input id="mail-subject" spellcheck="false" autocomplete="off"></label>
+        <textarea id="mail-text" class="http-page mail-text" rows="4" spellcheck="false" placeholder="Message body"></textarea>
+        <div class="ip-actions"><button class="btn" id="mail-send">Send</button>
+          <span id="mail-note" class="meta"></span></div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<div id="traffic-dialog" class="overlay" hidden>
+  <div class="preview trafficwin">
+    <div class="devwin-title">
+      <span id="traffic-title">Traffic Generator</span>
+      <span class="dw-btns"><button id="traffic-close" title="close">×</button></span>
+    </div>
+    <div class="traffic-body">
+      <div class="traffic-form">
+        <label for="traffic-ip">Destination IP</label>
+        <input id="traffic-ip" spellcheck="false" autocomplete="off">
+        <label for="traffic-count">Packets (1–200)</label>
+        <input id="traffic-count" type="number" min="1" max="200" step="1" value="4">
+        <label for="traffic-interval">Interval (ms)</label>
+        <input id="traffic-interval" type="number" min="0" max="60000" step="10" value="200">
+      </div>
+      <div class="traffic-stats">
+        <span>Sent: <b id="traffic-sent">0</b></span>
+        <span>Received: <b id="traffic-received">0</b></span>
+        <span>Lost: <b id="traffic-lost">0</b></span>
+      </div>
+      <div id="traffic-note" class="traffic-note"></div>
+      <div class="traffic-actions">
+        <button class="btn" id="traffic-start">Start</button>
+        <button class="btn" id="traffic-stop" disabled>Stop</button>
+      </div>
+      <pre id="traffic-log" class="traffic-log"></pre>
+    </div>
+  </div>
+</div>
+
+<div id="mib-dialog" class="overlay" hidden>
+  <div class="preview mibwin">
+    <div class="devwin-title">
+      <span id="mib-title">MIB Browser</span>
+      <span class="dw-btns"><button id="mib-close" title="close">×</button></span>
+    </div>
+    <div class="mib-body">
+      <p class="mib-note">Local device table from the running workspace. No SNMP agent or MIB object identifiers are simulated.</p>
+      <div class="mib-scroll">
+        <table id="mib-table" class="mib-table">
+          <thead>
+            <tr><th>Name</th><th>Model</th><th>Kind</th><th>IP</th><th>Ports</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="mib-detail" class="mib-detail">Select a row to read its interface table.</div>
+    </div>
+  </div>
+</div>
+
+<div id="pdu-dialog" class="overlay" hidden>
+  <div class="preview pduwin">
+    <div class="devwin-title">
+      <span id="pdu-title">PDU Detail</span>
+      <span class="dw-btns"><button id="pdu-close" title="close">×</button></span>
+    </div>
+    <div id="pdu-meta" class="pdu-meta"></div>
+    <div class="pdu-scroll"><table id="pdu-table" class="pdu-table"></table></div>
+  </div>
+</div>
+
+<div id="wifi-dialog" class="overlay" hidden>
+  <div class="preview wifiwin">
+    <div class="devwin-title">
+      <span id="wifi-title">PC Wireless</span>
+      <span class="dw-btns"><button id="wifi-close" title="close">×</button></span>
+    </div>
+    <div class="wifi-body">
+      <fieldset class="ip-group" id="wifi-client">
+        <legend>Wireless Networks</legend>
+        <div class="ip-actions">
+          <button class="btn" id="wifi-scan">Scan</button>
+          <span id="wifi-scan-note" class="meta"></span>
+        </div>
+        <label class="ipfield"><span>Network</span>
+          <select id="wifi-ssid"><option value="">Scan for networks</option></select>
+        </label>
+        <label class="ipfield"><span>Pre-shared Key</span>
+          <input id="wifi-psk" type="password" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="ipfield"><span>User (Enterprise)</span>
+          <input id="wifi-user" type="text" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="ip-actions">
+          <button class="btn" id="wifi-connect">Connect</button>
+          <button class="btn" id="wifi-disconnect">Disconnect</button>
+          <span id="wifi-note" class="meta"></span>
+        </div>
+        <div class="stat-line" id="wifi-status">Checking…</div>
+      </fieldset>
+
+      <fieldset class="ip-group" id="wifi-wlan-group" hidden>
+        <legend>WLANs</legend>
+        <div class="wifi-list" id="wifi-wlan-list"></div>
+        <div class="tftp-form">
+          <input id="wifi-wlan-ssid" placeholder="SSID" autocomplete="off" spellcheck="false">
+          <input id="wifi-wlan-psk" type="password" placeholder="WPA2 pre-shared key (at least 8 characters)" autocomplete="off">
+          <div class="ip-actions">
+            <button class="btn" id="wifi-wlan-add">Add WLAN</button>
+            <span id="wifi-wlan-note" class="meta"></span>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<div id="vpn-dialog" class="overlay" hidden>
+  <div class="preview vpnwin">
+    <div class="devwin-title">
+      <span id="vpn-title">VPN</span>
+      <span class="dw-btns"><button id="vpn-close" title="close">×</button></span>
+    </div>
+    <div class="vpn-body">
+      <fieldset class="ip-group">
+        <legend>VPN Client</legend>
+        <label class="ipfield"><span>Server</span>
+          <input id="vpn-server" placeholder="192.168.2.1" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="ipfield"><span>User Name</span>
+          <input id="vpn-user" placeholder="vpnuser" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="ip-actions">
+          <button class="btn" id="vpn-connect">Connect</button>
+          <button class="btn" id="vpn-disconnect">Disconnect</button>
+          <span id="vpn-note" class="meta"></span>
+        </div>
+        <div class="stat-line" id="vpn-status">Checking…</div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<div id="pppoe-dialog" class="overlay" hidden>
+  <div class="preview pppoewin">
+    <div class="devwin-title">
+      <span id="pppoe-title">PPPoE Dialer</span>
+      <span class="dw-btns"><button id="pppoe-close" title="close">×</button></span>
+    </div>
+    <div class="pppoe-body">
+      <fieldset class="ip-group">
+        <legend>PPPoE Client</legend>
+        <label class="ipfield"><span>Server</span>
+          <input id="pppoe-server" placeholder="192.168.2.1" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="ipfield"><span>User Name</span>
+          <input id="pppoe-user" placeholder="dsluser" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="ip-actions">
+          <button class="btn" id="pppoe-dial">Dial</button>
+          <span id="pppoe-note" class="meta"></span>
+        </div>
+        <div class="stat-line" id="pppoe-status">Checking…</div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<div id="phone-dialog" class="overlay" hidden>
+  <div class="preview phonewin">
+    <div class="devwin-title">
+      <span id="phone-title">Cisco IP Communicator</span>
+      <span class="dw-btns"><button id="phone-close" title="close">×</button></span>
+    </div>
+    <div class="phone-body">
+      <div class="phone-screen">
+        <div class="phone-label" id="phone-label">IP Phone</div>
+        <div class="phone-state" id="phone-status">Not registered</div>
+      </div>
+      <fieldset class="ip-group">
+        <legend>Registration</legend>
+        <label class="ipfield"><span>Call Manager</span>
+          <input id="phone-cm" placeholder="192.168.2.1" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="ipfield"><span>Extension</span>
+          <input id="phone-ext" type="number" min="1" max="65535" step="1" placeholder="1001">
+        </label>
+        <div class="ip-actions">
+          <button class="btn" id="phone-register">Register</button>
+          <span id="phone-note" class="meta"></span>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<div id="firewall-dialog" class="overlay" hidden>
+  <div class="preview firewallwin">
+    <div class="devwin-title">
+      <span id="firewall-title">Firewall</span>
+      <span class="dw-btns"><button id="firewall-close" title="close">×</button></span>
+    </div>
+    <div class="firewall-body">
+      <div class="meta" id="firewall-note"></div>
+      <pre class="firewall-out" id="firewall-out"></pre>
+    </div>
+  </div>
+</div>
+
+<div id="dialogs-dialog" class="overlay" hidden>
+  <div class="preview dialogswin">
+    <div class="devwin-title">
+      <span id="dialogs-title">Dialogs</span>
+      <span class="dw-btns"><button id="dialogs-close" title="close">×</button></span>
+    </div>
+    <div class="dialogs-body">
+      <div class="dialogs-bar">
+        <input id="dialogs-search" placeholder="Search dialog name or text…" autocomplete="off" spellcheck="false">
+        <button class="btn" id="dialogs-prev" disabled>Prev</button>
+        <span id="dialogs-page" class="meta"></span>
+        <button class="btn" id="dialogs-next">Next</button>
+      </div>
+      <div id="dialogs-note" class="meta"></div>
+      <div id="dialogs-list" class="dialogs-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tip" class="tip" hidden></div>
+<script src="/workspace.js"></script>
+</body>
+</html>

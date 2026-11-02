@@ -1,0 +1,11 @@
+/target
+/intake
+/vendor
+/result
+/.direnv
+*.pkt
+*.pka
+*.run
+*.deb
+/topologies
+/generated
