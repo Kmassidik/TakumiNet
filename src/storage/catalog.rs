@@ -124,7 +124,7 @@ pub fn load(dir: &Path) -> Vec<Model> {
         let Ok(bytes) = std::fs::read(&path) else {
             continue;
         };
-        let Ok(xml) = crate::ptfile::decrypt(&bytes) else {
+        let Ok(xml) = crate::storage::ptfile::decrypt(&bytes) else {
             continue;
         };
         let Ok(text) = String::from_utf8(xml) else {
@@ -140,7 +140,7 @@ pub fn load(dir: &Path) -> Vec<Model> {
 
 /// Load from the discovered asset tree, if one is present.
 pub fn load_assets() -> Vec<Model> {
-    let Some(assets) = crate::assets::Assets::discover() else {
+    let Some(assets) = crate::storage::assets::Assets::discover() else {
         return Vec::new();
     };
     load(&assets.root.join("templates"))
@@ -212,11 +212,11 @@ mod tests {
 
     #[test]
     fn template_container_round_trips() {
-        let packed = crate::ptfile::encrypt(FIXTURE.as_bytes());
+        let packed = crate::storage::ptfile::encrypt(FIXTURE.as_bytes());
         assert_ne!(&packed[..16], &FIXTURE.as_bytes()[..16], "must be encrypted");
-        let back = crate::ptfile::decrypt(&packed).expect("decrypt");
+        let back = crate::storage::ptfile::decrypt(&packed).expect("decrypt");
         assert_eq!(String::from_utf8(back).unwrap(), FIXTURE);
-        assert_eq!(parse(FIXTURE), parse(&String::from_utf8(crate::ptfile::decrypt(&packed).unwrap()).unwrap()));
+        assert_eq!(parse(FIXTURE), parse(&String::from_utf8(crate::storage::ptfile::decrypt(&packed).unwrap()).unwrap()));
     }
 
     #[test]

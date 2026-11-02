@@ -6,7 +6,7 @@
 //!   pkt2rs --all <dir> <outdir>     # convert every .pkt/.pka found
 //!   pkt2rs --roundtrip <dir>        # verify decrypt -> encode -> decrypt
 
-#[path = "../ptfile.rs"]
+#[path = "../storage/ptfile.rs"]
 mod ptfile;
 
 use std::path::{Path, PathBuf};

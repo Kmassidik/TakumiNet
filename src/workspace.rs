@@ -46,21 +46,21 @@ pub struct PortCfg {
 /// caches. Both age on the simulated clock.
 #[derive(Clone, Default)]
 pub struct Tables {
-    macs: HashMap<String, crate::packet::MacTable>,
-    arps: HashMap<String, crate::packet::ArpTable>,
+    macs: HashMap<String, crate::net::packet::MacTable>,
+    arps: HashMap<String, crate::net::packet::ArpTable>,
 }
 
 impl Tables {
-    pub fn macs(&mut self, id: &str) -> &mut crate::packet::MacTable {
+    pub fn macs(&mut self, id: &str) -> &mut crate::net::packet::MacTable {
         self.macs
             .entry(id.to_string())
-            .or_insert_with(|| crate::packet::MacTable::new(300.0))
+            .or_insert_with(|| crate::net::packet::MacTable::new(300.0))
     }
 
-    pub fn arps(&mut self, id: &str) -> &mut crate::packet::ArpTable {
+    pub fn arps(&mut self, id: &str) -> &mut crate::net::packet::ArpTable {
         self.arps
             .entry(id.to_string())
-            .or_insert_with(|| crate::packet::ArpTable::new(120.0))
+            .or_insert_with(|| crate::net::packet::ArpTable::new(120.0))
     }
 
     /// Drop everything learned for a device that no longer exists.
@@ -70,12 +70,12 @@ impl Tables {
     }
 
     /// `show mac address-table` rows for one switch.
-    pub fn mac_rows(&self, id: &str) -> Vec<crate::packet::MacEntry> {
+    pub fn mac_rows(&self, id: &str) -> Vec<crate::net::packet::MacEntry> {
         self.macs.get(id).map(|t| t.rows()).unwrap_or_default()
     }
 
     /// `show arp` rows for one device.
-    pub fn arp_rows(&self, id: &str) -> Vec<crate::packet::ArpEntry> {
+    pub fn arp_rows(&self, id: &str) -> Vec<crate::net::packet::ArpEntry> {
         self.arps.get(id).map(|t| t.rows()).unwrap_or_default()
     }
 }
@@ -368,7 +368,7 @@ pub struct Event {
     pub proto: String,
     pub path: Vec<String>,
     /// Per-device detail: ingress/egress ports, TTL, MACs, decision.
-    pub hops: Vec<crate::fwd::Hop>,
+    pub hops: Vec<crate::net::fwd::Hop>,
     /// Frame size in bytes on the wire.
     pub size: usize,
 }
@@ -1024,7 +1024,7 @@ impl Workspace {
 
     /// Send one ICMP echo request through the frame-level engine and record it.
     pub fn send_pdu(&mut self, src: &str, dst: &str) -> Result<(), String> {
-        let delivery = crate::fwd::deliver(self, src, dst)?;
+        let delivery = crate::net::fwd::deliver(self, src, dst)?;
         let size = delivery.size();
         self.next_event += 1;
         self.sim_time = delivery.finished_at as f32;
@@ -2961,7 +2961,7 @@ impl Workspace {
 
     /// Build a workspace from a decoded `.pkt` topology, fitting PT's logical
     /// coordinates onto our canvas.
-    pub fn from_pkt(pkt: &crate::ptxml::PktTopology) -> Workspace {
+    pub fn from_pkt(pkt: &crate::storage::ptxml::PktTopology) -> Workspace {
         let mut ws = Workspace {
             devices: Vec::new(),
             links: Vec::new(),
@@ -3020,7 +3020,7 @@ impl Workspace {
         // Ignore coordinates outside the logical canvas when fitting: PT stores
         // offsets for non-visual devices (power supplies etc.) that would
         // otherwise collapse every real device into one corner.
-        let in_range = |d: &crate::ptxml::PktDevice| {
+        let in_range = |d: &crate::storage::ptxml::PktDevice| {
             d.x >= -100.0 && d.x <= 2000.0 && d.y >= -100.0 && d.y <= 2000.0
         };
         let (mut minx, mut maxx, mut miny, mut maxy) =
@@ -3096,9 +3096,9 @@ impl Workspace {
             }
             ws.links.push(Link {
                 a: a.clone(),
-                a_port: crate::ptxml::abbrev_port(&l.from_port),
+                a_port: crate::storage::ptxml::abbrev_port(&l.from_port),
                 b: b.clone(),
-                b_port: crate::ptxml::abbrev_port(&l.to_port),
+                b_port: crate::storage::ptxml::abbrev_port(&l.to_port),
                 kind: "eCopper".into(),
             });
         }
@@ -3776,7 +3776,7 @@ impl Workspace {
             let tower = self.cell_links[src].clone();
             (vec![src.to_string(), tower, dst.to_string()], Vec::new())
         } else {
-            let delivery = crate::fwd::deliver(self, src, dst)?;
+            let delivery = crate::net::fwd::deliver(self, src, dst)?;
             (delivery.path, delivery.hops)
         };
         self.next_event += 1;
@@ -4712,7 +4712,7 @@ mod tests {
 
     #[test]
     fn pdu_is_a_real_frame_across_the_router() {
-        use crate::packet::Mac;
+        use crate::net::packet::Mac;
         let mut ws = Workspace::new();
         ws.send_pdu("pc0", "pc2").unwrap();
         let e = &ws.events[0];
@@ -4754,7 +4754,7 @@ mod tests {
 
     #[test]
     fn switch_learns_source_macs_and_then_hits() {
-        use crate::packet::Mac;
+        use crate::net::packet::Mac;
         let mut ws = Workspace::new();
         ws.send_pdu("pc1", "pc0").unwrap();
         let rows = ws.tables.mac_rows("switch0");
@@ -4921,7 +4921,7 @@ mod tests {
         <LINK><TYPE>eCopper</TYPE><FROM>r1</FROM><PORT>GigabitEthernet0/0</PORT>
           <TO>s1</TO><PORT>FastEthernet0/1</PORT></LINK>
         </NETWORK></PACKETTRACER5>"#;
-        let pkt = crate::ptxml::parse(xml);
+        let pkt = crate::storage::ptxml::parse(xml);
         let ws = Workspace::from_pkt(&pkt);
         assert_eq!(ws.devices.len(), 2);
         assert_eq!(ws.links.len(), 1);

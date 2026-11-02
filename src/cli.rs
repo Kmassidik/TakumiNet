@@ -1051,11 +1051,11 @@ fn stp_table(ws: &Workspace, id: &str) -> String {
     let mut out = String::from("VLAN0001\n  Spanning tree enabled protocol ieee\n");
     out.push_str(&format!(
         "  Root ID    Address     {}\n",
-        crate::packet::Mac::for_device(&root)
+        crate::net::packet::Mac::for_device(&root)
     ));
     out.push_str(&format!(
         "  Bridge ID  Address     {}\n",
-        crate::packet::Mac::for_device(id)
+        crate::net::packet::Mac::for_device(id)
     ));
     out.push_str("Interface        Role Sts\n---------------- ---- ---\n");
     let mut shown = 0;
@@ -1634,7 +1634,7 @@ mod tests {
         run(&mut ws, "switch0", &mut s, "en");
         let out = run(&mut ws, "switch0", &mut s, "show mac address-table");
         assert!(out.contains("Mac Address Table"), "{out}");
-        let mac = crate::packet::Mac::for_device("pc1").to_string();
+        let mac = crate::net::packet::Mac::for_device("pc1").to_string();
         assert!(out.contains(&mac), "missing {mac}: {out}");
         assert!(out.contains("DYNAMIC"), "{out}");
         assert!(out.contains("Total Mac Addresses for this criterion: 1"), "{out}");

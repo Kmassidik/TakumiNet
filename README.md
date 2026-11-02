@@ -57,14 +57,14 @@ simulation is ours and runs server-side in Rust.
   Help, Asset Browser. Menus mirror the toolbar.
 - Simulation is real: PDU runs a BFS over the link graph, records an event
   (time, last device, at device, type) and animates the path.
-- **`.pkt`/`.pka` decode in Rust** (`src/ptfile.rs`): reverse-XOR → Twofish-EAX
+- **`.pkt`/`.pka` decode in Rust** (`src/storage/ptfile.rs`): reverse-XOR → Twofish-EAX
   (key `0x89`×16, nonce `0x10`×16) → XOR → zlib with 4-byte BE length. Verified
   against shipped samples (`PACKETTRACER5`, PT 7.1–9.x). `pkt2rs` converts any
   save into typed Rust (`DEVICES`, `LINKS` with ports, plus the raw XML).
 - **Open a real save in the app**: File → Open lists all 299 shipped `.pkt`
   files, decodes and types them (`src/ptxml.rs`), fits PT's logical coordinates
   onto the canvas, and renders devices + links with their real interface names.
-- **Real packets, not path labels** (`src/packet.rs`, `src/fwd.rs`): a ping is
+- **Real packets, not path labels** (`src/net/packet.rs`, `src/net/fwd.rs`): a ping is
   an Ethernet frame carrying an IPv4/ICMP echo with a 32-byte payload and a
   correct header checksum. Switches learn source MACs (300 s ageing) and flood
   unknown unicast; every router decrements the TTL and re-encapsulates for the
@@ -353,7 +353,7 @@ Router0, so the TTL drops 128 → 127 and each switch learns a MAC.
 
 ## Next, in order
 
-1. ~~**`Traffic::CFrameInstance`**~~ — landed as `src/packet.rs` + `src/fwd.rs`
+1. ~~**`Traffic::CFrameInstance`**~~ — landed as `src/net/packet.rs` + `src/net/fwd.rs`
    (Ethernet/IPv4/ICMP, TTL, checksums, MAC/ARP tables). Evidence:
    `notes/08-packets.md`.
 2. **`Ptmp::CPtmpBuffer`** — the `.pkt` writer. 299 samples as a corpus. The

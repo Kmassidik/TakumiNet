@@ -87,7 +87,7 @@ fn ipconfig(ws: &Workspace, id: &str) -> String {
     let dns = d.dns.map(ipv4_string).unwrap_or_else(|| "0.0.0.0".into());
     let mut out = String::from("\nFastEthernet0 Connection:(default port)\n\n");
     out.push_str("   Connection-specific DNS Suffix..: \n");
-    out.push_str(&format!("   Physical Address................: {}\n", crate::packet::Mac::for_device(&d.id)));
+    out.push_str(&format!("   Physical Address................: {}\n", crate::net::packet::Mac::for_device(&d.id)));
     out.push_str(&format!("   Link-local IPv6 Address.........: FE80::{}FF:FE00:1\n", &d.id.len()));
     out.push_str(&format!("   IPv4 Address....................: {ip}\n"));
     out.push_str(&format!("   Subnet Mask.....................: {mask}\n"));
@@ -270,7 +270,7 @@ fn tracert_host(ws: &mut Workspace, id: &str, target: &str, limit: usize) -> Str
 fn arp(ws: &mut Workspace, id: &str, arg: &str) -> String {
     if arg.eq_ignore_ascii_case("-d") || arg == "*" {
         // A fresh cache is the only whole-table delete the packet API offers.
-        *ws.tables.arps(id) = crate::packet::ArpTable::new(120.0);
+        *ws.tables.arps(id) = crate::net::packet::ArpTable::new(120.0);
         return String::new();
     }
     let Some(d) = dev(ws, id) else {
@@ -297,7 +297,7 @@ fn route_print(ws: &Workspace, id: &str) -> String {
         return String::new();
     };
     let own = d.ip.map(ipv4_string).unwrap_or_else(|| "0.0.0.0".into());
-    let mac = crate::packet::Mac::for_device(&d.id).to_string().replace('.', "-");
+    let mac = crate::net::packet::Mac::for_device(&d.id).to_string().replace('.', "-");
     let mut out = String::from("===========================================================================\n");
     out.push_str("Interface List\n");
     out.push_str(&format!("  2 ...{mac} ......FastEthernet0\n"));

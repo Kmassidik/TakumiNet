@@ -9,7 +9,7 @@ use std::collections::VecDeque;
 
 use crate::cli::expand_iface;
 use crate::model::ipv4_string;
-use crate::packet::{Frame, Mac, Packet, Transit};
+use crate::net::packet::{Frame, Mac, Packet, Transit};
 use crate::workspace::{Device, Link, Workspace};
 
 /// What happened at one device during a delivery.
@@ -113,9 +113,9 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
         match dev.kind.as_str() {
             "router" | "asa" => {
                 let proto = match packet.proto {
-                    crate::packet::IpProto::Icmp => "icmp",
-                    crate::packet::IpProto::Tcp => "tcp",
-                    crate::packet::IpProto::Udp => "udp",
+                    crate::net::packet::IpProto::Icmp => "icmp",
+                    crate::net::packet::IpProto::Tcp => "tcp",
+                    crate::net::packet::IpProto::Udp => "udp",
                 };
                 if ws.ips_drops(dev_id, proto) {
                     return Err(format!("IPS dropped {proto} at {}", dev.name));
@@ -239,7 +239,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
 
     // The scheduler owns time: one arrival per device, 1 ms apart. `finished_at`
     // is when the last device saw the frame.
-    let mut scheduler = crate::sched::Scheduler::new();
+    let mut scheduler = crate::net::sched::Scheduler::new();
     let times = scheduler.schedule(ws.sim_time as f64, &path);
     for (hop, t) in hops.iter_mut().zip(times.iter()) {
         hop.t = *t;

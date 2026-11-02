@@ -1,11 +1,11 @@
 //! HTTP/1.1 server: static UI, asset tree, workspace mutations, simulation.
 
-use crate::assets::Assets;
+use crate::storage::assets::Assets;
 use crate::model::{demo, to_json, Topology};
-use crate::sim::ping;
+use crate::net::sim::ping;
 use crate::cli::{self, Session as CliSession};
-use crate::ptfile;
-use crate::ptxml;
+use crate::storage::ptfile;
+use crate::storage::ptxml;
 use crate::workspace::Workspace;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read, Write};
@@ -15,8 +15,8 @@ use std::sync::{Arc, LazyLock, Mutex};
 use std::thread;
 
 /// The `.ptd`-derived model list, decoded once per process.
-static CATALOG: LazyLock<Vec<crate::catalog::Model>> =
-    LazyLock::new(crate::catalog::load_assets);
+static CATALOG: LazyLock<Vec<crate::storage::catalog::Model>> =
+    LazyLock::new(crate::storage::catalog::load_assets);
 
 #[derive(Default)]
 struct History {
@@ -1122,7 +1122,7 @@ fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
         }
         ("GET", "/api/status") => (json, status_json(ctx).into_bytes()),
         ("GET", "/api/catalog") => {
-            (json, crate::catalog::to_json(&CATALOG).into_bytes())
+            (json, crate::storage::catalog::to_json(&CATALOG).into_bytes())
         }
         ("GET", "/api/assets") => {
             let dir = query_value(query, "dir").unwrap_or_default();
@@ -1345,7 +1345,7 @@ fn status_json(ctx: &Ctx) -> String {
     }
 }
 
-fn list_json(dir: &str, entries: &[crate::assets::Entry]) -> String {
+fn list_json(dir: &str, entries: &[crate::storage::assets::Entry]) -> String {
     let dir = dir.trim_matches('/');
     let parent = match dir.rsplit_once('/') {
         Some((p, _)) => p.to_string(),
