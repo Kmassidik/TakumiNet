@@ -497,3 +497,13 @@ mod expand_tests {
         assert_eq!(expand_iface("g9/9", &ports), None);
     }
 }
+
+#[test]
+fn no_vlan_deletes_a_vlan() {
+    let mut ws = Workspace::new();
+    let mut s = Session::default();
+    for cmd in ["enable", "configure terminal", "vlan 10 sales", "no vlan 10"] {
+        run(&mut ws, "switch0", &mut s, cmd);
+    }
+    assert!(!ws.vlan_exists("switch0", 10));
+}

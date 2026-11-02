@@ -1,14 +1,44 @@
 use super::*;
 
+type Handler = fn(&mut Workspace, &str, &mut Session, &str, &str) -> String;
+
+/// Tried in order; the first entry whose test matches the typed line runs.
+const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
+    (|l| l.starts_with("inspect icmp") || l.starts_with("no inspect icmp"), inspect_icmp),
+    (|l| l.starts_with("ips signature ") || l.starts_with("no ips signature "), ips_signature),
+    (|l| l.starts_with("spanning-tree mode "), spanning_tree_mode),
+    (|l| l.starts_with("router "), router_protocol),
+    (|l| l.starts_with("ip nat inside source list "), nat_source_list),
+    (|l| l.starts_with("no ip nat inside source"), nat_clear),
+    (|l| l.starts_with("access-list "), access_list),
+    (|l| l.starts_with("hostname "), hostname),
+    (|l| iface_arg(l).is_some(), enter_interface),
+    (|l| l.starts_with("ip route "), ip_route),
+    (|l| l.starts_with("no vlan "), no_vlan),
+    (|l| l.starts_with("no "), no_command),
+    (|l| l.starts_with("banner "), banner),
+    (|l| l.starts_with("line "), line_config),
+    (|l| l.starts_with("vlan "), vlan),
+];
+
 pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
-    if lower.starts_with("inspect icmp") || lower.starts_with("no inspect icmp") {
+    for (matches, run) in COMMANDS {
+        if matches(lower) {
+            return run(ws, id, s, line, lower);
+        }
+    }
+    keyword_command(ws, id, s, line, lower)
+}
+
+fn inspect_icmp(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lower: &str) -> String {
         let on = !lower.starts_with("no ");
         return match ws.set_inspection(id, on) {
             Ok(()) => String::new(),
             Err(e) => format!("% {e}\n"),
         };
-    }
-    if lower.starts_with("ips signature ") || lower.starts_with("no ips signature ") {
+}
+
+fn ips_signature(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, lower: &str) -> String {
         let on = !lower.starts_with("no ");
         let rest = if lower.starts_with("no ") {
             &line["no ips signature ".len()..]
@@ -29,15 +59,17 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
             Ok(()) => String::new(),
             Err(e) => format!("% {e}\n"),
         };
-    }
-    if lower.starts_with("spanning-tree mode ") {
+}
+
+fn spanning_tree_mode(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
         let mode = line["spanning-tree mode ".len()..].trim().to_ascii_lowercase();
         return match ws.set_stp_mode(id, &mode) {
             Ok(()) => String::new(),
             Err(e) => format!("% {e}\n"),
         };
-    }
-    if lower.starts_with("router ") {
+}
+
+fn router_protocol(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _lower: &str) -> String {
         let rest = &line["router ".len()..];
         let mut words = rest.split_whitespace();
         let (Some(proto), pid) = (words.next(), words.next()) else {
@@ -58,7 +90,9 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
             }
             Err(e) => format!("% {e}\n"),
         };
-    } else if lower.starts_with("ip nat inside source list ") {
+}
+
+fn nat_source_list(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
         let rest = &line["ip nat inside source list ".len()..];
         let mut words = rest.split_whitespace();
         let (Some(num), Some(kw), Some(iface), Some(overload)) =
@@ -78,24 +112,30 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
             },
             Err(_) => format!("% Invalid access-list: {num}\n"),
         };
-    }
-    if lower.starts_with("no ip nat inside source") {
+}
+
+fn nat_clear(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, _lower: &str) -> String {
         ws.clear_nat_rules(id);
         return String::new();
-    }
-    if let Some(rest) = lower.strip_prefix("access-list ") {
+}
+
+fn access_list(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, lower: &str) -> String {
+    let Some(rest) = lower.strip_prefix("access-list ") else { return invalid(line, Mode::Config) };
         let original = &line["access-list ".len()..];
         let _ = rest;
         return acl_config(ws, id, original);
-    }
-    if lower.starts_with("hostname ") {
+}
+
+fn hostname(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
         let name = line[9..].trim().to_string();
         if ws.rename(id, &name) {
             return String::new();
         }
         return "% Invalid hostname\n".into();
-    }
-    if let Some(rest) = iface_arg(&lower) {
+}
+
+fn enter_interface(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
+    let Some(rest) = iface_arg(&lower) else { return invalid(line, Mode::Config) };
         let ports = ports_of(ws, id);
         return match expand_iface(rest.trim(), &ports) {
             Some(name) => {
@@ -105,14 +145,18 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
             }
             None => format!("% Invalid interface name: {}\n", rest.trim()),
         };
-    }
-    if lower.starts_with("ip route ") {
+}
+
+fn ip_route(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
         return add_route_cmd(ws, id, &line[9..]);
-    }
-    if let Some(rest) = lower.strip_prefix("no ") {
+}
+
+fn no_command(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, lower: &str) -> String {
+    let Some(rest) = lower.strip_prefix("no ") else { return invalid(line, Mode::Config) };
         return config_no(ws, id, &line, rest.trim());
-    }
-    if lower.starts_with("banner ") {
+}
+
+fn banner(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
         let rest = line[7..].trim();
         // IOS accepts any delimiter: banner motd #text# / ^text^
         let body = match rest.find(|c: char| c == '#' || c == '^') {
@@ -127,8 +171,9 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
         }
         ws.banners.insert(id.to_string(), body);
         return String::new();
-    }
-    if lower.starts_with("line ") {
+}
+
+fn line_config(_ws: &mut Workspace, _id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
         let target = lower[5..].trim().to_string();
         if !(target.starts_with("con") || target.starts_with("vty")) {
             return format!("% Invalid line: {target}\n");
@@ -136,8 +181,9 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
         s.mode = Mode::Line;
         s.iface = Some(target);
         return String::new();
-    }
-    if lower.starts_with("vlan ") {
+}
+
+fn vlan(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
         let rest = line[5..].trim();
         let mut parts = rest.split_whitespace();
         let Some(num) = parts.next() else {
@@ -151,8 +197,9 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
             Ok(()) => String::new(),
             Err(e) => format!("% {e}\n"),
         };
-    }
-    if lower.starts_with("no vlan ") {
+}
+
+fn no_vlan(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
         let num = line[8..].trim();
         let Ok(vlan) = num.parse::<u16>() else {
             return format!("% Invalid VLAN id: {num}\n");
@@ -161,7 +208,10 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
             Ok(()) => String::new(),
             Err(e) => format!("% {e}\n"),
         };
-    }
+}
+
+/// Commands that are a whole word or phrase rather than a prefix.
+fn keyword_command(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
     match lower {
         "exit" | "end" => {
             s.mode = Mode::Priv;
