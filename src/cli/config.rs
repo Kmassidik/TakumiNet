@@ -218,8 +218,8 @@ fn keyword_command(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lo
             s.iface = None;
             String::new()
         }
-        "write memory" | "copy running-config startup-config" | "copy run start" => {
-            ws.write_memory();
+        "write memory" | "wr" | "copy running-config startup-config" | "copy run start" => {
+            ws.write_memory(id);
             "Building configuration...\n[OK]\n".into()
         }
         "show startup-config" | "sh start" => startup_config(ws, id),
@@ -229,6 +229,7 @@ fn keyword_command(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lo
         "show ip interface brief" | "sh ip int br" => ip_brief(ws, id),
         "show ip route" | "sh ip ro" => ws.show_routes(id),
         _ if lower.starts_with("show ") => show(ws, id, &lower[5..]),
+        _ if lower.starts_with("sh ") => show(ws, id, &lower[3..]),
         _ => invalid(&line, Mode::Config),
     }
 }

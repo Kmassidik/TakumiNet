@@ -77,10 +77,12 @@ simulation is ours and runs server-side in Rust.
   (`Phone0` ↔ `Voice0`), coax needs a cable modem/cloud, IoT joins IoT devices
   (optionally through a switch), and a console cable lands on `RS-232` ↔
   `Console`, renders dashed, and carries no user traffic.
-- **Startup configuration**: `write memory` / `copy run start` snapshots the
-  device config, `show startup-config` prints it, `reload` restores it, and
-  `banner motd #…#` plus `line con 0` → `password …` / `login` appear in
-  `show run`. `show startup-config` is empty until something is saved.
+- **Startup configuration**: `write memory` / `wr` / `copy run start` snapshots
+  only the active device, including its banner, line password and routing;
+  `show startup-config` prints that saved snapshot and `reload` restores it.
+  `show run` includes hostname, banner, interfaces, static routes, routing
+  blocks and line passwords. Common `show` abbreviations, inline `show ?` and
+  invalid-input carets follow IOS, including `do show` in line mode.
 - **Interface state is real**: `shut` / `no shut` (any unambiguous prefix) plus
   cable presence drive `up` / `administratively down` / `notconnect` in
   `show ip interface brief`; a down end breaks the PDU path and the error names

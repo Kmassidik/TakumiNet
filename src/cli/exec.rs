@@ -31,8 +31,8 @@ pub(super) fn privileged(ws: &mut Workspace, id: &str, s: &mut Session, line: &s
         "show ip interface brief" | "sh ip int br" => ip_brief(ws, id),
         "show ip route" | "sh ip ro" => ws.show_routes(id),
         "show version" | "sh ver" => version(ws, id),
-        "write memory" | "copy running-config startup-config" | "copy run start" => {
-            ws.write_memory();
+        "write memory" | "wr" | "copy running-config startup-config" | "copy run start" => {
+            ws.write_memory(id);
             "Building configuration...\n[OK]\n".into()
         }
         "show startup-config" | "sh start" => startup_config(ws, id),
@@ -46,6 +46,7 @@ pub(super) fn privileged(ws: &mut Workspace, id: &str, s: &mut Session, line: &s
         "clock" => "*0:00:00.0 UTC Mon Mar 1 1993\n".into(),
         "help" | "?" => help(Mode::Priv),
         _ if lower.starts_with("show ") => show(ws, id, &lower[5..]),
+        _ if lower.starts_with("sh ") => show(ws, id, &lower[3..]),
         _ if lower.starts_with("ping ") => ping(ws, id, &line[5..]),
         _ => invalid(&line, Mode::Priv),
     }

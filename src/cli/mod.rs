@@ -84,12 +84,43 @@ pub(crate) fn expand_iface(raw: &str, ports: &[String]) -> Option<String> {
 }
 
 fn invalid(line: &str, _mode: Mode) -> String {
-    format!("% Invalid input detected at '^' marker.\n{}\n", line)
+    let lower = line.to_ascii_lowercase();
+    let prefix = if lower.starts_with("show ") {
+        Some(5)
+    } else if lower.starts_with("sh ") {
+        Some(3)
+    } else {
+        None
+    };
+    let caret = prefix
+        .and_then(|offset| {
+            line[offset..]
+                .find(|c: char| !c.is_whitespace())
+                .map(|next| offset + next)
+        })
+        .unwrap_or(0);
+    format!(
+        "% Invalid input detected at '^' marker.\n{line}\n{}^\n",
+        " ".repeat(caret)
+    )
 }
 
 /// True when `typed` is a non-empty prefix of `keyword`, as IOS accepts.
 fn is_prefix(typed: &str, keyword: &str) -> bool {
     !typed.is_empty() && keyword.starts_with(typed)
+}
+
+/// Match a complete command while allowing each keyword to be abbreviated.
+fn command_matches(typed: &str, command: &str) -> bool {
+    let mut typed = typed.split_whitespace();
+    let mut command = command.split_whitespace();
+    loop {
+        match (typed.next(), command.next()) {
+            (Some(typed), Some(keyword)) if is_prefix(typed, keyword) => {}
+            (None, None) => return true,
+            _ => return false,
+        }
+    }
 }
 
 /// `interface NAME`, `intf NAME` and `int NAME` all name the same command.
@@ -108,9 +139,12 @@ pub fn run(ws: &mut Workspace, id: &str, s: &mut Session, line: &str) -> String 
 
     // `do` escapes config mode.
     if let Some(rest) = lower.strip_prefix("do ") {
-        if matches!(s.mode, Mode::Config | Mode::Iface | Mode::Router) {
+        if matches!(s.mode, Mode::Config | Mode::Iface | Mode::Line | Mode::Router) {
             let what = rest.trim();
-            let what = what.strip_prefix("show ").unwrap_or(what);
+            let what = what
+                .strip_prefix("show ")
+                .or_else(|| what.strip_prefix("sh "))
+                .unwrap_or(what);
             return show(ws, id, what);
         }
     }

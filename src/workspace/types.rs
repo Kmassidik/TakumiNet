@@ -91,6 +91,14 @@ pub struct Device {
 }
 
 #[derive(Clone)]
+pub struct StartupConfig {
+    pub device: Device,
+    pub banner: Option<String>,
+    pub line_password: Option<String>,
+    pub routing: Option<(String, Vec<(u32, u8)>)>,
+}
+
+#[derive(Clone)]
 pub struct Link {
     pub a: String,
     pub a_port: String,
@@ -175,8 +183,8 @@ pub struct Workspace {
     pub dhcp_leases: HashMap<String, Vec<u32>>,
     /// Devices whose address came from DHCP rather than static config.
     pub dhcp_clients: std::collections::HashSet<String>,
-    /// Configuration written by `write memory`; `reload` restores it.
-    pub startup: Option<Vec<Device>>,
+    /// Per-device configurations written by `write memory`; `reload` restores them.
+    pub startup: Option<HashMap<String, StartupConfig>>,
     /// `banner motd` text per device.
     pub banners: HashMap<String, String>,
     /// `line con 0` password per device.

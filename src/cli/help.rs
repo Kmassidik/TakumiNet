@@ -79,7 +79,14 @@ pub(super) fn commands(mode: Mode) -> Vec<(&'static str, &'static str)> {
 }
 
 pub(super) fn help(mode: Mode) -> String {
-    let mut cmds = commands(mode);
+    command_help(commands(mode))
+}
+
+pub(super) fn show_help() -> String {
+    command_help(SHOW_COMMANDS.to_vec())
+}
+
+fn command_help(mut cmds: Vec<(&'static str, &'static str)>) -> String {
     cmds.sort_by(|a, b| a.0.cmp(b.0));
     let width = cmds.iter().map(|(syntax, _)| syntax.len()).max().unwrap_or(0) + 2;
     let mut out = String::new();

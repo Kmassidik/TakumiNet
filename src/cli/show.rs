@@ -2,9 +2,11 @@ use super::*;
 
 pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
     match what {
-        "running-config" | "run" => running_config(ws, id),
-        "ip interface brief" | "ip int br" => ip_brief(ws, id),
-        "ip route" | "ip ro" => ws.show_routes(id),
+        "?" => show_help(),
+        _ if command_matches(what, "running-config") => running_config(ws, id),
+        _ if what.len() >= 4 && command_matches(what, "startup-config") => startup_config(ws, id),
+        _ if command_matches(what, "ip interface brief") => ip_brief(ws, id),
+        _ if command_matches(what, "ip route") => ws.show_routes(id),
         "version" | "ver" => version(ws, id),
         "mac address-table" | "mac-address-table" | "mac addr" => mac_table(ws, id),
         "arp" => arp_table(ws, id),
@@ -41,7 +43,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
             if let Some(arg) = other.strip_prefix("ip interface ") {
                 return show_ip_interface(ws, id, arg.trim());
             }
-            format!("% 'show {other}' is not implemented yet\n")
+            invalid(&format!("show {other}"), Mode::Priv)
         }
     }
 }
@@ -473,6 +475,7 @@ pub(super) fn running_config(ws: &Workspace, id: &str) -> String {
         d,
         ws.banners.get(id).map(String::as_str),
         ws.line_passwords.get(id).map(String::as_str),
+        ws.routing.get(id),
     )
 }
 
@@ -485,14 +488,19 @@ pub(super) fn startup_config(ws: &Workspace, id: &str) -> String {
 }
 
 /// Render one device's configuration; shared by running and startup config.
-pub(crate) fn config_for(d: &Device, banner: Option<&str>, line_pw: Option<&str>) -> String {
+pub(crate) fn config_for(
+    d: &Device,
+    banner: Option<&str>,
+    line_pw: Option<&str>,
+    routing: Option<&(String, Vec<(u32, u8)>)>,
+) -> String {
     let mut out = String::from(
         "Building configuration...\n\nCurrent configuration : 1024 bytes\n!\nversion 15.1\n",
     );
+    out.push_str(&format!("hostname {}\n!\n", d.name));
     if let Some(b) = banner {
         out.push_str(&format!("banner motd ^{b}^\n!\n"));
     }
-    out.push_str(&format!("hostname {}\n!\n", d.name));
     for p in &d.ports {
         out.push_str(&format!("interface {}\n", p.name));
         if let Some(ip) = p.ip {
@@ -508,6 +516,26 @@ pub(crate) fn config_for(d: &Device, banner: Option<&str>, line_pw: Option<&str>
             out.push_str(" shutdown\n");
         }
         out.push_str("!\n");
+    }
+    for (net, prefix, next_hop) in &d.routes {
+        out.push_str(&format!(
+            "ip route {} {} {}\n",
+            ipv4_string(*net),
+            ipv4_string(mask_of(*prefix)),
+            ipv4_string(*next_hop)
+        ));
+    }
+    if !d.routes.is_empty() {
+        out.push_str("!\n");
+    }
+    if let Some((protocol, networks)) = routing {
+        if !protocol.is_empty() {
+            out.push_str(&format!("router {protocol}\n"));
+            for (network, _) in networks {
+                out.push_str(&format!(" network {}\n", ipv4_string(*network)));
+            }
+            out.push_str("!\n");
+        }
     }
     if let Some(pw) = line_pw {
         out.push_str(&format!("line con 0\n password {pw}\n login\n!\n"));

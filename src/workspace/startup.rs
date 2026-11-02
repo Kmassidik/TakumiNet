@@ -1,18 +1,28 @@
 use super::*;
 
 impl Workspace {
-    /// `write memory` / `copy run start`: snapshot the device configuration.
-    pub fn write_memory(&mut self) {
-        self.startup = Some(self.devices.clone());
+    /// `write memory` / `copy run start`: snapshot one device's configuration.
+    pub fn write_memory(&mut self, id: &str) {
+        let Some(device) = self.devices.iter().find(|d| d.id == id).cloned() else {
+            return;
+        };
+        let saved = StartupConfig {
+            device,
+            banner: self.banners.get(id).cloned(),
+            line_password: self.line_passwords.get(id).cloned(),
+            routing: self.routing.get(id).cloned(),
+        };
+        self.startup.get_or_insert_with(HashMap::new).insert(id.to_string(), saved);
     }
 
     /// `show startup-config` for one device.
     pub fn startup_config(&self, id: &str) -> Option<String> {
-        let d = self.startup.as_ref()?.iter().find(|d| d.id == id)?;
+        let saved = self.startup.as_ref()?.get(id)?;
         Some(crate::cli::config_for(
-            d,
-            self.banners.get(id).map(String::as_str),
-            self.line_passwords.get(id).map(String::as_str),
+            &saved.device,
+            saved.banner.as_deref(),
+            saved.line_password.as_deref(),
+            saved.routing.as_ref(),
         ))
     }
 
@@ -21,11 +31,24 @@ impl Workspace {
         let Some(saved) = self.startup.clone() else {
             return false;
         };
-        for s in saved {
-            if let Some(d) = self.devices.iter_mut().find(|d| d.id == s.id) {
-                *d = s;
+        for (id, saved) in saved {
+            if let Some(d) = self.devices.iter_mut().find(|d| d.id == id) {
+                *d = saved.device;
             }
+            match saved.banner {
+                Some(banner) => self.banners.insert(id.clone(), banner),
+                None => self.banners.remove(&id),
+            };
+            match saved.line_password {
+                Some(password) => self.line_passwords.insert(id.clone(), password),
+                None => self.line_passwords.remove(&id),
+            };
+            match saved.routing {
+                Some(routing) => self.routing.insert(id.clone(), routing),
+                None => self.routing.remove(&id),
+            };
         }
+        self.recompute_routing();
         self.events.clear();
         self.next_event = 0;
         self.sim_time = 0.0;
