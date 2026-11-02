@@ -159,8 +159,13 @@ fn ping_host(ws: &mut Workspace, id: &str, target: &str, count: usize) -> String
     let mut out = format!("Pinging {target} with 32 bytes of data:\n\n");
     match ws.send_pdu(id, &dst) {
         Ok(()) => {
+            let ttl = ws
+                .events
+                .last()
+                .and_then(|event| event.hops.last())
+                .map_or(128, |hop| hop.ttl);
             for _ in 0..count {
-                out.push_str(&format!("Reply from {target}: bytes=32 time<1ms TTL=128\n"));
+                out.push_str(&format!("Reply from {target}: bytes=32 time<1ms TTL={ttl}\n"));
             }
             out.push_str(&format!(
                 "\nPing statistics for {target}:\n    Packets: Sent = {count}, Received = {count}, Lost = 0 (0% loss),\nApproximate round trip times in milli-seconds:\n    Minimum = 0ms, Maximum = 0ms, Average = 0ms\n\n"
@@ -232,6 +237,7 @@ fn tracert_host(ws: &mut Workspace, id: &str, target: &str, limit: usize) -> Str
     let hops = ws.events.last().map(|e| e.hops.clone()).unwrap_or_default();
     let mut out = format!("Tracing route to {target} over a maximum of {limit} hops:\n\n");
     let mut n = 0;
+    let mut complete = false;
     for (i, hop) in hops.iter().enumerate() {
         if i == 0 {
             continue; // the sender itself is not a hop
@@ -241,10 +247,10 @@ fn tracert_host(ws: &mut Workspace, id: &str, target: &str, limit: usize) -> Str
         if d.kind == "switch" || d.kind == "hub" {
             continue;
         }
-        n += 1;
-        if n > limit {
+        if i == hops.len() - 1 && n == limit {
             break;
         }
+        n += 1;
         // A router answers from the interface that received the probe; the
         // destination answers with its own address.
         let addr = if i == hops.len() - 1 {
@@ -262,8 +268,11 @@ fn tracert_host(ws: &mut Workspace, id: &str, target: &str, limit: usize) -> Str
         }
         .unwrap_or_else(|| d.name.clone());
         out.push_str(&format!("  {n}    1 ms    1 ms    1 ms  {addr}\n"));
+        complete = i == hops.len() - 1;
     }
-    out.push_str("\nTrace complete.\n\n");
+    if complete {
+        out.push_str("\nTrace complete.\n\n");
+    }
     out
 }
 
@@ -417,7 +426,12 @@ mod tests {
         let out = run(&mut ws, "pc0", "ping 192.168.2.10");
         assert_eq!(out.matches("Reply from 192.168.2.10").count(), 4, "{out}");
         assert!(out.contains("0% loss"), "{out}");
+        assert!(out.contains("TTL=127"), "{out}");
         assert_eq!(ws.events.len(), 1);
+
+        let mut ws = Workspace::new();
+        let out = run(&mut ws, "pc0", "ping -n 1 192.168.1.11");
+        assert!(out.contains("TTL=128"), "{out}");
     }
 
     #[test]
@@ -536,7 +550,6 @@ mod tests {
             1,
             "one hop line only: {out}"
         );
-        assert!(out.contains("Trace complete"), "{out}");
     }
 
     #[test]
