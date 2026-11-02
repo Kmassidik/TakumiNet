@@ -259,3 +259,29 @@ pub(super) fn _read_all(mut r: impl Read) -> io::Result<Vec<u8>> {
     r.read_to_end(&mut v)?;
     Ok(v)
 }
+
+/// Maps `group/name.png` to `art/3d/group/name.png`. Both parts must be lowercase
+/// letters and digits, so nothing can climb out of the art folder.
+pub(super) fn art3d_file(request: &str) -> Option<String> {
+    let (group, file) = request.split_once('/')?;
+    let name = file.strip_suffix(".png")?;
+    let plain = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit());
+    (plain(group) && plain(name)).then(|| format!("art/3d/{group}/{name}.png"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::art3d_file;
+
+    #[test]
+    fn accepts_group_slash_name_png() {
+        assert_eq!(art3d_file("toolbar/new.png").as_deref(), Some("art/3d/toolbar/new.png"));
+    }
+
+    #[test]
+    fn rejects_anything_that_could_leave_the_folder() {
+        for bad in ["../x.png", "toolbar/../x.png", "toolbar/new.svg", "toolbar/New.png", "new.png", "a/b/c.png", "/a.png", "toolbar/.png", ""] {
+            assert_eq!(art3d_file(bad), None, "{bad}");
+        }
+    }
+}

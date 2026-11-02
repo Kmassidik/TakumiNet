@@ -176,11 +176,11 @@ function togglePlay() {
   if (playTimer) {
     clearInterval(playTimer);
     playTimer = null;
-    document.querySelector('#play-btn img').src = asset('art/Simulation/play.svg');
+    document.querySelector('#play-btn img').src = icon3d('sim/play');
     status('Paused');
     return;
   }
-  document.querySelector('#play-btn img').src = asset('art/Simulation/pause.svg');
+  document.querySelector('#play-btn img').src = icon3d('sim/pause');
   status('Playing events');
   playTimer = setInterval(() => {
     const events = visibleEvents();

@@ -1,25 +1,26 @@
 /* ---------------- toolbars ---------------- */
+// [icon, title, action]. An icon is "group/name" in web/art/3d, or "~glyph" while no 3D art exists yet.
 const PRIMARY = [
-  ['iTBNew.png', 'New', 'new'], ['iTBOpen.png', 'Open', 'open'],
-  ['iTBSave.png', 'Save', 'save'], ['iTBPrint.png', 'Print', 'print'], null,
-  ['iTBUndo.png', 'Undo', 'undo'], ['iTBRedo.png', 'Redo', 'redo'], null,
-  ['iTBCopy.png', 'Copy', 'copy'], ['iTBPaste.png', 'Paste', 'paste'],
-  ['delete.svg', 'Delete', 'delete'], null,
-  ['iTBZoomIn.png', 'Zoom in', 'zoom-in'], ['iTBZoomOut.png', 'Zoom out', 'zoom-out'],
-  ['iTBZoomReset.png', 'Reset zoom', 'zoom-reset'], null,
-  ['iTBPalette.png', 'Palette', 'toggle-palette'],
-  ['iTBCustomDevice.png', 'Custom device', 'custom-device'], null,
-  ['iTBClusterAssociations.png', 'Clusters', ''], ['iTBActivityWizard.png', 'Activity wizard', ''],
-  ['iTBChallengeMode.png', 'Challenge mode', ''], null,
-  ['iTBHelp.png', 'Help', 'help'],
+  ['toolbar/new', 'New', 'new'], ['toolbar/open', 'Open', 'open'],
+  ['toolbar/save', 'Save', 'save'], ['toolbar/print', 'Print', 'print'], null,
+  ['toolbar/undo', 'Undo', 'undo'], ['toolbar/redo', 'Redo', 'redo'], null,
+  ['toolbar/copy', 'Copy', 'copy'], ['toolbar/paste', 'Paste', 'paste'],
+  ['toolbar/delete', 'Delete', 'delete'], null,
+  ['toolbar/zoomin', 'Zoom in', 'zoom-in'], ['toolbar/zoomout', 'Zoom out', 'zoom-out'],
+  ['toolbar/zoomreset', 'Reset zoom', 'zoom-reset'], null,
+  ['toolbar/templates', 'Palette', 'toggle-palette'],
+  ['toolbar/toolbox', 'Custom device', 'custom-device'], null,
+  ['toolbar/topology', 'Clusters', ''], ['toolbar/wizard', 'Activity wizard', ''],
+  ['toolbar/challenge', 'Challenge mode', ''], null,
+  ['toolbar/help', 'Help', 'help'],
 ];
 
 const SECONDARY = [
-  ['add-simple-pdu.svg', 'Simple PDU', 'pdu'], ['add-complex-pdu.svg', 'Complex PDU', 'pdu'], null,
-  ['drawing-palette.svg', 'Drawing palette', ''], ['ellipse.svg', 'Ellipse', ''], null,
-  ['4-way-nav.svg', 'Navigate', ''], ['grid-view.svg', 'Grid', 'toggle-grid'],
-  ['compass.svg', 'Compass', ''], null,
-  ['environment.svg', 'Environment', ''], ['home.svg', 'Home', 'zoom-reset'],
+  ['~\u2709', 'Simple PDU', 'pdu'], ['~\u2709+', 'Complex PDU', 'pdu'], null,
+  ['~\u270E', 'Drawing palette', ''], ['~\u2B2D', 'Ellipse', ''], null,
+  ['~\u271B', 'Navigate', ''], ['~\u25A6', 'Grid', 'toggle-grid'],
+  ['toolbar/compass', 'Compass', ''], null,
+  ['toolbar/environment', 'Environment', ''], ['toolbar/home', 'Home', 'zoom-reset'],
 ];
 
 function renderToolbar(el, items) {
@@ -36,10 +37,14 @@ function renderToolbar(el, items) {
     b.title = action ? title : `${title} (not implemented)`;
     if (!action) b.disabled = true;
     if (action) b.dataset.action = action;
-    const img = document.createElement('img');
-    img.src = asset('art/Toolbar/' + file);
-    img.alt = title;
-    b.appendChild(img);
+    if (file.startsWith('~')) {
+      b.textContent = file.slice(1);
+    } else {
+      const img = document.createElement('img');
+      img.src = icon3d(file);
+      img.alt = title;
+      b.appendChild(img);
+    }
     el.appendChild(b);
   }
 }

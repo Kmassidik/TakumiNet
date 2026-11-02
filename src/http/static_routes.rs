@@ -15,6 +15,10 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
                 (html, b"not found".to_vec())
             }
         }
+        ("GET", p) if p.starts_with("/art3d/") => match art3d_file(&p["/art3d/".len()..]) {
+            Some(file) => ("image/png", file_bytes(&ctx.web_root, &file)),
+            None => (html, b"not found".to_vec()),
+        },
         ("GET", p) if p.starts_with("/js/") => {
             let name = &p["/js/".len()..];
             let safe = name.ends_with(".js") && !name.contains('/') && !name.contains("..");

@@ -1,4 +1,263 @@
 {
-  "note": "One entry per generated sheet. Add yours when you generate it.",
-  "sheets": []
+  "generator": "ChatGPT image generation, prompts from CHATGPT.md (words only, no vendor art)",
+  "background_removal": "tools/cutout.swift (macOS Vision)",
+  "sheets": [
+    {
+      "source": "Stylized 3D Network Device Collection",
+      "sha256": "4faff8fcb5ad5bb8",
+      "group": "devices",
+      "icons": [
+        "router",
+        "switch",
+        "pc",
+        "laptop",
+        "server",
+        "ap"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "3D Network Office Device Icon Sheet",
+      "sha256": "5391a559a324b23e",
+      "group": "devices",
+      "icons": [
+        "hub",
+        "wlc",
+        "asa",
+        "homerouter",
+        "printer",
+        "phone"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Retro Tech Icon Collection",
+      "sha256": "7b1682d6459a9dce",
+      "group": "devices",
+      "icons": [
+        "analogphone",
+        "tv",
+        "pda",
+        "tablet",
+        "cloud",
+        "sniffer"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "3D IoT and Networking Device Set",
+      "sha256": "62a5394c0242852e",
+      "group": "devices",
+      "icons": [
+        "plc",
+        "thing",
+        "ioe",
+        "linksys",
+        "cablemodem",
+        "dsl"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Soft 3D Network Infrastructure Icon Sheet",
+      "sha256": "cfb9de0fc1183d0b",
+      "group": "devices",
+      "icons": [
+        "multiuser",
+        "celltower",
+        "ie2000",
+        "netcontroller",
+        "meraki",
+        "historian"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Isometric Ethernet Patch Panel",
+      "sha256": "4c11d99ab5e3a2a9",
+      "group": "devices",
+      "icons": [
+        "patchpanel"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy 3D Utility Icon Grid",
+      "sha256": "fd25ab345e9a1fb3",
+      "group": "toolbar",
+      "icons": [
+        "new",
+        "open",
+        "save",
+        "print",
+        "undo",
+        "redo"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy Teal Document and Magnifier Icons",
+      "sha256": "a566262827a55805",
+      "group": "toolbar",
+      "icons": [
+        "copy",
+        "paste",
+        "delete",
+        "zoomin",
+        "zoomout",
+        "zoomreset"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy Teal and Amber Utility Icons",
+      "sha256": "2694ba9dee36da59",
+      "group": "toolbar",
+      "icons": [
+        "templates",
+        "toolbox",
+        "topology",
+        "wizard",
+        "challenge",
+        "help"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy 3D Compass, Nature, and Home Icons",
+      "sha256": "257a9f35bb0b76dd",
+      "group": "toolbar",
+      "icons": [
+        "compass",
+        "environment",
+        "home"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy 3D Media Control Icon Sheet",
+      "sha256": "003a670a224641b0",
+      "group": "sim",
+      "icons": [
+        "reset",
+        "play",
+        "pause",
+        "stepa",
+        "back",
+        "stepb"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy Teal Fast-Forward Button",
+      "sha256": "0658d50811a1a169",
+      "group": "sim",
+      "icons": [
+        "fastforward"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy 3D Cable Connector Collection",
+      "sha256": "66d7ca7e4bf1e36e",
+      "group": "cables",
+      "icons": [
+        "straight",
+        "cross",
+        "console",
+        "fiber",
+        "phone",
+        "coiled"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy Coaxial and Circuit Cables",
+      "sha256": "85a6762fdefe5f39",
+      "group": "cables",
+      "icons": [
+        "coax",
+        "usb"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy 3D Networking Icon Grid",
+      "sha256": "08006487b9fd098d",
+      "group": "groups",
+      "icons": [
+        "routers",
+        "switches",
+        "hubs",
+        "wireless",
+        "security",
+        "wan"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy Firewall and IPv6 Icon Set",
+      "sha256": "7f8e0e55fc94f6bd",
+      "group": "groups",
+      "icons": [
+        "notes",
+        "firewall",
+        "firewall6"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy 3D Networking Icon Set",
+      "sha256": "be9a72d808956379",
+      "group": "apps",
+      "icons": [
+        "nic",
+        "dialup",
+        "terminal",
+        "cmd",
+        "browser",
+        "wireless"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Glossy 3D Network Security Icon Set",
+      "sha256": "3a7f2867b944078c",
+      "group": "apps",
+      "icons": [
+        "vpn",
+        "traffic",
+        "netsearch",
+        "voip",
+        "email",
+        "pppoe"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Connected Devices and Network Icons",
+      "sha256": "f6eba293cc2067a0",
+      "group": "misc",
+      "icons": [
+        "devices",
+        "cable",
+        "network"
+      ],
+      "grid": "3x2"
+    },
+    {
+      "source": "Fluffy Network Mascot Pose Sheet",
+      "sha256": "254af2518d576cf3",
+      "group": "mascot",
+      "icons": [
+        "idle",
+        "wave",
+        "think",
+        "happy",
+        "error",
+        "sleep"
+      ],
+      "grid": "3x2"
+    }
+  ]
 }

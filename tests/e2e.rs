@@ -152,6 +152,14 @@ fn e2e_workspace_editing_and_simulation() {
         assert!(head.contains("audio/wav"), "{name}: {head}");
     }
 
+    // our own 3D icons; anything outside group/name.png is refused
+    let (status, head, body) = s.get("/art3d/toolbar/new.png");
+    assert_eq!(status, 200);
+    assert!(head.contains("image/png"), "{head}");
+    assert!(body.chars().skip(1).take(3).collect::<String>() == "PNG", "not a png");
+    let (_, _, body) = s.get("/art3d/..%2f..%2fCargo.toml");
+    assert!(body.contains("not found"), "{body}");
+
     // initial topology
     let (status, _, body) = s.get("/api/workspace");
     assert_eq!(status, 200);

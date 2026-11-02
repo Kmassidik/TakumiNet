@@ -6,13 +6,13 @@
     python3 tools/slice_sheets.py cut.png web/art/3d router switch pc laptop server ap
 
 Names are given in reading order (left to right, top to bottom); use `-` to skip a cell.
-Each icon is cropped to its visible pixels and centred on a transparent SIZE x SIZE square.
+Each icon is cropped to its visible pixels and centred on a transparent SIZE-by-SIZE square.
 """
 import sys
 from pathlib import Path
 from PIL import Image
 
-COLS, ROWS, SIZE, PAD = 3, 2, 512, 24
+COLS, ROWS, SIZE, PAD = 3, 2, 256, 12
 
 
 def cells(sheet):
