@@ -145,6 +145,13 @@ fn e2e_workspace_editing_and_simulation() {
         assert!(head.contains("javascript"), "{src}: {head}");
     }
 
+    // generated UI sounds
+    for name in ["devicePlacement", "errorMsg", "popUp", "removeLink"] {
+        let (status, head, _) = s.get(&format!("/sounds/{name}.wav"));
+        assert_eq!(status, 200, "{name}");
+        assert!(head.contains("audio/wav"), "{name}: {head}");
+    }
+
     // initial topology
     let (status, _, body) = s.get("/api/workspace");
     assert_eq!(status, 200);

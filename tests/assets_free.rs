@@ -18,7 +18,7 @@ const BASELINE: &[(&str, usize)] = &[
     ("web/js/device_tabs.js", 3),
     ("web/js/device_window.js", 1),
     ("web/js/palette.js", 7),
-    ("web/js/state.js", 2),
+    ("web/js/state.js", 1),
     ("web/js/toolbars.js", 1),
     ("web/js/topology.js", 2),
 ];

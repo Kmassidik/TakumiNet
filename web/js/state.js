@@ -55,7 +55,7 @@ function sfx(name) {
   if (!prefs.sound) return;
   try {
     let a = sounds.get(name);
-    if (!a) { a = new Audio(asset('Sounds/' + name + '.wav')); sounds.set(name, a); }
+    if (!a) { a = new Audio('/sounds/' + name + '.wav'); sounds.set(name, a); }
     a.currentTime = 0;
     a.play().catch(() => {});
   } catch (_) { /* decorative */ }
