@@ -4,6 +4,18 @@ impl Workspace {
     /// Portable text format: tab-separated, one device or link per line.
     pub fn to_ptw(&self) -> String {
         let mut out = String::from("# pt-web topology 1\n");
+        self.write_devices(&mut out);
+        self.write_links(&mut out);
+        self.write_device_settings(&mut out);
+        self.write_app_services(&mut out);
+        self.write_switching_security(&mut out);
+        self.write_iot_and_wireless(&mut out);
+        self.write_routing_and_names(&mut out);
+        out
+    }
+
+    /// One `device` line per device, followed by its addressing and port lines.
+    fn write_devices(&self, out: &mut String) {
         for d in &self.devices {
             out.push_str(&format!(
                 "device\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
@@ -69,12 +81,20 @@ impl Workspace {
                 ));
             }
         }
+    }
+
+    /// One `link` line per cable.
+    fn write_links(&self, out: &mut String) {
         for l in &self.links {
             out.push_str(&format!(
                 "link\t{}\t{}\t{}\t{}\t{}\n",
                 l.a, l.a_port, l.b, l.b_port, l.kind
             ));
         }
+    }
+
+    /// DHCP pools, banners, passwords, power state, modules and VLAN names.
+    fn write_device_settings(&self, out: &mut String) {
         let mut pools: Vec<_> = self.dhcp_pools.iter().collect();
         pools.sort_by_key(|(id, _)| id.as_str());
         for (id, p) in pools {
@@ -123,6 +143,10 @@ impl Workspace {
                 out.push_str(&format!("vlan\t{}\t{}\t{}\n", id, vlan, escape_field(name)));
             }
         }
+    }
+
+    /// Mail, TFTP, FTP, NTP, syslog and AAA state.
+    fn write_app_services(&self, out: &mut String) {
         let mut mail_users: Vec<_> = self.mail_users.iter().collect();
         mail_users.sort_by_key(|(id, _)| id.as_str());
         for (id, list) in mail_users {
@@ -209,6 +233,10 @@ impl Workspace {
                 ));
             }
         }
+    }
+
+    /// Port security, channel groups, ACLs, IPv6 networks and firewall features.
+    fn write_switching_security(&self, out: &mut String) {
         let mut ps: Vec<_> = self.port_security.iter().collect();
         ps.sort_by_key(|(id, _)| id.as_str());
         for (dev, table) in ps {
@@ -281,6 +309,10 @@ impl Workspace {
                 out.push_str(&format!("ips\t{}\t{}\n", dev, proto));
             }
         }
+    }
+
+    /// IoT registers, cell links, Wi-Fi, VPN, PPPoE and phones.
+    fn write_iot_and_wireless(&self, out: &mut String) {
         let mut iot: Vec<_> = self.iot_regs.iter().collect();
         iot.sort_by_key(|(id, _)| id.as_str());
         for (dev, regs) in iot {
@@ -358,6 +390,10 @@ impl Workspace {
         for (phone, (cm, ext)) in phones {
             out.push_str(&format!("phone\t{}\t{}\t{}\n", phone, cm, ext));
         }
+    }
+
+    /// Routing protocols, NAT, ACL bindings, DNS, HTTP pages and DHCP reservations.
+    fn write_routing_and_names(&self, out: &mut String) {
         let mut routing: Vec<_> = self.routing.iter().collect();
         routing.sort_by_key(|(id, _)| id.as_str());
         for (dev, (proto, nets)) in routing {
@@ -448,6 +484,5 @@ impl Workspace {
                 ));
             }
         }
-        out
     }
 }
