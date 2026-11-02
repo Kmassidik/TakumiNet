@@ -15,14 +15,14 @@ let cableFrom = null;
 /* Cable the palette is currently drawing; sent with every /api/links call. */
 let cableKind = 'eCopper';
 const CABLE_TYPES = [
-  ['eCopper', 'Copper', 'SpecificCopperStraight_40x40.png', 'Copper Straight-Through'],
-  ['eCross', 'Cross', 'SpecificArtificialCable_40x40.png', 'Copper Cross-Over'],
-  ['eSerial', 'Serial', 'SpecificSerialDTE_40x40.png', 'Serial DTE'],
-  ['eFiber', 'Fiber', 'SpecificFiber_40x40.png', 'Optical Fiber'],
-  ['eConsole', 'Console', 'SpecificConsole_40x40.png', 'Console (PC to router/switch)'],
-  ['ePhone', 'Phone', 'SpecificPhone_40x40.png', 'Phone (analog phone to router/switch)'],
-  ['eCoax', 'Coax', 'SpecificCoaxial_40x40.png', 'Coaxial (cable modem or cloud)'],
-  ['eIoT', 'IoT', 'SpecificIoECustomCable_40x40.png', 'IoT custom cable'],
+  ['eCopper', 'Copper', 'straight', 'Copper Straight-Through'],
+  ['eCross', 'Cross', 'cross', 'Copper Cross-Over'],
+  ['eSerial', 'Serial', 'coiled', 'Serial DTE'],
+  ['eFiber', 'Fiber', 'fiber', 'Optical Fiber'],
+  ['eConsole', 'Console', 'console', 'Console (PC to router/switch)'],
+  ['ePhone', 'Phone', 'phone', 'Phone (analog phone to router/switch)'],
+  ['eCoax', 'Coax', 'coax', 'Coaxial (cable modem or cloud)'],
+  ['eIoT', 'IoT', 'usb', 'IoT custom cable'],
 ];
 let pduMode = false;
 let pduFrom = null;

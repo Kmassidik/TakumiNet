@@ -97,7 +97,7 @@ function renderPalette() {
     cable.title = tip + ' — click two devices';
     cable.dataset.kind = kind;
     const cimg = document.createElement('img');
-    cimg.src = asset('art/ComponentBox/' + icon);
+    cimg.src = icon3d(`cables/${icon}`);
     const clabel = document.createElement('span');
     clabel.textContent = label;
     cable.appendChild(cimg);

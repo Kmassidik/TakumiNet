@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 const BASELINE: &[(&str, usize)] = &[
     ("web/index.html", 1),
     ("web/js/device_tabs.js", 2),
-    ("web/js/palette.js", 4),
+    ("web/js/palette.js", 3),
     ("web/js/state.js", 1),
 ];
 
