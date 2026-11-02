@@ -37,7 +37,7 @@ third-party icon set.
 Append to the prefix, listing cells in order:
 
 > Cell 1: a compact enterprise router, low flat chassis with a row of ports on
-> the front and two small antennas-free vents.
+> the front and ventilation slots on the side.
 > Cell 2: a 24-port managed network switch, flat rack-style body with two rows
 > of small ports and tiny status lights.
 > Cell 3: a desktop computer, boxy monitor on a stand with a keyboard in front
