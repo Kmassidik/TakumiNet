@@ -76,7 +76,7 @@ function renderPalette() {
     b.title = g.label;
     if (i === 0) b.classList.add('active');
     const img = document.createElement('img');
-    img.src = asset(g.icon);
+    img.src = g.icon;
     img.alt = g.label;
     b.appendChild(img);
     b.onclick = () => {

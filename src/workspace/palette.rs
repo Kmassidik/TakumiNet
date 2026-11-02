@@ -52,15 +52,15 @@ pub(super) const CATALOG: &[(&str, &str, &str)] = &[
 ];
 
 pub(super) const GROUPS: &[(&str, &str)] = &[
-    ("Routers", "Router25x25.png"),
-    ("Switches", "Switch25x25.png"),
-    ("Hubs", "Hub25x25.png"),
-    ("Wireless", "Wireless25x25.png"),
-    ("Security", "SpecificASA5505.png"),
-    ("WAN", "WANEmulation25x25.png"),
-    ("End devices", "EndTypes25x25.png"),
-    ("Connections", "Connections25x25.png"),
-    ("IoE", "IoE25x25.png"),
+    ("Routers", "/art3d/groups/routers.png"),
+    ("Switches", "/art3d/groups/switches.png"),
+    ("Hubs", "/art3d/groups/hubs.png"),
+    ("Wireless", "/art3d/groups/wireless.png"),
+    ("Security", "/art3d/groups/security.png"),
+    ("WAN", "/art3d/groups/wan.png"),
+    ("End devices", "/art3d/misc/devices.png"),
+    ("Connections", "/art3d/misc/cable.png"),
+    ("IoE", "/art3d/groups/notes.png"),
 ];
 
 pub(super) const FILTERS: &[&str] = &[

@@ -461,7 +461,7 @@ impl Workspace {
             o.push_str(&format!(
                 "{{\"label\":{},\"icon\":{}}}",
                 s(name),
-                s(&format!("art/ComponentBox/{icon}"))
+                s(icon)
             ));
         }
 

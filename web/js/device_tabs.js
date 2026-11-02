@@ -32,7 +32,7 @@ function tabDesktop(pane, d) {
     app.className = 'dw-app';
     app.title = label;
     const img = document.createElement('img');
-    img.src = asset('art/Workstation/' + icon);
+    img.src = icon3d(icon);
     img.alt = label;
     const span = document.createElement('span');
     span.textContent = label;
