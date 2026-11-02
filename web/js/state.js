@@ -61,7 +61,10 @@ function sfx(name) {
   } catch (_) { /* decorative */ }
 }
 
-function status(msg) { statusEl().textContent = msg; }
+function status(msg, failed = false) {
+  statusEl().textContent = msg;
+  document.getElementById('status-icon').hidden = !failed;
+}
 
 function node(name, attrs) {
   const el = document.createElementNS(NS, name);
@@ -83,11 +86,11 @@ async function api(path, params = {}) {
   try {
     res = await (await fetch(`${path}?${q}`, { method: 'POST' })).json();
   } catch (e) {
-    status('request failed');
+    status('request failed', true);
     return { error: 'request failed' };
   }
   if (res.error) {
-    status(res.error);
+    status(res.error, true);
     sfx('errorMsg');
     return res;
   }

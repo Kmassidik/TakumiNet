@@ -1,6 +1,6 @@
-# pt-web — Cisco Packet Tracer, rebuilt for the web in Rust
+# TakumiNet
 
-**Status:** Packet Tracer–style workspace UI live on `:3000`. REA not started.
+**Status:** Clean-room network simulator and workspace UI live on `:3000`.
 **Stack:** Rust (std only, no crates) + plain HTML/SVG front end.
 **Policy:** Nix/Docker only (`~/Desktop/NOTE.md`). Nothing installed globally.
 
@@ -203,11 +203,9 @@ simulation is ours and runs server-side in Rust.
   (`/api/devices/mailuser`, `/api/mail/send`, `/api/mail/list` — each send is a
   captured `SMTP` event) and a TFTP file store (`/api/devices/tftp`,
   `/api/tftp/list`, empty body deletes). Both persist in `.ptw`.
-- **Own artwork**: 21 original SVGs in `web/art/` (one per device kind) served
-  from `/art/<kind>.svg` as the fallback while canvas and palette draw the
-  mounted reference tree: palette entries and canvas devices both point at the
-  same `Workspace/Logical/*` file for their kind; each JSON entry carries an
-  `art` SVG path too, used when the tree is not mounted.
+- **Own artwork**: original 3D PNGs in `web/art/3d/` serve device, cable,
+  palette, toolbar, simulation, application, and mascot imagery through
+  `/art3d/<group>/<name>.png`. TakumiNet uses the fluffy mascot as its logo.
 - **Tests**: 136 unit + 24 end-to-end. `tests/e2e.rs` spawns the real binary and
   drives HTTP; `tests/corpus.rs` (opt-in `PT_CORPUS=1`) opens all 299 shipped
   saves through `/api/pkt/open` — **239 opened, 42 empty, 18 skipped (known

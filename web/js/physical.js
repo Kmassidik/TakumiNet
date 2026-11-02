@@ -94,7 +94,13 @@ function renderPhysical() {
   if (!kinds.length) {
     const empty = document.createElement('div');
     empty.className = 'meta';
-    empty.textContent = 'No devices in this workspace';
+    const mascot = document.createElement('img');
+    mascot.src = icon3d('mascot/sleep');
+    mascot.alt = '';
+    mascot.width = 96;
+    mascot.height = 96;
+    empty.appendChild(mascot);
+    empty.appendChild(document.createTextNode('No devices in this workspace'));
     racks.appendChild(empty);
   }
   host.appendChild(racks);

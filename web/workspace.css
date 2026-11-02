@@ -330,6 +330,7 @@ html, body {
   background: var(--chrome); border-top: 1px solid var(--line);
 }
 .statusbar #status-mode { border-left: 1px solid var(--line-soft); padding-left: 10px; }
+.statusbar #status-icon { vertical-align: middle; }
 
 /* ---------- misc states ---------- */
 .toolbar button:disabled { opacity: 0.35; cursor: default; }
