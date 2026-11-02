@@ -31,183 +31,183 @@ pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &
 }
 
 fn inspect_icmp(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lower: &str) -> String {
-        let on = !lower.starts_with("no ");
-        return match ws.set_inspection(id, on) {
-            Ok(()) => String::new(),
-            Err(e) => format!("% {e}\n"),
-        };
+    let on = !lower.starts_with("no ");
+    match ws.set_inspection(id, on) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
 }
 
 fn ips_signature(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, lower: &str) -> String {
-        let on = !lower.starts_with("no ");
-        let rest = if lower.starts_with("no ") {
-            &line["no ips signature ".len()..]
-        } else {
-            &line["ips signature ".len()..]
-        };
-        // `SIG action drop PROTO`
-        let mut words = rest.split_whitespace();
-        let (Some(_id), Some(action), Some(drop_kw), Some(proto)) =
-            (words.next(), words.next(), words.next(), words.next())
-        else {
-            return "% Incomplete command.\n".into();
-        };
-        if !action.eq_ignore_ascii_case("action") || !drop_kw.eq_ignore_ascii_case("drop") {
-            return "% Only action drop is supported\n".into();
-        }
-        return match ws.set_ips(id, proto, on) {
-            Ok(()) => String::new(),
-            Err(e) => format!("% {e}\n"),
-        };
+    let on = !lower.starts_with("no ");
+    let rest = if lower.starts_with("no ") {
+        &line["no ips signature ".len()..]
+    } else {
+        &line["ips signature ".len()..]
+    };
+    // `SIG action drop PROTO`
+    let mut words = rest.split_whitespace();
+    let (Some(_id), Some(action), Some(drop_kw), Some(proto)) =
+        (words.next(), words.next(), words.next(), words.next())
+    else {
+        return "% Incomplete command.\n".into();
+    };
+    if !action.eq_ignore_ascii_case("action") || !drop_kw.eq_ignore_ascii_case("drop") {
+        return "% Only action drop is supported\n".into();
+    }
+    match ws.set_ips(id, proto, on) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
 }
 
 fn spanning_tree_mode(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
-        let mode = line["spanning-tree mode ".len()..].trim().to_ascii_lowercase();
-        return match ws.set_stp_mode(id, &mode) {
-            Ok(()) => String::new(),
-            Err(e) => format!("% {e}\n"),
-        };
+    let mode = line["spanning-tree mode ".len()..].trim().to_ascii_lowercase();
+    match ws.set_stp_mode(id, &mode) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
 }
 
 fn router_protocol(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _lower: &str) -> String {
-        let rest = &line["router ".len()..];
-        let mut words = rest.split_whitespace();
-        let (Some(proto), pid) = (words.next(), words.next()) else {
-            return "% Incomplete command.\n".into();
-        };
-        let proto = proto.to_ascii_lowercase();
-        if !matches!(proto.as_str(), "rip" | "ospf" | "eigrp" | "ospfv3") {
-            return format!("% Invalid routing protocol: {proto}\n");
+    let rest = &line["router ".len()..];
+    let mut words = rest.split_whitespace();
+    let (Some(proto), pid) = (words.next(), words.next()) else {
+        return "% Incomplete command.\n".into();
+    };
+    let proto = proto.to_ascii_lowercase();
+    if !matches!(proto.as_str(), "rip" | "ospf" | "eigrp" | "ospfv3") {
+        return format!("% Invalid routing protocol: {proto}\n");
+    }
+    if proto != "rip" && pid.is_none() {
+        return "% Incomplete command.\n".into();
+    }
+    match ws.set_routing_protocol(id, &proto) {
+        Ok(()) => {
+            s.mode = Mode::Router;
+            s.router = Some(proto);
+            String::new()
         }
-        if proto != "rip" && pid.is_none() {
-            return "% Incomplete command.\n".into();
-        }
-        return match ws.set_routing_protocol(id, &proto) {
-            Ok(()) => {
-                s.mode = Mode::Router;
-                s.router = Some(proto);
-                String::new()
-            }
-            Err(e) => format!("% {e}\n"),
-        };
+        Err(e) => format!("% {e}\n"),
+    }
 }
 
 fn nat_source_list(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
-        let rest = &line["ip nat inside source list ".len()..];
-        let mut words = rest.split_whitespace();
-        let (Some(num), Some(kw), Some(iface), Some(overload)) =
-            (words.next(), words.next(), words.next(), words.next())
-        else {
-            return "% Incomplete command.\n".into();
-        };
-        if !kw.eq_ignore_ascii_case("interface")
-            || !overload.eq_ignore_ascii_case("overload")
-        {
-            return "% Only list ... interface ... overload is supported\n".into();
-        }
-        return match num.parse::<u16>() {
-            Ok(n) => match ws.add_nat_rule(id, n, iface) {
-                Ok(()) => String::new(),
-                Err(e) => format!("% {e}\n"),
-            },
-            Err(_) => format!("% Invalid access-list: {num}\n"),
-        };
+    let rest = &line["ip nat inside source list ".len()..];
+    let mut words = rest.split_whitespace();
+    let (Some(num), Some(kw), Some(iface), Some(overload)) =
+        (words.next(), words.next(), words.next(), words.next())
+    else {
+        return "% Incomplete command.\n".into();
+    };
+    if !kw.eq_ignore_ascii_case("interface")
+        || !overload.eq_ignore_ascii_case("overload")
+    {
+        return "% Only list ... interface ... overload is supported\n".into();
+    }
+    match num.parse::<u16>() {
+        Ok(n) => match ws.add_nat_rule(id, n, iface) {
+            Ok(()) => String::new(),
+            Err(e) => format!("% {e}\n"),
+        },
+        Err(_) => format!("% Invalid access-list: {num}\n"),
+    }
 }
 
 fn nat_clear(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, _lower: &str) -> String {
-        ws.clear_nat_rules(id);
-        return String::new();
+    ws.clear_nat_rules(id);
+    String::new()
 }
 
 fn access_list(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, lower: &str) -> String {
     let Some(rest) = lower.strip_prefix("access-list ") else { return invalid(line, Mode::Config) };
-        let original = &line["access-list ".len()..];
-        let _ = rest;
-        return acl_config(ws, id, original);
+    let original = &line["access-list ".len()..];
+    let _ = rest;
+    acl_config(ws, id, original)
 }
 
 fn hostname(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
-        let name = line[9..].trim().to_string();
-        if ws.rename(id, &name) {
-            return String::new();
-        }
-        return "% Invalid hostname\n".into();
+    let name = line[9..].trim().to_string();
+    if ws.rename(id, &name) {
+        return String::new();
+    }
+    "% Invalid hostname\n".into()
 }
 
 fn enter_interface(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
     let Some(rest) = iface_arg(&lower) else { return invalid(line, Mode::Config) };
-        let ports = ports_of(ws, id);
-        return match expand_iface(rest.trim(), &ports) {
-            Some(name) => {
-                s.mode = Mode::Iface;
-                s.iface = Some(name);
-                String::new()
-            }
-            None => format!("% Invalid interface name: {}\n", rest.trim()),
-        };
+    let ports = ports_of(ws, id);
+    match expand_iface(rest.trim(), &ports) {
+        Some(name) => {
+            s.mode = Mode::Iface;
+            s.iface = Some(name);
+            String::new()
+        }
+        None => format!("% Invalid interface name: {}\n", rest.trim()),
+    }
 }
 
 fn ip_route(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
-        return add_route_cmd(ws, id, &line[9..]);
+    add_route_cmd(ws, id, &line[9..])
 }
 
 fn no_command(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, lower: &str) -> String {
     let Some(rest) = lower.strip_prefix("no ") else { return invalid(line, Mode::Config) };
-        return config_no(ws, id, &line, rest.trim());
+    config_no(ws, id, &line, rest.trim())
 }
 
 fn banner(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
-        let rest = line[7..].trim();
-        // IOS accepts any delimiter: banner motd #text# / ^text^
-        let body = match rest.find(|c: char| c == '#' || c == '^') {
-            Some(i) => rest[i + 1..]
-                .trim_end_matches(|c| c == '#' || c == '^')
-                .trim()
-                .to_string(),
-            None => String::new(),
-        };
-        if body.is_empty() {
-            return "% Incomplete command.\n".into();
-        }
-        ws.banners.insert(id.to_string(), body);
-        return String::new();
+    let rest = line[7..].trim();
+    // IOS accepts any delimiter: banner motd #text# / ^text^
+    let body = match rest.find(|c: char| c == '#' || c == '^') {
+        Some(i) => rest[i + 1..]
+            .trim_end_matches(|c| c == '#' || c == '^')
+            .trim()
+            .to_string(),
+        None => String::new(),
+    };
+    if body.is_empty() {
+        return "% Incomplete command.\n".into();
+    }
+    ws.banners.insert(id.to_string(), body);
+    String::new()
 }
 
 fn line_config(_ws: &mut Workspace, _id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
-        let target = lower[5..].trim().to_string();
-        if !(target.starts_with("con") || target.starts_with("vty")) {
-            return format!("% Invalid line: {target}\n");
-        }
-        s.mode = Mode::Line;
-        s.iface = Some(target);
-        return String::new();
+    let target = lower[5..].trim().to_string();
+    if !(target.starts_with("con") || target.starts_with("vty")) {
+        return format!("% Invalid line: {target}\n");
+    }
+    s.mode = Mode::Line;
+    s.iface = Some(target);
+    String::new()
 }
 
 fn vlan(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
-        let rest = line[5..].trim();
-        let mut parts = rest.split_whitespace();
-        let Some(num) = parts.next() else {
-            return "% Incomplete command.\n".into();
-        };
-        let Ok(vlan) = num.parse::<u16>() else {
-            return format!("% Invalid VLAN id: {num}\n");
-        };
-        let name = parts.next().unwrap_or("");
-        return match ws.vlan_create(id, vlan, name) {
-            Ok(()) => String::new(),
-            Err(e) => format!("% {e}\n"),
-        };
+    let rest = line[5..].trim();
+    let mut parts = rest.split_whitespace();
+    let Some(num) = parts.next() else {
+        return "% Incomplete command.\n".into();
+    };
+    let Ok(vlan) = num.parse::<u16>() else {
+        return format!("% Invalid VLAN id: {num}\n");
+    };
+    let name = parts.next().unwrap_or("");
+    match ws.vlan_create(id, vlan, name) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
 }
 
 fn no_vlan(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
-        let num = line[8..].trim();
-        let Ok(vlan) = num.parse::<u16>() else {
-            return format!("% Invalid VLAN id: {num}\n");
-        };
-        return match ws.vlan_delete(id, vlan) {
-            Ok(()) => String::new(),
-            Err(e) => format!("% {e}\n"),
-        };
+    let num = line[8..].trim();
+    let Ok(vlan) = num.parse::<u16>() else {
+        return format!("% Invalid VLAN id: {num}\n");
+    };
+    match ws.vlan_delete(id, vlan) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
 }
 
 /// Commands that are a whole word or phrase rather than a prefix.
