@@ -9,7 +9,7 @@ Repo `/Users/mac/Desktop/Apps/TakumiNet`, branch `main`, GitHub `Kmassidik/Takum
 4. Back claims with data (tests, measurements, sources). Say what is unverified. No "proven" unless a checker ran.
 5. Code style: readable, small functions, few comments, senior-level, no AI slop.
 6. Be token-frugal: use Grep/Read with line ranges, no repeated full-file reads, no recaps.
-7. **If you are confused, or a step fails twice, STOP and ask the previous session, not the user:** `SendMessage({to: "takuminet-d6", message: "<one specific question + what you tried>"})`. It has the full conversation and knows what the user wants. Only if that session does not answer, ask the user. Do not guess, do not loop.
+7. **If you are confused, or a step fails twice, STOP.** Append the question and what you tried to `QUESTIONS.md` in the repo root, tell the user, and wait. If you are running inside Claude Code you may instead `SendMessage({to: "takuminet-d6", ...})`. Do not guess, do not loop.
 
 ## State (done and pushed, last commit `b9bd2eb`)
 - 97 own 3D icons in `web/art/3d/<group>/<name>.png` (256x256, transparent). Groups: devices(31 = names of the old flat SVGs in `web/art/`), toolbar, sim, cables, groups, apps, misc, mascot. `MANIFEST.json` lists sources.
@@ -31,7 +31,7 @@ Repo `/Users/mac/Desktop/Apps/TakumiNet`, branch `main`, GitHub `Kmassidik/Takum
 9. Rebuild Docker (`docker rm -f pt-web`; image is stale; first build is slow, LTO). Wand icon lost its sparkles in the cutout (retry cut alone): regenerate only if the user cares.
 
 ## Verifying in the browser
-Chrome extension tab: load tools with ONE ToolSearch call (`select:mcp__claude-in-chrome__tabs_context_mcp,...navigate,computer,javascript_tool,read_network_requests`). Check broken images with `[...document.images].filter(i=>!i.complete||!i.naturalWidth)`. Stop the local server when done.
+Browser audit needs a real browser tool (the Claude Code session used the Claude in Chrome extension). If your agent has none, skip step 8, say so, and do the rest. Any equivalent: load the page, then list broken images with `[...document.images].filter(i=>!i.complete||!i.naturalWidth)`.
 
 ## Bend
 Not installed, never run. The user chose the plain test workflow (`provness/` has LAWS.md L1-L9 and result.md). Do not claim anything is Bend-proven.
