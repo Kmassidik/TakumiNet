@@ -6,7 +6,15 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
     let html = "text/html; charset=utf-8";
     let reply = match (method, path) {
         ("GET", "/") => (html, file_bytes(&ctx.web_root, "index.html")),
-        ("GET", "/workspace.js") => ("text/javascript; charset=utf-8", file_bytes(&ctx.web_root, "workspace.js")),
+        ("GET", p) if p.starts_with("/js/") => {
+            let name = &p["/js/".len()..];
+            let safe = name.ends_with(".js") && !name.contains('/') && !name.contains("..");
+            if safe {
+                ("text/javascript; charset=utf-8", file_bytes(&ctx.web_root, &format!("js/{name}")))
+            } else {
+                (html, b"not found".to_vec())
+            }
+        }
         ("GET", "/workspace.css") => ("text/css; charset=utf-8", file_bytes(&ctx.web_root, "workspace.css")),
         ("GET", "/browser") | ("GET", "/browser.html") => (html, file_bytes(&ctx.web_root, "browser.html")),
         ("GET", "/browser.js") => ("text/javascript; charset=utf-8", file_bytes(&ctx.web_root, "browser.js")),

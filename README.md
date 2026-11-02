@@ -250,19 +250,25 @@ code inside a public web app is another. Plan:
 ## Layout
 
 ```
-src/model.rs     topology domain model + demo network
-src/sim.rs       L3 route lookup, L2 flood, path search, tests
-src/workspace.rs workspace description: devices, links, filters, palette
-src/assets.rs    read-only asset tree: resolve, list, totals
-src/http.rs      HTTP/1.1, asset streaming, JSON API, static files
-web/index.html   workspace UI (menus, toolbars, canvas, sim panel, palette)
-web/workspace.*  workspace CSS + JS
-web/browser.*    raw asset explorer at /browser
-scripts/         intake.sh — unpack + inventory a PT installer
-notes/           findings, one file per investigation
-intake/          (generated) extracted tree, digests, inventories
-Dockerfile       multi-stage build; assets mounted at /assets, never copied
-flake.nix        devShell + package
+src/main.rs        starts the server
+src/model.rs       topology model + demo network
+src/workspace/     devices and links; one file per domain
+                   (types, palette, links, switching, dhcp, nat, acl, aaa,
+                   routing, wireless, iot, wan, apps, ptw_save, ptw_load, ...)
+src/net/           packet, forward (L2/L3), sim, sched
+src/cli/           IOS CLI; one file per mode (exec, config, interface,
+                   router, line) plus show and help
+src/cmd.rs         PC command prompt
+src/http/          HTTP server; one route group per file, plus util
+src/storage/       ptfile + ptxml (.pkt), assets, catalog
+web/index.html     workspace UI shell
+web/js/            front end, plain scripts loaded in order by index.html
+web/workspace.css  styles
+web/browser.*      raw asset explorer at /browser
+scripts/           intake.sh: unpack + inventory a PT installer
+notes/             findings, one file per investigation
+Dockerfile         multi-stage build; assets mounted at /assets, never copied
+flake.nix          devShell + package
 ```
 
 ## Run

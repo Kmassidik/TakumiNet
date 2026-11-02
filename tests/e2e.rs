@@ -138,9 +138,12 @@ fn e2e_workspace_editing_and_simulation() {
     assert!(body.contains("Simulation Panel"), "ui shell missing");
 
     // static assets for the front end
-    let (status, head, _) = s.get("/workspace.js");
-    assert_eq!(status, 200);
-    assert!(head.contains("javascript"), "{head}");
+    for chunk in body.split("<script src=\"").skip(1) {
+        let src = chunk.split('"').next().unwrap_or("");
+        let (status, head, _) = s.get(src);
+        assert_eq!(status, 200, "{src}");
+        assert!(head.contains("javascript"), "{src}: {head}");
+    }
 
     // initial topology
     let (status, _, body) = s.get("/api/workspace");

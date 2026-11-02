@@ -1,0 +1,93 @@
+/* ---------------- topology ---------------- */
+function renderTopology() {
+  const s = svg();
+  s.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  s.replaceChildren();
+
+  if (showGrid) {
+    const defs = node('defs', {});
+    const pat = node('pattern', { id: 'grid', width: 25, height: 25, patternUnits: 'userSpaceOnUse' });
+    pat.appendChild(node('path', { d: 'M 25 0 L 0 0 0 25', fill: 'none', stroke: '#e3e8ee', 'stroke-width': 1 }));
+    defs.appendChild(pat);
+    s.appendChild(defs);
+    s.appendChild(node('rect', { x: vb.x, y: vb.y, width: vb.w, height: vb.h, fill: 'url(#grid)' }));
+  }
+
+  const byId = new Map(data.devices.map((d) => [d.id, d]));
+
+  for (const l of data.links) {
+    const a = byId.get(l.a);
+    const b = byId.get(l.b);
+    if (!a || !b) continue;
+
+    const isSel = selectedLink && selectedLink.a === l.a && selectedLink.b === l.b;
+    const isConsole = l.kind === 'eConsole';
+    s.appendChild(node('line', {
+      x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+      class: ['link', isSel ? 'selected' : '', isConsole ? 'console' : ''].filter(Boolean).join(' '),
+    }));
+
+    const hit = node('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'link-hit' });
+    hit.addEventListener('pointerdown', (ev) => {
+      ev.stopPropagation();
+      selectedLink = { a: l.a, b: l.b };
+      setSelection([]);
+      status(`${isConsole ? 'Console cable' : 'Link'}: ${a.name} ${l.aPort} ↔ ${b.name} ${l.bPort}`);
+      renderTopology();
+    });
+    s.appendChild(hit);
+
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = (-dy / len) * 11;
+    const ny = (dx / len) * 11;
+    for (const [t, sign, port] of [[0.46, 1, l.aPort], [0.54, -1, l.bPort]]) {
+      const label = node('text', {
+        x: a.x + dx * t + nx * sign,
+        y: a.y + dy * t + ny * sign,
+        class: 'port',
+        'text-anchor': 'middle',
+      });
+      label.textContent = port;
+      s.appendChild(label);
+    }
+  }
+
+  for (const d of data.devices) {
+    const g = node('g', { class: 'dev', 'data-id': d.id });
+    if (selection.has(d.id)) g.classList.add('selected');
+    if (d.id === cableFrom || d.id === pduFrom) g.classList.add('cable-src');
+    g.appendChild(node('rect', {
+      class: 'sel', x: d.x - 36, y: d.y - 34, width: 72, height: 72, rx: 6,
+      fill: 'transparent', stroke: 'transparent',
+    }));
+    const iconImg = node('image', {
+      href: asset(d.icon), x: d.x - 27, y: d.y - 30, width: 54, height: 54,
+      preserveAspectRatio: 'xMidYMid meet',
+    });
+    /* Mounted PT art is preferred; fall back to the shipped SVG when the
+       asset tree is not mounted. */
+    iconImg.onerror = () => {
+      if (d.art) iconImg.setAttribute('href', asset(d.art));
+    };
+    g.appendChild(iconImg);
+    const name = node('text', { x: d.x, y: d.y + 40, class: 'dev-name' });
+    name.textContent = d.name;
+    const model = node('text', { x: d.x, y: d.y + 52, class: 'dev-model' });
+    model.textContent = d.model;
+    g.appendChild(name);
+    g.appendChild(model);
+
+    if (d.ip) {
+      const ip = node('text', { x: d.x, y: d.y + 64, class: 'dev-ip' });
+      ip.textContent = `${d.ip}/${d.prefix}`;
+      g.appendChild(ip);
+    }
+
+    g.addEventListener('pointerdown', (ev) => startDrag(ev, d, g));
+    g.addEventListener('mousemove', (ev) => showTip(ev, `${d.name} · ${d.model}`));
+    g.addEventListener('mouseleave', hideTip);
+    s.appendChild(g);
+  }
+}
