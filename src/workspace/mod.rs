@@ -311,6 +311,19 @@ impl Workspace {
         o.push_str(&s("Physical · BS: 3, 2/2"));
         o.push_str("},\"devices\":[");
 
+        self.json_devices(&mut o);
+        o.push_str("],\"links\":[");
+        self.json_links(&mut o);
+        o.push_str("],\"filters\":[");
+        self.json_palette(&mut o);
+        o.push_str("],\"events\":[");
+        self.json_events(&mut o);
+        o.push_str("]}");
+        o
+    }
+
+    /// Device array body: addressing, ports and every per-device setting.
+    fn json_devices(&self, o: &mut String) {
         for (i, d) in self.devices.iter().enumerate() {
             if i > 0 {
                 o.push(',');
@@ -412,8 +425,10 @@ impl Workspace {
                 helpers
             ));
         }
+    }
 
-        o.push_str("],\"links\":[");
+    /// Cable array body.
+    fn json_links(&self, o: &mut String) {
         for (i, l) in self.links.iter().enumerate() {
             if i > 0 {
                 o.push(',');
@@ -427,8 +442,10 @@ impl Workspace {
                 s(&l.kind)
             ));
         }
+    }
 
-        o.push_str("],\"filters\":[");
+    /// Event filters, palette groups and palette tiles.
+    fn json_palette(&self, o: &mut String) {
         for (i, f) in FILTERS.iter().enumerate() {
             if i > 0 {
                 o.push(',');
@@ -462,8 +479,10 @@ impl Workspace {
                 s(kind)
             ));
         }
+    }
 
-        o.push_str("],\"events\":[");
+    /// Captured simulation events with per-hop detail.
+    fn json_events(&self, o: &mut String) {
         for (i, e) in self.events.iter().enumerate() {
             if i > 0 {
                 o.push(',');
@@ -504,8 +523,5 @@ impl Workspace {
             }
             o.push_str("]}");
         }
-
-        o.push_str("]}");
-        o
     }
 }
