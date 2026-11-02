@@ -194,3 +194,31 @@ PR 1 and PR 7b first (no art needed), then PR 2 (stop for owner review of the pi
 sheet), then PR 3 to 6 in any order as sheets arrive, PR 7 last, PR 8 in
 parallel. D1 to D4 are answered and Claude in Chrome is connected; nothing blocks
 the start except generating the pilot sheet with Codex.
+
+## Roadmap to "usable like the real one" (decided 2026-11-03)
+
+**Definition of done:** a student can finish a typical CCNA lab end to end: build the topology, configure it only through the IOS CLI, get correct ping/traceroute/show output, watch packets in Simulation mode, save and reopen the file.
+
+**Measured gaps (from the code, not guesses):**
+- `workspace/routing.rs::recompute_routing` runs ONE hop-count search for RIP, OSPF and EIGRP alike. No OSPF cost/areas/DR, no EIGRP metric, no AD/floating routes, BGP and HSRP absent, EtherChannel minimal.
+- `show` has ~28 commands, one explicit "not implemented yet" fallback (`cli/show.rs:44`). Ping prints a hardcoded `TTL=128`.
+- 6 toolbar buttons empty, Programming and Attributes tabs empty, Dialup app empty.
+
+**Method: lab conformance first.** Write `tests/labs/`: ~10 canonical CCNA labs as integration tests (build topology through the API, run CLI scripts, assert pings and key `show` lines). The pass/fail matrix is the work list, so nothing is built on a guess. Expected outputs come from the protocol specs and from behaviour, never copied vendor text.
+
+**Order (each item: failing lab test, then code, then `cargo test`, commit, push):**
+1. Core correctness: TTL from the packet, traceroute, ARP, ICMP unreachable and time-exceeded.
+2. IOS CLI fidelity: abbreviations, `?` help, mode prompts, `% Invalid input` caret, `show running-config` ordering, `write memory`/`copy run start`, `show` gaps.
+3. L2: VLAN/trunk/router-on-a-stick, STP/RSTP root election (IEEE bridge ID compare), EtherChannel.
+4. Routing, replace the shared search with real algorithms, each with property tests:
+   - Static/default with administrative distance and floating routes.
+   - RIPv2: Bellman-Ford, 15-hop limit.
+   - OSPF: LSDB + Dijkstra, cost = 10^8 / bandwidth, single area first, then multi-area.
+   - EIGRP: composite metric 256 * (10^7 / min bandwidth + sum delay / 10) (default K values).
+   - Property tests: Dijkstra equals brute force on random graphs; converged tables are loop-free; every router's route to a prefix is consistent.
+5. Services: verify DHCP/DNS/NAT/ACL with labs (they exist, prove them).
+6. Simulation mode parity: PDU list, event filters, per-layer inspection.
+7. File interop: open real .pkt, round-trip save (corpus test exists).
+8. Remaining UI placeholders and art (art steps 1-4 first, because broken icons hurt now).
+
+**Not now:** BGP, HSRP, IPv6 routing protocols, wireless controller depth: after the CCNA path passes.
