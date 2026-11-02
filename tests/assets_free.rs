@@ -14,15 +14,13 @@ use std::path::{Path, PathBuf};
 /// (file, references today). Lower these as art is replaced; never raise them.
 const BASELINE: &[(&str, usize)] = &[
     ("web/index.html", 1),
-    ("web/js/device_tabs.js", 3),
-    ("web/js/device_window.js", 1),
-    ("web/js/palette.js", 7),
+    ("web/js/device_tabs.js", 2),
+    ("web/js/palette.js", 4),
     ("web/js/state.js", 1),
-    ("web/js/topology.js", 2),
 ];
 
 /// Cisco logical-icon paths still sent to the browser by the server.
-const SERVER_LOGICAL_ART: usize = 32;
+const SERVER_LOGICAL_ART: usize = 0;
 
 fn count(haystack: &str, needle: &str) -> usize {
     haystack.matches(needle).count()

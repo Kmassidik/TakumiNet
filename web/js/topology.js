@@ -63,14 +63,9 @@ function renderTopology() {
       fill: 'transparent', stroke: 'transparent',
     }));
     const iconImg = node('image', {
-      href: asset(d.icon), x: d.x - 27, y: d.y - 30, width: 54, height: 54,
+      href: d.icon, x: d.x - 27, y: d.y - 30, width: 54, height: 54,
       preserveAspectRatio: 'xMidYMid meet',
     });
-    /* Mounted PT art is preferred; fall back to the shipped SVG when the
-       asset tree is not mounted. */
-    iconImg.onerror = () => {
-      if (d.art) iconImg.setAttribute('href', asset(d.art));
-    };
     g.appendChild(iconImg);
     const name = node('text', { x: d.x, y: d.y + 40, class: 'dev-name' });
     name.textContent = d.name;

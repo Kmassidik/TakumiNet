@@ -71,7 +71,7 @@ function tabPhysical(pane, d) {
     : (d.kind === 'server' ? 'PowerOnServer.png' : 'PowerOnPC.png');
   img.src = asset('art/PhysicalView/Devices/' + phys);
   img.alt = d.name;
-  img.onerror = () => { img.src = asset(d.icon); };
+  img.onerror = () => { img.src = d.icon; };
 
   const cap = document.createElement('div');
   cap.className = 'meta';

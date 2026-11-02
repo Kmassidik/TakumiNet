@@ -113,7 +113,7 @@ impl Workspace {
                 id: id.to_string(),
                 name: name.to_string(),
                 model: model.to_string(),
-                icon: logical_icon(kind).to_string(),
+                icon: logical_icon(model, kind),
                 kind: kind.to_string(),
                 x,
                 y,
@@ -178,7 +178,7 @@ impl Workspace {
             id: id.clone(),
             name: format!("{}{}", name_prefix(kind), n),
             model: model.to_string(),
-            icon: logical_icon(kind).to_string(),
+            icon: logical_icon(model, kind),
             kind: kind.to_string(),
             x: clamp_x(x),
             y: clamp_y(y),
@@ -474,7 +474,7 @@ impl Workspace {
             o.push_str(&format!(
                 "{{\"label\":{},\"icon\":{},\"art\":{},\"kind\":{}}}",
                 s(label),
-                s(logical_icon(kind)),
+                s(&logical_icon(label, kind)),
                 s(logical_art(kind)),
                 s(kind)
             ));

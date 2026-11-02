@@ -111,42 +111,12 @@ pub(super) fn phone_port(kind: &str) -> String {
     }
 }
 
-pub(super) fn logical_icon(kind: &str) -> &'static str {
-    // Mounted reference tree (never shipped in the image); used when present.
-    match kind {
-        "router" => "art/Workspace/Logical/iRouter@2x.png",
-        "switch" => "art/Workspace/Logical/iSwitch@2x.png",
-        "pc" => "art/Workspace/Logical/iWorkstation@2x.png",
-        "laptop" => "art/Workspace/Logical/iLaptop@2x.png",
-        "server" => "art/Workspace/Logical/iServer@2x.png",
-        "printer" => "art/Workspace/Logical/iPrinter@2x.png",
-        "cloud" => "art/Workspace/Logical/iCloud@2x.png",
-        "hub" => "art/Workspace/Logical/iHub@2x.png",
-        "ap" => "art/Workspace/Logical/iAccessPoint@2x.png",
-        "asa" => "art/Workspace/Logical/iASA@2x.png",
-        "phone" => "art/Workspace/Logical/iIPPhone@2x.png",
-        "tv" => "art/Workspace/Logical/iTV@2x.png",
-        "pda" => "art/Workspace/Logical/iPda@2x.png",
-        "tablet" => "art/Workspace/Logical/iTabletPC@2x.png",
-        "sniffer" => "art/Workspace/Logical/iSniffer@2x.png",
-        "wlc" => "art/Workspace/Logical/iWLC@2x.png",
-        "plc" => "art/Workspace/Logical/iPLC@2x.png",
-        "thing" => "art/Workspace/Logical/iThing@2x.png",
-        "ioe" => "art/Workspace/Logical/iIoE@2x.png",
-        "analogphone" => "art/Workspace/Logical/iAnalogPhone@2x.png",
-        "homerouter" => "art/Workspace/Logical/iHomeRouter@2x.png",
-        "linksys" => "art/Workspace/Logical/iLinksys@2x.png",
-        "cablemodem" => "art/Workspace/Logical/iModem@2x.png",
-        "dsl" => "art/Workspace/Logical/iDSL.png",
-        "multiuser" => "art/Workspace/Logical/iCluster@2x.png",
-        "celltower" => "art/Workspace/Logical/iCellTower@2x.png",
-        "ie2000" => "art/Workspace/Logical/iIE2000@2x.png",
-        "netcontroller" => "art/Workspace/Logical/iNetworkController@2x.png",
-        "meraki" => "art/Workspace/Logical/LogicalMerakiServer@2x.png",
-        "historian" => "art/Workspace/Logical/DataHistorianLogical.png",
-        "patchpanel" => "art/Workspace/Logical/iPatchPanel.png",
-        _ => "art/Workspace/Logical/iWorkstation@2x.png",
-    }
+pub(super) fn logical_icon(model: &str, kind: &str) -> String {
+    let icon = CATALOG
+        .iter()
+        .find(|(label, _, _)| *label == model)
+        .map_or(kind, |(_, _, kind)| kind);
+    format!("/art3d/devices/{icon}.png")
 }
 
 /// Original fallback artwork shipped in `web/art/<kind>.svg`.

@@ -152,12 +152,9 @@ function renderPalette() {
     if (model && model.description) tile.title += ` — ${model.description}`;
     tile.draggable = true;
     const img = document.createElement('img');
-    img.src = asset(p.icon);
+    img.src = p.icon;
     img.alt = p.label;
     img.draggable = false;
-    img.onerror = () => {
-      if (p.art && img.src !== asset(p.art)) img.src = asset(p.art);
-    };
     const span = document.createElement('span');
     span.textContent = p.label;
     tile.appendChild(img);

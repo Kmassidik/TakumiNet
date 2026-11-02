@@ -23,7 +23,7 @@ function openDeviceWindow(d) {
   dwDevice = d;
   const win = document.getElementById('device-window');
   document.getElementById('dw-name').textContent = d.name;
-  document.getElementById('dw-icon').src = asset(d.icon);
+  document.getElementById('dw-icon').src = d.icon;
   win.hidden = false;
   bringToFront(win);
   selectTab('desktop');

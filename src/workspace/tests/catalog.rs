@@ -1,41 +1,29 @@
 use super::super::*;
 
 #[test]
-fn catalog_icons_exist_in_extracted_tree() {
-    let art = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("intake/20261101-102334/appimage/opt/pt/art");
-    if !art.is_dir() {
-        return; // extracted asset tree absent: nothing to verify against
-    }
-    for (label, tile, kind) in CATALOG {
-        let p = art.join("ComponentBox").join(tile);
-        assert!(p.is_file(), "{label}: missing tile {}", p.display());
-        let icon = logical_icon(kind);
-        if let Some(name) = icon.strip_prefix("/art/") {
-            let p = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("web/art")
-                .join(name);
-            assert!(p.is_file(), "{label}: missing own icon {}", p.display());
-        } else {
-            let rel = icon.strip_prefix("art/").unwrap_or(icon);
-            let p = art.join(rel);
-            assert!(p.is_file(), "{label}: missing icon {}", p.display());
-        }
+fn catalog_icons_exist() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    for (label, _, kind) in CATALOG {
+        let icon = logical_icon(label, kind);
+        let name = icon.strip_prefix("/art3d/").expect("3D icon path");
+        let path = root.join("web/art/3d").join(name);
+        assert!(path.is_file(), "{label}: missing icon {}", path.display());
     }
 }
 
 #[test]
-fn palette_and_canvas_share_the_asset_tree_with_svg_fallback() {
+fn palette_and_canvas_share_3d_icons() {
     let ws = Workspace::new();
     let json = ws.json();
     for (label, tile, kind) in CATALOG {
         let _ = tile;
-        let icon = logical_icon(kind);
+        let icon = logical_icon(label, kind);
         let art = logical_art(kind);
         let needle = format!("\"label\":\"{label}\",\"icon\":\"{icon}\",\"art\":\"{art}\"");
         assert!(json.contains(&needle), "{label}: palette entry mismatch");
     }
     for d in &ws.devices {
+        assert_eq!(d.icon, logical_icon(&d.model, &d.kind));
         let needle = format!("\"icon\":\"{}\",\"art\":\"{}\"", d.icon, logical_art(&d.kind));
         assert!(json.contains(&needle), "{}: device icon mismatch", d.name);
     }
@@ -43,12 +31,8 @@ fn palette_and_canvas_share_the_asset_tree_with_svg_fallback() {
 
 #[test]
 fn every_catalog_kind_is_named_and_drawn() {
-    // `pc` deliberately shares the generic workstation artwork.
-    let fallback = logical_icon("__unknown_kind__");
     for (label, _, kind) in CATALOG {
         assert_ne!(name_prefix(kind), "Device", "{label} lacks a name prefix");
-        if *kind != "pc" {
-            assert_ne!(logical_icon(kind), fallback, "{label} falls back to the generic icon");
-        }
+        assert_eq!(logical_icon(label, kind), format!("/art3d/devices/{kind}.png"));
     }
 }

@@ -101,7 +101,7 @@ impl Workspace {
                 id: id.clone(),
                 name: d.name.clone(),
                 model: d.model.clone(),
-                icon: logical_icon(&d.kind).to_string(),
+                icon: logical_icon(&d.model, &d.kind),
                 kind: d.kind.clone(),
                 x: clamp_x(x),
                 y: clamp_y(y),
