@@ -79,6 +79,16 @@ function openCmd(d) {
         telnetPrompt = p.prompt || '>';
         out.textContent += telnetPrompt;
       }
+      getJson('/api/workspace').then((snapshot) => {
+        if (!Array.isArray(snapshot.devices)) return;
+        setData(snapshot);
+        if (verb !== 'ping' && verb !== 'tracert') return;
+        const event = snapshot.events && snapshot.events[snapshot.events.length - 1];
+        if (!event) return;
+        simCursor = event.id;
+        renderEvents();
+        animatePath(event.path);
+      });
     } catch {
       out.textContent += 'The system cannot find the path specified.\n\n';
     }

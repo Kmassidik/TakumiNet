@@ -8,6 +8,8 @@ P4 Chrome had no link LEDs. `link_json_exposes_green_amber_and_red_endpoint_stat
 
 P4 Chrome showed that terminal `shutdown` left the old LED colors on screen. `terminal output returns immediately while live port state refreshes behind it` failed before the fix. After it, Chrome printed `no shutdown` output in 41 ms, re-enabled input, and restored green LEDs without waiting for the background workspace refresh.
 
+P4 Chrome Command Prompt ping answered but left zero captured events and no PDU. `command prompt ping answers immediately then captures and animates its real path` failed before the fix. After it, Chrome answered in 13 ms, captured PC0 → Switch0 → Router0 → Switch1 → PC2, and animated that identical event path.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |
