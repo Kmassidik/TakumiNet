@@ -1,0 +1,26 @@
+<takuminet version="1">
+  <device id="router0" kind="router" model="2911" x="340" y="100" name="Router0" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="150" y="220" name="Switch0" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="2960" x="530" y="220" name="Switch1" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="60" y="370" name="PC0" ip="" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC-PT" x="220" y="370" name="PC1" ip="" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC-PT" x="460" y="370" name="PC2" ip="" prefix="24"/>
+  <device id="pc3" kind="pc" model="PC-PT" x="620" y="370" name="PC3" ip="" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="router0" a_port="Gig0/1" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/2" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/3" b="pc3" b_port="Fa0" kind="eCopper"/>
+  <port id="router0" name="GigabitEthernet0/0" up="0" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/1" up="0" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <lesson id="t4" title="Two networks joined by a router" level="2" minutes="15" goal="PC0 reaches PC3 through Router0 with delivered TTL 127"/>
+  <step n="1" text="Address PC0 as 192.168.1.10/24 and PC1 as 192.168.1.11/24; set both gateways to 192.168.1.1."/>
+  <step n="2" text="Address PC2 as 192.168.2.10/24 and PC3 as 192.168.2.11/24; set both gateways to 192.168.2.1."/>
+  <step n="3" text="On Router0, set GigabitEthernet0/0 to 192.168.1.1/24 and GigabitEthernet0/1 to 192.168.2.1/24."/>
+  <step n="4" text="Run no shutdown on both router interfaces, then ping 192.168.2.11 from PC0 and inspect the connected routes."/>
+  <check id="c1" kind="ping" from="pc0" to="pc3" url="" expect="ok" label="PC0 reaches PC3 through Router0"/>
+  <check id="c2" kind="ttl" from="pc0" to="pc3" url="" expect="127" label="The router decrements the delivered TTL to 127"/>
+  <check id="c3" kind="route" from="router0" to="" url="" expect="192.168.1.0/24" label="Router0 has the left connected prefix"/>
+  <check id="c4" kind="route" from="router0" to="" url="" expect="192.168.2.0/24" label="Router0 has the right connected prefix"/>
+</takuminet>

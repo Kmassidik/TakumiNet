@@ -176,6 +176,39 @@ fn l19_t3_dhcp_leases_and_web_page_after_solution() {
 }
 
 #[test]
+fn l20_t4_routed_networks_deliver_ttl127_and_connected_routes() {
+    let server = spawn(38_231);
+    let initial = server.open("t4");
+    assert!(initial.contains("\"id\":\"router0\"") && initial.contains("\"id\":\"switch1\""), "{initial}");
+    let (status, ports) = server.get("/api/devices/ports?id=router0");
+    assert_eq!(status, 200, "{ports}");
+    assert!(ports.contains("\"up\":false"), "router interfaces must start shut down: {ports}");
+    assert_check(&server.checks(), "c1", false);
+
+    for (id, ip, gateway) in [
+        ("pc0", "192.168.1.10", "192.168.1.1"),
+        ("pc1", "192.168.1.11", "192.168.1.1"),
+        ("pc2", "192.168.2.10", "192.168.2.1"),
+        ("pc3", "192.168.2.11", "192.168.2.1"),
+    ] {
+        server.set_ip(id, ip, gateway, "");
+    }
+    for line in [
+        "en", "conf t", "interface g0/0", "ip address 192.168.1.1 255.255.255.0", "no shutdown",
+        "interface g0/1", "ip address 192.168.2.1 255.255.255.0", "no shutdown", "end",
+    ] {
+        let output = server.cli("router0", line);
+        assert!(!output.contains("% Invalid") && !output.contains("% Incomplete"), "{line}: {output}");
+    }
+    let ping = server.command("pc0", "ping -n 1 192.168.2.11");
+    assert!(ping.contains("Reply from 192.168.2.11: bytes=32"), "{ping}");
+    assert!(ping.contains("TTL=127") && ping.contains("0% loss"), "{ping}");
+    let routes = server.cli("router0", "show ip route");
+    assert!(routes.contains("192.168.1.0/24") && routes.contains("192.168.2.0/24"), "{routes}");
+    assert_all_passed(&server.checks(), 4);
+}
+
+#[test]
 fn l16_every_native_template_loads_without_unresolved_devices_or_ports() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let server = spawn(38_227);
