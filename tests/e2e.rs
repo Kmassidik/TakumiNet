@@ -129,6 +129,30 @@ fn ok_or_missing(
 }
 
 #[test]
+fn e2e_about_page_is_public_and_linked_from_help() {
+    let s = spawn(38_170);
+
+    let (_, _, index) = s.get("/");
+    assert!(index.contains(r#"href="/about.html""#), "Help must link to the About page");
+
+    let (status, head, body) = s.get("/about.html");
+    assert_eq!(status, 200, "{body}");
+    assert!(head.contains("text/html"), "{head}");
+    for required in [
+        "original",
+        "ChatGPT",
+        "tools/build_art.py",
+        "MANIFEST.json",
+        "free",
+        "No Cisco account",
+        "not affiliated with Cisco",
+    ] {
+        assert!(body.contains(required), "About page is missing {required:?}");
+    }
+    assert!(body.contains(r#"href="/""#), "About page must link back to the workspace");
+}
+
+#[test]
 fn e2e_workspace_editing_and_simulation() {
     let s = spawn(38_171);
 

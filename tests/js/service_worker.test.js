@@ -118,7 +118,7 @@ function getRequest(pathname, options = {}) {
 
 test('precache manifest contains every production file and no documentation assets', () => {
   const worker = loadWorker();
-  const expected = ['/', '/workspace.css', '/engine.wasm'];
+  const expected = ['/', '/about.html', '/workspace.css', '/engine.wasm'];
   for (const filename of fs.readdirSync(path.join(root, 'web/js'))) {
     if (filename.endsWith('.js')) expected.push(`/js/${filename}`);
   }

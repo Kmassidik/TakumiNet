@@ -5,6 +5,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
     let html = "text/html; charset=utf-8";
     let reply = match (method, path) {
         ("GET", "/") => (html, file_bytes(&ctx.web_root, "index.html")),
+        ("GET", "/about.html") => (html, file_bytes(&ctx.web_root, "about.html")),
         ("GET", p) if p.starts_with("/sounds/") => {
             let name = &p["/sounds/".len()..];
             let safe = name.ends_with(".wav") && !name.contains('/') && !name.contains("..");

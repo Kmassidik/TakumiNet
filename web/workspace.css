@@ -331,11 +331,14 @@ html, body {
   box-shadow: 0 6px 18px #00000022; z-index: 60; padding: 3px;
 }
 .menu.open .drop { display: block; }
-.menu .drop button {
+.menu .drop button,
+.menu .drop a {
   display: block; width: 100%; text-align: left; padding: 4px 10px;
   background: none; border: none; font: inherit; cursor: pointer; color: var(--text);
+  text-decoration: none;
 }
-.menu .drop button:hover:not(:disabled) { background: #e8f0fd; }
+.menu .drop button:hover:not(:disabled),
+.menu .drop a:hover { background: #e8f0fd; }
 .menu .drop button:disabled { color: #a0a8b0; cursor: default; }
 .menu .drop .sep { height: 1px; background: var(--line-soft); margin: 3px 4px; }
 

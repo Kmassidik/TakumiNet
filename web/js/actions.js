@@ -254,11 +254,6 @@ const ACTIONS = {
     };
     document.getElementById('prefs-close').onclick = () => { dlg.hidden = true; };
   },
-  about() {
-    const dlg = document.getElementById('about-dialog');
-    dlg.hidden = false;
-    document.getElementById('about-close').onclick = () => { dlg.hidden = true; };
-  },
 };
 
 function zoom(factor) {
