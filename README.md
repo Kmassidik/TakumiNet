@@ -36,6 +36,29 @@ AAA, ACLs, NAT, IPv6 configuration, wireless, VPN, PPPoE, phones and industrial
 protocol state. Captured events retain per-hop protocol details and drop
 reasons.
 
+## Engineer view
+
+The bottom **Capture** dock links a seven-column packet list, an expandable
+protocol-details tree, and a hex/ASCII wire-byte pane. Selecting a decoded layer
+highlights its byte range. The display filter accepts protocol names,
+`ip.src`, `ip.dst`, `eth.addr`, TTL comparisons, `&&`, `||`, `!`, and
+parentheses; invalid expressions report an error without interrupting capture.
+The **Flow** tab draws the same events as a selectable SVG ladder.
+
+Step, Back, Play, and Reset are available from the transport controls. Space
+plays or pauses, Right Arrow steps, and Left Arrow goes back. The speed slider
+selects 0.25×, 0.5×, 1×, or 2×. Canvas packets use the same fixed protocol
+palette as Capture, while the narration and mascot explain real switching,
+ARP, routing, delivery, and drop decisions. **Check my work** runs the actual
+lesson checks, shows progress and per-check reasons, refreshes Capture, and
+animates the checked path.
+
+**Save capture** exports standard Ethernet libpcap (`.pcap`) using
+`GET /api/capture/export`. `GET /api/capture/bytes?id=` returns the selected
+recorded frame as hexadecimal. Wireshark compatibility is covered by a binary
+reparse test; opening the file interactively in Wireshark remains an owner
+check.
+
 ## Native `.tnet` files
 
 The only writable persistence format is TakumiNet XML:
@@ -77,6 +100,7 @@ src/net/              packet model, forwarding and simulation
 src/cli/              device command-line interface
 src/http/             HTTP server and route groups
 src/storage/xml.rs    dependency-free XML reader/writer
+src/storage/pcap.rs   dependency-free Ethernet libpcap writer
 web/                  original artwork, sounds and browser application
 tests/                HTTP, protocol, asset-policy and JavaScript checks
 provness/pt-web/      executable laws and their latest results

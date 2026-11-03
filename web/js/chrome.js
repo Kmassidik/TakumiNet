@@ -42,15 +42,21 @@ function wireActions() {
         const events = visibleEvents();
         if (events.length) {
           const event = events[events.length - 1];
-          simCursor = event.id;
-          renderEvents();
-          animatePath(event.path);
+          if (typeof selectCaptureEvent === 'function') selectCaptureEvent(event.id);
+          else {
+            simCursor = event.id;
+            renderEvents();
+            animatePath(event.path, event.proto);
+          }
         }
       }
     });
   });
   document.getElementById('show-all').onclick = () => setAllFilters(true);
   document.getElementById('show-none').onclick = () => setAllFilters(false);
+  const speed = document.getElementById('playback-speed');
+  if (speed) speed.addEventListener('input', () => setPlaybackSpeed(speed.value));
+  if (typeof wireEngineerView === 'function') wireEngineerView();
   document.querySelectorAll('.modes .mode').forEach((b) => {
     b.onclick = () => {
       document.querySelectorAll('.modes .mode').forEach((x) => x.classList.remove('active'));
@@ -63,7 +69,17 @@ function wireActions() {
 
 function wireKeyboard() {
   document.addEventListener('keydown', async (e) => {
-    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+    const active = document.activeElement;
+    if (active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable)) return;
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === ' ') {
+      e.preventDefault(); togglePlay(); return;
+    }
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowRight') {
+      e.preventDefault(); stepSim(1); return;
+    }
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowLeft') {
+      e.preventDefault(); stepSim(-1); return;
+    }
     const meta = e.ctrlKey || e.metaKey;
     if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); ACTIONS.undo(); }
     else if (meta && e.key.toLowerCase() === 'y') { e.preventDefault(); ACTIONS.redo(); }

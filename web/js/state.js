@@ -41,6 +41,8 @@ let simCursor = -1;
    clicks on the same event within 400 ms, like the canvas does for devices. */
 let lastRowClick = { id: -1, t: 0 };
 let playTimer = null;
+const PLAYBACK_SPEEDS = [0.25, 0.5, 1, 2];
+let playbackSpeed = 1;
 let currentName = 'lab1';
 
 const svg = () => document.getElementById('topology');

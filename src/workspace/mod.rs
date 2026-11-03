@@ -519,7 +519,7 @@ impl Workspace {
                 o.push(',');
             }
             o.push_str(&format!(
-                "{{\"id\":{},\"time\":{},\"last\":{},\"at\":{},\"type\":{},\"proto\":{},\"size\":{},\"status\":{},\"reason\":{},\"path\":[",
+                "{{\"id\":{},\"time\":{},\"last\":{},\"at\":{},\"type\":{},\"proto\":{},\"size\":{},\"status\":{},\"reason\":{},\"note\":{},\"path\":[",
                 e.id,
                 e.time,
                 s(&e.last),
@@ -528,7 +528,8 @@ impl Workspace {
                 s(&e.proto),
                 e.size,
                 s(&e.status),
-                opt_str(e.reason.as_deref())
+                opt_str(e.reason.as_deref()),
+                s(&e.note)
             ));
             for (j, hop) in e.path.iter().enumerate() {
                 if j > 0 {

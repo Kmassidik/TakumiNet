@@ -69,6 +69,8 @@ impl Workspace {
             )],
             status: "Successful".into(),
             reason: None,
+            note: format!("{} sends an SMTP message to {} through {}", self.name_of(client), to, self.name_of(server)),
+            bytes: Vec::new(),
             size: 900,
         });
         Ok(())

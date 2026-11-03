@@ -36,20 +36,32 @@ pub struct Hop {
 }
 
 #[derive(Clone, Debug)]
+pub struct ArpEvent {
+    pub src: String,
+    pub dst: String,
+    pub path: Vec<String>,
+    pub hops: Vec<Hop>,
+    pub bytes: Vec<u8>,
+    pub note: String,
+    pub finished_at: f64,
+}
+
+#[derive(Clone, Debug)]
+pub struct ArpExchange {
+    pub request: ArpEvent,
+    pub reply: ArpEvent,
+}
+
+#[derive(Clone, Debug)]
 pub struct Delivery {
     pub path: Vec<String>,
     pub hops: Vec<Hop>,
     pub frame: Frame,
+    pub arp: Option<ArpExchange>,
     /// One-way time in seconds, PT's 1 ms per hop tick.
     pub time: f32,
     /// Absolute simulated time of the last arrival.
     pub finished_at: f64,
-}
-
-impl Delivery {
-    pub fn size(&self) -> usize {
-        self.frame.to_bytes().len()
-    }
 }
 
 /// An unsuccessful delivery retains every device hop captured before the drop.
@@ -58,6 +70,8 @@ pub struct DeliveryError {
     pub reason: String,
     pub path: Vec<String>,
     pub hops: Vec<Hop>,
+    pub frame: Option<Frame>,
+    pub arp: Option<ArpExchange>,
     pub size: usize,
     pub finished_at: f64,
 }
@@ -66,6 +80,8 @@ pub struct DeliveryError {
 struct Capture {
     path: Vec<String>,
     hops: Vec<Hop>,
+    frame: Option<Frame>,
+    arp: Option<ArpExchange>,
     size: usize,
 }
 
@@ -106,8 +122,11 @@ where
         reason,
         path: capture.path,
         size: capture.size,
-        finished_at: started_at + capture.hops.len() as f64 * 0.001,
+        finished_at: capture.arp.as_ref().map_or(started_at, |arp| arp.reply.finished_at)
+            + capture.hops.len() as f64 * 0.001,
         hops: capture.hops,
+        frame: capture.frame,
+        arp: capture.arp,
     })
 }
 
@@ -146,6 +165,13 @@ where
             None => return Err(blocked_reason(ws, src, dst)),
         },
     };
+    if let (Some(sip), Some(dip)) = (src_ip, dst_ip) {
+        capture.arp = resolve_arp(ws, &sdev, dst, dip, sip, &data_path);
+    }
+    let data_started_at = capture
+        .arp
+        .as_ref()
+        .map_or(ws.sim_time as f64, |arp| arp.reply.finished_at);
     capture.path = data_path.devices;
     let path = &capture.path;
 
@@ -183,6 +209,7 @@ where
         let src_mac = cur_src;
         let dst_mac = Mac::for_device(&next_l3);
         capture.size = 14 + 20 + packet.payload_len();
+        capture.frame = Some(Frame::ipv4(dst_mac, src_mac, packet.clone()));
 
         let mut note = String::new();
 
@@ -273,7 +300,10 @@ where
                 if i > 0 && i < last {
                     match packet.transit() {
                         Transit::Forward(next) => {
-                            note = format!("routed: TTL {} -> {}", packet.ttl, next.ttl);
+                            note = format!(
+                                "{} decrements TTL {} to {} and forwards",
+                                dev.name, packet.ttl, next.ttl
+                            );
                             packet = next;
                             cur_src = Mac::for_device(dev_id);
                             vlan = None; // the egress interface selects the next L2 VLAN
@@ -324,16 +354,31 @@ where
                         ));
                     }
                 }
-                if let Some(idx) = ingress.as_ref().and_then(|p| port_index(&dev, p)) {
-                    let now = ws.sim_time as f64 + i as f64 * 0.001;
+                if let Some((idx, ingress_name)) = ingress
+                    .as_ref()
+                    .and_then(|p| port_index(&dev, p).map(|idx| (idx, p)))
+                {
+                    let now = data_started_at + i as f64 * 0.001;
+                    let learning = format!(
+                        "{} learns source MAC {} on {}",
+                        dev.name, src_mac, ingress_name
+                    );
                     let table = ws.tables.macs(dev_id);
                     table.learn(src_mac, idx, now);
-                    match table.lookup(dst_mac, now) {
-                        Some(e) if e.port != idx => {
-                            note = format!("MAC table hit {} on port {}", dst_mac, e.port);
-                        }
-                        _ => note = format!("flooding (unknown {})", dst_mac),
-                    }
+                    note = match table.lookup(dst_mac, now) {
+                        Some(e) if e.port != idx => format!(
+                            "{learning}; MAC table hit {} on port {}, so it forwards there",
+                            dst_mac, e.port
+                        ),
+                        Some(e) => format!(
+                            "{learning}; destination {} is already on the ingress port {}, so it does not flood",
+                            dst_mac, e.port
+                        ),
+                        None => format!(
+                            "{learning}; destination MAC {} is unknown, so it floods the frame",
+                            dst_mac
+                        ),
+                    };
                 }
             }
             "hub" => note = "repeated to every port".into(),
@@ -359,30 +404,11 @@ where
     // The scheduler owns time: one arrival per device, 1 ms apart. `finished_at`
     // is when the last device saw the frame.
     let mut scheduler = crate::net::sched::Scheduler::new();
-    let times = scheduler.schedule(ws.sim_time as f64, &path);
+    let times = scheduler.schedule(data_started_at, &path);
     for (hop, t) in capture.hops.iter_mut().zip(times.iter()) {
         hop.t = *t;
     }
-    let finished_at = times.last().copied().unwrap_or(ws.sim_time as f64);
-
-    // ARP: the first frame to a neighbour needs its MAC, which the cache
-    // answers after the exchange. Routed traffic resolves the gateway instead.
-    if let (Some(sip), Some(dip)) = (src_ip, dst_ip) {
-        let now = ws.sim_time as f64;
-        if same_subnet(sdev.prefix, sip, ddev.prefix, dip) {
-            ws.tables.arps(src).insert(dip, Mac::for_device(dst), now);
-            if let Some(h) = capture.hops.get_mut(1) {
-                if h.note.is_empty() {
-                    h.note = format!("ARP: {} is at {}", ipv4_string(dip), Mac::for_device(dst));
-                }
-            }
-        } else if let Some(gw) = sdev.gateway {
-            let gw_id = ws.router_with_addr(gw).map(|d| d.id.clone());
-            if let Some(gw_id) = gw_id {
-                ws.tables.arps(src).insert(gw, Mac::for_device(&gw_id), now);
-            }
-        }
-    }
+    let finished_at = times.last().copied().unwrap_or(data_started_at);
 
     // The frame as it arrives: last segment's header, final TTL in the packet.
     let (last_src, last_dst) = match capture.hops.last() {
@@ -396,9 +422,248 @@ where
         path: std::mem::take(&mut capture.path),
         hops: std::mem::take(&mut capture.hops),
         frame,
+        arp: capture.arp.take(),
         time,
         finished_at,
     })
+}
+
+fn resolve_arp(
+    ws: &mut Workspace,
+    source: &Device,
+    dst: &str,
+    dst_ip: u32,
+    src_ip: u32,
+    data_path: &DataPath,
+) -> Option<ArpExchange> {
+    let target_ip = match next_hop(ws, source, dst_ip) {
+        NextHop::Direct(_) => dst_ip,
+        NextHop::Via(ip, _) => ip,
+        NextHop::NoRoute(_) => return None,
+    };
+    let now = ws.sim_time as f64;
+    if ws.tables.arps(&source.id).lookup(target_ip, now).is_some() {
+        return None;
+    }
+
+    let target_idx = data_path.devices.iter().enumerate().skip(1).find_map(|(idx, id)| {
+        let is_target = id == dst
+            || ws.devices.iter().find(|dev| &dev.id == id).is_some_and(|dev| {
+                dev.kind != "switch" && dev.kind != "hub"
+            });
+        is_target.then_some(idx)
+    })?;
+    let target_id = data_path.devices[target_idx].clone();
+    let target = find(ws, &target_id).ok()?.clone();
+    let request_path = DataPath {
+        devices: data_path.devices[..=target_idx].to_vec(),
+        links: data_path.links[..target_idx].to_vec(),
+    };
+    let reply_path = DataPath {
+        devices: request_path.devices.iter().rev().cloned().collect(),
+        links: request_path.links.iter().rev().copied().collect(),
+    };
+
+    let source_mac = Mac::for_device(&source.id);
+    let target_mac = Mac::for_device(&target.id);
+    let request_note = format!(
+        "{} has no ARP entry for {}, so it asks first",
+        source.name,
+        ipv4_string(target_ip)
+    );
+    let request = arp_event(
+        ws,
+        source,
+        &target,
+        src_ip,
+        target_ip,
+        &request_path,
+        true,
+        request_note,
+        now,
+    );
+    let reply_note = format!(
+        "{} answers {}: {} is at {}",
+        target.name,
+        source.name,
+        ipv4_string(target_ip),
+        target_mac
+    );
+    let reply = arp_event(
+        ws,
+        &target,
+        source,
+        target_ip,
+        src_ip,
+        &reply_path,
+        false,
+        reply_note,
+        request.finished_at,
+    );
+
+    // Both ends learn from the exchange, just as real ARP implementations do.
+    ws.tables.arps(&source.id).insert(target_ip, target_mac, now);
+    ws.tables.arps(&target.id).insert(src_ip, source_mac, now);
+    Some(ArpExchange { request, reply })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn arp_event(
+    ws: &mut Workspace,
+    sender: &Device,
+    target: &Device,
+    sender_ip: u32,
+    target_ip: u32,
+    path: &DataPath,
+    request: bool,
+    note: String,
+    started_at: f64,
+) -> ArpEvent {
+    let src_mac = Mac::for_device(&sender.id);
+    let dst_mac = if request { Mac::BROADCAST } else { Mac::for_device(&target.id) };
+    let bytes = arp_frame(request, src_mac, dst_mac, sender_ip, target_ip);
+    let layers = arp_layers(request, src_mac, dst_mac, sender_ip, target_ip);
+    let last = path.devices.len() - 1;
+    let mut hops = Vec::with_capacity(path.devices.len());
+
+    for (i, dev_id) in path.devices.iter().enumerate() {
+        let dev = find(ws, dev_id).cloned().unwrap_or_else(|_| sender.clone());
+        let ingress = if i == 0 {
+            None
+        } else {
+            let link = &ws.links[path.links[i - 1]];
+            Some(port_on(&dev, if link.a == *dev_id { &link.a_port } else { &link.b_port }))
+        };
+        let egress = if i == last {
+            None
+        } else {
+            let link = &ws.links[path.links[i]];
+            Some(port_on(&dev, if link.a == *dev_id { &link.a_port } else { &link.b_port }))
+        };
+        let mut hop_note = if i == 0 {
+            note.clone()
+        } else if i == last {
+            if request {
+                format!("{} receives the ARP request for {}", dev.name, ipv4_string(target_ip))
+            } else {
+                format!(
+                    "{} learns that {} is at {} from the ARP reply",
+                    dev.name,
+                    ipv4_string(sender_ip),
+                    src_mac
+                )
+            }
+        } else {
+            String::new()
+        };
+
+        match dev.kind.as_str() {
+            "switch" => {
+                if let Some((idx, ingress_name)) = ingress
+                    .as_ref()
+                    .and_then(|port| port_index(&dev, port).map(|idx| (idx, port)))
+                {
+                    let now = started_at + i as f64 * 0.001;
+                    let table = ws.tables.macs(dev_id);
+                    table.learn(src_mac, idx, now);
+                    let forwarding = if dst_mac.is_broadcast() {
+                        "the destination is broadcast, so it floods the ARP request".to_string()
+                    } else {
+                        match table.lookup(dst_mac, now) {
+                            Some(entry) if entry.port != idx => format!(
+                                "its MAC table has {} on port {}, so it forwards the ARP reply there",
+                                dst_mac, entry.port
+                            ),
+                            _ => "the destination is unknown, so it floods the ARP reply".to_string(),
+                        }
+                    };
+                    hop_note = format!(
+                        "{} learns source MAC {} on {}; {}",
+                        dev.name, src_mac, ingress_name, forwarding
+                    );
+                }
+            }
+            "hub" => {
+                hop_note = format!("{} repeats the ARP frame to every other port", dev.name);
+            }
+            _ => {}
+        }
+
+        hops.push(Hop {
+            id: dev_id.clone(),
+            name: dev.name,
+            ingress,
+            egress,
+            t: 0.0,
+            ttl: 0,
+            src_mac,
+            dst_mac,
+            src_ip: sender_ip,
+            dst_ip: target_ip,
+            layers: layers.clone(),
+            note: hop_note,
+        });
+    }
+
+    let mut scheduler = crate::net::sched::Scheduler::new();
+    let times = scheduler.schedule(started_at, &path.devices);
+    for (hop, time) in hops.iter_mut().zip(times.iter()) {
+        hop.t = *time;
+    }
+    let finished_at = times.last().copied().unwrap_or(started_at);
+    ArpEvent {
+        src: sender.id.clone(),
+        dst: target.id.clone(),
+        path: path.devices.clone(),
+        hops,
+        bytes,
+        note,
+        finished_at,
+    }
+}
+
+fn arp_frame(request: bool, src: Mac, dst: Mac, sender_ip: u32, target_ip: u32) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(42);
+    bytes.extend(dst.0);
+    bytes.extend(src.0);
+    bytes.extend(0x0806u16.to_be_bytes());
+    bytes.extend(1u16.to_be_bytes()); // Ethernet hardware type
+    bytes.extend(0x0800u16.to_be_bytes()); // IPv4 protocol type
+    bytes.extend([6, 4]);
+    bytes.extend((if request { 1u16 } else { 2u16 }).to_be_bytes());
+    bytes.extend(src.0);
+    bytes.extend(sender_ip.to_be_bytes());
+    bytes.extend(if request { [0; 6] } else { dst.0 });
+    bytes.extend(target_ip.to_be_bytes());
+    bytes
+}
+
+fn arp_layers(request: bool, src: Mac, dst: Mac, sender_ip: u32, target_ip: u32) -> Vec<Layer> {
+    vec![
+        Layer::new(
+            "Ethernet II",
+            vec![
+                ("Destination".into(), dst.to_string()),
+                ("Source".into(), src.to_string()),
+                ("EtherType".into(), "ARP (0x0806)".into()),
+            ],
+        ),
+        Layer::new(
+            "ARP",
+            vec![
+                ("Hardware Type".into(), "Ethernet (1)".into()),
+                ("Protocol Type".into(), "IPv4 (0x0800)".into()),
+                ("Opcode".into(), if request { "1 (Request)".into() } else { "2 (Reply)".into() }),
+                ("Sender MAC".into(), src.to_string()),
+                ("Sender IP".into(), ipv4_string(sender_ip)),
+                (
+                    "Target MAC".into(),
+                    if request { Mac([0; 6]).to_string() } else { dst.to_string() },
+                ),
+                ("Target IP".into(), ipv4_string(target_ip)),
+            ],
+        ),
+    ]
 }
 
 fn decode_layers(src_mac: Mac, dst_mac: Mac, packet: &Packet) -> Vec<Layer> {
@@ -683,11 +948,6 @@ fn port_is_up(dev: &Device, raw: &str) -> bool {
 
 fn addr_of(d: &Device) -> Option<u32> {
     d.ip.or_else(|| d.ports.iter().find_map(|p| p.ip))
-}
-
-fn same_subnet(ap: u8, a: u32, bp: u8, b: u32) -> bool {
-    use crate::model::contains;
-    contains(a, b, ap) && contains(b, a, bp)
 }
 
 /// The next device after `i` that terminates an L2 domain.

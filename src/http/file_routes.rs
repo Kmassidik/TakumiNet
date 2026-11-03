@@ -7,6 +7,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str, body: &[u8
         ("POST", "/api/load") => Some(handle_load(ctx, query)),
         ("GET", "/api/saves") => Some(handle_saves()),
         ("GET", "/api/export") => Some(handle_export(ctx)),
+        ("GET", "/api/capture/bytes") => Some(handle_capture_bytes(ctx, query)),
+        ("GET", "/api/capture/export") => Some(handle_capture_export(ctx)),
         ("POST", "/api/import") => Some(handle_import(ctx, query, body)),
         ("GET", "/api/checks") => Some(handle_checks(ctx)),
         ("GET", "/api/templates") => Some(handle_templates(ctx)),
@@ -76,6 +78,40 @@ fn handle_saves() -> (&'static str, Vec<u8>) {
 fn handle_export(ctx: &Ctx) -> (&'static str, Vec<u8>) {
     let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     ("application/xml; charset=utf-8", ws.to_tnet().into_bytes())
+}
+
+fn handle_capture_bytes(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let Ok(id) = query_value(query, "id").unwrap_or_default().parse::<u32>() else {
+        return (json, json_error("invalid or missing event id").into_bytes());
+    };
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let Some(event) = ws.events.iter().find(|event| event.id == id) else {
+        return (json, json_error("unknown capture event").into_bytes());
+    };
+    if event.bytes.is_empty() {
+        return (json, json_error("capture event has no frame bytes").into_bytes());
+    }
+    let mut hex = String::with_capacity(event.bytes.len() * 2);
+    for byte in &event.bytes {
+        hex.push(char::from_digit((byte >> 4) as u32, 16).unwrap());
+        hex.push(char::from_digit((byte & 0x0f) as u32, 16).unwrap());
+    }
+    (
+        json,
+        format!("{{\"id\":{id},\"hex\":{},\"length\":{}}}", json_str(&hex), event.bytes.len()).into_bytes(),
+    )
+}
+
+fn handle_capture_export(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let frames = ws.events.iter().filter(|event| !event.bytes.is_empty()).map(|event| {
+        (event.time as f64, event.bytes.as_slice())
+    });
+    (
+        "application/vnd.tcpdump.pcap",
+        crate::storage::pcap::write_pcap(frames),
+    )
 }
 
 fn handle_import(ctx: &Ctx, query: &str, body: &[u8]) -> (&'static str, Vec<u8>) {

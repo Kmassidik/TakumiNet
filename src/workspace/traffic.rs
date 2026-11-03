@@ -72,14 +72,22 @@ impl Workspace {
         Ok(())
     }
 
-    fn record_delivery(
+    pub(super) fn record_delivery(
         &mut self,
         src: &str,
         dst: &str,
         proto: &str,
-        delivery: crate::net::fwd::Delivery,
+        mut delivery: crate::net::fwd::Delivery,
     ) -> Result<(), String> {
-        let size = delivery.size();
+        if let Some(arp) = delivery.arp.take() {
+            self.record_arp_exchange(arp);
+        }
+        let bytes = delivery.frame.to_bytes();
+        let size = bytes.len();
+        let mut note = hop_narration(&delivery.hops);
+        if note.is_empty() {
+            note = format!("{} delivers {proto} to {}", self.name_of(src), self.name_of(dst));
+        }
         self.next_event += 1;
         self.sim_time = delivery.finished_at as f32;
         self.events.push(Event {
@@ -94,6 +102,8 @@ impl Workspace {
             layers: Vec::new(),
             status: "Successful".into(),
             reason: None,
+            note,
+            bytes,
             size,
         });
         let line = format!("{} -> {} {proto}", self.name_of(src), self.name_of(dst));
@@ -102,16 +112,50 @@ impl Workspace {
         Ok(())
     }
 
+    pub(super) fn record_arp_exchange(&mut self, exchange: crate::net::fwd::ArpExchange) {
+        for captured in [exchange.request, exchange.reply] {
+            let size = captured.bytes.len();
+            self.next_event += 1;
+            self.sim_time = captured.finished_at as f32;
+            self.events.push(Event {
+                id: self.next_event,
+                time: self.sim_time,
+                last: self.name_of(&captured.src),
+                at: self.name_of(&captured.dst),
+                kind: "ARP".into(),
+                proto: "ARP".into(),
+                path: captured.path,
+                hops: captured.hops,
+                layers: Vec::new(),
+                status: "Successful".into(),
+                reason: None,
+                note: captured.note,
+                bytes: captured.bytes,
+                size,
+            });
+        }
+    }
+
     pub(super) fn record_drop(
         &mut self,
         src: &str,
         dst: &str,
         proto: &str,
-        error: crate::net::fwd::DeliveryError,
+        mut error: crate::net::fwd::DeliveryError,
     ) -> Result<(), String> {
+        if let Some(arp) = error.arp.take() {
+            self.record_arp_exchange(arp);
+        }
         self.next_event += 1;
         self.sim_time = error.finished_at as f32;
         let reason = error.reason;
+        let mut note = hop_narration(&error.hops);
+        if !note.is_empty() {
+            note.push_str("; ");
+        }
+        note.push_str(&reason);
+        let bytes = error.frame.map(|frame| frame.to_bytes()).unwrap_or_default();
+        let size = if bytes.is_empty() { error.size } else { bytes.len() };
         self.events.push(Event {
             id: self.next_event,
             time: self.sim_time,
@@ -124,8 +168,21 @@ impl Workspace {
             layers: Vec::new(),
             status: "Dropped".into(),
             reason: Some(reason.clone()),
-            size: error.size,
+            note,
+            bytes,
+            size,
         });
         Err(reason)
     }
+}
+
+fn hop_narration(hops: &[crate::net::fwd::Hop]) -> String {
+    let mut note = String::new();
+    for hop in hops.iter().filter(|hop| !hop.note.is_empty()) {
+        if !note.is_empty() {
+            note.push_str("; ");
+        }
+        note.push_str(&hop.note);
+    }
+    note
 }

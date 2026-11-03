@@ -9,6 +9,7 @@ function enabledFilters() {
 
 function visibleEvents() {
   if (!data) return [];
+  if (typeof captureVisibleEvents === 'function') return captureVisibleEvents();
   const on = enabledFilters();
   return data.events.filter((e) => on.has(e.proto) || on.has(e.type));
 }
@@ -42,10 +43,13 @@ function renderEvents() {
           return;
         }
         lastRowClick = { id: e.id, t: now };
-        simCursor = e.id;
-        renderEvents();
-        animatePath(e.path);
-        sfx('addPacketButton');
+        if (typeof selectCaptureEvent === 'function') selectCaptureEvent(e.id);
+        else {
+          simCursor = e.id;
+          renderEvents();
+          animatePath(e.path, e.proto);
+          sfx('addPacketButton');
+        }
       };
       tr.title = 'Double-click for the PDU detail';
       tbody.appendChild(tr);
@@ -58,6 +62,7 @@ function renderEvents() {
   document.getElementById('clock').textContent = `${(shown ? shown.time : 0).toFixed(1)}s`;
   const row = tbody.querySelector('tr.current');
   if (row) row.scrollIntoView({ block: 'nearest' });
+  if (typeof renderCapture === 'function') renderCapture();
 }
 
 /* ---------------- PDU detail (per-hop In/Out layers) ---------------- */

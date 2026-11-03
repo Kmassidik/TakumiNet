@@ -428,7 +428,7 @@ mod tests {
         assert_eq!(out.matches("Reply from 192.168.2.10").count(), 4, "{out}");
         assert!(out.contains("0% loss"), "{out}");
         assert!(out.contains("TTL=127"), "{out}");
-        assert_eq!(ws.events.len(), 1);
+        assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 1);
 
         let mut ws = Workspace::new();
         let out = run(&mut ws, "pc0", "ping -n 1 192.168.1.11");

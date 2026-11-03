@@ -143,6 +143,12 @@ function renderLesson() {
     const actual = document.createElement('small');
     actual.textContent = lessonRunning ? 'Checking live network state…' : result ? result.actual : 'Not checked yet';
     copy.appendChild(actual);
+    if (!lessonRunning && result && !result.passed && result.hint) {
+      const reason = document.createElement('small');
+      reason.className = 'lesson-check-reason';
+      reason.textContent = result.hint;
+      copy.appendChild(reason);
+    }
     row.appendChild(copy);
     return row;
   });
@@ -156,6 +162,7 @@ async function checkWork() {
   if (lessonRunning || !data || !data.lesson) return;
   lessonRunning = true;
   lessonResults = [];
+  const previousEventIds = new Set((data.events || []).map((event) => event.id));
   setLessonMascot('think');
   renderLesson();
   const response = await getJson('/api/checks');
@@ -170,7 +177,12 @@ async function checkWork() {
   lessonResults = response.results;
   lessonRunning = false;
   const workspace = await getJson('/api/workspace');
-  if (workspace && Array.isArray(workspace.devices)) setData(workspace);
+  if (workspace && Array.isArray(workspace.devices)) {
+    setData(workspace);
+    const checkedEvents = (workspace.events || []).filter((event) => !previousEventIds.has(event.id));
+    const checked = checkedEvents.filter((event) => ['ICMP', 'HTTP', 'DNS'].includes(String(event.proto).toUpperCase())).pop() || checkedEvents.pop();
+    if (checked && typeof selectCaptureEvent === 'function') selectCaptureEvent(checked.id);
+  }
   renderLesson();
   if (response.allPassed) {
     setLessonMascot('happy');

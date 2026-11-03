@@ -280,9 +280,12 @@ function stepSim(dir) {
     ? (dir < 0 ? events.length - 1 : 0)
     : Math.min(events.length - 1, Math.max(0, current + dir));
   const event = events[next];
-  simCursor = event.id;
-  renderEvents();
-  animatePath(event.path);
+  if (typeof selectCaptureEvent === 'function') selectCaptureEvent(event.id);
+  else {
+    simCursor = event.id;
+    renderEvents();
+    animatePath(event.path, event.proto);
+  }
   sfx('movieControlButton');
 }
 
@@ -304,5 +307,16 @@ function togglePlay() {
       return;
     }
     stepSim(1);
-  }, 900);
+  }, 900 / playbackSpeed);
+}
+
+function setPlaybackSpeed(index) {
+  playbackSpeed = PLAYBACK_SPEEDS[Math.max(0, Math.min(PLAYBACK_SPEEDS.length - 1, Number(index) || 0))];
+  const output = document.getElementById('playback-speed-value');
+  if (output) output.textContent = `${playbackSpeed}×`;
+  if (playTimer) {
+    clearInterval(playTimer);
+    playTimer = null;
+    togglePlay();
+  }
 }

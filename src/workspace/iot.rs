@@ -146,19 +146,22 @@ impl Workspace {
             _ => {}
         }
 
-        let (path, hops) = if proto == "cellular" {
-            let tower = self.cell_links[src].clone();
-            (vec![src.to_string(), tower, dst.to_string()], Vec::new())
-        } else {
-            match crate::net::fwd::deliver(self, src, dst) {
-                Ok(delivery) => (delivery.path, delivery.hops),
+        if proto != "cellular" {
+            return match crate::net::fwd::deliver(self, src, dst) {
+                Ok(delivery) => {
+                    self.record_delivery(src, dst, label, delivery)?;
+                    Ok(format!("{label} delivered"))
+                }
                 Err(error) => {
                     let reason = error.reason.clone();
                     let _ = self.record_drop(src, dst, label, error);
-                    return Err(reason);
+                    Err(reason)
                 }
-            }
-        };
+            };
+        }
+
+        let tower = self.cell_links[src].clone();
+        let path = vec![src.to_string(), tower.clone(), dst.to_string()];
         self.next_event += 1;
         self.events.push(Event {
             id: self.next_event,
@@ -168,17 +171,15 @@ impl Workspace {
             kind: label.into(),
             proto: label.into(),
             path,
-            hops,
-            layers: if proto == "cellular" {
-                vec![Layer::new(
-                    label,
-                    vec![("Capture".into(), "Control-plane service exchange".into())],
-                )]
-            } else {
-                Vec::new()
-            },
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                label,
+                vec![("Capture".into(), "Control-plane service exchange".into())],
+            )],
             status: "Successful".into(),
             reason: None,
+            note: format!("{} sends {label} through cell tower {} to {}", self.name_of(src), tower, self.name_of(dst)),
+            bytes: Vec::new(),
             size,
         });
         let line = format!("{} -> {} {label}", self.name_of(src), self.name_of(dst));

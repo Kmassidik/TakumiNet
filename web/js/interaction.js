@@ -102,18 +102,24 @@ async function pduClick(d) {
     setData(snapshot);
     const event = snapshot.events[snapshot.events.length - 1];
     if (event && event.status === 'Dropped') {
-      simCursor = event.id;
-      renderEvents();
-      animatePath(event.path);
+      if (typeof selectCaptureEvent === 'function') selectCaptureEvent(event.id);
+      else {
+        simCursor = event.id;
+        renderEvents();
+        animatePath(event.path, event.proto);
+      }
     }
     return;
   }
   const event = data.events[data.events.length - 1];
   if (!event) return;
   sfx('addPacketDevice');
-  simCursor = event.id;
-  renderEvents();
-  animatePath(event.path);
+  if (typeof selectCaptureEvent === 'function') selectCaptureEvent(event.id);
+  else {
+    simCursor = event.id;
+    renderEvents();
+    animatePath(event.path, event.proto);
+  }
   status(`PDU delivered ${event.last} → ${event.at}`);
 }
 
@@ -126,22 +132,26 @@ function showTip(e, text) {
 }
 function hideTip() { tipEl.hidden = true; }
 
-function animatePath(ids) {
+function animatePath(ids, proto = 'ICMP', onComplete) {
   const pts = ids
     .map((id) => data.devices.find((d) => d.id === id))
     .filter(Boolean)
     .map((d) => ({ x: d.x, y: d.y }));
-  if (pts.length < 2) return;
+  if (pts.length < 2) { if (onComplete) onComplete(); return; }
 
-  const dot = node('circle', { r: 7, class: 'packet', cx: pts[0].x, cy: pts[0].y });
+  const dot = node('circle', {
+    r: 7, class: 'packet', cx: pts[0].x, cy: pts[0].y,
+    fill: typeof protocolColor === 'function' ? protocolColor(proto) : '#e8590c',
+    'data-protocol': String(proto || 'OTHER').toUpperCase(),
+  });
   svg().appendChild(dot);
 
-  const SEG = 420;
+  const SEG = 420 / (typeof playbackSpeed === 'number' ? playbackSpeed : 1);
   const t0 = performance.now();
   const step = (now) => {
     const t = Math.max(0, now - t0);
     const idx = Math.floor(t / SEG);
-    if (idx >= pts.length - 1) { dot.remove(); return; }
+    if (idx >= pts.length - 1) { dot.remove(); if (onComplete) onComplete(); return; }
     const f = (t % SEG) / SEG;
     const a = pts[idx];
     const b = pts[idx + 1];

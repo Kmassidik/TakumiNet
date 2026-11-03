@@ -117,6 +117,38 @@
         <div id="physical-view" class="physical-view" hidden></div>
       </div>
 
+      <section class="capture-dock" id="capture-dock" aria-label="Network engineer view">
+        <div class="capture-toolbar">
+          <div class="capture-tabs" role="tablist">
+            <button class="active" data-engineer-tab="capture" role="tab">Capture</button>
+            <button data-engineer-tab="flow" role="tab">Flow</button>
+          </div>
+          <label class="display-filter-label">Display filter
+            <input id="display-filter" type="text" spellcheck="false" placeholder="icmp && ttl < 128" aria-describedby="filter-error">
+          </label>
+          <span id="capture-count" class="capture-count">0 / 0 frames</span>
+          <a class="save-capture" id="save-capture" href="/api/capture/export" download="capture.pcap">Save capture</a>
+        </div>
+        <div id="filter-error" class="filter-error" role="status"></div>
+        <div id="capture-view" class="capture-view">
+          <div class="capture-table-wrap">
+            <table class="capture-table">
+              <thead><tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Length</th><th>Info</th></tr></thead>
+              <tbody id="capture-rows"></tbody>
+            </table>
+          </div>
+          <div class="packet-inspector">
+            <section><h3>Packet Details</h3><div id="packet-details" class="packet-details">Select a packet in Capture or Flow.</div></section>
+            <section><h3>Packet Bytes</h3><div id="packet-bytes" class="packet-bytes">Select a captured frame to inspect its bytes.</div></section>
+          </div>
+        </div>
+        <div id="flow-view" class="flow-view" hidden><svg id="flow-graph" role="img" aria-label="Packet flow ladder"></svg></div>
+        <div class="narration" aria-live="polite">
+          <img id="narration-mascot" src="/art3d/mascot/think.png" alt="TakumiNet mascot think" width="36" height="36">
+          <span id="narration-text">Step through a capture to watch each device make its decision.</span>
+        </div>
+      </section>
+
       <div class="modebar">
         <span class="clock" id="clock">00:00:00.0</span>
         <span class="playgroup">
@@ -124,6 +156,11 @@
           <button title="Play" id="play-btn" data-sfx="movieControlButton" data-sim="play"><img src="/art3d/sim/play.png" alt="play"></button>
           <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/art3d/sim/stepa.png" alt="step"></button>
         </span>
+        <label class="playback-speed" title="Playback speed (Space play/pause, Left back, Right step)">
+          <span>Speed</span>
+          <input id="playback-speed" type="range" min="0" max="3" step="1" value="2" aria-label="Playback speed">
+          <output id="playback-speed-value" for="playback-speed">1×</output>
+        </label>
         <div class="modes">
           <button class="mode active" data-sfx="topologyTab">Realtime</button>
           <button class="mode" data-sfx="simulationTab">Simulation</button>
@@ -591,6 +628,10 @@
 
 <div id="tip" class="tip" hidden></div>
 <script src="/js/state.js"></script>
+<script src="/js/capture_filter.js"></script>
+<script src="/js/flow.js"></script>
+<script src="/js/packet_details.js"></script>
+<script src="/js/capture_table.js"></script>
 <script src="/js/icons.js"></script>
 <script src="/js/toolbars.js"></script>
 <script src="/js/topology.js"></script>

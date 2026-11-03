@@ -85,9 +85,12 @@ function openCmd(d) {
         if (verb !== 'ping' && verb !== 'tracert') return;
         const event = snapshot.events && snapshot.events[snapshot.events.length - 1];
         if (!event) return;
-        simCursor = event.id;
-        renderEvents();
-        animatePath(event.path);
+        if (typeof selectCaptureEvent === 'function') selectCaptureEvent(event.id);
+        else {
+          simCursor = event.id;
+          renderEvents();
+          animatePath(event.path, event.proto);
+        }
       });
     } catch {
       out.textContent += 'The system cannot find the path specified.\n\n';

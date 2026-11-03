@@ -204,7 +204,8 @@ fn power_off_drops_traffic_until_switched_back_on() {
 
     assert!(ws.set_power("pc1", true));
     ws.send_pdu("pc0", "pc1").unwrap();
-    assert_eq!(ws.events.len(), 2);
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 2);
+    assert_eq!(ws.events.last().unwrap().status, "Successful");
 }
 
 #[test]

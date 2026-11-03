@@ -255,6 +255,10 @@ pub struct Event {
     pub layers: Vec<Layer>,
     pub status: String,
     pub reason: Option<String>,
+    /// Plain-English summary of the decisions made along the captured path.
+    pub note: String,
+    /// Final Ethernet frame exactly as it appeared on the wire.
+    pub bytes: Vec<u8>,
     /// Frame size in bytes on the wire.
     pub size: usize,
 }

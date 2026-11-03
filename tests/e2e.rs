@@ -942,3 +942,47 @@ fn e2e_ftp_syslog_aaa_and_ntp_services() {
         eprintln!("services endpoints not implemented: {missing:?}");
     }
 }
+
+#[test]
+fn e2e_capture_bytes_and_pcap_export_reparse_real_frames() {
+    let s = spawn(39_431);
+    let (status, _, body) = s.post("/api/pdu?src=pc0&dst=pc2");
+    assert_eq!(status, 200, "{body}");
+    assert!(!body.contains("\"error\""), "{body}");
+    let (_, _, workspace) = s.get("/api/workspace");
+    let icmp = workspace.rfind("\"proto\":\"ICMP\"").expect("ICMP capture");
+    let prefix = &workspace[..icmp];
+    let id_at = prefix.rfind("\"id\":").expect("event id") + 5;
+    let id_end = workspace[id_at..].find(',').expect("id delimiter") + id_at;
+    let id: u32 = workspace[id_at..id_end].parse().expect("numeric event id");
+
+    let (status, _, bytes) = s.get(&format!("/api/capture/bytes?id={id}"));
+    assert_eq!(status, 200);
+    assert!(bytes.contains("\"length\":74"), "{bytes}");
+    assert!(bytes.contains("\"hex\":\""), "{bytes}");
+    assert!(!bytes.contains("error"), "{bytes}");
+
+    let (status, head, pcap) = s.get_raw("/api/capture/export");
+    assert_eq!(status, 200, "{head}");
+    assert!(head.contains("application/vnd.tcpdump.pcap"), "{head}");
+    assert_eq!(&pcap[..4], &[0xd4, 0xc3, 0xb2, 0xa1]);
+    assert_eq!(u32::from_le_bytes(pcap[20..24].try_into().unwrap()), 1);
+    let mut at = 24;
+    let mut records = Vec::new();
+    while at < pcap.len() {
+        let captured = u32::from_le_bytes(pcap[at + 8..at + 12].try_into().unwrap()) as usize;
+        let original = u32::from_le_bytes(pcap[at + 12..at + 16].try_into().unwrap()) as usize;
+        assert_eq!(captured, original);
+        at += 16;
+        assert!(at + captured <= pcap.len(), "truncated pcap record");
+        records.push(pcap[at..at + captured].to_vec());
+        at += captured;
+    }
+    assert_eq!(records.len(), 3, "two ARP frames and one ICMP frame");
+    assert_eq!(&records[0][12..14], &[0x08, 0x06]);
+    assert_eq!(&records[1][12..14], &[0x08, 0x06]);
+    assert_eq!(&records[2][12..14], &[0x08, 0x00]);
+    assert_eq!(records[2].len(), 74);
+    let hex = records[2].iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+    assert!(bytes.contains(&hex), "bytes endpoint and pcap contain different ICMP wire frames");
+}

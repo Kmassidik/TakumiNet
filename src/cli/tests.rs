@@ -97,7 +97,7 @@ fn show_mac_table_lists_what_the_switch_learned() {
     let mac = crate::net::packet::Mac::for_device("pc1").to_string();
     assert!(out.contains(&mac), "missing {mac}: {out}");
     assert!(out.contains("DYNAMIC"), "{out}");
-    assert!(out.contains("Total Mac Addresses for this criterion: 1"), "{out}");
+    assert!(out.contains("Total Mac Addresses for this criterion: 2"), "{out}");
 }
 
 #[test]

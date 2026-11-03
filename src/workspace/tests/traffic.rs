@@ -19,7 +19,7 @@ fn pdu_is_a_real_frame_across_the_router() {
     use crate::net::packet::Mac;
     let mut ws = Workspace::new();
     ws.send_pdu("pc0", "pc2").unwrap();
-    let e = &ws.events[0];
+    let e = ws.events.last().unwrap();
     assert_eq!(
         e.path,
         vec!["pc0", "switch0", "router0", "switch1", "pc2"],
@@ -33,10 +33,10 @@ fn pdu_is_a_real_frame_across_the_router() {
     assert!(e.hops.windows(2).all(|w| w[1].t > w[0].t), "times must increase");
     let last = e.hops.last().unwrap().t;
     assert!((last - e.time as f64).abs() < 1e-6, "{} vs {}", last, e.time);
-    assert!(ws.events[0].time > 0.0);
+    assert!(e.time > 0.0);
 
     let router = e.hops.iter().find(|h| h.id == "router0").unwrap();
-    assert_eq!(router.note, "routed: TTL 128 -> 127", "{}", router.note);
+    assert_eq!(router.note, "Router0 decrements TTL 128 to 127 and forwards", "{}", router.note);
     assert_eq!(router.ttl, 127);
     assert_eq!(router.ingress.as_deref(), Some("GigabitEthernet0/0"));
     assert_eq!(router.egress.as_deref(), Some("GigabitEthernet0/1"));
@@ -93,7 +93,7 @@ fn switch_learns_source_macs_and_then_hits() {
     );
 
     ws.send_pdu("pc0", "pc1").unwrap();
-    let hop = ws.events[1]
+    let hop = ws.events.last().unwrap()
         .hops
         .iter()
         .find(|h| h.id == "switch0")
@@ -115,15 +115,16 @@ fn shutting_an_interface_breaks_the_path() {
 
     assert!(ws.set_port_up("router0", "GigabitEthernet0/0", true));
     ws.send_pdu("pc0", "pc2").unwrap();
-    assert_eq!(ws.events.len(), 2);
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 2);
+    assert_eq!(ws.events.last().unwrap().status, "Successful");
 }
 
 #[test]
 fn pdu_follows_links_and_records_event() {
     let mut ws = Workspace::new();
     ws.send_pdu("pc0", "pc2").unwrap();
-    assert_eq!(ws.events.len(), 1);
-    let e = &ws.events[0];
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 1);
+    let e = ws.events.last().unwrap();
     assert_eq!(e.last, "PC0");
     assert_eq!(e.at, "PC2");
     assert_eq!(e.path.first().unwrap(), "pc0");
@@ -162,15 +163,15 @@ fn pdu_checks_subnet_when_addresses_exist() {
     assert_eq!(pcs.len(), 2);
 
     ws.send_pdu(&pcs[0], &pcs[1]).unwrap();
-    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 1);
 
     // Move one host to a foreign subnet: the PDU must refuse.
     ws.set_ip(&pcs[1], "10.0.0.5", 24).unwrap();
     let err = ws.send_pdu(&pcs[0], &pcs[1]).unwrap_err();
     assert!(err.contains("no route to 10.0.0.5"), "{err}");
     assert!(err.contains("no default gateway"), "{err}");
-    assert_eq!(ws.events.len(), 2);
-    assert_eq!(ws.events[1].status, "Dropped");
+    assert_eq!(ws.events.iter().filter(|event| event.status == "Dropped").count(), 1);
+    assert_eq!(ws.events.last().unwrap().status, "Dropped");
 }
 
 #[test]
@@ -185,8 +186,8 @@ fn same_subnet_delivery_uses_links() {
     ws.set_ip(&b, "192.168.1.20", 24).unwrap();
 
     ws.send_pdu(&a, &b).unwrap();
-    assert_eq!(ws.events.len(), 1);
-    assert_eq!(ws.events[0].path, vec![a.clone(), hub.clone(), b.clone()]);
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 1);
+    assert_eq!(ws.events.last().unwrap().path, vec![a.clone(), hub.clone(), b.clone()]);
 }
 
 #[test]
@@ -213,12 +214,13 @@ fn cross_subnet_delivery_follows_gateways() {
 
     ws.send_pdu(&a, &b).unwrap();
     ws.send_pdu(&b, &a).unwrap();
-    assert_eq!(ws.events.len(), 2);
-    assert_eq!(ws.events[0].last, "PC0");
-    assert_eq!(ws.events[0].at, "PC1");
-    assert_eq!(ws.events[1].last, "PC1");
-    assert_eq!(ws.events[1].at, "PC0");
-    for e in &ws.events {
+    let data = ws.events.iter().filter(|event| event.proto == "ICMP").collect::<Vec<_>>();
+    assert_eq!(data.len(), 2);
+    assert_eq!(data[0].last, "PC0");
+    assert_eq!(data[0].at, "PC1");
+    assert_eq!(data[1].last, "PC1");
+    assert_eq!(data[1].at, "PC0");
+    for e in data {
         assert_eq!(e.path.len(), 3, "{:?}", e.path);
     }
 
@@ -228,8 +230,8 @@ fn cross_subnet_delivery_follows_gateways() {
     let err = ws.send_pdu(&a, &b).unwrap_err();
     assert!(err.contains("no route"), "{err}");
     assert!(err.contains("no default gateway"), "{err}");
-    assert_eq!(ws.events.len(), 3);
-    assert_eq!(ws.events[2].status, "Dropped");
+    assert_eq!(ws.events.iter().filter(|event| event.status == "Dropped").count(), 1);
+    assert_eq!(ws.events.last().unwrap().status, "Dropped");
 }
 
 #[test]
@@ -261,7 +263,7 @@ fn vlan_membership_controls_switching() {
     assert!(err.contains("VLAN mismatch"), "{err}");
     ws.set_access_vlan("switch0", "FastEthernet0/2", 20).unwrap();
     ws.send_pdu("pc0", "pc1").unwrap();
-    assert_eq!(ws.events.len(), 2);
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 2);
     assert_eq!(ws.events[0].status, "Dropped");
     assert!(ws.events[0].hops.is_empty(), "path selection failed before forwarding");
     assert!(ws.events[0].reason.as_deref().is_some_and(|r| r.contains("VLAN mismatch")));
@@ -281,5 +283,35 @@ fn spanning_tree_blocks_a_redundant_link() {
     assert_eq!(blocked.len(), 1, "only the non-designated endpoint blocks: {blocked:?}");
     // Traffic still flows over the tree.
     ws.send_pdu("pc0", "pc2").unwrap();
-    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ICMP").count(), 1);
+}
+
+#[test]
+fn l26_captured_ipv4_bytes_have_a_valid_rfc1071_checksum() {
+    let mut ws = Workspace::new();
+    ws.send_pdu("pc0", "pc2").unwrap();
+    let event = ws.events.iter().rev().find(|event| event.proto == "ICMP").unwrap();
+    assert_eq!(&event.bytes[12..14], &[0x08, 0x00]);
+    assert_eq!(crate::net::packet::checksum(&event.bytes[14..34]), 0);
+    assert_eq!(event.bytes[22], 127, "the wire header contains the routed TTL");
+    assert!(event.note.contains("decrements TTL 128 to 127 and forwards"), "{}", event.note);
+}
+
+#[test]
+fn first_addressed_delivery_captures_real_arp_request_and_reply_frames() {
+    let mut ws = Workspace::new();
+    ws.send_pdu("pc0", "pc2").unwrap();
+    let arp = ws.events.iter().filter(|event| event.proto == "ARP").collect::<Vec<_>>();
+    assert_eq!(arp.len(), 2, "request and reply precede the ICMP echo");
+    assert_eq!(&arp[0].bytes[12..14], &[0x08, 0x06]);
+    assert_eq!(&arp[0].bytes[20..22], &[0, 1]);
+    assert_eq!(&arp[1].bytes[20..22], &[0, 2]);
+    assert!(arp[0].note.contains("has no ARP entry"), "{}", arp[0].note);
+    assert!(arp[1].note.contains("answers"), "{}", arp[1].note);
+    assert_eq!(arp[0].at, "Router0");
+    assert_eq!(&arp[0].bytes[38..42], &[192, 168, 1, 1]);
+    assert_eq!(ws.events.last().unwrap().proto, "ICMP");
+
+    ws.send_pdu("pc0", "pc2").unwrap();
+    assert_eq!(ws.events.iter().filter(|event| event.proto == "ARP").count(), 2, "a valid ARP cache entry suppresses another exchange");
 }

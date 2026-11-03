@@ -202,6 +202,31 @@ mod tests {
     }
 
     #[test]
+    fn capture_bytes_and_pcap_export_use_recorded_wire_frames() {
+        let ctx = context();
+        let (id, expected_hex) = {
+            let mut ws = ctx.ws.lock().unwrap();
+            ws.send_pdu("pc0", "pc2").unwrap();
+            let event = ws.events.iter().rev().find(|event| event.proto == "ICMP").unwrap();
+            let hex = event.bytes.iter().map(|byte| format!("{byte:02x}")).collect::<Vec<_>>().join("");
+            (event.id, hex)
+        };
+        let (ctype, body) = file_routes::route(&ctx, "GET", "/api/capture/bytes", &format!("id={id}"), b"").unwrap();
+        assert_eq!(ctype, "application/json");
+        let body = String::from_utf8(body).unwrap();
+        assert!(body.contains(&format!("\"hex\":\"{expected_hex}\"")), "{body}");
+        assert!(body.contains(&format!("\"id\":{id}")), "{body}");
+
+        let (_, missing) = file_routes::route(&ctx, "GET", "/api/capture/bytes", "id=999999", b"").unwrap();
+        assert!(String::from_utf8(missing).unwrap().contains("unknown capture event"));
+
+        let (ctype, pcap) = file_routes::route(&ctx, "GET", "/api/capture/export", "", b"").unwrap();
+        assert_eq!(ctype, "application/vnd.tcpdump.pcap");
+        assert_eq!(&pcap[..4], &0xa1b2c3d4u32.to_le_bytes());
+        assert!(pcap.len() > 24 + 42);
+    }
+
+    #[test]
     fn native_open_anyway_reports_drops_and_preserves_strict_transaction() {
         let ctx = context();
         let before = ctx.ws.lock().unwrap().to_tnet();

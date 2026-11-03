@@ -381,6 +381,8 @@ impl Workspace {
             )],
             status: "Successful".into(),
             reason: None,
+            note: format!("{} obtains {} from {} using DHCP DISCOVER, OFFER, REQUEST and ACK", self.name_of(id), crate::model::ipv4_string(ip), self.name_of(&server)),
+            bytes: Vec::new(),
             size: 342,
         });
 

@@ -87,6 +87,8 @@ impl Workspace {
             )],
             status: "Successful".into(),
             reason: None,
+            note: format!("{} asks {} to resolve {}", self.name_of(client), self.name_of(&server), query),
+            bytes: Vec::new(),
             size: 80,
         });
         answer

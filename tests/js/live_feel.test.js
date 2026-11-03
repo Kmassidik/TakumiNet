@@ -105,6 +105,33 @@ test('realtime animation starts at the source and crosses each real hop at 1x', 
   assert.equal(dot.removed, true, 'two 420 ms segments complete at 840 ms');
 });
 
+test('canvas packet uses protocol color and 2x playback timing', () => {
+  const svg = new SvgElement('svg');
+  const frames = [];
+  let completed = false;
+  const context = vm.createContext({
+    data: { devices: [{ id: 'a', x: 100, y: 100 }, { id: 'b', x: 300, y: 100 }] },
+    document: { getElementById: () => svg }, svg: () => svg,
+    node: (name, attrs) => {
+      const element = new SvgElement(name);
+      for (const [key, value] of Object.entries(attrs)) element.setAttribute(key, value);
+      return element;
+    },
+    performance: { now: () => 1000 }, requestAnimationFrame: (callback) => frames.push(callback),
+    playbackSpeed: 2, protocolColor: (proto) => proto === 'ARP' ? '#e8590c' : '#0a5ed7',
+  });
+  vm.runInContext(interactionSource, context);
+  context.animatePath(['a', 'b'], 'ARP', () => { completed = true; });
+  const dot = svg.children[0];
+  assert.equal(dot.attributes.fill, '#e8590c');
+  assert.equal(dot.attributes['data-protocol'], 'ARP');
+  frames.shift()(1105);
+  assert.equal(dot.attributes.cx, '200', 'half of a 210 ms segment at 2x');
+  frames.shift()(1210);
+  assert.equal(dot.removed, true);
+  assert.equal(completed, true);
+});
+
 test('an empty logical workspace shows the sleeping mascot and a useful next step', () => {
   const svg = new SvgElement('svg');
   const context = vm.createContext({
