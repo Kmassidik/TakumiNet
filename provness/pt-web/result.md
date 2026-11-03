@@ -18,6 +18,8 @@ P4 Chrome kept the waving mascot during gallery loading and errors. `gallery loa
 
 A failed workspace response also reached `boot()` without tabs and bypassed the error UI. `workspace load failure shows an error mascot and leaves file actions wired` failed before the fix and now covers the visible gallery/status error, `errorMsg`, and usable file actions.
 
+T4 Chrome Simulation exposed a same-frame RAF timestamp slightly earlier than `performance.now()`, selecting hop -1 and throwing. The extended `realtime animation starts at the source and crosses each real hop at 1x` failed before clamping elapsed time. A second T4 PDU then completed and disappeared with PC0 → Switch0 → Router0 → Switch1 → PC3 path/hop order and zero console errors or broken images.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |

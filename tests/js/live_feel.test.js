@@ -89,6 +89,9 @@ test('realtime animation starts at the source and crosses each real hop at 1x', 
   assert.equal(dot.attributes.cy, '100');
   assert.equal(frames.length, 1);
 
+  frames.shift()(999);
+  assert.equal(dot.attributes.cx, '100', 'an RAF timestamp from the current frame must not select hop -1');
+  assert.equal(dot.attributes.cy, '100');
   frames.shift()(1210);
   assert.equal(dot.attributes.cx, '200');
   assert.equal(dot.attributes.cy, '100');

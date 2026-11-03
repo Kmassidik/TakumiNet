@@ -139,7 +139,7 @@ function animatePath(ids) {
   const SEG = 420;
   const t0 = performance.now();
   const step = (now) => {
-    const t = now - t0;
+    const t = Math.max(0, now - t0);
     const idx = Math.floor(t / SEG);
     if (idx >= pts.length - 1) { dot.remove(); return; }
     const f = (t % SEG) / SEG;
