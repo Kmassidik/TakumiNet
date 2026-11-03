@@ -111,14 +111,14 @@ function openPppoe(d) {
   refresh();
 }
 
-/* ---------------- Cisco IP Communicator ---------------- */
+/* ---------------- IP Phone ---------------- */
 function openPhone(d) {
   const $ = (id) => document.getElementById(id);
   const win = $('phone-dialog');
   const state = $('phone-status');
   const note = $('phone-note');
 
-  $('phone-title').textContent = `Cisco IP Communicator — ${d.name}`;
+  $('phone-title').textContent = `IP Phone — ${d.name}`;
   $('phone-label').textContent = d.name;
   $('phone-cm').value = '';
   $('phone-ext').value = '';
