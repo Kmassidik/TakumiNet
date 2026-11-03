@@ -164,11 +164,11 @@ const ACTIONS = {
     status('Nothing selected');
   },
 
-  'zoom-in'() { zoom(0.8); },
-  'zoom-out'() { zoom(1.25); },
+  'zoom-in'() { zoom(1.25); },
+  'zoom-out'() { zoom(0.8); },
   'zoom-reset'() {
-    vb = { x: 0, y: 0, w: 1000, h: 540 };
-    renderTopology();
+    workspaceCanvas.camera.zoom = 1;
+    workspaceCanvas.requestDraw();
     status('Zoom reset');
   },
   'toggle-palette'() {
@@ -202,8 +202,9 @@ const ACTIONS = {
   async 'custom-device'() {
     const name = await askText('Custom device name', 'MyDevice');
     if (!name) return;
-    const cx = vb.x + vb.w / 2 - 50;
-    const cy = vb.y + vb.h / 2 - 20;
+    const center = viewCenter();
+    const cx = center.x - 50;
+    const cy = center.y - 20;
     const r = await api('/api/devices', { model: 'PC-PT', x: cx, y: cy, name });
     if (!r.error) { status(`Added ${name}`); sfx('devicePlacement'); }
   },
@@ -257,13 +258,10 @@ const ACTIONS = {
 };
 
 function zoom(factor) {
-  const cx = vb.x + vb.w / 2;
-  const cy = vb.y + vb.h / 2;
-  const w = Math.min(2400, Math.max(300, vb.w * factor));
-  const h = w * 0.54;
-  vb = { x: cx - w / 2, y: cy - h / 2, w, h };
-  renderTopology();
-  status(`Zoom ${(1000 / w * 100).toFixed(0)}%`);
+  const canvas = workspaceCanvas;
+  canvas.camera.zoomAt({ x: canvas.cssWidth / 2, y: canvas.cssHeight / 2 }, factor);
+  canvas.requestDraw();
+  status(`Zoom ${Math.round(canvas.camera.zoom * 100)}%`);
 }
 
 /* ---------------- simulation transport ---------------- */

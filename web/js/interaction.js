@@ -1,4 +1,4 @@
-function startDrag(ev, d, g) {
+function startDrag(ev, d) {
   ev.preventDefault();
   if (pduMode) { pduClick(d); return; }
   if (cableMode) { cableClick(d); return; }
@@ -30,7 +30,6 @@ function startDrag(ev, d, g) {
 
   const start = toSvg(ev);
   drag = { id: d.id, start, ox: d.x, oy: d.y, moved: false };
-  g.classList.add('dragging');
   hideTip();
 
   const onMove = (e) => {
@@ -138,26 +137,10 @@ function animatePath(ids, proto = 'ICMP', onComplete) {
     .filter(Boolean)
     .map((d) => ({ x: d.x, y: d.y }));
   if (pts.length < 2) { if (onComplete) onComplete(); return; }
-
-  const dot = node('circle', {
-    r: 7, class: 'packet', cx: pts[0].x, cy: pts[0].y,
-    fill: typeof protocolColor === 'function' ? protocolColor(proto) : '#e8590c',
-    'data-protocol': String(proto || 'OTHER').toUpperCase(),
+  workspaceCanvas.runPacket({
+    points: pts,
+    color: typeof protocolColor === 'function' ? protocolColor(proto) : '#e8590c',
+    segmentMs: 420 / (typeof playbackSpeed === 'number' ? playbackSpeed : 1),
+    onDone: onComplete,
   });
-  svg().appendChild(dot);
-
-  const SEG = 420 / (typeof playbackSpeed === 'number' ? playbackSpeed : 1);
-  const t0 = performance.now();
-  const step = (now) => {
-    const t = Math.max(0, now - t0);
-    const idx = Math.floor(t / SEG);
-    if (idx >= pts.length - 1) { dot.remove(); if (onComplete) onComplete(); return; }
-    const f = (t % SEG) / SEG;
-    const a = pts[idx];
-    const b = pts[idx + 1];
-    dot.setAttribute('cx', a.x + (b.x - a.x) * f);
-    dot.setAttribute('cy', a.y + (b.y - a.y) * f);
-    requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
 }

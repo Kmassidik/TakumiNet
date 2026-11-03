@@ -1,16 +1,15 @@
-import type { Camera } from "./camera";
-import type { Scene } from "./scene";
+import type { Camera, Point } from "./camera";
+import type { Scene, SceneLink } from "./scene";
 
 export interface Canvas2D {
-  canvas: { width: number; height: number };
   fillStyle: string;
   strokeStyle: string;
   lineWidth: number;
   font: string;
   textAlign: string;
   clearRect(x: number, y: number, w: number, h: number): void;
-  fillRect(x: number, y: number, w: number, h: number): void;
   strokeRect(x: number, y: number, w: number, h: number): void;
+  fillRect(x: number, y: number, w: number, h: number): void;
   fillText(text: string, x: number, y: number): void;
   beginPath(): void;
   moveTo(x: number, y: number): void;
@@ -21,20 +20,35 @@ export interface Canvas2D {
   drawImage(image: unknown, x: number, y: number, w: number, h: number): void;
 }
 
+export interface Packet {
+  at: Point;
+  color: string;
+}
+
 export interface DrawOptions {
+  width: number;
+  height: number;
   grid: boolean;
   image?: (src: string) => unknown;
+  selected?: ReadonlySet<string>;
+  marked?: ReadonlySet<string>;
+  linked?: { a: string; b: string } | null;
+  packets?: readonly Packet[];
+  empty?: { message: string; mascot?: string };
 }
 
 const LED_COLORS: Record<string, string> = { green: "#0a7a3d", amber: "#c98a00", red: "#c62828" };
 const GRID_WORLD = 25;
+const SELECT = "#2b6cb0";
 
 export function drawScene(ctx: Canvas2D, scene: Scene, camera: Camera, options: DrawOptions): void {
-  const { width, height } = ctx.canvas;
+  const { width, height } = options;
   ctx.clearRect(0, 0, width, height);
   if (options.grid) drawGrid(ctx, camera, width, height);
-  for (const link of scene.links) drawLink(ctx, link, camera);
+  if (!scene.devices.length && options.empty) drawEmpty(ctx, options, width, height);
+  for (const link of scene.links) drawLink(ctx, link, camera, options);
   for (const device of scene.devices) drawDevice(ctx, device, camera, options);
+  for (const packet of options.packets ?? []) drawPacket(ctx, packet, camera);
 }
 
 function drawGrid(ctx: Canvas2D, camera: Camera, width: number, height: number): void {
@@ -58,11 +72,22 @@ function drawGrid(ctx: Canvas2D, camera: Camera, width: number, height: number):
   }
 }
 
-function drawLink(ctx: Canvas2D, link: Scene["links"][number], camera: Camera): void {
+function drawEmpty(ctx: Canvas2D, options: DrawOptions, width: number, height: number): void {
+  const empty = options.empty!;
+  const image = empty.mascot ? options.image?.(empty.mascot) : undefined;
+  if (image) ctx.drawImage(image, width / 2 - 48, height / 2 - 84, 96, 96);
+  ctx.fillStyle = "#667085";
+  ctx.font = "14px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(empty.message, width / 2, height / 2 + 36);
+}
+
+function drawLink(ctx: Canvas2D, link: SceneLink, camera: Camera, options: DrawOptions): void {
   const a = camera.toScreen(link.from);
   const b = camera.toScreen(link.to);
-  ctx.strokeStyle = link.kind === "eConsole" ? "#667085" : "#1b1f23";
-  ctx.lineWidth = 2;
+  const selected = options.linked?.a === link.a && options.linked?.b === link.b;
+  ctx.strokeStyle = selected ? SELECT : link.kind === "eConsole" ? "#667085" : "#1b1f23";
+  ctx.lineWidth = selected ? 3 : 2;
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(b.x, b.y);
@@ -87,6 +112,11 @@ function drawDevice(ctx: Canvas2D, device: Scene["devices"][number], camera: Cam
   if (image) {
     ctx.drawImage(image, origin.x + 9 * camera.zoom, origin.y + 4 * camera.zoom, 54 * camera.zoom, 54 * camera.zoom);
   }
+  if (options.selected?.has(device.id) || options.marked?.has(device.id)) {
+    ctx.strokeStyle = options.marked?.has(device.id) ? "#c98a00" : SELECT;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(origin.x, origin.y, size, size);
+  }
   ctx.fillStyle = "#1b1f23";
   ctx.font = "12px sans-serif";
   ctx.textAlign = "center";
@@ -95,4 +125,12 @@ function drawDevice(ctx: Canvas2D, device: Scene["devices"][number], camera: Cam
   ctx.fillStyle = "#667085";
   ctx.fillText(device.model, cx, origin.y + 86 * camera.zoom);
   if (device.ip) ctx.fillText(`${device.ip}/${device.prefix}`, cx, origin.y + 98 * camera.zoom);
+}
+
+function drawPacket(ctx: Canvas2D, packet: Packet, camera: Camera): void {
+  const p = camera.toScreen(packet.at);
+  ctx.fillStyle = packet.color;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+  ctx.fill();
 }

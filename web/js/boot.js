@@ -9,6 +9,7 @@ async function boot() {
     return;
   }
   document.getElementById('physical-tab').textContent = data.tabs.physical;
+  initWorkspaceCanvas();
   renderToolbar(document.getElementById('toolbar-primary'), PRIMARY);
   renderToolbar(document.getElementById('toolbar-secondary'), SECONDARY);
 
@@ -33,7 +34,8 @@ async function boot() {
   wireActions();
   wireKeyboard();
   wireCanvasDrop();
-  wireCanvasSelection();
+  wireWorkspaceCanvas();
+  workspaceCanvas.fit();
   for (const id of ['device-window', 'cmd-window', 'term-window', 'web-dialog',
     'editor-dialog', 'pdu-dialog', 'firewall-dialog']) {
     makeWindowMovable(document.getElementById(id));

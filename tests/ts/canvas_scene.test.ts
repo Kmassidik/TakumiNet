@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { buildScene } from "../../web/ts/canvas/scene";
-import { hitDevice } from "../../web/ts/canvas/hit";
+import { hitDevice, hitLink } from "../../web/ts/canvas/hit";
 
 function rng(seed: number) {
   let state = seed;
@@ -41,4 +41,11 @@ test("L36 hit-test matches a brute-force scan for 1000 random devices and points
     const brute = scene.devices.findLast((d) => p.x >= d.box.x && p.x <= d.box.x + d.box.w && p.y >= d.box.y && p.y <= d.box.y + d.box.h);
     expect(hitDevice(scene, p)?.id ?? null).toBe(brute?.id ?? null);
   }
+});
+
+test("a click near a link selects it; a click far from every link selects nothing", () => {
+  const scene = buildScene(workspace);
+  expect(hitLink(scene, { x: 200, y: 101 }, 6)?.aPort).toBe("Fa0");
+  expect(hitLink(scene, { x: 200, y: 140 }, 6)).toBeNull();
+  expect(hitLink(scene, { x: 40, y: 100 }, 6)).toBeNull();
 });

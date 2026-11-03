@@ -96,17 +96,6 @@ function wireKeyboard() {
   });
 }
 
-/* Clicking empty canvas clears the selection. */
-function wireCanvasSelection() {
-  svg().addEventListener('pointerdown', (ev) => {
-    if (ev.target.closest('.dev, .link-hit')) return;
-    if (!selection.size && !selectedLink) return;
-    setSelection([]);
-    selectedLink = null;
-    renderTopology();
-  });
-}
-
 function wireCanvasDrop() {
   const wrap = document.querySelector('.canvas-wrap');
   wrap.addEventListener('dragover', (e) => {

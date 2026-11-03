@@ -6,7 +6,7 @@ import { buildScene } from "../../web/ts/canvas/scene";
 function recorder(): { ctx: Canvas2D; calls: string[] } {
   const calls: string[] = [];
   const record = (name: string) => (...args: unknown[]) => { calls.push(`${name}:${args.map((a) => (typeof a === "number" ? Math.round(a * 1000) / 1000 : String(a))).join(",")}`); };
-  const ctx = new Proxy({}, { get: (_t, name: string) => (name === "canvas" ? { width: 800, height: 600 } : record(name)) }) as Canvas2D;
+  const ctx = new Proxy({}, { get: (_t, name: string) => record(name) }) as Canvas2D;
   return { ctx, calls };
 }
 
@@ -23,8 +23,8 @@ test("L39 draw determinism: the same scene and camera make the same context call
   const camera = new Camera({ x: 0, y: 0, zoom: 1 });
   const one = recorder();
   const two = recorder();
-  drawScene(one.ctx, scene, camera, { grid: true });
-  drawScene(two.ctx, scene, camera, { grid: true });
+  drawScene(one.ctx, scene, camera, { grid: true, width: 800, height: 600 });
+  drawScene(two.ctx, scene, camera, { grid: true, width: 800, height: 600 });
   expect(one.calls.length).toBeGreaterThan(10);
   expect(two.calls).toEqual(one.calls);
 });

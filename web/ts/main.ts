@@ -1,5 +1,6 @@
 import { bringToFront, makeWindowMovable, watchOverlays } from "./ui/dialogs";
 import type { DocLike, ElementLike } from "./ui/dom";
+import { WorkspaceCanvas } from "./canvas/workspace_canvas";
 import { renderToolbar, type ToolbarItem } from "./ui/toolbar";
 import { buildRunLog, formatLogLine, type CommandRecord, type LogEntry, type RunEvent } from "./ui/run_log";
 import { openModal } from "./ui/modal";
@@ -15,6 +16,7 @@ globalThis.askText = async (message: string, value = ""): Promise<string | null>
   (await openModal(doc, stack, { message, input: value })) as string | null;
 
 globalThis.bringToFront = bringToFront;
+globalThis.WorkspaceCanvas = WorkspaceCanvas;
 globalThis.buildRunLog = buildRunLog;
 globalThis.formatLogLine = formatLogLine;
 globalThis.renderToolbar = (bar, items) => renderToolbar(doc, bar as unknown as ElementLike, items, (key) => icon3d(key));
@@ -26,6 +28,7 @@ if (document.readyState === "loading") {
 }
 
 declare global {
+  var WorkspaceCanvas: typeof import("./canvas/workspace_canvas").WorkspaceCanvas;
   var buildRunLog: (events: RunEvent[], commands: CommandRecord[], query: string) => LogEntry[];
   var formatLogLine: (entry: LogEntry) => string;
   var icon3d: (key: string) => string;

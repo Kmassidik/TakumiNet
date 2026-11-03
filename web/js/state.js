@@ -34,7 +34,6 @@ let viewMode = 'logical';
 /* Devices whose Syslog collection this page enabled. The workspace JSON does
    not carry the flag, so the checkbox state lives here for the session. */
 const syslogOn = new Set();
-let vb = { x: 0, y: 0, w: 1000, h: 540 };
 // Stable captured Event.id, never an index into a filtered event array.
 let simCursor = -1;
 /* Re-rendering replaces the row, so a native dblclick never fires: detect two
@@ -71,11 +70,7 @@ function node(name, attrs) {
 }
 
 function toSvg(ev) {
-  const s = svg();
-  const pt = s.createSVGPoint();
-  pt.x = ev.clientX;
-  pt.y = ev.clientY;
-  return pt.matrixTransform(s.getScreenCTM().inverse());
+  return workspaceCanvas.worldAt(ev);
 }
 
 async function api(path, params = {}) {
