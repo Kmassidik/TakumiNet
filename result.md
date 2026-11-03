@@ -1,5 +1,7 @@
 # P2 beginner templates result
 
+- T2 ships a blank three-PC switch star. The new `mac-table` lesson evaluator reads the same live learned rows as `show mac address-table`; it is not a ping-only substitute. L18 `l18_t2_switch_star_learns_three_macs` checks ping and MAC failure before the solution, configures all hosts, runs three pairwise terminal pings, verifies the real switch CLI total of 3, then passes all four checks. Tested 2026-11-03 with `cargo test`: **214 passed, 0 failed** across 6 suites.
+
 - T1 ships an ordinary `.tnet` cross-cable topology with blank host addressing. L17 `l17_t1_static_addresses_fail_before_and_ping_after` observes `c1` failing before configuration, then applies both static addresses through `/api/devices/ip`, succeeds with a real terminal ping, and passes the lesson check. Ping and TTL lesson checks now reject unaddressed endpoints instead of using the bare-L2 simulation fallback, matching terminal behavior. Tested 2026-11-03 with `cargo test`: **213 passed, 0 failed** across 6 suites.
 
 # P1 native lesson template engine result

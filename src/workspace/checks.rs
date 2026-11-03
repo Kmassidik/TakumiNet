@@ -77,6 +77,12 @@ impl Workspace {
                     None => (false, format!("cannot resolve {} to IPv4", check.to), "Use a device with a configured IPv4 address.".to_string()),
                 }
             }
+            "mac-table" => {
+                let expected = check.expect.parse::<usize>().unwrap_or(usize::MAX);
+                let rows = self.tables.mac_rows(&check.from);
+                let passed = rows.len() == expected;
+                (passed, format!("{} learned MAC entries", rows.len()), format!("Ping every host, then run show mac address-table on {}.", self.name_of(&check.from)))
+            }
             "route" => {
                 let target = check.expect.split_once('/').and_then(|(network, prefix)| {
                     Some((crate::model::parse_ipv4(network)?, crate::model::parse_mask(prefix)?))

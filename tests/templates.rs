@@ -133,6 +133,28 @@ fn l17_t1_static_addresses_fail_before_and_ping_after() {
 }
 
 #[test]
+fn l18_t2_switch_star_learns_three_macs() {
+    let server = spawn(38_229);
+    let initial = server.open("t2");
+    assert!(initial.contains("\"id\":\"switch0\""), "{initial}");
+    assert_check(&server.checks(), "c1", false);
+    assert_check(&server.checks(), "c4", false);
+
+    for (id, ip) in [("pc0", "192.168.1.10"), ("pc1", "192.168.1.11"), ("pc2", "192.168.1.12")] {
+        server.set_ip(id, ip, "", "");
+    }
+    for (from, target) in [("pc0", "192.168.1.11"), ("pc1", "192.168.1.12"), ("pc2", "192.168.1.10")] {
+        let ping = server.command(from, &format!("ping -n 1 {target}"));
+        assert!(ping.contains(&format!("Reply from {target}: bytes=32")), "{ping}");
+        assert!(ping.contains("0% loss"), "{ping}");
+    }
+    server.cli("switch0", "en");
+    let table = server.cli("switch0", "show mac address-table");
+    assert!(table.contains("Total Mac Addresses for this criterion: 3"), "{table}");
+    assert_all_passed(&server.checks(), 4);
+}
+
+#[test]
 fn l16_every_native_template_loads_without_unresolved_devices_or_ports() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let server = spawn(38_227);

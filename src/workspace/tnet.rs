@@ -561,6 +561,9 @@ fn validate_lesson_records(
                     "http" if element.get("url").unwrap_or("").is_empty() => {
                         invalidate(valid, problems, index, element, "url", "HTTP check requires a URL");
                     }
+                    "mac-table" if element.get("expect").unwrap_or("").parse::<usize>().is_err() => {
+                        invalidate(valid, problems, index, element, "expect", "MAC-table expectation must be an unsigned integer");
+                    }
                     "route" => {
                         let expect = element.get("expect").unwrap_or("");
                         let valid_route = expect.split_once('/').is_some_and(|(network, prefix)| {

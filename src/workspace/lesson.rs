@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) const CHECK_KINDS: &[&str] = &["ping", "ttl", "http", "lease", "arp", "route"];
+pub(super) const CHECK_KINDS: &[&str] = &["ping", "ttl", "http", "lease", "arp", "route", "mac-table"];
 
 impl Workspace {
     pub(super) fn load_lesson_line(&mut self, f: &[&str]) -> Option<()> {
