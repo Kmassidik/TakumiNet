@@ -15,6 +15,18 @@ function renderTopology() {
 
   const byId = new Map(data.devices.map((d) => [d.id, d]));
 
+  if (!data.devices.length) {
+    const cx = vb.x + vb.w / 2;
+    const cy = vb.y + vb.h / 2;
+    s.appendChild(node('image', {
+      href: '/art3d/mascot/sleep.png', x: cx - 48, y: cy - 84, width: 96, height: 96,
+      class: 'empty-mascot',
+    }));
+    const message = node('text', { x: cx, y: cy + 36, class: 'empty-state', 'text-anchor': 'middle' });
+    message.textContent = 'No devices yet — Drop a device here to begin';
+    s.appendChild(message);
+  }
+
   for (const l of data.links) {
     const a = byId.get(l.a);
     const b = byId.get(l.b);

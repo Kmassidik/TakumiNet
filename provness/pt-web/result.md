@@ -12,6 +12,8 @@ P4 Chrome Command Prompt ping answered but left zero captured events and no PDU.
 
 P4 Chrome also caught the new packet at SVG `(0,0)` before its first animation frame. `realtime animation starts at the source and crosses each real hop at 1x` failed before the fix. After it, the same captured five-device path began immediately at PC0 `(105,400)` and the test measured 420 ms per hop.
 
+P4 Chrome New blank produced an empty SVG with no empty-state mascot. `an empty logical workspace shows the sleeping mascot and a useful next step` failed before the fix. Chrome then showed the sleeping mascot and “No devices yet — Drop a device here to begin,” with zero console errors or broken images.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |

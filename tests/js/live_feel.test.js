@@ -101,3 +101,29 @@ test('realtime animation starts at the source and crosses each real hop at 1x', 
   frames.shift()(1840);
   assert.equal(dot.removed, true, 'two 420 ms segments complete at 840 ms');
 });
+
+test('an empty logical workspace shows the sleeping mascot and a useful next step', () => {
+  const svg = new SvgElement('svg');
+  const context = vm.createContext({
+    data: { devices: [], links: [] },
+    document: { getElementById: () => svg },
+    svg: () => svg,
+    node: (name, attrs) => {
+      const element = new SvgElement(name);
+      for (const [key, value] of Object.entries(attrs)) element.setAttribute(key, value);
+      return element;
+    },
+    vb: { x: 0, y: 0, w: 1000, h: 540 },
+    showGrid: false,
+    selectedLink: null,
+    selection: new Set(),
+    cableFrom: null,
+    pduFrom: null,
+  });
+  vm.runInContext(topologySource, context);
+  context.renderTopology();
+  const mascot = svg.children.find((element) => element.attributes.class === 'empty-mascot');
+  assert.equal(mascot?.attributes.href, '/art3d/mascot/sleep.png');
+  const message = svg.children.find((element) => element.attributes.class === 'empty-state');
+  assert.match(message?.textContent || '', /No devices yet.*Drop a device here to begin/);
+});

@@ -109,6 +109,7 @@ html, body {
 .dev.dragging { opacity: 0.75; }
 .dev-tile.dragging { opacity: 0.45; }
 #topology { width: 100%; height: 100%; display: block; }
+.empty-state { fill: var(--muted); font-size: 14px; }
 
 .link { stroke: #5b6470; stroke-width: 1.6; }
 .link.selected { stroke: var(--accent); stroke-width: 2.6; }
