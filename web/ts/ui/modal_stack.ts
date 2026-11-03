@@ -19,6 +19,17 @@ export class ModalStack {
     this.entries.push(entry);
   }
 
+  has(id: string): boolean {
+    return this.entries.some((entry) => entry.id === id);
+  }
+
+  forget(id: string): boolean {
+    const index = this.entries.findIndex((entry) => entry.id === id);
+    if (index < 0) return false;
+    this.entries.splice(index, 1);
+    return true;
+  }
+
   escape(): boolean {
     return this.close();
   }

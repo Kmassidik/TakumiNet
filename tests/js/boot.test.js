@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/windows.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/boot.js'), 'utf8');
 
 test('workspace load failure shows an error mascot and leaves file actions wired', async () => {
   const galleries = [];
