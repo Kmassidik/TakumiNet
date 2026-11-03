@@ -43,6 +43,14 @@ function makeWindowMovable(win) {
 
 async function boot() {
   data = await getJson('/api/workspace');
+  if (!data || !data.tabs || !Array.isArray(data.devices) || !Array.isArray(data.links)) {
+    status('Workspace could not be loaded', true);
+    sfx('errorMsg');
+    renderGallery({ error: 'Workspace could not be loaded. Start a blank workspace or open a native .tnet file.' });
+    wireMenus();
+    wireActions();
+    return;
+  }
   document.getElementById('physical-tab').textContent = data.tabs.physical;
   renderToolbar(document.getElementById('toolbar-primary'), PRIMARY);
   renderToolbar(document.getElementById('toolbar-secondary'), SECONDARY);

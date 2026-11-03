@@ -16,6 +16,8 @@ P4 Chrome New blank produced an empty SVG with no empty-state mascot. `an empty 
 
 P4 Chrome kept the waving mascot during gallery loading and errors. `gallery loading and errors use distinct mascot states` failed before the fix; `loading mascot is preloaded before the gallery can replace it` also caught and prevented an aborted-image console error. Chrome then showed think while loading, wave after loading, and error on failure with zero console errors or broken images.
 
+A failed workspace response also reached `boot()` without tabs and bypassed the error UI. `workspace load failure shows an error mascot and leaves file actions wired` failed before the fix and now covers the visible gallery/status error, `errorMsg`, and usable file actions.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |
