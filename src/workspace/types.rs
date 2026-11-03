@@ -333,10 +333,48 @@ pub(super) struct RecordExtras {
     pub attributes: Vec<(String, String)>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Lesson {
+    pub id: String,
+    pub title: String,
+    pub level: u8,
+    pub minutes: u16,
+    pub goal: String,
+    pub steps: Vec<LessonStep>,
+    pub checks: Vec<Check>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LessonStep {
+    pub n: u16,
+    pub text: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Check {
+    pub id: String,
+    pub kind: String,
+    pub from: String,
+    pub to: String,
+    pub url: String,
+    pub expect: String,
+    pub label: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CheckResult {
+    pub id: String,
+    pub label: String,
+    pub passed: bool,
+    pub actual: String,
+    pub hint: String,
+}
+
 #[derive(Clone)]
 pub struct Workspace {
     pub devices: Vec<Device>,
     pub links: Vec<Link>,
+    pub lesson: Option<Lesson>,
     pub(super) counters: HashMap<String, u32>,
     pub events: Vec<Event>,
     pub(super) next_event: u32,

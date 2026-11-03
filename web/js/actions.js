@@ -16,9 +16,21 @@ function reportLoadProblems(response) {
 
 const ACTIONS = {
   async new() {
-    if (!confirm('Discard the current topology?')) return;
-    const r = await api('/api/reset');
-    if (!r.error) { currentName = 'lab1'; simCursor = -1; status('New workspace'); }
+    const gallery = document.getElementById('lesson-gallery');
+    const fromGallery = gallery && !gallery.hidden;
+    if (!fromGallery && !confirm('Discard the current topology?')) return;
+    const r = await api('/api/new');
+    if (!r.error) {
+      currentName = 'untitled';
+      currentTemplate = null;
+      simCursor = -1;
+      selectedLink = null;
+      setSelection([]);
+      if (typeof resetLessonState === 'function') resetLessonState();
+      if (typeof renderLesson === 'function') renderLesson();
+      if (typeof hideGallery === 'function') hideGallery();
+      status('New blank workspace');
+    }
   },
   async open() {
     const { names = [] } = await getJson('/api/saves');
@@ -29,7 +41,11 @@ const ACTIONS = {
     if (confirmOpenAnyway(r)) r = await api('/api/load', { name, openAnyway: 'true' });
     if (!r.error) {
       currentName = name;
+      currentTemplate = null;
       simCursor = -1;
+      if (typeof resetLessonState === 'function') resetLessonState();
+      if (typeof renderLesson === 'function') renderLesson();
+      if (typeof hideGallery === 'function') hideGallery();
       status(reportLoadProblems(r) || `Opened ${name}`);
       sfx('newScenarioButton');
     }
@@ -62,7 +78,11 @@ const ACTIONS = {
         if (!res.ok || r.error) throw new Error(r.error || 'import failed');
         setData(r);
         currentName = file.name.replace(/\.tnet$/i, '');
+        currentTemplate = null;
         simCursor = -1;
+        if (typeof resetLessonState === 'function') resetLessonState();
+        if (typeof renderLesson === 'function') renderLesson();
+        if (typeof hideGallery === 'function') hideGallery();
         status(reportLoadProblems(r) || `Imported ${file.name}`);
         sfx('newScenarioButton');
       } catch (e) {

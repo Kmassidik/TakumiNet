@@ -2,6 +2,7 @@
 function renderAll() {
   renderTopology();
   renderEvents();
+  renderLesson();
   if (viewMode === 'physical') renderPhysical();
 }
 

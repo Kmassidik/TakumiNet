@@ -26,10 +26,12 @@ impl Workspace {
         self.load_security_line(f)?;
         self.load_iot_wireless_line(f)?;
         self.load_routing_line(f)?;
+        self.load_lesson_line(f)?;
         Some(())
     }
 
     pub(super) fn finish_record_load(&mut self) {
+        self.sort_lesson_steps();
         self.recompute_routing();
         for d in &self.devices {
             *self.counters.entry(d.kind.clone()).or_insert(0) += 1;

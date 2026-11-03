@@ -1,13 +1,14 @@
-# P0b robust native workspace result
+# P1 native lesson template engine result
 
-- Native `.tnet` loading is transactional and returns located `Problem` values. Schema 0 migrates to current schema 1; the frozen schema-1 fixture remains byte-stable and newer schemas are rejected.
-- Validation covers unique device ids, catalog models, link endpoints and model-valid free ports, IPv4/IPv6 addresses and masks, and VLAN ranges. Duplicate IPv4 addresses on one subnet are warnings. Open-anyway omits only invalid records and returns the drop report to the UI.
-- Unknown nested elements and unknown attributes on known records survive deterministic save. The iterative XML reader enforces 8 MB, 20,000 records, depth 8, and rejects DTD/entity declarations.
-- Browser storage rotates current, previous and last-known-good snapshots, visibly reports recovery, and persists 100-step undo/redo in session storage.
+- Native `lesson`, `step`, and `check` records round-trip inside ordinary `.tnet` workspaces. Loading validates a single lesson, unique step/check identifiers, supported check kinds, numeric metadata, and device references; steps load in numeric order and check order remains stable.
+- `Workspace::run_checks` evaluates ping, delivered TTL, HTTP page title, DHCP lease, unexpired ARP entry, and exact selected-RIB prefix using real engine state. Ping and HTTP checks populate captures. DHCP checks observe state without acquiring a lease, and route checks do not accept a covering default route.
+- Added `GET /api/checks`, `GET /api/templates`, `POST /api/templates/open`, and `POST /api/new`. Template loading is transactional, template IDs are filename-safe, stale CLI sessions are cleared, and New blank installs an empty workspace rather than the demo.
+- The Chrome start gallery uses original TakumiNet network, toolbar, and mascot artwork with New blank, Open file, and Import actions. The lesson panel provides ordered step tick marks, per-check pending/running/pass/fail feedback, hints, pristine-template reset, and think/happy/error mascot states with the required sounds.
+- L14–L16 are registered in `provness/pt-web/LAWS.md`. Six lab-style check tests include failing-before/passing-after behavior and terminal equivalence. The L16 validator already enumerates `web/templates/*.tnet`; P2's T1–T5 files will enter the same hook without test changes. No T1–T5 template was built in P1.
 
 ## Verification
 
-- `cargo test`: **202 passed, 0 failed** across 5 suites.
-- `node --test tests/js/*.test.js`: **23 passed, 0 failed**.
-- L29: 30 broken documents; L30: 5,000 mutations; L31: frozen v1 plus migration; L32: unknown attributes/elements.
-- L33 measured in the debug test build: 9 MB rejection **0.014 ms**; 10,000-deep nesting rejection **0.178 ms** (both limits are 200 ms).
+- `cargo test`: **212 passed, 0 failed** across 6 suites.
+- `node --test tests/js/*.test.js`: **26 passed, 0 failed**.
+- API/e2e coverage opens a native lesson fixture, sorts its steps, runs checks, observes the resulting ICMP capture, verifies deterministic reopen, rejects unsafe/missing template IDs, and confirms blank New.
+- Headless Chromium loaded the gallery at 1440×1000 with all five visible artwork images complete at 256×256 natural size, **0 broken images**, and **0 console errors**. Clicking New blank hid the gallery, produced zero devices, and kept the blank lesson panel hidden.

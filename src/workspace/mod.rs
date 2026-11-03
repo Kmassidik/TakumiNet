@@ -9,11 +9,13 @@ mod aaa;
 mod acl;
 mod addressing;
 mod apps;
+mod checks;
 mod dhcp;
 mod dns;
 mod hardware;
 mod iot;
 mod ipv6;
+mod lesson;
 mod links;
 mod nat;
 mod palette;
@@ -43,6 +45,7 @@ impl Workspace {
         Workspace {
                 devices: Vec::new(),
                 links: Vec::new(),
+                lesson: None,
                 counters: HashMap::new(),
                 events: Vec::new(),
                 next_event: 0,
@@ -241,6 +244,7 @@ impl Workspace {
             *self = Workspace {
                 devices: Vec::new(),
                 links: Vec::new(),
+                lesson: None,
                 counters: HashMap::new(),
                 events: Vec::new(),
                 next_event: 0,
@@ -330,7 +334,9 @@ impl Workspace {
         self.json_palette(&mut o);
         o.push_str("],\"events\":[");
         self.json_events(&mut o);
-        o.push_str("]}");
+        o.push_str("],\"lesson\":");
+        self.lesson_json(&mut o);
+        o.push('}');
         o
     }
 

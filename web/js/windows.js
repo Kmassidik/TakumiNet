@@ -75,5 +75,6 @@ async function boot() {
     makeWindowMovable(document.getElementById(id));
   }
   status('Ready');
+  await showGallery();
 }
 

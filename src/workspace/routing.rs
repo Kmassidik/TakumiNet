@@ -1016,6 +1016,13 @@ impl Workspace {
         selected.into_values().collect()
     }
 
+    /// Exact selected-RIB membership for lesson checks. A covering default or
+    /// less-specific route deliberately does not satisfy this predicate.
+    pub fn has_route(&self, id: &str, network: u32, prefix: u8) -> bool {
+        let network = network & crate::model::mask_of(prefix);
+        self.selected_routes(id).iter().any(|route| route.network == network && route.prefix == prefix)
+    }
+
     /// IOS-style `show ip route`, rendered from the same selected RIB used by
     /// forwarding. Dynamic fields are `[administrative-distance/metric]`.
     pub fn show_routes(&self, id: &str) -> String {

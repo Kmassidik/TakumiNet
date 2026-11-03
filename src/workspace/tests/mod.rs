@@ -1,5 +1,6 @@
 mod addressing;
 mod catalog;
+mod checks;
 mod devices;
 mod persistence;
 mod routing;

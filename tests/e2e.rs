@@ -799,6 +799,59 @@ fn e2e_vlan_config_and_spanning_tree_blocking() {
 }
 
 #[test]
+fn e2e_lesson_templates_blank_new_and_checks() {
+    struct Fixture(std::path::PathBuf);
+    impl Drop for Fixture {
+        fn drop(&mut self) { let _ = std::fs::remove_file(&self.0); }
+    }
+
+    let s = spawn(38_225);
+    let (status, _, exported) = s.get("/api/export");
+    assert_eq!(status, 200);
+    let lesson = "<lesson id=\"p1-e2e\" title=\"API lesson\" level=\"1\" minutes=\"5\" goal=\"Ping a peer\"/><step n=\"2\" text=\"Check the result\"/><step n=\"1\" text=\"Ping PC1\"/><check id=\"c1\" kind=\"ping\" from=\"pc0\" to=\"pc1\" url=\"\" expect=\"ok\" label=\"PC0 reaches PC1\"/>";
+    let template = exported.replace("</takuminet>", &format!("{lesson}</takuminet>"));
+    let directory = repo_root().join("web/templates");
+    std::fs::create_dir_all(&directory).unwrap();
+    let path = directory.join("p1-e2e.tnet");
+    std::fs::write(&path, template).unwrap();
+    let _fixture = Fixture(path);
+
+    let (status, _, body) = s.get("/api/templates");
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("\"id\":\"p1-e2e\""), "{body}");
+    assert!(body.contains("\"title\":\"API lesson\""), "{body}");
+    assert!(body.contains("\"stepCount\":2"), "{body}");
+
+    let (status, _, body) = s.post("/api/new");
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("\"devices\":[]"), "{body}");
+    assert!(body.contains("\"lesson\":null"), "{body}");
+
+    let (status, _, body) = s.post("/api/templates/open?id=p1-e2e");
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("\"title\":\"API lesson\""), "{body}");
+    assert!(body.find("\"n\":1").unwrap() < body.find("\"n\":2").unwrap(), "steps sorted: {body}");
+    assert!(!body.contains("\"proto\":\"ICMP\""), "template opens pristine: {body}");
+
+    let (status, _, body) = s.get("/api/checks");
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("\"allPassed\":true"), "{body}");
+    assert!(body.contains("\"id\":\"c1\",\"label\":\"PC0 reaches PC1\",\"passed\":true"), "{body}");
+    let (_, _, workspace) = s.get("/api/workspace");
+    assert!(workspace.contains("\"proto\":\"ICMP\""), "checks refresh real captures: {workspace}");
+
+    let (_, _, first) = s.get("/api/export");
+    s.post("/api/templates/open?id=p1-e2e");
+    let (_, _, second) = s.get("/api/export");
+    assert_eq!(first, second, "opening the same template twice is deterministic");
+
+    let (_, _, body) = s.post("/api/templates/open?id=..%2fp1-e2e");
+    assert!(body.contains("invalid template id"), "{body}");
+    let (_, _, body) = s.post("/api/templates/open?id=missing");
+    assert!(body.contains("no such template"), "{body}");
+}
+
+#[test]
 fn e2e_ftp_syslog_aaa_and_ntp_services() {
     let s = spawn(38_224);
     s.post("/api/reset");

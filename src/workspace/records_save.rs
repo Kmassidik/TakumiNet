@@ -11,6 +11,7 @@ impl Workspace {
         self.write_switching_security(&mut out);
         self.write_iot_and_wireless(&mut out);
         self.write_routing_and_names(&mut out);
+        self.write_lesson(&mut out);
         out
     }
 

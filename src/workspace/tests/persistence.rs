@@ -256,7 +256,56 @@ fn legacy_ptw_loads_to_the_same_workspace_as_tnet() {
 
 #[test]
 fn unknown_tnet_elements_survive_load_and_save() {
-    let text = "<takuminet version=\"1\">\n<lesson id=\"l&amp;1\" note=\"漢字&#10;next\"/>\n</takuminet>\n";
+    let text = "<takuminet version=\"1\">\n<mystery id=\"l&amp;1\" note=\"漢字&#10;next\"/>\n</takuminet>\n";
     let ws = Workspace::from_tnet(text).expect("unknown elements are retained");
     assert_eq!(ws.to_tnet(), text);
+}
+
+#[test]
+fn l15_loading_a_template_twice_is_deterministic() {
+    let mut ws = Workspace::new();
+    ws.lesson = Some(Lesson {
+        id: "lesson&1".into(),
+        title: "Strings <stay> intact".into(),
+        level: 2,
+        minutes: 15,
+        goal: "Line one\nLine two 🦀".into(),
+        steps: vec![
+            LessonStep { n: 2, text: "Second & final".into() },
+            LessonStep { n: 1, text: "First <step>".into() },
+        ],
+        checks: vec![Check {
+            id: "ping-1".into(),
+            kind: "ping".into(),
+            from: "pc0".into(),
+            to: "pc1".into(),
+            url: String::new(),
+            expect: "ok".into(),
+            label: "PC0 reaches PC1".into(),
+        }],
+    });
+    let template = ws.to_tnet();
+    let first = Workspace::from_tnet(&template).expect("first load");
+    let second = Workspace::from_tnet(&template).expect("second load");
+    assert_eq!(first.to_tnet(), second.to_tnet(), "native save is stable after lesson normalization");
+    let reloaded = Workspace::from_tnet(&first.to_tnet()).expect("normalized reload");
+    assert_eq!(reloaded.to_tnet(), first.to_tnet());
+    let loaded = first.lesson.as_ref().unwrap();
+    assert_eq!(loaded.steps.iter().map(|step| step.n).collect::<Vec<_>>(), vec![1, 2]);
+    assert_eq!(loaded.goal, "Line one\nLine two 🦀");
+    assert_eq!(loaded.title, "Strings <stay> intact");
+}
+
+#[test]
+fn lesson_records_validate_uniqueness_kinds_and_device_references() {
+    let duplicate = "<takuminet version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><step n=\"1\" text=\"a\"/><step n=\"1\" text=\"b\"/></takuminet>";
+    assert!(Workspace::from_tnet(duplicate).err().expect("duplicate steps rejected").iter().any(|p| p.element == "step"));
+
+    let unknown = "<takuminet version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><check id=\"c\" kind=\"made-up\" from=\"pc0\" to=\"\" url=\"\" expect=\"\" label=\"bad\"/></takuminet>";
+    assert!(Workspace::from_tnet(unknown).err().expect("unknown kind rejected").iter().any(|p| p.attribute == "kind"));
+
+    let missing = "<takuminet version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><check id=\"c\" kind=\"ping\" from=\"missing\" to=\"also-missing\" url=\"\" expect=\"ok\" label=\"bad\"/></takuminet>";
+    let problems = Workspace::from_tnet(missing).err().expect("unknown devices rejected");
+    assert!(problems.iter().any(|p| p.attribute == "from"));
+    assert!(problems.iter().any(|p| p.attribute == "to"));
 }

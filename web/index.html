@@ -20,6 +20,7 @@
           <button data-action="open">Open…</button>
           <button data-action="save">Save…</button>
           <button data-action="import">Import…</button>
+          <button data-action="show-gallery">Lesson gallery…</button>
           <button data-action="export">Export…</button>
           <div class="sep"></div>
           <button data-action="print">Print…</button>
@@ -130,6 +131,20 @@
     </section>
 
     <aside class="sim">
+      <section class="lesson-panel" id="lesson-panel" hidden>
+        <div class="lesson-heading">
+          <img id="lesson-mascot" src="/art3d/mascot/wave.png" alt="TakumiNet mascot" width="52" height="52">
+          <div><span class="lesson-kicker">Guided lab</span><h2 id="lesson-title"></h2><span class="lesson-meta" id="lesson-meta"></span></div>
+        </div>
+        <p class="lesson-goal" id="lesson-goal"></p>
+        <ol class="lesson-steps" id="lesson-steps"></ol>
+        <div class="lesson-checks" id="lesson-checks"></div>
+        <p class="lesson-hint" id="lesson-hint" role="status"></p>
+        <div class="lesson-actions">
+          <button class="btn lesson-check-button" id="check-work" data-action="check-work">Check my work</button>
+          <button class="btn" data-action="reset-lesson">Reset lesson</button>
+        </div>
+      </section>
       <div class="sim-head">Simulation Panel</div>
 
       <table class="events">
@@ -174,6 +189,23 @@
     <span id="status-mode">Realtime</span>
   </div>
 
+</div>
+
+<div id="lesson-gallery" class="overlay gallery-overlay" hidden>
+  <main class="preview gallery" aria-labelledby="gallery-title">
+    <header class="gallery-hero">
+      <img class="gallery-network" src="/art3d/misc/network.png" alt="" width="88" height="88">
+      <div><span class="gallery-kicker">TakumiNet learning lab</span><h1 id="gallery-title">Build a network. See it work.</h1><p>Hands-on lessons use the same packets, commands, and network state as your own labs.</p></div>
+      <img class="gallery-mascot" src="/art3d/mascot/wave.png" alt="TakumiNet mascot waving" width="104" height="104">
+    </header>
+    <div class="gallery-cards" id="gallery-cards"></div>
+    <p class="gallery-note" id="gallery-note" role="status">Loading lessons…</p>
+    <div class="gallery-start">
+      <button class="btn gallery-new" data-action="new"><img src="/art3d/toolbar/new.png" alt="">New blank</button>
+      <button class="btn" data-action="open"><img src="/art3d/toolbar/open.png" alt="">Open file</button>
+      <button class="btn" data-action="import"><img src="/art3d/toolbar/open.png" alt="">Import</button>
+    </div>
+  </main>
 </div>
 
 <div id="ip-dialog" class="overlay" hidden>
@@ -566,6 +598,7 @@
 <script src="/js/simulation.js"></script>
 <script src="/js/palette.js"></script>
 <script src="/js/actions.js"></script>
+<script src="/js/lessons.js"></script>
 <script src="/js/chrome.js"></script>
 <script src="/js/ip_dialog.js"></script>
 <script src="/js/device_window.js"></script>

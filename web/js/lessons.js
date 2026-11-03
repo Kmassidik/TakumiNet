@@ -1,0 +1,204 @@
+/* ---------------- native lesson gallery and guided-work panel ---------------- */
+let lessonResults = [];
+let lessonRunning = false;
+let completedSteps = new Set();
+let currentTemplate = null;
+
+const LESSON_MASCOTS = Object.freeze({
+  wave: '/art3d/mascot/wave.png',
+  think: '/art3d/mascot/think.png',
+  happy: '/art3d/mascot/happy.png',
+  error: '/art3d/mascot/error.png',
+});
+
+function setLessonMascot(name) {
+  const img = document.getElementById('lesson-mascot');
+  if (img) img.src = LESSON_MASCOTS[name] || LESSON_MASCOTS.wave;
+}
+
+function hideGallery() {
+  const gallery = document.getElementById('lesson-gallery');
+  if (gallery) gallery.hidden = true;
+}
+
+function renderGallery(payload = {}) {
+  const gallery = document.getElementById('lesson-gallery');
+  const cards = document.getElementById('gallery-cards');
+  const note = document.getElementById('gallery-note');
+  if (!gallery || !cards) return;
+  gallery.hidden = false;
+  const templates = [...(payload.templates || [])].sort((a, b) => a.id.localeCompare(b.id));
+  const elements = templates.map((template) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'lesson-card';
+    card.dataset.template = template.id;
+    card.onclick = () => openTemplate(template.id);
+
+    const icon = document.createElement('img');
+    icon.src = '/art3d/misc/network.png';
+    icon.alt = '';
+    icon.width = 72;
+    icon.height = 72;
+    card.appendChild(icon);
+
+    const title = document.createElement('strong');
+    title.textContent = template.title;
+    card.appendChild(title);
+    const goal = document.createElement('span');
+    goal.className = 'lesson-card-goal';
+    goal.textContent = template.goal;
+    card.appendChild(goal);
+    const meta = document.createElement('span');
+    meta.className = 'lesson-card-meta';
+    meta.textContent = `Level ${template.level} · ${template.minutes} min · ${template.stepCount} steps`;
+    card.appendChild(meta);
+    const action = document.createElement('span');
+    action.className = 'lesson-card-action';
+    action.textContent = 'Start lesson →';
+    card.appendChild(action);
+    return card;
+  });
+  cards.replaceChildren(...elements);
+  if (note) {
+    note.textContent = payload.error || (templates.length
+      ? 'Choose a guided lab. Your progress stays in this workspace.'
+      : 'Guided labs will appear here. You can start a blank workspace or open a native .tnet file now.');
+  }
+}
+
+async function showGallery() {
+  const gallery = document.getElementById('lesson-gallery');
+  const note = document.getElementById('gallery-note');
+  if (gallery) gallery.hidden = false;
+  if (note) note.textContent = 'Loading lessons…';
+  renderGallery(await getJson('/api/templates'));
+}
+
+function resetLessonState() {
+  lessonResults = [];
+  lessonRunning = false;
+  completedSteps = new Set();
+  setLessonMascot('wave');
+  const hint = document.getElementById('lesson-hint');
+  if (hint) hint.textContent = '';
+}
+
+function renderLessonResults(results) {
+  lessonResults = Array.isArray(results) ? results : [];
+  renderLesson();
+}
+
+function renderLesson() {
+  const panel = document.getElementById('lesson-panel');
+  if (!panel) return;
+  const lesson = data && data.lesson;
+  panel.hidden = !lesson;
+  if (!lesson) return;
+
+  document.getElementById('lesson-title').textContent = lesson.title;
+  document.getElementById('lesson-goal').textContent = lesson.goal;
+  document.getElementById('lesson-meta').textContent = `Level ${lesson.level} · ${lesson.minutes} min`;
+  if (!lessonRunning && !lessonResults.length) setLessonMascot('wave');
+
+  const steps = (lesson.steps || []).map((step) => {
+    const item = document.createElement('li');
+    const label = document.createElement('label');
+    const tick = document.createElement('input');
+    tick.type = 'checkbox';
+    tick.checked = completedSteps.has(step.n);
+    tick.onchange = () => {
+      if (tick.checked) completedSteps.add(step.n);
+      else completedSteps.delete(step.n);
+    };
+    label.appendChild(tick);
+    const text = document.createElement('span');
+    text.textContent = step.text;
+    label.appendChild(text);
+    item.appendChild(label);
+    return item;
+  });
+  document.getElementById('lesson-steps').replaceChildren(...steps);
+
+  const byId = new Map(lessonResults.map((result) => [result.id, result]));
+  const checks = (lesson.checks || []).map((check) => {
+    const result = byId.get(check.id);
+    const row = document.createElement('div');
+    row.className = `lesson-check ${lessonRunning ? 'running' : result ? (result.passed ? 'passed' : 'failed') : 'pending'}`;
+    const symbol = document.createElement('span');
+    symbol.className = 'lesson-check-icon';
+    symbol.textContent = lessonRunning ? '…' : result ? (result.passed ? '✓' : '×') : '○';
+    row.appendChild(symbol);
+    const copy = document.createElement('div');
+    const label = document.createElement('strong');
+    label.textContent = check.label;
+    copy.appendChild(label);
+    const actual = document.createElement('small');
+    actual.textContent = lessonRunning ? 'Checking live network state…' : result ? result.actual : 'Not checked yet';
+    copy.appendChild(actual);
+    row.appendChild(copy);
+    return row;
+  });
+  document.getElementById('lesson-checks').replaceChildren(...checks);
+  const firstFailure = lessonResults.find((result) => !result.passed);
+  document.getElementById('lesson-hint').textContent = lessonRunning ? '' : (firstFailure && firstFailure.hint) || '';
+  document.getElementById('check-work').disabled = lessonRunning;
+}
+
+async function checkWork() {
+  if (lessonRunning || !data || !data.lesson) return;
+  lessonRunning = true;
+  lessonResults = [];
+  setLessonMascot('think');
+  renderLesson();
+  const response = await getJson('/api/checks');
+  if (!Array.isArray(response.results)) {
+    lessonRunning = false;
+    setLessonMascot('error');
+    renderLesson();
+    sfx('errorMsg');
+    status(response.error || 'Could not run lesson checks', true);
+    return;
+  }
+  lessonResults = response.results;
+  lessonRunning = false;
+  const workspace = await getJson('/api/workspace');
+  if (workspace && Array.isArray(workspace.devices)) setData(workspace);
+  renderLesson();
+  if (response.allPassed) {
+    setLessonMascot('happy');
+    sfx('popUp');
+    status('Lesson complete — every check passed');
+  } else {
+    setLessonMascot('error');
+    sfx('errorMsg');
+    const first = lessonResults.find((result) => !result.passed);
+    status((first && first.hint) || 'Some lesson checks still need work', true);
+  }
+}
+
+async function openTemplate(id, resetting = false) {
+  const response = await api('/api/templates/open', { id });
+  if (response.error) return response;
+  currentTemplate = id;
+  currentName = id;
+  simCursor = -1;
+  selectedLink = null;
+  setSelection([]);
+  resetLessonState();
+  renderLesson();
+  hideGallery();
+  status(resetting ? `Reset ${response.lesson.title}` : `Opened ${response.lesson.title}`);
+  if (!resetting) sfx('newScenarioButton');
+  return response;
+}
+
+async function resetLesson() {
+  const id = currentTemplate || (data && data.lesson && data.lesson.id);
+  if (!id || !confirm('Reload the pristine lesson and discard this attempt?')) return;
+  await openTemplate(id, true);
+}
+
+ACTIONS['check-work'] = checkWork;
+ACTIONS['reset-lesson'] = resetLesson;
+ACTIONS['show-gallery'] = showGallery;

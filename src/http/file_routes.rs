@@ -8,6 +8,10 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str, body: &[u8
         ("GET", "/api/saves") => Some(handle_saves()),
         ("GET", "/api/export") => Some(handle_export(ctx)),
         ("POST", "/api/import") => Some(handle_import(ctx, query, body)),
+        ("GET", "/api/checks") => Some(handle_checks(ctx)),
+        ("GET", "/api/templates") => Some(handle_templates(ctx)),
+        ("POST", "/api/templates/open") => Some(handle_template_open(ctx, query)),
+        ("POST", "/api/new") => Some(handle_new(ctx)),
         ("GET", "/api/topology") => Some(handle_topology(ctx)),
         ("POST", "/api/ping") => Some(handle_ping(ctx, query)),
         _ => None,
@@ -120,6 +124,98 @@ fn problem_list(problems: &[crate::workspace::Problem]) -> String {
             json_str(&problem.to_string()))
     }).collect::<Vec<_>>().join(",");
     format!("[{entries}]")
+}
+
+fn handle_checks(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let results = ws.run_checks();
+    let all_passed = results.iter().all(|result| result.passed);
+    let results = results.iter().map(|result| format!(
+        "{{\"id\":{},\"label\":{},\"passed\":{},\"actual\":{},\"hint\":{}}}",
+        json_str(&result.id), json_str(&result.label), result.passed,
+        json_str(&result.actual), json_str(&result.hint),
+    )).collect::<Vec<_>>().join(",");
+    ("application/json", format!("{{\"allPassed\":{all_passed},\"results\":[{results}]}}").into_bytes())
+}
+
+fn template_dir(ctx: &Ctx) -> std::path::PathBuf {
+    std::path::Path::new(&ctx.web_root).join("templates")
+}
+
+fn handle_templates(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let entries = match std::fs::read_dir(template_dir(ctx)) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return (json, b"{\"templates\":[]}".to_vec());
+        }
+        Err(error) => return (json, json_error(&format!("cannot read templates: {error}")).into_bytes()),
+    };
+    let mut paths: Vec<std::path::PathBuf> = entries.flatten().map(|entry| entry.path())
+        .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("tnet"))
+        .collect();
+    paths.sort();
+    let mut lessons = Vec::new();
+    for path in paths {
+        let text = match std::fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(error) => return (json, json_error(&format!("cannot read {}: {error}", path.display())).into_bytes()),
+        };
+        let workspace = match Workspace::from_tnet(&text) {
+            Ok(workspace) => workspace,
+            Err(problems) => {
+                let summary = problems.first().map(ToString::to_string).unwrap_or_else(|| "invalid template".into());
+                return (json, json_error(&format!("{}: {summary}", path.display())).into_bytes());
+            }
+        };
+        if let Some(lesson) = workspace.lesson {
+            lessons.push(lesson);
+        }
+    }
+    lessons.sort_by(|a, b| a.id.cmp(&b.id));
+    let templates = lessons.iter().map(|lesson| format!(
+        "{{\"id\":{},\"title\":{},\"level\":{},\"minutes\":{},\"goal\":{},\"stepCount\":{},\"checkCount\":{}}}",
+        json_str(&lesson.id), json_str(&lesson.title), lesson.level, lesson.minutes,
+        json_str(&lesson.goal), lesson.steps.len(), lesson.checks.len(),
+    )).collect::<Vec<_>>().join(",");
+    (json, format!("{{\"templates\":[{templates}]}}").into_bytes())
+}
+
+fn valid_template_id(id: &str) -> bool {
+    !id.is_empty() && id.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_'))
+}
+
+fn handle_template_open(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    if !valid_template_id(&id) {
+        return (json, json_error("invalid template id").into_bytes());
+    }
+    let text = match std::fs::read_to_string(template_dir(ctx).join(format!("{id}.tnet"))) {
+        Ok(text) => text,
+        Err(_) => return (json, json_error("no such template").into_bytes()),
+    };
+    match Workspace::from_tnet(&text) {
+        Ok(loaded) => {
+            let report = loaded.load_problems.clone();
+            let (out, _) = apply(ctx, |workspace| {
+                *workspace = loaded;
+                Ok(())
+            });
+            ctx.cli.lock().unwrap_or_else(|e| e.into_inner()).clear();
+            (json, attach_problems(out, &report).into_bytes())
+        }
+        Err(problems) => (json, problems_response(&problems).into_bytes()),
+    }
+}
+
+fn handle_new(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let (out, _) = apply(ctx, |workspace| {
+        *workspace = Workspace::empty();
+        Ok(())
+    });
+    ctx.cli.lock().unwrap_or_else(|e| e.into_inner()).clear();
+    ("application/json", out.into_bytes())
 }
 
 fn handle_topology(ctx: &Ctx) -> (&'static str, Vec<u8>) {
