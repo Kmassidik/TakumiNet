@@ -132,3 +132,10 @@ test('device window exposes only the four supported tabs', () => {
   const tabs = Array.from(markup[1].matchAll(/data-tab="([^"]+)"/g), (match) => match[1]);
   assert.deepEqual(tabs, ['physical', 'config', 'desktop', 'services']);
 });
+
+test('every static image has a real source before its window opens', () => {
+  const html = source('web/index.html');
+  const images = Array.from(html.matchAll(/<img\b[^>]*>/g), (match) => match[0]);
+  const missing = images.filter((image) => !/\bsrc="[^"]+"/.test(image));
+  assert.deepEqual(missing, []);
+});

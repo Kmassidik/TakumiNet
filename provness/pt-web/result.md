@@ -2,6 +2,8 @@
 
 Checked on 2026-11-03. No proof tool has been run: Bend is not installed.
 
+P4 Chrome found a hidden device-window icon with no initial source. `every static image has a real source before its window opens` failed before the fix; `cargo test` passed 218 tests and `node --test tests/js/*.test.js` passed 35 after it.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |
