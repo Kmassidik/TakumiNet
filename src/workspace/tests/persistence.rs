@@ -13,6 +13,55 @@ fn ptw_round_trip_preserves_topology() {
 }
 
 #[test]
+fn legacy_routing_records_use_protocol_defaults() {
+    let mut ws = Workspace::new();
+    ws.add_route("router0", "10.0.0.0", "8", "192.168.1.254", 200)
+        .unwrap();
+    ws.set_port_bandwidth("router0", "GigabitEthernet0/0", 10_000)
+        .unwrap();
+    ws.set_port_delay("router0", "GigabitEthernet0/0", 250)
+        .unwrap();
+    ws.set_routing_protocol("router0", "ospf", 42).unwrap();
+    ws.add_routing_network(
+        "router0",
+        crate::model::parse_ipv4("192.168.1.0").unwrap(),
+        24,
+        7,
+    )
+    .unwrap();
+    let mut legacy = String::new();
+    for line in ws.to_ptw().lines() {
+        let keep = if line.starts_with("route\t") {
+            5
+        } else if line.starts_with("port\t") {
+            8
+        } else if line.starts_with("routing\t") {
+            3
+        } else if line.starts_with("routenet\t") {
+            4
+        } else {
+            usize::MAX
+        };
+        legacy.push_str(&line.split('\t').take(keep).collect::<Vec<_>>().join("\t"));
+        legacy.push('\n');
+    }
+    let back = Workspace::from_ptw(&legacy).expect("legacy load");
+    let router = back.devices.iter().find(|d| d.id == "router0").unwrap();
+    assert_eq!(router.routes[0].admin_distance, 1);
+    let port = router
+        .ports
+        .iter()
+        .find(|p| p.name == "GigabitEthernet0/0")
+        .unwrap();
+    assert_eq!((port.bandwidth_kbps, port.delay_us), (1_000_000, 10));
+    assert_eq!(
+        back.routing["router0"].protocol,
+        RoutingProtocol::Ospf { process_id: 1 }
+    );
+    assert_eq!(back.routing["router0"].networks[0].area, 0);
+}
+
+#[test]
 fn ptw_round_trip_covers_every_edited_field() {
     let mut ws = Workspace::new();
     ws.set_config("pc0", "192.168.1.10", "255.255.255.0", "192.168.1.1", "8.8.8.8")
@@ -21,8 +70,12 @@ fn ptw_round_trip_covers_every_edited_field() {
         .unwrap();
     ws.set_dot1x("pc0", true, "student", "s3cret").unwrap();
     ws.set_port_up("router0", "GigabitEthernet0/0", false);
-    ws.add_route("router0", "10.0.0.0", "255.0.0.0", "192.168.1.254")
+    ws.set_port_bandwidth("router0", "GigabitEthernet0/0", 10_000).unwrap();
+    ws.set_port_delay("router0", "GigabitEthernet0/0", 250).unwrap();
+    ws.add_route("router0", "10.0.0.0", "255.0.0.0", "192.168.1.254", 200)
         .unwrap();
+    ws.set_routing_protocol("router0", "ospf", 42).unwrap();
+    ws.add_routing_network("router0", crate::model::parse_ipv4("192.168.2.0").unwrap(), 24, 7).unwrap();
     ws.set_dhcp_pool("server0", "192.168.2.0", 24, "192.168.2.1", "8.8.8.8")
         .unwrap();
     ws.acquire_dhcp("pc2").unwrap();
@@ -68,6 +121,11 @@ fn ptw_round_trip_covers_every_edited_field() {
 
     let r0 = back.devices.iter().find(|d| d.id == "router0").unwrap();
     assert_eq!(r0.routes.len(), 1);
+    assert_eq!(r0.routes[0].admin_distance, 200);
+    let primary = r0.ports.iter().find(|p| p.name == "GigabitEthernet0/0").unwrap();
+    assert_eq!((primary.bandwidth_kbps, primary.delay_us), (10_000, 250));
+    assert_eq!(back.routing["router0"].protocol, RoutingProtocol::Ospf { process_id: 42 });
+    assert_eq!(back.routing["router0"].networks[0].area, 7);
     let subif = r0.ports.iter().find(|p| p.name == "GigabitEthernet0/0.10").unwrap();
     assert_eq!(subif.dot1q, Some(10));
     assert_eq!(subif.ip, crate::model::parse_ipv4("192.168.10.1"));

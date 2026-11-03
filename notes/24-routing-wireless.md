@@ -4,20 +4,33 @@ Status: landed 2026-11-01.
 
 ## Routing protocols
 
-`router rip|ospf <pid>|eigrp <as>` enters a router submode
-(prompt `(config-router)#`); `network A.B.C.D [MASK]` advertises a network and
-`no network` withdraws it. After every change the workspace runs one
-distance-vector pass over router–router links:
+`router rip`, `router ospf PID`, and `router eigrp AS` enter protocol-specific
+router submodes. RIP uses `version 2` and retains classful `network A.B.C.D`;
+OSPF accepts `network IP WILDCARD area N`. Interface `bandwidth KBPS` and
+`delay USEC` control path metrics, and their `no` forms restore interface
+defaults. Protocol IDs, areas, metrics, and static administrative distances
+persist in running/startup configuration and `.ptw` saves.
 
-- BFS from each advertising router, next hop = the peer's address on the link,
-  metric = hop count, one route per network/prefix.
-- A router's own connected networks are never installed as learned routes.
-- `show ip route` prints `R`/`O`/`D` rows and the forwarding path (`fwd::next_hop`)
-  consults the same table, so a packet really crosses the taught route.
+Each protocol recomputes independently over live, addressed adjacencies:
 
-Verified: two routers joined by Serial0/0/0 learn each other's LANs (`10.1.0.0/24`
-via `10.0.0.2`), the table survives `.ptw`, and OSPF/EIGRP share the engine with
-their own codes.
+- **RIPv2** runs synchronous Bellman-Ford with unit link cost. Metrics 1–15 are
+  installable; 16 is infinity. Only RIPv2 neighbors exchange routes.
+- **OSPF** originates router LSAs and runs Dijkstra over each area's LSDB. Link
+  cost is `max(1, 100_000_000 / bandwidth_bps)`. ABRs attach area 0 and
+  originate summaries so multi-area routes cross the backbone rather than
+  merging every area into one SPF graph.
+- **EIGRP** forms adjacencies only within the same AS. Path-vector relaxation
+  tracks bottleneck bandwidth and cumulative delay, with composite metric
+  `256 * (10_000_000 / min_bandwidth_kbps + delay_us / 10)`.
+- **Static routes** accept `ip route DEST MASK NEXT_HOP [AD]` (default AD 1),
+  including the corresponding `no` form. Floating routes become eligible when
+  a lower-AD route's connected next hop is unavailable.
+
+Connected, static, and learned routes share longest-prefix → administrative
+distance → metric selection. ADs are 0 for connected, 90 for EIGRP internal,
+110 for OSPF, and 120 for RIP; static AD is per route. `show ip route` renders
+`[AD/metric]`, and forwarding consults the same selected table. Derived routes
+and LSDBs are not persisted: load and reload recompute them from configuration.
 
 ## ACLs and NAT
 

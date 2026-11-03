@@ -182,9 +182,14 @@ simulation is ours and runs server-side in Rust.
 - **Menus and dialogs**: Options → Preferences (grid, sound, delete
   confirmation, persisted per browser), Help → About, Help → Dialogs catalog
   browser (10,598 rows / 499 dialogs).
-- **Routing protocols, ACLs and NAT**: `router rip|ospf <id>|eigrp <as>` with
-  `network A.B.C.D MASK` exchanges advertised networks over router links
-  (distance-vector pass, `R`/`O`/`D` rows in `show ip route`); `access-list`
+- **Routing protocols, static routes, ACLs and NAT**: RIPv2 uses synchronous
+  Bellman-Ford with the 15-hop limit; OSPF builds area-scoped LSDBs and runs
+  Dijkstra, including backbone-mediated inter-area routes; EIGRP isolates ASes
+  and uses bandwidth/delay composite metrics. OSPF `network IP WILDCARD area N`,
+  interface `bandwidth`/`delay`, RIP `version 2`, and protocol process/AS IDs are
+  preserved. Static routes accept an optional administrative distance, and
+  longest-prefix → administrative-distance → metric selection is shared by
+  forwarding and the `R`/`O`/`D` rows in `show ip route`. `access-list`
   standard/extended rules bound with `ip access-group N in|out` drop frames at
   the router hop; `ip nat inside|outside` plus `ip nat inside source list N
   interface g0/1 overload` rewrites inside sources and `show ip nat

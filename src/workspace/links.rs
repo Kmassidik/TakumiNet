@@ -38,6 +38,7 @@ impl Workspace {
             b_port,
             kind: kind.to_string(),
         });
+        self.recompute_routing();
         Ok(())
     }
 
@@ -243,7 +244,11 @@ impl Workspace {
         let before = self.links.len();
         self.links
             .retain(|l| !((l.a == a && l.b == b) || (l.a == b && l.b == a)));
-        self.links.len() != before
+        let changed = self.links.len() != before;
+        if changed {
+            self.recompute_routing();
+        }
+        changed
     }
 
     /// Link every unordered pair among `ids`, forming a full mesh.

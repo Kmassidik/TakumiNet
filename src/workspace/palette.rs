@@ -71,6 +71,16 @@ pub(super) const FILTERS: &[&str] = &[
     "Telnet", "UDP", "VTP",
 ];
 
+pub(super) fn default_port_metrics(name: &str) -> (u32, u32) {
+    if name.starts_with("GigabitEthernet") || name.starts_with("Gig") {
+        (1_000_000, 10)
+    } else if name.starts_with("Serial") {
+        (1544, 20_000)
+    } else {
+        (100_000, 100)
+    }
+}
+
 pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
     let names: Vec<String> = match kind {
         "router" => {
@@ -87,7 +97,10 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         .into_iter()
         // A cabled interface is up until something shuts it down, and the demo
         // workspace ships already wired.
-        .map(|name| PortCfg { name, ip: None, prefix: 24, up: true, vlan: 1, trunk: false, dot1q: None })
+        .map(|name| {
+            let (bandwidth_kbps, delay_us) = default_port_metrics(&name);
+            PortCfg { name, ip: None, prefix: 24, up: true, bandwidth_kbps, delay_us, vlan: 1, trunk: false, dot1q: None }
+        })
         .collect()
 }
 

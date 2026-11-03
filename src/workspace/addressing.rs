@@ -84,6 +84,42 @@ impl Workspace {
             .ok_or_else(|| format!("no such interface: {iface}"))?;
         port.ip = Some(ip);
         port.prefix = prefix;
+        self.recompute_routing();
+        Ok(())
+    }
+
+    pub fn set_port_bandwidth(&mut self, id: &str, iface: &str, kbps: u32) -> Result<(), String> {
+        if kbps == 0 {
+            return Err("bandwidth must be greater than zero".into());
+        }
+        let dev = self
+            .devices
+            .iter_mut()
+            .find(|d| d.id == id)
+            .ok_or_else(|| "no such device".to_string())?;
+        let port = dev
+            .ports
+            .iter_mut()
+            .find(|p| p.name == iface)
+            .ok_or_else(|| format!("no such interface: {iface}"))?;
+        port.bandwidth_kbps = kbps;
+        self.recompute_routing();
+        Ok(())
+    }
+
+    pub fn set_port_delay(&mut self, id: &str, iface: &str, usec: u32) -> Result<(), String> {
+        let dev = self
+            .devices
+            .iter_mut()
+            .find(|d| d.id == id)
+            .ok_or_else(|| "no such device".to_string())?;
+        let port = dev
+            .ports
+            .iter_mut()
+            .find(|p| p.name == iface)
+            .ok_or_else(|| format!("no such interface: {iface}"))?;
+        port.delay_us = usec;
+        self.recompute_routing();
         Ok(())
     }
 
@@ -92,12 +128,16 @@ impl Workspace {
         let Some(dev) = self.devices.iter_mut().find(|d| d.id == id) else {
             return false;
         };
-        match dev.ports.iter_mut().find(|p| p.name == iface) {
+        let changed = match dev.ports.iter_mut().find(|p| p.name == iface) {
             Some(p) => {
                 p.up = up;
                 true
             }
             None => false,
+        };
+        if changed {
+            self.recompute_routing();
         }
+        changed
     }
 }

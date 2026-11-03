@@ -93,16 +93,10 @@ impl Workspace {
                 }
             }
             ["route", id, net, prefix, via] => {
-                let (Some(net), Some(via)) = (
-                    crate::model::parse_ipv4(net),
-                    crate::model::parse_ipv4(via),
-                ) else {
-                    return Some(());
-                };
-                let prefix = prefix.parse::<u8>().unwrap_or(24);
-                if let Some(d) = self.devices.iter_mut().find(|d| d.id == *id) {
-                    d.routes.push((net, prefix, via));
-                }
+                load_route(self, id, net, prefix, via, "1");
+            }
+            ["route", id, net, prefix, via, admin_distance] => {
+                load_route(self, id, net, prefix, via, admin_distance);
             }
             ["port", id, name, up, ip, prefix] => {
                 if let Some(d) = self.devices.iter_mut().find(|d| d.id == *id) {
@@ -124,7 +118,7 @@ impl Workspace {
                     }
                 }
             }
-            ["port", id, name, up, ip, prefix, vlan, trunk, dot1q] => {
+            ["port", id, name, up, ip, prefix, vlan, trunk, dot1q, metrics @ ..] => {
                 if let Some(d) = self.devices.iter_mut().find(|d| d.id == *id) {
                     if !d.ports.iter().any(|p| p.name == *name) && name.contains('.') {
                         d.ports.push(PortCfg {
@@ -135,6 +129,8 @@ impl Workspace {
                             vlan: 1,
                             trunk: false,
                             dot1q: None,
+                            bandwidth_kbps: default_port_metrics(name).0,
+                            delay_us: default_port_metrics(name).1,
                         });
                     }
                     if let Some(p) = d.ports.iter_mut().find(|p| p.name == *name) {
@@ -144,6 +140,14 @@ impl Workspace {
                         p.vlan = vlan.parse().unwrap_or(1);
                         p.trunk = *trunk == "1";
                         p.dot1q = dot1q.parse::<u16>().ok();
+                        if let [bandwidth, delay] = metrics {
+                            p.bandwidth_kbps = bandwidth
+                                .parse()
+                                .unwrap_or_else(|_| default_port_metrics(name).0);
+                            p.delay_us = delay
+                                .parse()
+                                .unwrap_or_else(|_| default_port_metrics(name).1);
+                        }
                     }
                 }
             }
@@ -434,20 +438,27 @@ impl Workspace {
     fn load_routing_line(&mut self, f: &[&str]) -> Option<()> {
         match f {
             ["routing", dev, proto] => {
-                self.routing
-                    .entry(dev.to_string())
-                    .or_default()
-                    .0 = proto.to_string();
+                load_routing_protocol(self, dev, proto, 1);
+            }
+            ["routing", dev, proto, process_id] => {
+                load_routing_protocol(
+                    self,
+                    dev,
+                    proto,
+                    process_id.parse::<u32>().unwrap_or(1),
+                );
             }
             ["routenet", dev, net, prefix] => {
-                if let (Some(n), Ok(p)) =
-                    (crate::model::parse_ipv4(net), prefix.parse::<u8>())
-                {
-                    let entry = self.routing.entry(dev.to_string()).or_default();
-                    if !entry.1.iter().any(|(a, b)| *a == n && *b == p) {
-                        entry.1.push((n, p));
-                    }
-                }
+                load_routing_network(self, dev, net, prefix, 0);
+            }
+            ["routenet", dev, net, prefix, area] => {
+                load_routing_network(
+                    self,
+                    dev,
+                    net,
+                    prefix,
+                    area.parse::<u32>().unwrap_or(0),
+                );
             }
             ["natrole", dev, iface, dir] => {
                 self.nat_roles
@@ -463,5 +474,56 @@ impl Workspace {
             _ => {}
         }
         Some(())
+    }
+}
+
+fn load_route(ws: &mut Workspace, id: &str, net: &str, prefix: &str, via: &str, ad: &str) {
+    let (Some(network), Some(next_hop)) = (
+        crate::model::parse_ipv4(net),
+        crate::model::parse_ipv4(via),
+    ) else {
+        return;
+    };
+    if let Some(device) = ws.devices.iter_mut().find(|d| d.id == id) {
+        device.routes.push(StaticRoute {
+            network,
+            prefix: prefix.parse::<u8>().unwrap_or(24),
+            next_hop,
+            admin_distance: ad.parse::<u8>().unwrap_or(1),
+        });
+    }
+}
+
+fn load_routing_protocol(ws: &mut Workspace, id: &str, protocol: &str, process_id: u32) {
+    let protocol = match protocol.to_ascii_lowercase().as_str() {
+        "ospf" => RoutingProtocol::Ospf { process_id },
+        "eigrp" => RoutingProtocol::Eigrp { as_number: process_id },
+        "ospfv3" => RoutingProtocol::Ospfv3 { process_id },
+        _ => RoutingProtocol::RipV2,
+    };
+    let config = ws.routing.entry(id.to_string()).or_insert_with(|| RoutingConfig {
+        protocol: RoutingProtocol::RipV2,
+        networks: Vec::new(),
+    });
+    config.protocol = protocol;
+}
+
+fn load_routing_network(ws: &mut Workspace, id: &str, net: &str, prefix: &str, area: u32) {
+    let (Some(network), Ok(prefix)) = (
+        crate::model::parse_ipv4(net),
+        prefix.parse::<u8>(),
+    ) else {
+        return;
+    };
+    let config = ws.routing.entry(id.to_string()).or_insert_with(|| RoutingConfig {
+        protocol: RoutingProtocol::RipV2,
+        networks: Vec::new(),
+    });
+    if !config
+        .networks
+        .iter()
+        .any(|n| n.network == network && n.prefix == prefix && n.area == area)
+    {
+        config.networks.push(NetworkStatement { network, prefix, area });
     }
 }

@@ -520,44 +520,16 @@ enum NextHop {
     NoRoute(String),
 }
 
-/// Longest-prefix lookup over connected networks and static routes.
+/// Longest-prefix/AD/metric lookup shared with `show ip route`.
 fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
     use crate::model::{contains, ipv4_string};
 
     if matches!(dev.kind.as_str(), "router" | "asa") {
-        let mut best: Option<(u8, NextHop)> = None;
-        for p in &dev.ports {
-            if let Some(ip) = p.ip {
-                if contains(dst, ip, p.prefix) && best.as_ref().map(|(l, _)| p.prefix > *l).unwrap_or(true) {
-                    best = Some((p.prefix, NextHop::Direct(p.dot1q)));
-                }
-            }
-        }
-        for (net, prefix, via) in &dev.routes {
-            if contains(dst, *net, *prefix) && best.as_ref().map(|(l, _)| *prefix > *l).unwrap_or(true) {
-                best = Some((*prefix, NextHop::Via(*via, None)));
-            }
-        }
-        if let Some(list) = ws.dyn_routes.get(&dev.id) {
-            for (net, prefix, via, _, _) in list {
-                if contains(dst, *net, *prefix)
-                    && best.as_ref().map(|(l, _)| *prefix > *l).unwrap_or(true)
-                {
-                    best = Some((*prefix, NextHop::Via(*via, None)));
-                }
-            }
-        }
-        return match best {
-            Some((_, NextHop::Via(via, _))) => {
-                let tag = dev
-                    .ports
-                    .iter()
-                    .filter(|p| p.ip.is_some_and(|ip| contains(via, ip, p.prefix)))
-                    .max_by_key(|p| p.prefix)
-                    .and_then(|p| p.dot1q);
-                NextHop::Via(via, tag)
-            }
-            Some((_, nh)) => nh,
+        return match ws.best_route(&dev.id, dst) {
+            Some(route) => match route.next_hop {
+                None => NextHop::Direct(route.dot1q),
+                Some(via) => NextHop::Via(via, route.dot1q),
+            },
             None => NextHop::NoRoute(format!(
                 "no route to {}: {} has no route to that network",
                 ipv4_string(dst),
@@ -595,7 +567,7 @@ fn routed_path(
     let mut chain: Vec<String> = vec![sdev.id.clone()];
     let mut leg_vlans = Vec::new();
     let mut current = sdev.clone();
-    for _ in 0..16 {
+    loop {
         let (next, next_vlan) = match next_hop(ws, &current, dst_ip) {
             NextHop::Direct(vlan) => {
                 chain.push(ddev.id.clone());

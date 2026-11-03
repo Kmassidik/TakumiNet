@@ -97,21 +97,22 @@ fn static_routes_are_stored_and_shown() {
     let mut ws = Workspace::new();
     ws.set_port_ip("router0", "GigabitEthernet0/0", "192.168.1.1", 24)
         .unwrap();
-    ws.add_route("router0", "10.0.0.0", "255.0.0.0", "192.168.1.254")
+    ws.add_route("router0", "10.0.0.0", "255.0.0.0", "192.168.1.254", 1)
         .unwrap();
     // Prefix-length masks are accepted too, and 24-bit prefixes normalise.
-    ws.add_route("router0", "172.16.5.130", "24", "192.168.1.254")
+    ws.add_route("router0", "172.16.5.130", "24", "192.168.1.254", 1)
         .unwrap();
 
     let dev = ws.devices.iter().find(|d| d.id == "router0").unwrap();
     assert_eq!(dev.routes.len(), 2);
     assert_eq!(
         dev.routes[1],
-        (
-            crate::model::parse_ipv4("172.16.5.0").unwrap(),
-            24,
-            crate::model::parse_ipv4("192.168.1.254").unwrap()
-        )
+        StaticRoute {
+            network: crate::model::parse_ipv4("172.16.5.0").unwrap(),
+            prefix: 24,
+            next_hop: crate::model::parse_ipv4("192.168.1.254").unwrap(),
+            admin_distance: 1,
+        }
     );
 
     let out = ws.show_routes("router0");
@@ -126,10 +127,10 @@ fn static_routes_are_stored_and_shown() {
         "{out}"
     );
 
-    assert!(ws.add_route("router0", "bad", "24", "192.168.1.254").is_err());
-    assert!(ws.add_route("router0", "10.0.0.0", "255.0.255.0", "192.168.1.254").is_err());
-    assert!(ws.add_route("router0", "10.0.0.0", "24", "nope").is_err());
-    assert!(ws.add_route("nope", "10.0.0.0", "24", "192.168.1.254").is_err());
+    assert!(ws.add_route("router0", "bad", "24", "192.168.1.254", 1).is_err());
+    assert!(ws.add_route("router0", "10.0.0.0", "255.0.255.0", "192.168.1.254", 1).is_err());
+    assert!(ws.add_route("router0", "10.0.0.0", "24", "nope", 1).is_err());
+    assert!(ws.add_route("nope", "10.0.0.0", "24", "192.168.1.254", 1).is_err());
     assert!(ws.show_routes("nope").contains("Unknown"));
 }
 
@@ -192,7 +193,7 @@ fn run_show_helper(ws: &Workspace) -> String {
 }
 
 #[test]
-fn rip_propagates_remote_networks_and_persists() {
+fn routing_protocols_do_not_redistribute_implicitly() {
     use crate::model::parse_ipv4;
     let mut ws = Workspace::new();
     let r1 = ws.add("2911", 300.0, 400.0).unwrap();
@@ -201,25 +202,16 @@ fn rip_propagates_remote_networks_and_persists() {
     ws.set_port_ip(&r1, "Serial0/0/0", "10.0.0.1", 30).unwrap();
     ws.set_port_ip(&r2, "Serial0/0/0", "10.0.0.2", 30).unwrap();
     ws.set_port_ip(&r2, "Serial0/1/0", "10.1.0.1", 24).unwrap();
-    ws.set_routing_protocol(&r1, "rip").unwrap();
-    ws.add_routing_network(&r1, parse_ipv4("10.0.0.0").unwrap(), 30).unwrap();
-    ws.set_routing_protocol(&r2, "ospf").unwrap();
-    ws.add_routing_network(&r2, parse_ipv4("10.1.0.0").unwrap(), 24).unwrap();
-    assert!(
-        ws.dyn_routes[&r1]
-            .iter()
-            .any(|(n, p, _, _, _)| *n == parse_ipv4("10.1.0.0").unwrap() && *p == 24),
-        "{:?}",
-        ws.dyn_routes
-    );
-    assert!(ws.show_routes(&r1).contains("R  10.1.0.0/24"));
+    ws.set_routing_protocol(&r1, "rip", 1).unwrap();
+    ws.add_routing_network(&r1, parse_ipv4("10.0.0.0").unwrap(), 30, 0).unwrap();
+    ws.set_routing_protocol(&r2, "ospf", 1).unwrap();
+    ws.add_routing_network(&r2, parse_ipv4("10.0.0.0").unwrap(), 30, 0).unwrap();
+    ws.add_routing_network(&r2, parse_ipv4("10.1.0.0").unwrap(), 24, 0).unwrap();
+    assert!(!ws.dyn_routes.contains_key(&r1), "{:?}", ws.dyn_routes);
+    assert!(!ws.show_routes(&r1).contains("10.1.0.0/24"));
     let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
     assert!(back.routing.contains_key(&r1));
-    assert!(back
-        .dyn_routes
-        .get(&r1)
-        .map(|l| !l.is_empty())
-        .unwrap_or(false));
+    assert!(!back.dyn_routes.contains_key(&r1));
 }
 
 #[test]
@@ -265,7 +257,7 @@ fn dhcpv6_ips_and_inspection_are_real_state() {
 #[test]
 fn ospfv3_stores_ipv6_prefixes_and_shows_them() {
     let mut ws = Workspace::new();
-    ws.set_routing_protocol("router0", "ospfv3").unwrap();
+    ws.set_routing_protocol("router0", "ospfv3", 1).unwrap();
     ws.add_v6_network("router0", "2001:db8:9::/64").unwrap();
     ws.add_v6_network("router0", "10.0.0.0/8").unwrap_err();
     ws.set_ipv6("router0", false, "2001:db8:9::1", 64, "", "").unwrap();

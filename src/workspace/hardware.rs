@@ -22,6 +22,7 @@ impl Workspace {
         } else {
             self.powered_off.insert(id.to_string());
         }
+        self.recompute_routing();
         true
     }
 
@@ -75,11 +76,14 @@ impl Workspace {
             }
             for port in ports_for(model) {
                 if !dev.ports.iter().any(|p| p.name == port) {
+                    let (bandwidth_kbps, delay_us) = default_port_metrics(&port);
                     dev.ports.push(PortCfg {
                         name: port,
                         ip: None,
                         prefix: 24,
                         up: true,
+                        bandwidth_kbps,
+                        delay_us,
                         vlan: 1,
                         trunk: false,
                         dot1q: None,
@@ -93,6 +97,7 @@ impl Workspace {
             .or_insert_with(|| vec![None; n]);
         entry.resize(n, None);
         entry[slot] = (!model.is_empty()).then(|| model.to_string());
+        self.recompute_routing();
         Ok(())
     }
 }

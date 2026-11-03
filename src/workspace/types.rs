@@ -16,6 +16,10 @@ pub struct PortCfg {
     pub ip: Option<u32>,
     pub prefix: u8,
     pub up: bool,
+    /// Interface bandwidth in Kbit/s, used by OSPF and EIGRP.
+    pub bandwidth_kbps: u32,
+    /// Interface delay in microseconds, used by EIGRP.
+    pub delay_us: u32,
     /// Access VLAN (1 = default) on a switch port.
     pub vlan: u16,
     /// 802.1Q trunk: carries every VLAN, tagged.
@@ -62,6 +66,96 @@ impl Tables {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct StaticRoute {
+    pub network: u32,
+    pub prefix: u8,
+    pub next_hop: u32,
+    pub admin_distance: u8,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum RoutingProtocol {
+    RipV2,
+    Ospf { process_id: u32 },
+    Eigrp { as_number: u32 },
+    Ospfv3 { process_id: u32 },
+}
+
+impl Default for RoutingProtocol {
+    fn default() -> Self {
+        Self::RipV2
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct NetworkStatement {
+    pub network: u32,
+    pub prefix: u8,
+    pub area: u32,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct RoutingConfig {
+    pub protocol: RoutingProtocol,
+    pub networks: Vec<NetworkStatement>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RouteSource {
+    Connected,
+    Static,
+    Rip,
+    Ospf,
+    OspfInterArea,
+    Eigrp,
+}
+
+impl RouteSource {
+    pub fn admin_distance(self) -> u8 {
+        match self {
+            Self::Connected => 0,
+            Self::Static => 1,
+            Self::Eigrp => 90,
+            Self::Ospf | Self::OspfInterArea => 110,
+            Self::Rip => 120,
+        }
+    }
+
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::Connected => "C",
+            Self::Static => "S",
+            Self::Rip => "R",
+            Self::Ospf => "O",
+            Self::OspfInterArea => "O IA",
+            Self::Eigrp => "D",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InstalledRoute {
+    pub network: u32,
+    pub prefix: u8,
+    pub next_hop: u32,
+    pub source: RouteSource,
+    pub metric: u64,
+}
+
+/// A route selected by the common RIB rules. `next_hop == None` is connected.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RouteCandidate {
+    pub network: u32,
+    pub prefix: u8,
+    pub next_hop: Option<u32>,
+    pub source: RouteSource,
+    pub admin_distance: u8,
+    pub metric: u64,
+    pub interface: Option<String>,
+    pub dot1q: Option<u16>,
+}
+
 #[derive(Clone)]
 pub struct Device {
     pub id: String,
@@ -84,8 +178,8 @@ pub struct Device {
     pub ipv6_auto: bool,
     /// Interfaces shown by the CLI (`show ip interface brief`).
     pub ports: Vec<PortCfg>,
-    /// Static routes: (destination network, prefix, next hop).
-    pub routes: Vec<(u32, u8, u32)>,
+    /// Configured static routes, including their administrative distances.
+    pub routes: Vec<StaticRoute>,
     /// 802.1X block from the same dialog.
     pub dot1x: bool,
     pub dot1x_user: Option<String>,
@@ -106,7 +200,7 @@ pub struct StartupConfig {
     pub device: Device,
     pub banner: Option<String>,
     pub line_password: Option<String>,
-    pub routing: Option<(String, Vec<(u32, u8)>)>,
+    pub routing: Option<RoutingConfig>,
     pub switching: SwitchingConfig,
 }
 
@@ -246,10 +340,10 @@ pub struct Workspace {
     pub nat_rules: HashMap<String, Vec<NatRule>>,
     /// Observed translations: device -> (inside local, inside global).
     pub nat_translations: HashMap<String, Vec<(u32, u32)>>,
-    /// Dynamic routing config: router -> (protocol, advertised networks).
-    pub routing: HashMap<String, (String, Vec<(u32, u8)>)>,
-    /// Installed dynamic routes: router -> (network, prefix, via, proto, metric).
-    pub dyn_routes: HashMap<String, Vec<(u32, u8, u32, String, u8)>>,
+    /// Dynamic routing configuration, scoped by protocol process or AS.
+    pub routing: HashMap<String, RoutingConfig>,
+    /// Recomputed protocol routes. Derived LSDB/path state is never persisted.
+    pub dyn_routes: HashMap<String, Vec<InstalledRoute>>,
     /// Spanning-tree mode and configured priority per switch/VLAN.
     pub stp_modes: HashMap<String, String>,
     pub stp_priorities: HashMap<String, HashMap<u16, u16>>,

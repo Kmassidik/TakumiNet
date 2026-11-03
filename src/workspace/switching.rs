@@ -64,11 +64,14 @@ impl Workspace {
         }
         let name = format!("{parent}.{vlan}");
         if !dev.ports.iter().any(|p| p.name == name) {
+            let (bandwidth_kbps, delay_us) = default_port_metrics(&name);
             dev.ports.push(PortCfg {
                 name: name.clone(),
                 ip: None,
                 prefix: 24,
                 up: true,
+                bandwidth_kbps,
+                delay_us,
                 vlan: 1,
                 trunk: false,
                 dot1q: Some(vlan),

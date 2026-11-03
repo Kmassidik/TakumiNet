@@ -7,6 +7,8 @@ type Handler = fn(&mut Workspace, &str, &mut Session, &str, &str) -> String;
 const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| iface_arg(l).is_some(), switch_interface),
     (|l| l.starts_with("ip address "), ip_address),
+    (|l| l.starts_with("bandwidth ") || l == "no bandwidth", bandwidth),
+    (|l| l.starts_with("delay ") || l == "no delay", delay),
     (|l| l.starts_with("encapsulation dot1q "), encapsulation_dot1q),
     (|l| l.starts_with("ip helper-address "), ip_helper_address),
     (|l| l.starts_with("no ip helper-address"), no_ip_helper_address),
@@ -63,6 +65,56 @@ fn ip_address(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _lower:
     match ws.set_port_ip(id, &iface, addr, prefix) {
         Ok(()) => String::new(),
         Err(e) => format!("% {e}\n"),
+    }
+}
+
+fn bandwidth(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    let kbps = if lower == "no bandwidth" {
+        default_port_metrics(&iface).0
+    } else {
+        let value = line["bandwidth ".len()..].trim();
+        if value.split_whitespace().count() != 1 {
+            return invalid(line, Mode::Iface);
+        }
+        match value.parse::<u32>() {
+            Ok(kbps) if kbps > 0 => kbps,
+            _ => return format!("% Invalid bandwidth: {value}\n"),
+        }
+    };
+    match ws.set_port_bandwidth(id, &iface, kbps) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
+}
+
+fn delay(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    let usec = if lower == "no delay" {
+        default_port_metrics(&iface).1
+    } else {
+        let value = line["delay ".len()..].trim();
+        if value.split_whitespace().count() != 1 {
+            return invalid(line, Mode::Iface);
+        }
+        match value.parse::<u32>() {
+            Ok(usec) => usec,
+            Err(_) => return format!("% Invalid delay: {value}\n"),
+        }
+    };
+    match ws.set_port_delay(id, &iface, usec) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
+}
+
+pub(super) fn default_port_metrics(iface: &str) -> (u32, u32) {
+    if iface.starts_with("GigabitEthernet") || iface.starts_with("Gig") {
+        (1_000_000, 10)
+    } else if iface.starts_with("Serial") {
+        (1_544, 20_000)
+    } else {
+        (100_000, 100)
     }
 }
 

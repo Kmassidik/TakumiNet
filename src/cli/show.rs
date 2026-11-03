@@ -1,4 +1,5 @@
 use super::*;
+use crate::workspace::{RoutingConfig, RoutingProtocol};
 
 pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
     match what {
@@ -386,7 +387,18 @@ pub(super) fn show_interfaces(ws: &Workspace, id: &str, iface: &str) -> String {
         )),
         None => out.push_str("  Internet protocol processing disabled\n"),
     }
-    out.push_str("  MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,\n");
+    let port = ws
+        .devices
+        .iter()
+        .find(|d| d.id == id)
+        .and_then(|d| d.ports.iter().find(|p| p.name == name));
+    let Some(port) = port else {
+        return format!("% Invalid interface name: {iface}\n");
+    };
+    out.push_str(&format!(
+        "  MTU 1500 bytes, BW {} Kbit/sec, DLY {} usec,\n",
+        port.bandwidth_kbps, port.delay_us
+    ));
     out.push_str("     reliability 255/255, txload 1/255, rxload 1/255\n");
     out.push_str("  Encapsulation ARPA, loopback not set\n");
     out.push_str("  Full-duplex, 1000Mb/s, media type is RJ45\n");
@@ -512,7 +524,7 @@ pub(crate) fn config_for(
     d: &Device,
     banner: Option<&str>,
     line_pw: Option<&str>,
-    routing: Option<&(String, Vec<(u32, u8)>)>,
+    routing: Option<&RoutingConfig>,
     switching: &crate::workspace::SwitchingConfig,
 ) -> String {
     let mut out = String::from(
@@ -559,6 +571,13 @@ pub(crate) fn config_for(
                 ipv4_string(mask_of(p.prefix))
             ));
         }
+        let (default_bandwidth, default_delay) = super::interface::default_port_metrics(&p.name);
+        if p.bandwidth_kbps != default_bandwidth {
+            out.push_str(&format!(" bandwidth {}\n", p.bandwidth_kbps));
+        }
+        if p.delay_us != default_delay {
+            out.push_str(&format!(" delay {}\n", p.delay_us));
+        }
         if p.up {
             out.push_str(" no shutdown\n");
         } else {
@@ -566,29 +585,71 @@ pub(crate) fn config_for(
         }
         out.push_str("!\n");
     }
-    for (net, prefix, next_hop) in &d.routes {
+    for route in &d.routes {
         out.push_str(&format!(
-            "ip route {} {} {}\n",
-            ipv4_string(*net),
-            ipv4_string(mask_of(*prefix)),
-            ipv4_string(*next_hop)
+            "ip route {} {} {}",
+            ipv4_string(route.network),
+            ipv4_string(mask_of(route.prefix)),
+            ipv4_string(route.next_hop)
         ));
+        if route.admin_distance != 1 {
+            out.push_str(&format!(" {}", route.admin_distance));
+        }
+        out.push('\n');
     }
     if !d.routes.is_empty() {
         out.push_str("!\n");
     }
-    if let Some((protocol, networks)) = routing {
-        if !protocol.is_empty() {
-            out.push_str(&format!("router {protocol}\n"));
-            for (network, _) in networks {
-                out.push_str(&format!(" network {}\n", ipv4_string(*network)));
+    if let Some(routing) = routing {
+        match &routing.protocol {
+            RoutingProtocol::RipV2 => {
+                out.push_str("router rip\n version 2\n");
+                for network in &routing.networks {
+                    out.push_str(&format!(" network {}", ipv4_string(network.network)));
+                    if network.prefix != classful_prefix(network.network) {
+                        out.push_str(&format!(" {}", ipv4_string(mask_of(network.prefix))));
+                    }
+                    out.push('\n');
+                }
             }
-            out.push_str("!\n");
+            RoutingProtocol::Ospf { process_id } => {
+                out.push_str(&format!("router ospf {process_id}\n"));
+                for network in &routing.networks {
+                    out.push_str(&format!(
+                        " network {} {} area {}\n",
+                        ipv4_string(network.network),
+                        ipv4_string(!mask_of(network.prefix)),
+                        network.area
+                    ));
+                }
+            }
+            RoutingProtocol::Eigrp { as_number } => {
+                out.push_str(&format!("router eigrp {as_number}\n"));
+                for network in &routing.networks {
+                    out.push_str(&format!(
+                        " network {} {}\n",
+                        ipv4_string(network.network),
+                        ipv4_string(!mask_of(network.prefix))
+                    ));
+                }
+            }
+            RoutingProtocol::Ospfv3 { process_id } => {
+                out.push_str(&format!("router ospfv3 {process_id}\n"));
+            }
         }
+        out.push_str("!\n");
     }
     if let Some(pw) = line_pw {
         out.push_str(&format!("line con 0\n password {pw}\n login\n!\n"));
     }
     out.push_str("end\n");
     out
+}
+
+fn classful_prefix(ip: u32) -> u8 {
+    match ip >> 24 {
+        0..=127 => 8,
+        128..=191 => 16,
+        _ => 24,
+    }
 }

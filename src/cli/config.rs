@@ -98,10 +98,24 @@ fn router_protocol(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _l
     if !matches!(proto.as_str(), "rip" | "ospf" | "eigrp" | "ospfv3") {
         return format!("% Invalid routing protocol: {proto}\n");
     }
-    if proto != "rip" && pid.is_none() {
-        return "% Incomplete command.\n".into();
+    let process_id = if proto == "rip" {
+        if pid.is_some() {
+            return invalid(line, Mode::Config);
+        }
+        0
+    } else {
+        let Some(pid) = pid else {
+            return "% Incomplete command.\n".into();
+        };
+        match pid.parse::<u32>() {
+            Ok(pid) => pid,
+            Err(_) => return format!("% Invalid process id: {pid}\n"),
+        }
+    };
+    if words.next().is_some() {
+        return invalid(line, Mode::Config);
     }
-    match ws.set_routing_protocol(id, &proto) {
+    match ws.set_routing_protocol(id, &proto, process_id) {
         Ok(()) => {
             s.mode = Mode::Router;
             s.router = Some(proto);
@@ -317,12 +331,19 @@ pub(super) fn kind_prefix(kind: &str) -> &'static str {
     }
 }
 
-/// Parse `DEST MASK NEXT_HOP` for `ip route` / `no ip route`.
-pub(super) fn parse_route_args(rest: &str) -> Result<(u32, u8, u32), String> {
+/// Parse `DEST MASK NEXT_HOP [AD]` for `ip route` / `no ip route`.
+pub(super) fn parse_route_args(rest: &str) -> Result<(u32, u8, u32, Option<u8>), String> {
     let mut parts = rest.split_whitespace();
     let (Some(dest), Some(mask), Some(next_hop)) = (parts.next(), parts.next(), parts.next())
     else {
         return Err("% Incomplete command.\n".into());
+    };
+    let admin_distance = match parts.next() {
+        Some(ad) => match ad.parse::<u8>() {
+            Ok(ad) => Some(ad),
+            Err(_) => return Err(format!("% Invalid administrative distance: {ad}\n")),
+        },
+        None => None,
     };
     if parts.next().is_some() {
         return Err(format!(
@@ -339,7 +360,7 @@ pub(super) fn parse_route_args(rest: &str) -> Result<(u32, u8, u32), String> {
     let Some(hop_ip) = parse_ipv4(next_hop) else {
         return Err(format!("% Invalid next hop: {next_hop}\n"));
     };
-    Ok((dest_ip & mask_of(prefix), prefix, hop_ip))
+    Ok((dest_ip & mask_of(prefix), prefix, hop_ip, admin_distance))
 }
 
 /// Parse `access-list NUM permit|deny [ip] SRC WC [DST WC]` (or `any`).
@@ -404,9 +425,9 @@ pub(super) fn acl_config(ws: &mut Workspace, id: &str, rest: &str) -> String {
     }
 }
 
-/// Add a static route from `ip route DEST MASK NEXT_HOP`.
+/// Add a static route from `ip route DEST MASK NEXT_HOP [AD]`.
 pub(super) fn add_route_cmd(ws: &mut Workspace, id: &str, rest: &str) -> String {
-    let (net, prefix, hop) = match parse_route_args(rest) {
+    let (net, prefix, hop, admin_distance) = match parse_route_args(rest) {
         Ok(route) => route,
         Err(e) => return e,
     };
@@ -416,15 +437,16 @@ pub(super) fn add_route_cmd(ws: &mut Workspace, id: &str, rest: &str) -> String 
         &ipv4_string(net),
         &ipv4_string(mask_of(prefix)),
         &ipv4_string(hop),
+        admin_distance.unwrap_or(1),
     ) {
         Ok(()) => String::new(),
         Err(e) => format!("% {e}\n"),
     }
 }
 
-/// Remove a static route from `no ip route DEST MASK NEXT_HOP`.
+/// Remove a static route from `no ip route DEST MASK NEXT_HOP [AD]`.
 pub(super) fn remove_route_cmd(ws: &mut Workspace, id: &str, rest: &str) -> String {
-    let (net, prefix, hop) = match parse_route_args(rest) {
+    let (net, prefix, hop, admin_distance) = match parse_route_args(rest) {
         Ok(route) => route,
         Err(e) => return e,
     };
@@ -432,7 +454,12 @@ pub(super) fn remove_route_cmd(ws: &mut Workspace, id: &str, rest: &str) -> Stri
         return "% No such device\n".into();
     };
     let before = dev.routes.len();
-    dev.routes.retain(|&(n, p, via)| !(n == net && p == prefix && via == hop));
+    dev.routes.retain(|route| {
+        !(route.network == net
+            && route.prefix == prefix
+            && route.next_hop == hop
+            && admin_distance.is_none_or(|ad| route.admin_distance == ad))
+    });
     if dev.routes.len() == before {
         return format!(
             "% No matching static route {}/{} via {}\n",
@@ -441,6 +468,7 @@ pub(super) fn remove_route_cmd(ws: &mut Workspace, id: &str, rest: &str) -> Stri
             ipv4_string(hop)
         );
     }
+    ws.recompute_routing();
     format!(
         "Removed static route {}/{} via {}\n",
         ipv4_string(net),

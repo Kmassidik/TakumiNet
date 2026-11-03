@@ -315,12 +315,12 @@ fn route_print(ws: &Workspace, id: &str) -> String {
     out.push_str("===========================================================================\n");
     out.push_str("Active Routes:\n");
     out.push_str("Network Destination        Netmask          Gateway       Interface  Metric\n");
-    for &(net, prefix, via) in &d.routes {
+    for route in &d.routes {
         out.push_str(&format!(
             "{:<27}{:<17}{:<14}{:<17}{}\n",
-            ipv4_string(net),
-            ipv4_string(crate::model::mask_of(prefix)),
-            ipv4_string(via),
+            ipv4_string(route.network),
+            ipv4_string(crate::model::mask_of(route.prefix)),
+            ipv4_string(route.next_hop),
             own,
             25
         ));
@@ -607,7 +607,7 @@ mod tests {
     #[test]
     fn route_print_lists_statics_and_the_default_gateway() {
         let mut ws = Workspace::new();
-        ws.add_route("pc0", "10.0.0.0", "255.0.0.0", "192.168.1.1")
+        ws.add_route("pc0", "10.0.0.0", "255.0.0.0", "192.168.1.1", 1)
             .unwrap();
         let out = run(&mut ws, "pc0", "route print");
         assert!(out.contains("IPv4 Route Table"), "{out}");

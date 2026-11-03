@@ -222,6 +222,8 @@ impl Workspace {
         }
         self.links.retain(|l| l.a != id && l.b != id);
         self.tables.forget(id);
+        self.routing.remove(id);
+        self.recompute_routing();
         true
     }
 

@@ -36,19 +36,28 @@ impl Workspace {
                     d.dns.map(crate::model::ipv4_string).unwrap_or_default()
                 ));
             }
-            for (net, prefix, via) in &d.routes {
+            for route in &d.routes {
                 out.push_str(&format!(
-                    "route\t{}\t{}\t{}\t{}\n",
+                    "route\t{}\t{}\t{}\t{}\t{}\n",
                     d.id,
-                    crate::model::ipv4_string(*net),
-                    prefix,
-                    crate::model::ipv4_string(*via)
+                    crate::model::ipv4_string(route.network),
+                    route.prefix,
+                    crate::model::ipv4_string(route.next_hop),
+                    route.admin_distance
                 ));
             }
             for p in &d.ports {
-                if p.ip.is_some() || !p.up || p.vlan != 1 || p.trunk || p.dot1q.is_some() {
+                let (default_bandwidth, default_delay) = default_port_metrics(&p.name);
+                if p.ip.is_some()
+                    || !p.up
+                    || p.vlan != 1
+                    || p.trunk
+                    || p.dot1q.is_some()
+                    || p.bandwidth_kbps != default_bandwidth
+                    || p.delay_us != default_delay
+                {
                     out.push_str(&format!(
-                        "port\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                        "port\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                         d.id,
                         p.name,
                         u8::from(p.up),
@@ -56,7 +65,9 @@ impl Workspace {
                         p.prefix,
                         p.vlan,
                         u8::from(p.trunk),
-                        p.dot1q.map(|v| v.to_string()).unwrap_or_default()
+                        p.dot1q.map(|v| v.to_string()).unwrap_or_default(),
+                        p.bandwidth_kbps,
+                        p.delay_us
                     ));
                 }
             }
@@ -417,14 +428,25 @@ impl Workspace {
     fn write_routing_and_names(&self, out: &mut String) {
         let mut routing: Vec<_> = self.routing.iter().collect();
         routing.sort_by_key(|(id, _)| id.as_str());
-        for (dev, (proto, nets)) in routing {
-            out.push_str(&format!("routing\t{}\t{}\n", dev, proto));
-            for (net, prefix) in nets {
+        for (dev, config) in routing {
+            let (protocol, process_id) = match &config.protocol {
+                RoutingProtocol::RipV2 => ("rip", None),
+                RoutingProtocol::Ospf { process_id } => ("ospf", Some(process_id)),
+                RoutingProtocol::Eigrp { as_number } => ("eigrp", Some(as_number)),
+                RoutingProtocol::Ospfv3 { process_id } => ("ospfv3", Some(process_id)),
+            };
+            if let Some(process_id) = process_id {
+                out.push_str(&format!("routing\t{dev}\t{protocol}\t{process_id}\n"));
+            } else {
+                out.push_str(&format!("routing\t{dev}\t{protocol}\n"));
+            }
+            for network in &config.networks {
                 out.push_str(&format!(
-                    "routenet\t{}\t{}\t{}\n",
+                    "routenet\t{}\t{}\t{}\t{}\n",
                     dev,
-                    crate::model::ipv4_string(*net),
-                    prefix
+                    crate::model::ipv4_string(network.network),
+                    network.prefix,
+                    network.area
                 ));
             }
         }

@@ -78,6 +78,113 @@ impl Lab {
                 .to_string()
         })
     }
+
+    fn clear_demo(&self) {
+        for id in ["router0", "switch0", "switch1", "pc0", "pc1", "pc2", "server0"] {
+            self.post(&format!("/api/devices/delete?id={id}"));
+        }
+    }
+
+    fn device(&self, model: &str, id: &str, x: usize, y: usize) {
+        let body = self.post(&format!("/api/devices?model={model}&x={x}&y={y}"));
+        assert!(body.contains(&format!("\"id\":\"{id}\"")), "add {id}: {body}");
+    }
+
+    fn link(&self, a: &str, b: &str) {
+        let body = self.post(&format!("/api/links?a={a}&b={b}"));
+        assert!(!body.contains("\"error\""), "link {a}-{b}: {body}");
+    }
+
+    fn config<I, S>(&self, device: &str, lines: I)
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        for line in lines {
+            let line = line.as_ref();
+            let out = self.cli(device, &encode(line));
+            // Helpers may enter configuration separately for every interface;
+            // `enable` is intentionally idempotent across those sequences.
+            if line == "en" && out.contains("% Invalid input") {
+                continue;
+            }
+            assert!(
+                !out.lines().any(|message| {
+                    message.starts_with('%') && !message.starts_with("%LINK-")
+                }),
+                "{device}> {line}: {out}"
+            );
+        }
+    }
+
+    fn address(&self, device: &str, interface: &str, ip: &str, mask: &str) {
+        self.config(
+            device,
+            [
+                "en".to_string(),
+                "conf t".to_string(),
+                format!("interface {interface}"),
+                format!("ip address {ip} {mask}"),
+                "no shutdown".to_string(),
+                "end".to_string(),
+            ],
+        );
+    }
+
+    fn host(&self, id: &str, ip: &str, gateway: &str) {
+        let body = self.post(&format!(
+            "/api/devices/ip?id={id}&ip={ip}&mask=255.255.255.0&gateway={gateway}"
+        ));
+        assert!(!body.contains("\"error\""), "address {id}: {body}");
+    }
+
+    fn cmd(&self, device: &str, line: &str) -> String {
+        self.command(device, &encode(line))
+    }
+
+    fn save_reset_load(&self, name: &str) {
+        let saved = self.post(&format!("/api/save?name={name}"));
+        assert!(!saved.contains("\"error\""), "save {name}: {saved}");
+        self.post("/api/reset");
+        let loaded = self.post(&format!("/api/load?name={name}"));
+        assert!(!loaded.contains("\"error\""), "load {name}: {loaded}");
+    }
+}
+
+fn encode(line: &str) -> String {
+    line.replace('%', "%25").replace(' ', "%20").replace('/', "%2F")
+}
+
+fn assert_ping(lab: &Lab, source: &str, target: &str, ttl: u8) {
+    let out = lab.cmd(source, &format!("ping -n 1 {target}"));
+    if !(out.contains(&format!("Reply from {target}: bytes=32"))
+        && out.contains(&format!("TTL={ttl}"))
+        && out.contains("0% loss"))
+    {
+        let trace = lab.cmd(source, &format!("tracert {target}"));
+        panic!("{source} ping {target}: {out}\ntraceroute: {trace}");
+    }
+}
+
+fn assert_unreachable(lab: &Lab, source: &str, target: &str) {
+    let out = lab.cmd(source, &format!("ping -n 1 {target}"));
+    assert!(
+        out.contains("Received = 0") && out.contains("100% loss") && !out.contains("bytes=32"),
+        "{source} unexpectedly reached {target}: {out}"
+    );
+}
+
+fn assert_trace(lab: &Lab, source: &str, target: &str, expected: &[&str]) {
+    let out = lab.cmd(source, &format!("tracert {target}"));
+    assert!(out.contains("Trace complete"), "{source} trace {target}: {out}");
+    let hops: Vec<&str> = out
+        .lines()
+        .filter_map(|line| {
+            line.split_whitespace().next()?.parse::<usize>().ok()?;
+            line.contains(" ms ").then(|| line.split_whitespace().last().unwrap())
+        })
+        .collect();
+    assert_eq!(hops.as_slice(), expected, "{source} trace {target}: {out}");
 }
 
 impl Drop for Lab {
@@ -146,7 +253,7 @@ fn ios_prompts_do_show_and_running_config_cover_routing() {
     assert_eq!(lab.cli_prompt("router0", "router%20rip"), "EDGE(config-router)#");
     lab.cli("router0", "network%20192.168.1.0");
     let routing = lab.cli("router0", "do%20sh%20r");
-    assert!(routing.contains("router rip\n network 192.168.1.0"), "{routing}");
+    assert!(routing.contains("router rip\n version 2\n network 192.168.1.0"), "{routing}");
     assert_eq!(lab.cli_prompt("router0", "exit"), "EDGE(config)#");
 
     assert_eq!(lab.cli_prompt("router0", "line%20con%200"), "EDGE(config-line)#");
@@ -159,7 +266,7 @@ fn ios_prompts_do_show_and_running_config_cover_routing() {
         running.contains("ip route 10.10.0.0 255.255.0.0 192.168.1.2"),
         "{running}"
     );
-    assert!(running.contains("router rip\n network 192.168.1.0"), "{running}");
+    assert!(running.contains("router rip\n version 2\n network 192.168.1.0"), "{running}");
     assert!(running.contains("password class"), "{running}");
     let startup = lab.cli("router0", "do%20show%20startup-config");
     assert!(startup.contains("Startup configuration is empty"), "{startup}");
@@ -378,4 +485,538 @@ fn unreachable_and_expired_icmp_are_reported() {
     let expired = lab.command("pc0", "tracert%20-h%201%20192.168.2.10");
     assert!(expired.contains("192.168.1.1"), "{expired}");
     assert!(!expired.contains("Trace complete"), "{expired}");
+}
+
+#[test]
+fn static_and_default_ad_choose_floating_route_and_survive_reopen() {
+    let lab = Lab::start(39_110);
+    lab.clear_demo();
+    for (model, id, x, y) in [
+        ("2911", "router1", 200, 100),
+        ("2911", "router2", 600, 100),
+        ("2911", "router3", 400, 300),
+        ("PC-PT", "pc3", 50, 100),
+        ("PC-PT", "pc4", 750, 100),
+    ] {
+        lab.device(model, id, x, y);
+    }
+    // Three GigabitEthernet interfaces on each 2911 are sufficient. Link order
+    // fixes the interface assignments used below.
+    for (a, b) in [
+        ("router1", "pc3"),
+        ("router2", "pc4"),
+        ("router1", "router2"),
+        ("router1", "router3"),
+        ("router3", "router2"),
+    ] {
+        lab.link(a, b);
+    }
+    lab.host("pc3", "192.168.10.10", "192.168.10.1");
+    lab.host("pc4", "192.168.20.10", "192.168.20.1");
+
+    for (device, interface, ip, mask) in [
+        ("router1", "GigabitEthernet0/0", "192.168.10.1", "255.255.255.0"),
+        ("router1", "GigabitEthernet0/1", "10.0.12.1", "255.255.255.252"),
+        ("router1", "GigabitEthernet0/2", "10.0.13.1", "255.255.255.252"),
+        ("router2", "GigabitEthernet0/0", "192.168.20.1", "255.255.255.0"),
+        ("router2", "GigabitEthernet0/1", "10.0.12.2", "255.255.255.252"),
+        ("router2", "GigabitEthernet0/2", "10.0.23.2", "255.255.255.252"),
+        ("router3", "GigabitEthernet0/0", "10.0.13.2", "255.255.255.252"),
+        ("router3", "GigabitEthernet0/1", "10.0.23.1", "255.255.255.252"),
+    ] {
+        lab.address(device, interface, ip, mask);
+    }
+    lab.config(
+        "router1",
+        [
+            "en",
+            "conf t",
+            "ip route 192.168.20.0 255.255.255.0 10.0.12.2 1",
+            "ip route 192.168.20.0 255.255.255.0 10.0.13.2 10",
+            "ip route 0.0.0.0 0.0.0.0 10.0.12.2 50",
+            "ip route 0.0.0.0 0.0.0.0 10.0.13.2 60",
+            "end",
+        ],
+    );
+    lab.config(
+        "router2",
+        [
+            "en",
+            "conf t",
+            "ip route 0.0.0.0 0.0.0.0 10.0.12.1 1",
+            "ip route 0.0.0.0 0.0.0.0 10.0.23.1 10",
+            "end",
+        ],
+    );
+    lab.config(
+        "router3",
+        [
+            "en",
+            "conf t",
+            "ip route 192.168.10.0 255.255.255.0 10.0.13.1",
+            "ip route 192.168.20.0 255.255.255.0 10.0.23.2",
+            "end",
+        ],
+    );
+
+    let routes = lab.cli("router1", "show%20ip%20route");
+    assert!(routes.contains("S  192.168.20.0/24 [1/0] via 10.0.12.2"), "{routes}");
+    assert!(routes.contains("S  0.0.0.0/0 [50/0] via 10.0.12.2"), "{routes}");
+    assert!(!routes.contains("192.168.20.0/24 [10/0]"), "{routes}");
+    assert!(!routes.contains("0.0.0.0/0 [60/0]"), "{routes}");
+    let return_routes = lab.cli("router2", "show%20ip%20route");
+    assert!(return_routes.contains("S  0.0.0.0/0 [1/0] via 10.0.12.1"), "{return_routes}");
+    assert_ping(&lab, "pc3", "192.168.20.10", 126);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.20.10",
+        &["192.168.10.1", "10.0.12.2", "192.168.20.10"],
+    );
+
+    lab.config("router1", ["en", "conf t", "interface g0/1", "shutdown", "end"]);
+    let routes = lab.cli("router1", "show%20ip%20route");
+    assert!(routes.contains("S  192.168.20.0/24 [10/0] via 10.0.13.2"), "{routes}");
+    assert!(routes.contains("S  0.0.0.0/0 [60/0] via 10.0.13.2"), "{routes}");
+    assert!(!routes.contains("192.168.20.0/24 [1/0]"), "{routes}");
+    let return_routes = lab.cli("router2", "show%20ip%20route");
+    assert!(return_routes.contains("S  0.0.0.0/0 [10/0] via 10.0.23.1"), "{return_routes}");
+    assert!(!return_routes.contains("0.0.0.0/0 [1/0]"), "{return_routes}");
+    assert_ping(&lab, "pc3", "192.168.20.10", 125);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.20.10",
+        &["192.168.10.1", "10.0.13.2", "10.0.23.2", "192.168.20.10"],
+    );
+
+    lab.save_reset_load("routing_static_39110");
+    let routes = lab.cli("router1", "show%20ip%20route");
+    assert!(routes.contains("S  192.168.20.0/24 [10/0] via 10.0.13.2"), "{routes}");
+    assert!(routes.contains("S  0.0.0.0/0 [60/0] via 10.0.13.2"), "{routes}");
+    let running = lab.cli("router1", "show%20running-config");
+    for line in [
+        "ip route 192.168.20.0 255.255.255.0 10.0.12.2",
+        "ip route 192.168.20.0 255.255.255.0 10.0.13.2 10",
+        "ip route 0.0.0.0 0.0.0.0 10.0.12.2 50",
+        "ip route 0.0.0.0 0.0.0.0 10.0.13.2 60",
+    ] {
+        assert!(running.contains(line), "missing {line}: {running}");
+    }
+    assert_ping(&lab, "pc3", "192.168.20.10", 125);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.20.10",
+        &["192.168.10.1", "10.0.13.2", "10.0.23.2", "192.168.20.10"],
+    );
+
+    lab.config("router1", ["en", "conf t", "interface g0/1", "no shutdown", "end"]);
+    let restored = lab.cli("router1", "show%20ip%20route");
+    assert!(restored.contains("S  192.168.20.0/24 [1/0] via 10.0.12.2"), "{restored}");
+    assert_ping(&lab, "pc3", "192.168.20.10", 126);
+}
+
+#[test]
+fn ripv2_installs_fifteen_hops_rejects_sixteen_and_is_protocol_isolated() {
+    let lab = Lab::start(39_111);
+    lab.clear_demo();
+    for i in 1..=18 {
+        lab.device("2911", &format!("router{i}"), 100 + i * 35, 100);
+    }
+    for (id, x, y) in [("pc3", 50, 250), ("pc4", 650, 250), ("pc5", 750, 250), ("pc6", 850, 250)] {
+        lab.device("PC-PT", id, x, y);
+    }
+    for i in 1..17 {
+        lab.link(&format!("router{i}"), &format!("router{}", i + 1));
+    }
+    for (a, b) in [
+        ("pc3", "router1"),
+        ("pc4", "router16"),
+        ("pc5", "router17"),
+        ("router1", "router18"),
+        ("pc6", "router18"),
+    ] {
+        lab.link(a, b);
+    }
+    lab.host("pc3", "192.168.1.10", "192.168.1.1");
+    lab.host("pc4", "192.168.15.10", "192.168.15.1");
+    lab.host("pc5", "192.168.16.10", "192.168.16.1");
+    lab.host("pc6", "198.18.18.10", "198.18.18.1");
+
+    for i in 1..=17 {
+        let device = format!("router{i}");
+        let first_ip = if i == 1 {
+            "10.0.1.1".to_string()
+        } else {
+            format!("10.0.{}.2", i - 1)
+        };
+        lab.address(&device, "GigabitEthernet0/0", &first_ip, "255.255.255.252");
+        if (2..=16).contains(&i) {
+            lab.address(
+                &device,
+                "GigabitEthernet0/1",
+                &format!("10.0.{i}.1"),
+                "255.255.255.252",
+            );
+        }
+    }
+    lab.address("router1", "GigabitEthernet0/1", "192.168.1.1", "255.255.255.0");
+    lab.address("router1", "GigabitEthernet0/2", "10.0.18.1", "255.255.255.252");
+    lab.address("router16", "GigabitEthernet0/2", "192.168.15.1", "255.255.255.0");
+    lab.address("router17", "GigabitEthernet0/1", "192.168.16.1", "255.255.255.0");
+    lab.address("router18", "GigabitEthernet0/0", "10.0.18.2", "255.255.255.252");
+    lab.address("router18", "GigabitEthernet0/1", "198.18.18.1", "255.255.255.0");
+
+    for i in 1..=17 {
+        let mut lines = vec![
+            "en".to_string(),
+            "conf t".to_string(),
+            "router rip".to_string(),
+            "version 2".to_string(),
+            "network 10.0.0.0".to_string(),
+        ];
+        if i == 1 {
+            lines.push("network 192.168.1.0".to_string());
+        } else if i == 16 {
+            lines.push("network 192.168.15.0".to_string());
+        } else if i == 17 {
+            lines.push("network 192.168.16.0".to_string());
+        }
+        lines.push("end".to_string());
+        lab.config(&format!("router{i}"), lines);
+    }
+    lab.config(
+        "router18",
+        [
+            "en",
+            "conf t",
+            "router ospf 18",
+            "network 10.0.18.0 0.0.0.3 area 0",
+            "network 198.18.18.0 0.0.0.255 area 0",
+            "end",
+        ],
+    );
+
+    let routes = lab.cli("router1", "show%20ip%20route");
+    assert!(routes.contains("R  192.168.15.0/24 [120/15] via 10.0.1.2"), "{routes}");
+    assert!(!routes.contains("192.168.16.0/24"), "16 must be infinity: {routes}");
+    assert!(!routes.contains("198.18.18.0/24"), "OSPF leaked into RIP: {routes}");
+    let reverse = lab.cli("router16", "show%20ip%20route");
+    assert!(reverse.contains("R  192.168.1.0/24 [120/15] via 10.0.15.1"), "{reverse}");
+    let isolated = lab.cli("router18", "show%20ip%20route");
+    assert!(!isolated.contains("192.168.1.0/24"), "{isolated}");
+    assert!(!isolated.contains("192.168.15.0/24"), "{isolated}");
+    assert_ping(&lab, "pc3", "192.168.15.10", 112);
+    assert_unreachable(&lab, "pc3", "192.168.16.10");
+    assert_unreachable(&lab, "pc3", "198.18.18.10");
+}
+
+#[test]
+fn ospf_dijkstra_prefers_longer_fast_path_and_persists_exact_costs() {
+    let lab = Lab::start(39_112);
+    lab.clear_demo();
+    for (model, id, x, y) in [
+        ("2911", "router1", 200, 200),
+        ("2911", "router2", 400, 80),
+        ("2911", "router3", 350, 320),
+        ("2911", "router4", 750, 200),
+        ("2911", "router5", 550, 320),
+        ("PC-PT", "pc3", 50, 200),
+        ("PC-PT", "pc4", 900, 200),
+    ] {
+        lab.device(model, id, x, y);
+    }
+    for (a, b) in [
+        ("router1", "pc3"),
+        ("router4", "pc4"),
+        ("router1", "router2"),
+        ("router2", "router4"),
+        ("router1", "router3"),
+        ("router3", "router5"),
+        ("router5", "router4"),
+    ] {
+        lab.link(a, b);
+    }
+    lab.host("pc3", "192.168.1.10", "192.168.1.1");
+    lab.host("pc4", "192.168.2.10", "192.168.2.1");
+    for (device, interface, ip) in [
+        ("router1", "GigabitEthernet0/1", "10.0.12.1"),
+        ("router1", "GigabitEthernet0/2", "10.0.13.1"),
+        ("router2", "GigabitEthernet0/0", "10.0.12.2"),
+        ("router2", "GigabitEthernet0/1", "10.0.24.1"),
+        ("router3", "GigabitEthernet0/0", "10.0.13.2"),
+        ("router3", "GigabitEthernet0/1", "10.0.35.1"),
+        ("router4", "GigabitEthernet0/1", "10.0.24.2"),
+        ("router4", "GigabitEthernet0/2", "10.0.54.2"),
+        ("router5", "GigabitEthernet0/0", "10.0.35.2"),
+        ("router5", "GigabitEthernet0/1", "10.0.54.1"),
+    ] {
+        lab.address(device, interface, ip, "255.255.255.252");
+    }
+    lab.address("router1", "GigabitEthernet0/0", "192.168.1.1", "255.255.255.0");
+    lab.address("router4", "GigabitEthernet0/0", "192.168.2.1", "255.255.255.0");
+
+    for (device, interface) in [
+        ("router1", "g0/1"),
+        ("router2", "g0/0"),
+        ("router2", "g0/1"),
+        ("router4", "g0/1"),
+    ] {
+        lab.config(device, ["en", "conf t", &format!("interface {interface}"), "bandwidth 1544", "end"]);
+    }
+    for (device, networks) in [
+        ("router1", &["192.168.1.0 0.0.0.255", "10.0.12.0 0.0.0.3", "10.0.13.0 0.0.0.3"][..]),
+        ("router2", &["10.0.12.0 0.0.0.3", "10.0.24.0 0.0.0.3"][..]),
+        ("router3", &["10.0.13.0 0.0.0.3", "10.0.35.0 0.0.0.3"][..]),
+        ("router4", &["192.168.2.0 0.0.0.255", "10.0.24.0 0.0.0.3", "10.0.54.0 0.0.0.3"][..]),
+        ("router5", &["10.0.35.0 0.0.0.3", "10.0.54.0 0.0.0.3"][..]),
+    ] {
+        let mut lines = vec!["en".to_string(), "conf t".to_string(), "router ospf 42".to_string()];
+        lines.extend(networks.iter().map(|network| format!("network {network} area 0")));
+        lines.push("end".to_string());
+        lab.config(device, lines);
+    }
+
+    let routes = lab.cli("router1", "show%20ip%20route");
+    assert!(routes.contains("O  192.168.2.0/24 [110/4] via 10.0.13.2"), "{routes}");
+    assert!(!routes.contains("192.168.2.0/24 [110/129]"), "{routes}");
+    let reverse = lab.cli("router4", "show%20ip%20route");
+    assert!(reverse.contains("O  192.168.1.0/24 [110/4] via 10.0.54.1"), "{reverse}");
+    assert_ping(&lab, "pc3", "192.168.2.10", 124);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.2.10",
+        &["192.168.1.1", "10.0.13.2", "10.0.35.2", "10.0.54.2", "192.168.2.10"],
+    );
+
+    lab.config("router1", ["en", "conf t", "interface g0/2", "shutdown", "end"]);
+    let routes = lab.cli("router1", "show%20ip%20route");
+    assert!(routes.contains("O  192.168.2.0/24 [110/129] via 10.0.12.2"), "{routes}");
+    assert!(!routes.contains("192.168.2.0/24 [110/4]"), "{routes}");
+    assert_ping(&lab, "pc3", "192.168.2.10", 125);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.2.10",
+        &["192.168.1.1", "10.0.12.2", "10.0.24.2", "192.168.2.10"],
+    );
+    lab.config("router1", ["en", "conf t", "interface g0/2", "no shutdown", "end"]);
+
+    lab.save_reset_load("routing_ospf_39112");
+    let routes = lab.cli("router1", "show%20ip%20route");
+    assert!(routes.contains("O  192.168.2.0/24 [110/4] via 10.0.13.2"), "{routes}");
+    let running = lab.cli("router2", "show%20running-config");
+    assert_eq!(running.matches("bandwidth 1544").count(), 2, "{running}");
+    assert!(running.contains("router ospf 42"), "{running}");
+    assert!(running.contains("network 10.0.12.0 0.0.0.3 area 0"), "{running}");
+    assert_ping(&lab, "pc3", "192.168.2.10", 124);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.2.10",
+        &["192.168.1.1", "10.0.13.2", "10.0.35.2", "10.0.54.2", "192.168.2.10"],
+    );
+}
+
+#[test]
+fn ospf_multi_area_abrs_originate_backbone_summaries() {
+    let lab = Lab::start(39_113);
+    lab.clear_demo();
+    for (model, id, x, y) in [
+        ("2911", "router1", 150, 150),
+        ("2911", "router2", 350, 150),
+        ("2911", "router3", 550, 150),
+        ("2911", "router4", 750, 150),
+        ("PC-PT", "pc3", 20, 150),
+        ("PC-PT", "pc4", 880, 150),
+    ] {
+        lab.device(model, id, x, y);
+    }
+    for (a, b) in [
+        ("router1", "pc3"),
+        ("router4", "pc4"),
+        ("router1", "router2"),
+        ("router2", "router3"),
+        ("router3", "router4"),
+    ] {
+        lab.link(a, b);
+    }
+    lab.host("pc3", "192.168.1.10", "192.168.1.1");
+    lab.host("pc4", "192.168.2.10", "192.168.2.1");
+    lab.address("router1", "GigabitEthernet0/0", "192.168.1.1", "255.255.255.0");
+    lab.address("router4", "GigabitEthernet0/0", "192.168.2.1", "255.255.255.0");
+    for (device, interface, ip) in [
+        ("router1", "GigabitEthernet0/1", "10.0.12.1"),
+        ("router2", "GigabitEthernet0/0", "10.0.12.2"),
+        ("router2", "GigabitEthernet0/1", "10.0.23.1"),
+        ("router3", "GigabitEthernet0/0", "10.0.23.2"),
+        ("router3", "GigabitEthernet0/1", "10.0.34.1"),
+        ("router4", "GigabitEthernet0/1", "10.0.34.2"),
+    ] {
+        lab.address(device, interface, ip, "255.255.255.252");
+    }
+    for (device, networks) in [
+        ("router1", &[("192.168.1.0 0.0.0.255", 1), ("10.0.12.0 0.0.0.3", 1)][..]),
+        ("router2", &[("10.0.12.0 0.0.0.3", 1), ("10.0.23.0 0.0.0.3", 0)][..]),
+        ("router3", &[("10.0.23.0 0.0.0.3", 0), ("10.0.34.0 0.0.0.3", 2)][..]),
+        ("router4", &[("10.0.34.0 0.0.0.3", 2), ("192.168.2.0 0.0.0.255", 2)][..]),
+    ] {
+        let mut lines = vec!["en".to_string(), "conf t".to_string(), "router ospf 7".to_string()];
+        lines.extend(networks.iter().map(|(network, area)| format!("network {network} area {area}")));
+        lines.push("end".to_string());
+        lab.config(device, lines);
+    }
+
+    let area1 = lab.cli("router1", "show%20ip%20route");
+    assert!(area1.contains("O IA  192.168.2.0/24 [110/4] via 10.0.12.2"), "{area1}");
+    assert!(area1.contains("O IA  10.0.23.0/30 [110/2] via 10.0.12.2"), "{area1}");
+    let abr1 = lab.cli("router2", "show%20ip%20route");
+    assert!(abr1.contains("O  192.168.1.0/24 [110/2]"), "{abr1}");
+    assert!(abr1.contains("O IA  192.168.2.0/24 [110/3] via 10.0.23.2"), "{abr1}");
+    let abr2 = lab.cli("router3", "show%20ip%20route");
+    assert!(abr2.contains("O IA  192.168.1.0/24 [110/3] via 10.0.23.1"), "{abr2}");
+    assert!(abr2.contains("O  192.168.2.0/24 [110/2]"), "{abr2}");
+    let area2 = lab.cli("router4", "show%20ip%20route");
+    assert!(area2.contains("O IA  192.168.1.0/24 [110/4] via 10.0.34.1"), "{area2}");
+    assert!(area2.contains("O IA  10.0.23.0/30 [110/2] via 10.0.34.1"), "{area2}");
+    assert_ping(&lab, "pc3", "192.168.2.10", 124);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.2.10",
+        &["192.168.1.1", "10.0.12.2", "10.0.23.2", "10.0.34.2", "192.168.2.10"],
+    );
+    assert_ping(&lab, "pc4", "192.168.1.10", 124);
+}
+
+#[test]
+fn eigrp_composite_uses_bottleneck_bandwidth_delay_and_same_as_only() {
+    let lab = Lab::start(39_114);
+    lab.clear_demo();
+    for (model, id, x, y) in [
+        ("2911", "router1", 200, 200),
+        ("2911", "router2", 400, 80),
+        ("2911", "router3", 350, 320),
+        ("2911", "router4", 750, 200),
+        ("2911", "router5", 550, 320),
+        ("2911", "router6", 350, 500),
+        ("PC-PT", "pc3", 50, 200),
+        ("PC-PT", "pc4", 900, 200),
+        ("PC-PT", "pc5", 350, 650),
+    ] {
+        lab.device(model, id, x, y);
+    }
+    for (a, b) in [
+        ("router1", "pc3"),
+        ("router4", "pc4"),
+        ("router1", "router2"),
+        ("router2", "router4"),
+        ("router1", "router3"),
+        ("router3", "router5"),
+        ("router5", "router4"),
+        ("router3", "router6"),
+        ("router6", "pc5"),
+    ] {
+        lab.link(a, b);
+    }
+    lab.host("pc3", "192.168.1.10", "192.168.1.1");
+    lab.host("pc4", "192.168.2.10", "192.168.2.1");
+    lab.host("pc5", "198.18.99.10", "198.18.99.1");
+    lab.address("router1", "GigabitEthernet0/0", "192.168.1.1", "255.255.255.0");
+    lab.address("router4", "GigabitEthernet0/0", "192.168.2.1", "255.255.255.0");
+    lab.address("router6", "GigabitEthernet0/1", "198.18.99.1", "255.255.255.0");
+    for (device, interface, ip) in [
+        ("router1", "GigabitEthernet0/1", "10.0.12.1"),
+        ("router1", "GigabitEthernet0/2", "10.0.13.1"),
+        ("router2", "GigabitEthernet0/0", "10.0.12.2"),
+        ("router2", "GigabitEthernet0/1", "10.0.24.1"),
+        ("router3", "GigabitEthernet0/0", "10.0.13.2"),
+        ("router3", "GigabitEthernet0/1", "10.0.35.1"),
+        ("router3", "GigabitEthernet0/2", "10.0.99.1"),
+        ("router4", "GigabitEthernet0/1", "10.0.24.2"),
+        ("router4", "GigabitEthernet0/2", "10.0.54.2"),
+        ("router5", "GigabitEthernet0/0", "10.0.35.2"),
+        ("router5", "GigabitEthernet0/1", "10.0.54.1"),
+        ("router6", "GigabitEthernet0/0", "10.0.99.2"),
+    ] {
+        lab.address(device, interface, ip, "255.255.255.252");
+    }
+    for (device, interface, bandwidth, delay) in [
+        ("router1", "g0/1", 100_000, 100),
+        ("router2", "g0/0", 100_000, 100),
+        ("router2", "g0/1", 1_000_000, 10),
+        ("router4", "g0/1", 1_000_000, 10),
+    ] {
+        lab.config(
+            device,
+            [
+                "en".to_string(),
+                "conf t".to_string(),
+                format!("interface {interface}"),
+                format!("bandwidth {bandwidth}"),
+                format!("delay {delay}"),
+                "end".to_string(),
+            ],
+        );
+    }
+    for (device, networks) in [
+        ("router1", &["192.168.1.0 0.0.0.255", "10.0.12.0 0.0.0.3", "10.0.13.0 0.0.0.3"][..]),
+        ("router2", &["10.0.12.0 0.0.0.3", "10.0.24.0 0.0.0.3"][..]),
+        ("router3", &["10.0.13.0 0.0.0.3", "10.0.35.0 0.0.0.3", "10.0.99.0 0.0.0.3"][..]),
+        ("router4", &["192.168.2.0 0.0.0.255", "10.0.24.0 0.0.0.3", "10.0.54.0 0.0.0.3"][..]),
+        ("router5", &["10.0.35.0 0.0.0.3", "10.0.54.0 0.0.0.3"][..]),
+    ] {
+        let mut lines = vec!["en".to_string(), "conf t".to_string(), "router eigrp 42".to_string()];
+        lines.extend(networks.iter().map(|network| format!("network {network}")));
+        lines.push("end".to_string());
+        lab.config(device, lines);
+    }
+    lab.config(
+        "router6",
+        [
+            "en",
+            "conf t",
+            "router eigrp 99",
+            "network 10.0.99.0 0.0.0.3",
+            "network 198.18.99.0 0.0.0.255",
+            "end",
+        ],
+    );
+
+    let routes = lab.cli("router1", "show%20ip%20route");
+    // Long path: min BW 1,000,000 Kbps, delay 40 us.
+    assert!(routes.contains("D  192.168.2.0/24 [90/3584] via 10.0.13.2"), "{routes}");
+    assert!(!routes.contains("192.168.2.0/24 [90/28672]"), "{routes}");
+    let reverse = lab.cli("router4", "show%20ip%20route");
+    assert!(reverse.contains("D  192.168.1.0/24 [90/3584] via 10.0.54.1"), "{reverse}");
+    assert_ping(&lab, "pc3", "192.168.2.10", 124);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.2.10",
+        &["192.168.1.1", "10.0.13.2", "10.0.35.2", "10.0.54.2", "192.168.2.10"],
+    );
+
+    lab.config("router1", ["en", "conf t", "interface g0/2", "shutdown", "end"]);
+    let routes = lab.cli("router1", "show%20ip%20route");
+    // Short path: min BW 100,000 Kbps, cumulative delay 100 + 10 + 10 us.
+    assert!(routes.contains("D  192.168.2.0/24 [90/28672] via 10.0.12.2"), "{routes}");
+    assert!(!routes.contains("192.168.2.0/24 [90/3584]"), "{routes}");
+    assert_ping(&lab, "pc3", "192.168.2.10", 125);
+    assert_trace(
+        &lab,
+        "pc3",
+        "192.168.2.10",
+        &["192.168.1.1", "10.0.12.2", "10.0.24.2", "192.168.2.10"],
+    );
+    lab.config("router1", ["en", "conf t", "interface g0/2", "no shutdown", "end"]);
+
+    let different_as_neighbor = lab.cli("router3", "show%20ip%20route");
+    assert!(!different_as_neighbor.contains("198.18.99.0/24"), "{different_as_neighbor}");
+    let different_as = lab.cli("router6", "show%20ip%20route");
+    assert!(!different_as.contains("192.168.1.0/24"), "{different_as}");
+    assert!(!different_as.contains("192.168.2.0/24"), "{different_as}");
+    assert_unreachable(&lab, "pc3", "198.18.99.10");
 }
