@@ -1,8 +1,8 @@
 /* ---------------- actions ---------------- */
-function confirmOpenAnyway(response) {
+async function confirmOpenAnyway(response) {
   if (!response.error || !response.canOpenAnyway) return false;
   const problems = (response.problems || []).map((p) => p.text || p.message).join('\n');
-  return confirm(`${problems || response.error}\n\nOpen anyway without the broken parts?`);
+  return askConfirm(`${problems || response.error}\n\nOpen anyway without the broken parts?`, 'Open anyway');
 }
 
 function reportLoadProblems(response) {
@@ -47,7 +47,7 @@ async function importTnetFile(file) {
       return { res, json: await res.json() };
     };
     let { res, json: response } = await send();
-    if (confirmOpenAnyway(response)) ({ res, json: response } = await send(true));
+    if (await confirmOpenAnyway(response)) ({ res, json: response } = await send(true));
     if (!res.ok || response.error) throw new Error(importProblemMessage(response));
     setData(response);
     currentName = file.name.replace(/\.tnet$/i, '');
@@ -69,7 +69,7 @@ const ACTIONS = {
   async new() {
     const gallery = document.getElementById('lesson-gallery');
     const fromGallery = gallery && !gallery.hidden;
-    if (!fromGallery && !confirm('Discard the current topology?')) return;
+    if (!fromGallery && !(await askConfirm('Discard the current topology?', 'Discard'))) return;
     const r = await api('/api/new');
     if (!r.error) {
       currentName = 'untitled';
@@ -86,10 +86,10 @@ const ACTIONS = {
   async open() {
     const { names = [] } = await getJson('/api/saves');
     if (!names.length) { status('No saved topologies'); sfx('errorMsg'); return; }
-    const name = prompt(`Open topology (${names.join(', ')})`, names[0]);
+    const name = await askText(`Open topology (${names.join(', ')})`, names[0]);
     if (!name) return;
     let r = await api('/api/load', { name });
-    if (confirmOpenAnyway(r)) r = await api('/api/load', { name, openAnyway: 'true' });
+    if (await confirmOpenAnyway(r)) r = await api('/api/load', { name, openAnyway: 'true' });
     if (!r.error) {
       currentName = name;
       currentTemplate = null;
@@ -102,7 +102,7 @@ const ACTIONS = {
     }
   },
   async save() {
-    const name = prompt('Save topology as', currentName);
+    const name = await askText('Save topology as', currentName);
     if (!name) return;
     const r = await api('/api/save', { name });
     if (!r.error) { currentName = name; status(`Saved ${name}.tnet`); sfx('newScenarioButton'); }
@@ -184,7 +184,7 @@ const ACTIONS = {
     status(showGrid ? 'Grid on' : 'Grid off');
   },
   async 'build-bus'() {
-    const raw = prompt('How many computers on the bus?', '4');
+    const raw = await askText('How many computers on the bus?', '4');
     if (raw === null) return; // cancelled
     const count = parseInt(raw || '4', 10);
     if (!count || count < 2 || count > 24) {
@@ -200,7 +200,7 @@ const ACTIONS = {
     }
   },
   async 'custom-device'() {
-    const name = prompt('Custom device name', 'MyDevice');
+    const name = await askText('Custom device name', 'MyDevice');
     if (!name) return;
     const cx = vb.x + vb.w / 2 - 50;
     const cy = vb.y + vb.h / 2 - 20;

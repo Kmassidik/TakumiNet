@@ -251,8 +251,8 @@ function installBrowserRecovery() {
   boot = async function () {
     const recovered = snapshots.recover();
     let restore = recovered.workspace;
-    if (recovered.source === 'current' && typeof window.confirm === 'function' &&
-        !window.confirm('Restore last session? Your latest browser workspace can replace the server workspace.')) {
+    if (recovered.source === 'current' && typeof askConfirm === 'function' &&
+        !(await askConfirm('Restore last session? Your latest browser workspace can replace the server workspace.', 'Restore'))) {
       restore = null;
     }
     recoveredWorkspace = restore;

@@ -16,8 +16,8 @@ test('open lists located problems and retries only after confirmation', async ()
   const context = vm.createContext({
     console,
     async getJson() { return { names: ['broken'] }; },
-    prompt() { return 'broken'; },
-    confirm(message) { confirmations.push(message); return true; },
+    async askText() { return 'broken'; },
+    async askConfirm(message) { confirmations.push(message); return true; },
     async api(path, params) {
       calls.push({ path, params });
       if (!params.openAnyway) {
@@ -47,8 +47,8 @@ test('open leaves the workspace alone when recovery is declined', async () => {
   const context = vm.createContext({
     console,
     async getJson() { return { names: ['broken'] }; },
-    prompt() { return 'broken'; },
-    confirm() { return false; },
+    async askText() { return 'broken'; },
+    async askConfirm() { return false; },
     async api() { calls++; return { error: 'bad', canOpenAnyway: true, problems: [] }; },
     status() {}, sfx() {}, currentName: 'lab1', simCursor: -1,
   });

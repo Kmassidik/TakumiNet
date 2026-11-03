@@ -50,7 +50,7 @@ function harness(responses = {}) {
     sfx: (name) => sounds.push(name),
     status: (message, failed) => statuses.push({ message, failed }),
     hideGallery: () => {},
-    confirm: () => true,
+    askConfirm: async () => true,
   });
   vm.runInContext(source, context);
   return { context, elements, sounds, statuses };

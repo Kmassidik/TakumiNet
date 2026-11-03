@@ -276,7 +276,7 @@ test('boot offers Restore last session and a decline keeps the server workspace'
   const keys = vm.runInContext('RECOVERY_KEYS', app.context);
   app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
   const prompts = [];
-  app.window.confirm = (message) => { prompts.push(message); return false; };
+  vm.runInContext('askConfirm = async (message) => { prompts.push(message); return false; }', Object.assign(app.context, { prompts }));
 
   await vm.runInContext('boot()', app.context);
   assert.equal(prompts.length, 1);
@@ -288,7 +288,7 @@ test('accepting Restore last session loads the browser snapshot', async () => {
   const app = applicationHarness(workspace(9));
   const keys = vm.runInContext('RECOVERY_KEYS', app.context);
   app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
-  app.window.confirm = () => true;
+  vm.runInContext('askConfirm = async () => true', app.context);
 
   await vm.runInContext('boot()', app.context);
   assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc3');

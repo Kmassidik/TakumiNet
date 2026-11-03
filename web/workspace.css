@@ -869,3 +869,17 @@ html, body {
 .prefs-body label { display: flex; gap: 8px; align-items: center; font: inherit; }
 .prefs-body p { margin: 0; }
 
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200; display: flex;
+  align-items: center; justify-content: center; background: rgba(16, 24, 40, 0.45);
+}
+.modal {
+  width: min(420px, calc(100vw - 32px)); padding: 16px; border-radius: 6px;
+  background: var(--panel); border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+.modal-message { margin: 0 0 12px; white-space: pre-wrap; word-break: break-word; }
+.modal-input { width: 100%; box-sizing: border-box; margin-bottom: 12px; padding: 6px 8px; font: inherit; }
+.modal-buttons { display: flex; justify-content: flex-end; gap: 8px; }
+.modal-buttons button { padding: 5px 14px; font: inherit; cursor: pointer; }
+.modal-ok { background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 3px; }
+.modal-cancel { background: var(--chrome); border: 1px solid var(--line); border-radius: 3px; }

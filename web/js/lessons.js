@@ -214,7 +214,7 @@ async function openTemplate(id, resetting = false) {
 
 async function resetLesson() {
   const id = currentTemplate || (data && data.lesson && data.lesson.id);
-  if (!id || !confirm('Reload the pristine lesson and discard this attempt?')) return;
+  if (!id || !(await askConfirm('Reload the pristine lesson and discard this attempt?', 'Reload'))) return;
   await openTemplate(id, true);
 }
 
