@@ -133,7 +133,7 @@ function animatePath(ids) {
     .map((d) => ({ x: d.x, y: d.y }));
   if (pts.length < 2) return;
 
-  const dot = node('circle', { r: 7, class: 'packet' });
+  const dot = node('circle', { r: 7, class: 'packet', cx: pts[0].x, cy: pts[0].y });
   svg().appendChild(dot);
 
   const SEG = 420;

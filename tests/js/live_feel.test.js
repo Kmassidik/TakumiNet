@@ -8,6 +8,7 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
 const topologySource = fs.readFileSync(path.join(root, 'web/js/topology.js'), 'utf8');
+const interactionSource = fs.readFileSync(path.join(root, 'web/js/interaction.js'), 'utf8');
 
 class SvgElement {
   constructor(tagName) {
@@ -20,6 +21,7 @@ class SvgElement {
   appendChild(child) { this.children.push(child); return child; }
   replaceChildren(...children) { this.children = children; }
   addEventListener() {}
+  remove() { this.removed = true; }
 }
 
 function renderLink(aState, bState) {
@@ -58,4 +60,44 @@ test('link endpoints render LEDs directly from green amber and red port states',
     assert.equal(leds.length, 2);
     assert.deepEqual(leds.map((led) => led.attributes['data-state']), [aState, bState]);
   }
+});
+
+test('realtime animation starts at the source and crosses each real hop at 1x', () => {
+  const svg = new SvgElement('svg');
+  const frames = [];
+  const context = vm.createContext({
+    data: { devices: [
+      { id: 'a', x: 100, y: 100 },
+      { id: 'b', x: 300, y: 100 },
+      { id: 'c', x: 300, y: 300 },
+    ] },
+    document: { getElementById: (id) => id === 'topology' ? svg : new SvgElement('div') },
+    svg: () => svg,
+    node: (name, attrs) => {
+      const element = new SvgElement(name);
+      for (const [key, value] of Object.entries(attrs)) element.setAttribute(key, value);
+      return element;
+    },
+    performance: { now: () => 1000 },
+    requestAnimationFrame: (callback) => frames.push(callback),
+  });
+  vm.runInContext(interactionSource, context);
+  context.animatePath(['a', 'b', 'c']);
+
+  const dot = svg.children[0];
+  assert.equal(dot.attributes.cx, '100', 'the packet must never appear at SVG origin before its first frame');
+  assert.equal(dot.attributes.cy, '100');
+  assert.equal(frames.length, 1);
+
+  frames.shift()(1210);
+  assert.equal(dot.attributes.cx, '200');
+  assert.equal(dot.attributes.cy, '100');
+  frames.shift()(1420);
+  assert.equal(dot.attributes.cx, '300');
+  assert.equal(dot.attributes.cy, '100');
+  frames.shift()(1630);
+  assert.equal(dot.attributes.cx, '300');
+  assert.equal(dot.attributes.cy, '200');
+  frames.shift()(1840);
+  assert.equal(dot.removed, true, 'two 420 ms segments complete at 840 ms');
 });

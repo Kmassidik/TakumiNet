@@ -10,6 +10,8 @@ P4 Chrome showed that terminal `shutdown` left the old LED colors on screen. `te
 
 P4 Chrome Command Prompt ping answered but left zero captured events and no PDU. `command prompt ping answers immediately then captures and animates its real path` failed before the fix. After it, Chrome answered in 13 ms, captured PC0 → Switch0 → Router0 → Switch1 → PC2, and animated that identical event path.
 
+P4 Chrome also caught the new packet at SVG `(0,0)` before its first animation frame. `realtime animation starts at the source and crosses each real hop at 1x` failed before the fix. After it, the same captured five-device path began immediately at PC0 `(105,400)` and the test measured 420 ms per hop.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |
