@@ -25,7 +25,7 @@ SHEETS = [  # (file title, group, icon names in reading order)
     ("Glossy Teal Document and Magnifier Icons", "toolbar", "copy paste delete zoomin zoomout zoomreset"),
     ("Glossy Teal and Amber Utility Icons", "toolbar", "templates toolbox topology wizard challenge help"),
     ("Glossy 3D Compass, Nature, and Home Icons", "toolbar", "compass environment home"),
-    ("Glossy 3D Traffic and Grid Icons", "toolbar", "simple complex grid"),
+    ("Glossy Mail and App Icons", "toolbar", "simple complex grid"),
     ("Glossy 3D Media Control Icon Sheet", "sim", "reset play pause stepa back stepb"),
     ("Glossy Teal Fast-Forward Button", "sim", "fastforward"),
     ("Glossy 3D Cable Connector Collection", "cables", "straight cross console fiber phone coiled"),

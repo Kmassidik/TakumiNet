@@ -135,6 +135,17 @@
       "grid": "3x2"
     },
     {
+      "source": "Glossy Mail and App Icons",
+      "sha256": "4c7af2ae13e18c83",
+      "group": "toolbar",
+      "icons": [
+        "simple",
+        "complex",
+        "grid"
+      ],
+      "grid": "3x2"
+    },
+    {
       "source": "Glossy 3D Media Control Icon Sheet",
       "sha256": "003a670a224641b0",
       "group": "sim",

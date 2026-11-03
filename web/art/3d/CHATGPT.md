@@ -159,7 +159,7 @@ Cell 5: leave empty.
 Cell 6: leave empty.
 ```
 
-### T6 toolbar: traffic and grid (3 icons, rest empty): `T6-ui.png`
+### T6 toolbar: traffic and grid (3 icons, rest empty): `Glossy Mail and App Icons.png`
 
 ```text
 A sheet of 6 separate 3D button icons in a 3 by 2 grid (3 columns, 2 rows), each centered in its own equal square cell with empty space around it. Chunky rounded 3D glyphs with a glossy plastic finish, bold simple silhouette that stays readable when shrunk to 24 pixels, one object per cell, no tiny details. Same camera (front view, slightly from above), same top-left light, same palette: blue-grey base, teal accent, warm amber highlight, off-white shine. No text, no letters, no numbers, no borders, no watermark, transparent background. Image size 1536 x 1024 pixels.

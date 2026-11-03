@@ -1,5 +1,5 @@
 /* ---------------- toolbars ---------------- */
-// [icon, title, action]. An icon is "group/name" in web/art/3d, or "~glyph" while no 3D art exists yet.
+// [icon, title, action]. Icons are "group/name" in web/art/3d.
 const PRIMARY = [
   ['toolbar/new', 'New', 'new'], ['toolbar/open', 'Open', 'open'],
   ['toolbar/save', 'Save', 'save'], ['toolbar/print', 'Print', 'print'], null,
@@ -14,8 +14,8 @@ const PRIMARY = [
 ];
 
 const SECONDARY = [
-  ['~\u2709', 'Simple PDU', 'pdu'], ['~\u2709+', 'Complex PDU', 'pdu'], null,
-  ['~\u25A6', 'Grid', 'toggle-grid'], null,
+  ['toolbar/simple', 'Simple PDU', 'pdu'], ['toolbar/complex', 'Complex PDU', 'pdu'], null,
+  ['toolbar/grid', 'Grid', 'toggle-grid'], null,
   ['toolbar/home', 'Home', 'zoom-reset'],
 ];
 
@@ -32,14 +32,10 @@ function renderToolbar(el, items) {
     const b = document.createElement('button');
     b.title = title;
     b.dataset.action = action;
-    if (file.startsWith('~')) {
-      b.textContent = file.slice(1);
-    } else {
-      const img = document.createElement('img');
-      img.src = icon3d(file);
-      img.alt = title;
-      b.appendChild(img);
-    }
+    const img = document.createElement('img');
+    img.src = icon3d(file);
+    img.alt = title;
+    b.appendChild(img);
     el.appendChild(b);
   }
 }
