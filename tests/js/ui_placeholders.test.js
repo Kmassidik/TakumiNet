@@ -1,0 +1,134 @@
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const root = path.resolve(__dirname, '../..');
+const source = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+
+class Element {
+  constructor(tagName = 'div') {
+    this.tagName = tagName.toUpperCase();
+    this.children = [];
+    this.dataset = {};
+    this.className = '';
+  }
+
+  appendChild(child) {
+    this.children.push(child);
+    return child;
+  }
+
+  replaceChildren(...children) {
+    this.children = children;
+  }
+
+  set textContent(value) {
+    this._text = String(value);
+    this.children = [];
+  }
+
+  get textContent() {
+    return this.children.length ? this.children.map((c) => c.textContent).join('') : (this._text || '');
+  }
+}
+
+test('toolbars contain only implemented actions and tidy separators', () => {
+  const context = vm.createContext({
+    document: { createElement: (tag) => new Element(tag) },
+    icon3d: (name) => name,
+  });
+  vm.runInContext(source('web/js/actions.js'), context);
+  vm.runInContext(source('web/js/toolbars.js'), context);
+  const { primary, secondary, actions } = vm.runInContext(
+    '({ primary: PRIMARY, secondary: SECONDARY, actions: ACTIONS })', context,
+  );
+  const removed = new Set([
+    'Clusters', 'Activity wizard', 'Challenge mode', 'Drawing palette',
+    'Ellipse', 'Navigate', 'Compass', 'Environment',
+  ]);
+
+  for (const items of [primary, secondary]) {
+    assert.ok(items[0], 'toolbar must not start with a separator');
+    assert.ok(items.at(-1), 'toolbar must not end with a separator');
+    const toolbar = new Element();
+    context.renderToolbar(toolbar, items);
+    const buttons = toolbar.children.filter((child) => child.tagName === 'BUTTON');
+    assert.equal(buttons.length, items.filter(Boolean).length);
+
+    let buttonIndex = 0;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item) {
+        assert.ok(items[i - 1] && items[i + 1], 'separators must divide two action groups');
+        continue;
+      }
+      const [, title, action] = item;
+      assert.ok(action, `${title} needs an action`);
+      assert.equal(typeof actions[action], 'function', `${title} action must exist`);
+      assert.equal(removed.has(title), false, `${title} must stay hidden until implemented`);
+      const button = buttons[buttonIndex++];
+      assert.equal(button.title, title);
+      assert.equal(button.dataset.action, action);
+      assert.doesNotMatch(button.title, /not implemented/i);
+    }
+  }
+});
+
+test('every Desktop app dispatches to its real handler', () => {
+  const calls = [];
+  const handlers = {
+    ipconfig: 'openIpDialog',
+    term: 'openTerm',
+    cmd: 'openCmd',
+    browser: 'openBrowser',
+    wifi: 'openWifi',
+    vpn: 'openVpn',
+    traffic: 'openTraffic',
+    mib: 'openMib',
+    phone: 'openPhone',
+    email: 'openMail',
+    pppoe: 'openPppoe',
+    editor: 'openEditor',
+    firewall: 'openFirewall',
+  };
+  const context = vm.createContext({
+    document: { createElement: (tag) => new Element(tag) },
+    icon3d: (name) => name,
+    status: () => { throw new Error('Desktop app fell through to a placeholder'); },
+  });
+  for (const name of new Set(Object.values(handlers))) {
+    context[name] = (device) => calls.push({ name, device });
+  }
+  vm.runInContext(source('web/js/device_window.js'), context);
+  vm.runInContext(source('web/js/device_tabs.js'), context);
+
+  const apps = vm.runInContext('DESKTOP_APPS', context);
+  const device = { id: 'pc0', name: 'PC0' };
+  const pane = new Element();
+  context.tabDesktop(pane, device);
+  const buttons = pane.children[0].children;
+  assert.equal(apps.length, 14);
+  assert.equal(buttons.length, apps.length);
+  assert.equal(apps.some(([, label]) => label === 'Dialup'), false);
+
+  for (let i = 0; i < apps.length; i++) {
+    const [, label, action] = apps[i];
+    const handler = handlers[action];
+    assert.ok(handler, `${label} needs a real handler`);
+    buttons[i].onclick();
+    assert.deepEqual(calls.at(-1), { name: handler, device });
+  }
+  assert.equal(calls.length, apps.length);
+});
+
+test('device window exposes only the four supported tabs', () => {
+  const html = source('web/index.html');
+  const markup = html.match(/<div class="devwin-tabs" id="dw-tabs">([\s\S]*?)<\/div>/);
+  assert.ok(markup);
+  const tabs = Array.from(markup[1].matchAll(/data-tab="([^"]+)"/g), (match) => match[1]);
+  assert.deepEqual(tabs, ['physical', 'config', 'desktop', 'services']);
+});

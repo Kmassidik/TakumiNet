@@ -27,7 +27,7 @@ Repo `/Users/mac/Desktop/Apps/TakumiNet`, branch `main`, GitHub `Kmassidik/Takum
 5. Six toolbar buttons use text glyphs (simple PDU, complex PDU, drawing, ellipse, navigate, grid). Write a ChatGPT prompt for one 3x2 sheet in `CHATGPT.md` (words only, same style block as the others), tell the user to generate it (only the user can), then add to `SHEETS` in `build_art.py`.
 6. Physical view (decided): `device_tabs.js:72` already falls back to the device icon on error, so just use the 3D device icon there. A dedicated rack sheet is optional, later.
 7. Goal: `BASELINE` in `assets_free.rs` becomes empty, then delete it and the `/assets` mount docs.
-8. Component audit with Claude in Chrome (user's choice over Playwright): run `PORT=3111 ./target/debug/pt-web`, drive every button and tab, list placeholders. Known defects: `src/cmd.rs:163` prints hardcoded `TTL=128` for ping (PC0->PC2 crosses a router so it should be 127); Dialup app action empty; 6 toolbar buttons empty; Programming and Attributes device tabs say "not available".
+8. Component audit with Claude in Chrome (user's choice over Playwright): run `PORT=3111 ./target/debug/pt-web`, drive every button and tab, list placeholders. Unsupported Dialup, eight empty toolbar actions, and the Programming and Attributes tabs have been removed.
 9. Rebuild Docker (`docker rm -f pt-web`; image is stale; first build is slow, LTO). Wand icon lost its sparkles in the cutout (retry cut alone): regenerate only if the user cares.
 
 ## Verifying in the browser

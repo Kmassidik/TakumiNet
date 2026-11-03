@@ -17,8 +17,9 @@ simulation is ours and runs server-side in Rust.
 - `cargo test` — 156 unit + 67 integration/HTTP conformance tests (223 total):
   frames, TTL, MAC/ARP tables, interface state, IOS CLI, VLAN/STP/EtherChannel,
   editing, assets, `.pkt` import, services and simulation parity.
-- `node --test tests/js/simulation.test.js` — 6 dependency-free DOM tests for
-  filters, stable event selection/playback, layer details and dropped PDUs.
+- `node --test tests/js/*.test.js` — 9 dependency-free DOM tests for
+  filters, stable event selection/playback, layer details, dropped PDUs,
+  implemented toolbar/Desktop actions and supported device tabs.
 - `cargo run` — asset browser on `http://localhost:3000`, verified in Chromium
   (icon grid renders, preview opens, 6,455 files / 811 MB indexed).
 - Workspace UI verified in Chromium: 7 devices, 6 labeled links, 54 event
@@ -26,8 +27,8 @@ simulation is ours and runs server-side in Rust.
 - Interactive editing verified: palette drag → device created on canvas,
   pointer drag moves it, `Delete` removes it, all persisted server-side.
 - **Device window like the real one**: double-click any PC → window titled with
-  its name and tabs `Physical | Config | Desktop | Programming | Attributes`.
-  Desktop is the real app grid (15 icons from `art/Workstation`), `IP
+  its name and tabs `Physical | Config | Desktop | Services`.
+  Desktop is the real app grid (14 functional apps), `IP
   Configuration` opens the copied panel, and `Command Prompt` is a working
   terminal — `ipconfig`, `ping <ip>`, `cls`, `exit` with Packet Tracer's own
   output text and statistics.

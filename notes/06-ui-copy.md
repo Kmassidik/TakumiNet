@@ -37,16 +37,15 @@ Copied from `config_PCs_3.jpg` + the `CBaseWorkStationIPConfig` context:
 ## Done this pass — device window (copied from `config_PCs_1.jpg`)
 
 - Window titled with the device name, tabs
-  `Physical | Config | Desktop | Programming | Attributes`, `Top` checkbox
-- **Desktop**: 5-column icon grid on light blue, 15 apps with their real icons
-  (`ipconfig`, `dialup`, `terminal`, `cmdprompt`, `browser`, `PCWireless`,
+  `Physical | Config | Desktop | Services`, `Top` checkbox
+- **Desktop**: 5-column icon grid on light blue, 14 functional apps with their real icons
+  (`ipconfig`, `terminal`, `cmdprompt`, `browser`, `PCWireless`,
   `VPNdialup`, `trafficGenerator`, `mibbrowser`, `IPCommunicator`,
   `EmailClient`, `PPPoEDialer`, `TextEditor`, `IPv4Firewall`, `IPv6Firewall`)
 - **IP Configuration** → the copied panel (IPv4/IPv6/802.1X)
 - **Command Prompt** → working terminal: XP banner, `ipconfig`, `ping <ip>`,
   `cls`, `exit`; ping prints PT's reply lines + statistics and records a PDU
-- **Physical** shows the device image, **Config** allows rename (Display Name),
-  **Programming/Attributes** state they are unavailable for the model
+- **Physical** shows the device image and **Config** allows rename (Display Name)
 
 ## Not copied yet, in dependency order
 

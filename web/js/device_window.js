@@ -1,7 +1,6 @@
 /* ---------------- device window (PC0 style) ---------------- */
 const DESKTOP_APPS = [
   ['apps/nic', 'IP Configuration', 'ipconfig'],
-  ['apps/dialup', 'Dialup', ''],
   ['apps/terminal', 'Terminal', 'term'],
   ['apps/cmd', 'Command Prompt', 'cmd'],
   ['apps/browser', 'Web Browser', 'browser'],

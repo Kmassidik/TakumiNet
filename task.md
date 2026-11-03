@@ -141,10 +141,6 @@ Known gaps found by reading the code (these look like placeholders today):
 
 | Component | Evidence | Plan |
 |---|---|---|
-| Dialup app | `device_window.js` DESKTOP_APPS entry with empty action | Implement or hide |
-| Toolbar: Clusters, Activity Wizard, Challenge Mode | `toolbars.js` entries with empty action (6 of 27 toolbar buttons have no action) | Implement, or hide until real |
-| Device window tab "Programming" | `device_tabs.js`: "not available for this device model" | Hide for models without it |
-| Device window tab "Attributes" | same pattern: "No attributes to configure" | Same |
 | `ping` TTL | `src/cmd.rs:163` prints a hardcoded `TTL=128`; PC0 to PC2 crosses a router, so it should show 127 (seen in the browser) | Read the real TTL from the delivered packet; add a test for 0, 1 and 2 routers |
 | 499 vendor dialogs | README: most are inventory only | Out of scope; list which 15 or so are real |
 
@@ -158,7 +154,7 @@ Audit matrix (to be executed in PR 8; columns filled with pass/fail and the comm
 | Menus | File, Edit, Options, View, Tools, Extensions, Window, Help (8 menus) | Manual checklist then UI |
 | File | New, Open (.pkt list), Save, Load `.ptw`, import `.pkt` | API test (exists) plus UI |
 | Device window | Physical, Config, Desktop, Services, tabs | UI test |
-| Desktop apps | 15 apps, each opens and does its one core action | UI test |
+| Desktop apps | 14 apps, each opens and does its one core action | UI test |
 | CLI | user, priv, config, interface, router, line modes; completion; `?` help | Rust tests (137) plus UI terminal |
 | Services | DHCP, DNS, HTTP, mail, FTP, TFTP, NTP, syslog, AAA, NAT, ACL, VLAN, STP | Rust tests plus API |
 | Wireless/IoT/WAN | Wi-Fi, CAPWAP, VPN, PPPoE, phones, IoT, cell | Rust tests plus API |
@@ -202,7 +198,6 @@ the start except generating the pilot sheet with Codex.
 **Measured gaps (from the code, not guesses):**
 - `workspace/routing.rs::recompute_routing` runs ONE hop-count search for RIP, OSPF and EIGRP alike. No OSPF cost/areas/DR, no EIGRP metric, no AD/floating routes, BGP and HSRP absent, EtherChannel minimal.
 - `show` has ~28 commands, one explicit "not implemented yet" fallback (`cli/show.rs:44`). Ping prints a hardcoded `TTL=128`.
-- 6 toolbar buttons empty, Programming and Attributes tabs empty, Dialup app empty.
 
 **Method: lab conformance first.** Write `tests/labs/`: ~10 canonical CCNA labs as integration tests (build topology through the API, run CLI scripts, assert pings and key `show` lines). The pass/fail matrix is the work list, so nothing is built on a guess. Expected outputs come from the protocol specs and from behaviour, never copied vendor text.
 

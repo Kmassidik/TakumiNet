@@ -17,8 +17,9 @@ HTTP half is automated in `tests/e2e.rs` and `tests/corpus.rs`.
     and DHCP/DNS/SMTP control-plane inspection.
   - e2e (`tests/e2e.rs`): HTTP endpoints including mail send/list, TFTP, FTP/
     syslog/AAA/NTP, `/art` serving and traversal refusal, VLAN CLI + STP `BLK`.
-- `node --test tests/js/simulation.test.js` — dependency-free DOM conformance
-  for filters, stable event IDs, playback/capture counts and layer inspection.
+- `node --test tests/js/*.test.js` — dependency-free DOM conformance
+  for filters, stable event IDs, playback/capture counts, layer inspection,
+  implemented toolbar/Desktop actions and supported device tabs.
 - `PT_CORPUS=1 cargo test --test corpus` — 239 opened, 239 valid JSON,
   226 simulated, 96 delivered, 18 skipped containers, 0 errors.
 - `cargo test --test e2e` covers the same endpoints without a browser.
@@ -29,7 +30,7 @@ HTTP half is automated in `tests/e2e.rs` and `tests/corpus.rs`.
 |---|---|
 | Asset browser / workspace | 7 devices, 6 links, palette, simulation panel |
 | Own artwork | canvas `href=/art/router.svg…`; `/art/router.svg` → 200 `image/svg+xml`; traversal → `not found` |
-| Device window | tabs Physical/Config/Desktop/Programming/Services; IP configuration |
+| Device window | tabs Physical/Config/Desktop/Services; IP configuration |
 | CLI | `en`, `conf t`, `access-list 10 deny …`, `ip access-group 10 in`; `/api/pdu` → `ACL denied on Router0 GigabitEthernet0/0` |
 | Mail | created `alice`/`bob`, sent `UI test`, server inbox showed unread dot |
 | TFTP | added `startup.cfg`, listed, removed, list empty |

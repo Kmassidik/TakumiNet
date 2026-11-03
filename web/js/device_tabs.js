@@ -14,13 +14,6 @@ function selectTab(name) {
   if (name === 'config') return tabConfig(pane, d);
 
   if (name === 'services') return tabServices(pane, d);
-
-  const msg = document.createElement('div');
-  msg.className = 'dw-muted';
-  msg.textContent = name === 'programming'
-    ? 'Programming is not available for this device model.'
-    : 'No attributes to configure for this device model.';
-  pane.appendChild(msg);
 }
 
 
@@ -52,7 +45,6 @@ function tabDesktop(pane, d) {
       else if (action === 'pppoe') openPppoe(d);
       else if (action === 'phone') openPhone(d);
       else if (action === 'firewall') openFirewall(d);
-      else status(`${label} — not implemented yet`);
     };
     desk.appendChild(app);
   }

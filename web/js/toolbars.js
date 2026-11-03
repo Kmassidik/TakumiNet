@@ -10,17 +10,13 @@ const PRIMARY = [
   ['toolbar/zoomreset', 'Reset zoom', 'zoom-reset'], null,
   ['toolbar/templates', 'Palette', 'toggle-palette'],
   ['toolbar/toolbox', 'Custom device', 'custom-device'], null,
-  ['toolbar/topology', 'Clusters', ''], ['toolbar/wizard', 'Activity wizard', ''],
-  ['toolbar/challenge', 'Challenge mode', ''], null,
   ['toolbar/help', 'Help', 'help'],
 ];
 
 const SECONDARY = [
   ['~\u2709', 'Simple PDU', 'pdu'], ['~\u2709+', 'Complex PDU', 'pdu'], null,
-  ['~\u270E', 'Drawing palette', ''], ['~\u2B2D', 'Ellipse', ''], null,
-  ['~\u271B', 'Navigate', ''], ['~\u25A6', 'Grid', 'toggle-grid'],
-  ['toolbar/compass', 'Compass', ''], null,
-  ['toolbar/environment', 'Environment', ''], ['toolbar/home', 'Home', 'zoom-reset'],
+  ['~\u25A6', 'Grid', 'toggle-grid'], null,
+  ['toolbar/home', 'Home', 'zoom-reset'],
 ];
 
 function renderToolbar(el, items) {
@@ -34,9 +30,8 @@ function renderToolbar(el, items) {
     }
     const [file, title, action] = item;
     const b = document.createElement('button');
-    b.title = action ? title : `${title} (not implemented)`;
-    if (!action) b.disabled = true;
-    if (action) b.dataset.action = action;
+    b.title = title;
+    b.dataset.action = action;
     if (file.startsWith('~')) {
       b.textContent = file.slice(1);
     } else {
