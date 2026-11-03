@@ -1,5 +1,7 @@
 # P2 beginner templates result
 
+- `docs/templates-next.md` contains prompts only for T6 VLANs, T7 router-on-a-stick, T8 static routes, T9 ACLs, and T10 NAT. No T6–T10 template or P3 work was started.
+
 - T5 ships two blank PCs, a switch, and a server without DNS records. The new `nslookup` evaluator invokes the same real terminal command and requires its exact name/address answer. L21 `l21_t5_dns_name_resolves_and_opens_website_after_solution` observes HTTP and DNS failure, configures hosts and the A record through the API, verifies terminal nslookup and a named browser fetch, then passes both checks. Tested 2026-11-03 with `cargo test`: **217 passed, 0 failed** across 6 suites. The L16 validator also loads every gallery template and opens T1–T5 without unresolved devices or ports.
 
 - T4 ships two blank PC pairs, two switches, and a router with both router interfaces initially shut down. L20 `l20_t4_routed_networks_deliver_ttl127_and_connected_routes` observes the main ping failure, configures four hosts through the API and both router interfaces through the stateful CLI, verifies terminal TTL 127 and both connected routes, then passes ping, TTL, and both exact-prefix checks. Tested 2026-11-03 with `cargo test`: **216 passed, 0 failed** across 6 suites.
