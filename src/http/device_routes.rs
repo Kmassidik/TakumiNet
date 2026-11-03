@@ -334,7 +334,7 @@ fn handle_pdu(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let json = "application/json";
     let src = query_value(query, "src").unwrap_or_default();
     let dst = query_value(query, "dst").unwrap_or_default();
-    let (out, _) = apply(ctx, |ws| ws.send_pdu(&src, &dst));
+    let (out, _) = apply_capture(ctx, |ws| ws.send_pdu(&src, &dst));
     (json, out.into_bytes())
 }
 

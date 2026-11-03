@@ -58,6 +58,17 @@ impl Workspace {
             proto: "SMTP".into(),
             path,
             hops: Vec::new(),
+            layers: vec![Layer::new(
+                "SMTP",
+                vec![
+                    ("Capture".into(), "Control-plane service exchange".into()),
+                    ("Sender".into(), from.to_string()),
+                    ("Recipient".into(), to.to_string()),
+                    ("Subject".into(), subject.to_string()),
+                ],
+            )],
+            status: "Successful".into(),
+            reason: None,
             size: 900,
         });
         Ok(())

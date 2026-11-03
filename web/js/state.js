@@ -40,10 +40,11 @@ let viewMode = 'logical';
    not carry the flag, so the checkbox state lives here for the session. */
 const syslogOn = new Set();
 let vb = { x: 0, y: 0, w: 1000, h: 540 };
+// Stable captured Event.id, never an index into a filtered event array.
 let simCursor = -1;
 /* Re-rendering replaces the row, so a native dblclick never fires: detect two
    clicks on the same event within 400 ms, like the canvas does for devices. */
-let lastRowClick = { i: -1, t: 0 };
+let lastRowClick = { id: -1, t: 0 };
 let playTimer = null;
 let currentName = 'lab1';
 
@@ -132,5 +133,6 @@ function setData(json) {
   data = json;
   const known = new Set(data.devices.map((d) => d.id));
   setSelection([...selection].filter((id) => known.has(id)));
+  renderFilters();
   renderAll();
 }

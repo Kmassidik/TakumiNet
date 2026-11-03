@@ -150,8 +150,14 @@ impl Workspace {
             let tower = self.cell_links[src].clone();
             (vec![src.to_string(), tower, dst.to_string()], Vec::new())
         } else {
-            let delivery = crate::net::fwd::deliver(self, src, dst)?;
-            (delivery.path, delivery.hops)
+            match crate::net::fwd::deliver(self, src, dst) {
+                Ok(delivery) => (delivery.path, delivery.hops),
+                Err(error) => {
+                    let reason = error.reason.clone();
+                    let _ = self.record_drop(src, dst, label, error);
+                    return Err(reason);
+                }
+            }
         };
         self.next_event += 1;
         self.events.push(Event {
@@ -163,6 +169,16 @@ impl Workspace {
             proto: label.into(),
             path,
             hops,
+            layers: if proto == "cellular" {
+                vec![Layer::new(
+                    label,
+                    vec![("Capture".into(), "Control-plane service exchange".into())],
+                )]
+            } else {
+                Vec::new()
+            },
+            status: "Successful".into(),
+            reason: None,
             size,
         });
         let line = format!("{} -> {} {label}", self.name_of(src), self.name_of(dst));

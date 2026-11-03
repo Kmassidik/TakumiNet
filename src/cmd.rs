@@ -139,7 +139,7 @@ fn ping(ws: &mut Workspace, id: &str, args: &[&str]) -> String {
 }
 
 fn ping_host(ws: &mut Workspace, id: &str, target: &str, count: usize) -> String {
-    let Some(ip) = crate::model::parse_ipv4(target).or_else(|| ws.resolve_name(id, target)) else {
+    let Some(ip) = crate::model::parse_ipv4(target).or_else(|| ws.resolve_name_captured(id, target)) else {
         return format!("Ping request could not find host {target}. Please check the name and try again.\n\n");
     };
     let Some(dst) = ws
@@ -337,7 +337,7 @@ fn route_print(ws: &Workspace, id: &str) -> String {
     out
 }
 
-fn nslookup(ws: &Workspace, id: &str, name: &str) -> String {
+fn nslookup(ws: &mut Workspace, id: &str, name: &str) -> String {
     let name = name.trim();
     if name.is_empty() {
         return "Default Server:  UnKnown\nAddress:  0.0.0.0\n\n".to_string();
@@ -346,7 +346,7 @@ fn nslookup(ws: &Workspace, id: &str, name: &str) -> String {
         .and_then(|d| d.dns)
         .map(ipv4_string)
         .unwrap_or_else(|| "0.0.0.0".into());
-    match ws.resolve_name(id, name) {
+    match ws.resolve_name_captured(id, name) {
         Some(ip) => format!(
             "\nServer:  dns\nAddress:  {server}\n\nNon-authoritative answer:\nName:    {name}\nAddress:  {}\n\n",
             ipv4_string(ip)

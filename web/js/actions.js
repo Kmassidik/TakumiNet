@@ -166,9 +166,14 @@ function zoom(factor) {
 function stepSim(dir) {
   const events = visibleEvents();
   if (!events.length) { status('No events'); return; }
-  simCursor = Math.min(events.length - 1, Math.max(0, simCursor + dir));
+  const current = events.findIndex((e) => e.id === simCursor);
+  const next = current < 0
+    ? (dir < 0 ? events.length - 1 : 0)
+    : Math.min(events.length - 1, Math.max(0, current + dir));
+  const event = events[next];
+  simCursor = event.id;
   renderEvents();
-  animatePath(events[simCursor].path);
+  animatePath(event.path);
   sfx('movieControlButton');
 }
 
@@ -184,7 +189,11 @@ function togglePlay() {
   status('Playing events');
   playTimer = setInterval(() => {
     const events = visibleEvents();
-    if (simCursor >= events.length - 1) { togglePlay(); return; }
+    const current = events.findIndex((e) => e.id === simCursor);
+    if (!events.length || (current >= 0 && current >= events.length - 1)) {
+      togglePlay();
+      return;
+    }
     stepSim(1);
   }, 900);
 }

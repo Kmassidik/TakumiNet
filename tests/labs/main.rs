@@ -1172,3 +1172,79 @@ fn extended_acl_first_match_permit_and_implicit_deny() {
     );
     assert_unreachable(&lab, "pc1", "192.168.2.20");
 }
+
+#[test]
+fn simulation_capture_has_real_http_layers_and_dropped_pdus() {
+    let lab = Lab::start(39_119);
+    lab.post("/api/pdu?src=pc0&dst=server0");
+    let page = lab.post("/api/webfetch?id=pc0&url=http%3A%2F%2F192.168.2.20%2F");
+    assert!(page.contains("\"status\":200"), "{page}");
+
+    let state = lab.get("/api/workspace");
+    assert!(state.contains("\"type\":\"ICMP\",\"proto\":\"ICMP\""), "{state}");
+    assert!(state.contains("\"type\":\"HTTP\",\"proto\":\"HTTP\""), "{state}");
+    let events = state.split("\"events\":[").nth(1).expect("events");
+    let http = &events[events.rfind("\"type\":\"HTTP\",\"proto\":\"HTTP\"").expect("HTTP event")..];
+    assert!(http.contains("\"status\":\"Successful\""), "{http}");
+    for layer in ["Ethernet II", "IPv4", "TCP", "HTTP"] {
+        assert!(http.contains(&format!("\"name\":\"{layer}\"")), "missing {layer}: {http}");
+    }
+    assert!(http.contains("\"name\":\"Protocol\",\"value\":\"TCP (6)\""), "{http}");
+    assert!(http.contains("\"name\":\"Destination Port\",\"value\":\"80\""), "{http}");
+    assert!(http.contains("\"name\":\"Request Line\",\"value\":\"GET / HTTP/1.1\""), "{http}");
+    assert!(!http.contains("\"name\":\"ICMP\""), "HTTP was relabeled ICMP: {http}");
+
+    lab.config(
+        "router0",
+        [
+            "en",
+            "conf t",
+            "access-list 100 deny ip host 192.168.1.10 host 192.168.2.20",
+            "access-list 100 permit ip any any",
+            "interface g0/1",
+            "ip access-group 100 out",
+            "end",
+        ],
+    );
+    let dropped = lab.post("/api/pdu?src=pc0&dst=server0");
+    assert!(dropped.contains("ACL denied"), "{dropped}");
+    let state = lab.get("/api/workspace");
+    let events = state.split("\"events\":[").nth(1).expect("events");
+    let drop = &events[events.rfind("\"type\":\"ICMP\",\"proto\":\"ICMP\"").expect("drop event")..];
+    assert!(drop.contains("\"status\":\"Dropped\""), "{drop}");
+    assert!(drop.contains("ACL denied on Router0 GigabitEthernet0/1"), "{drop}");
+    let hops = drop.split("\"hops\":[").nth(1).expect("drop hops");
+    assert!(hops.contains("\"id\":\"router0\""), "partial hops missing: {hops}");
+    assert!(!hops.contains("\"id\":\"server0\""), "drop reached destination: {hops}");
+}
+
+#[test]
+fn control_plane_events_explain_dhcp_dns_and_smtp() {
+    let lab = Lab::start(39_120);
+    lab.post("/api/devices/dhcp?id=server0&network=192.168.2.0&prefix=24&gateway=192.168.2.1&dns=192.168.2.20");
+    lab.post("/api/dhcp/acquire?id=pc2");
+    lab.post("/api/devices/ip?id=pc0&ip=192.168.1.10&mask=255.255.255.0&gateway=192.168.1.1&dns=192.168.2.20");
+    lab.post("/api/devices/dns?id=server0&name=web.lab&ip=192.168.2.20");
+    let lookup = lab.cmd("pc0", "nslookup web.lab");
+    assert!(lookup.contains("192.168.2.20"), "{lookup}");
+    for user in ["alice", "bob"] {
+        lab.post(&format!("/api/devices/mailuser?id=server0&user={user}&pass=pw"));
+    }
+    lab.post("/api/mail/send?id=pc0&server=server0&from=alice&to=bob&subject=lab&body=hello");
+
+    let state = lab.get("/api/workspace");
+    let events = state.split("\"events\":[").nth(1).expect("events");
+    for (proto, field) in [
+        ("DHCP", "DISCOVER / OFFER / REQUEST / ACK"),
+        ("DNS", "web.lab A"),
+        ("SMTP", "alice"),
+    ] {
+        let event = &events[events.rfind(&format!("\"type\":\"{proto}\",\"proto\":\"{proto}\"")).expect(proto)..];
+        assert!(event.contains("Control-plane service exchange"), "{proto}: {event}");
+        assert!(event.contains(field), "{proto}: {event}");
+        assert!(event.contains(&format!("\"name\":\"{proto}\"")), "{proto}: {event}");
+    }
+    for label in ["MODBUS", "PROFINET", "Cellular"] {
+        assert!(state.split("\"filters\":[").nth(1).is_some_and(|f| f.contains(&format!("\"{label}\""))), "missing filter {label}");
+    }
+}

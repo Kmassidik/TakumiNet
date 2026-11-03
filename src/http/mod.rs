@@ -109,6 +109,39 @@ where
     }
 }
 
+/// A dropped PDU is both an API error and a successful capture mutation.
+fn apply_capture<F>(ctx: &Ctx, f: F) -> (String, bool)
+where
+    F: FnOnce(&mut Workspace) -> Result<(), String>,
+{
+    let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let mut hist = ctx.hist.lock().unwrap_or_else(|e| e.into_inner());
+    let backup = ws.clone();
+    let event_count = ws.events.len();
+    match f(&mut ws) {
+        Ok(()) => {
+            hist.undo.push(backup);
+            if hist.undo.len() > 100 {
+                hist.undo.remove(0);
+            }
+            hist.redo.clear();
+            (ws.json(), true)
+        }
+        Err(e) if ws.events.len() > event_count => {
+            hist.undo.push(backup);
+            if hist.undo.len() > 100 {
+                hist.undo.remove(0);
+            }
+            hist.redo.clear();
+            (json_error(&e), false)
+        }
+        Err(e) => {
+            *ws = backup;
+            (json_error(&e), false)
+        }
+    }
+}
+
 fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
     let mut reader = BufReader::new(stream.try_clone()?);
     let mut request_line = String::new();

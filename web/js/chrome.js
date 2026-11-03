@@ -40,9 +40,10 @@ function wireActions() {
       else if (what === 'ffw') {
         const events = visibleEvents();
         if (events.length) {
-          simCursor = events.length - 1;
+          const event = events[events.length - 1];
+          simCursor = event.id;
           renderEvents();
-          animatePath(events[simCursor].path);
+          animatePath(event.path);
         }
       }
     });

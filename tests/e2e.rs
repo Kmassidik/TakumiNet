@@ -327,7 +327,8 @@ fn e2e_bus_and_ip_config() {
     let (_, _, body) = s.post("/api/devices/ip?id=pc0&ip=999.1.1.1&prefix=24");
     assert!(body.contains("invalid IP address"), "{body}");
 
-    // undo restores the previous address
+    // The retained drop is a mutation too: undo it, then restore the address.
+    s.post("/api/undo");
     let (_, _, body) = s.post("/api/undo");
     assert!(body.contains("\"ip\":\"192.168.1.11\""), "{body}");
 

@@ -162,6 +162,38 @@ impl Packet {
         }
     }
 
+    /// One HTTP GET in a TCP segment, including a valid TCP checksum.
+    pub fn http_request(src: u32, dst: u32, host: &str) -> Packet {
+        let request = format!("GET / HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n");
+        let mut tcp = Vec::with_capacity(20 + request.len());
+        tcp.extend(49_152u16.to_be_bytes());
+        tcp.extend(80u16.to_be_bytes());
+        tcp.extend(1u32.to_be_bytes());
+        tcp.extend(0u32.to_be_bytes());
+        tcp.extend([5 << 4, 0x08]); // 20-byte header, PSH
+        tcp.extend(65_535u16.to_be_bytes());
+        tcp.extend([0, 0]); // checksum, filled below
+        tcp.extend([0, 0]); // urgent pointer
+        tcp.extend(request.as_bytes());
+
+        let mut pseudo = Vec::with_capacity(12 + tcp.len());
+        pseudo.extend(src.to_be_bytes());
+        pseudo.extend(dst.to_be_bytes());
+        pseudo.extend([0, IpProto::Tcp.code()]);
+        pseudo.extend((tcp.len() as u16).to_be_bytes());
+        pseudo.extend(&tcp);
+        let sum = checksum(&pseudo);
+        tcp[16..18].copy_from_slice(&sum.to_be_bytes());
+
+        Packet {
+            src,
+            dst,
+            ttl: 128,
+            proto: IpProto::Tcp,
+            payload: Payload::Bytes(tcp),
+        }
+    }
+
     /// Serialize the IPv4 header with a correct checksum, then the payload.
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut hdr = vec![0u8; 20];
@@ -531,6 +563,25 @@ mod tests {
         check[10] = (sum >> 8) as u8;
         check[11] = sum as u8;
         assert_eq!(checksum(&check), 0);
+    }
+
+    #[test]
+    fn http_request_is_a_checksummed_tcp_segment() {
+        let packet = Packet::http_request(0xc0a8010a, 0xc0a80214, "web.lab");
+        assert_eq!(packet.proto, IpProto::Tcp);
+        let Payload::Bytes(tcp) = &packet.payload else {
+            panic!("HTTP did not use a TCP byte payload");
+        };
+        assert_eq!(&tcp[..4], &[0xc0, 0x00, 0x00, 0x50]);
+        assert!(std::str::from_utf8(&tcp[20..]).unwrap().starts_with("GET / HTTP/1.1\r\nHost: web.lab\r\n"));
+
+        let mut pseudo = Vec::new();
+        pseudo.extend(packet.src.to_be_bytes());
+        pseudo.extend(packet.dst.to_be_bytes());
+        pseudo.extend([0, 6]);
+        pseudo.extend((tcp.len() as u16).to_be_bytes());
+        pseudo.extend(tcp);
+        assert_eq!(checksum(&pseudo), 0, "invalid TCP checksum");
     }
 
     #[test]

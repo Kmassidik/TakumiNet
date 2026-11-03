@@ -33,8 +33,7 @@ impl Workspace {
         }
     }
 
-    /// Resolve `name` through the DNS server configured on the client.
-    pub fn resolve_name(&self, client: &str, name: &str) -> Option<u32> {
+    fn dns_answer(&self, client: &str, name: &str) -> Option<(String, u32, Option<u32>)> {
         let name = name.trim().to_ascii_lowercase();
         if name.is_empty() {
             return None;
@@ -43,10 +42,53 @@ impl Workspace {
         let server = self.devices.iter().find(|d| {
             d.ip == Some(server_ip) || d.ports.iter().any(|p| p.ip == Some(server_ip))
         })?;
-        self.dns_records
-            .get(&server.id)?
-            .iter()
-            .find(|(record, _)| *record == name)
-            .map(|(_, ip)| *ip)
+        let answer = self
+            .dns_records
+            .get(&server.id)
+            .and_then(|records| records.iter().find(|(record, _)| *record == name))
+            .map(|(_, ip)| *ip);
+        Some((server.id.clone(), server_ip, answer))
+    }
+
+    /// Resolve `name` through the DNS server configured on the client.
+    pub fn resolve_name(&self, client: &str, name: &str) -> Option<u32> {
+        self.dns_answer(client, name)?.2
+    }
+
+    /// Resolve and record the service-plane query/response for inspection.
+    pub fn resolve_name_captured(&mut self, client: &str, name: &str) -> Option<u32> {
+        let query = name.trim().to_ascii_lowercase();
+        let (server, server_ip, answer) = self.dns_answer(client, &query)?;
+        let path = self
+            .path(client, &server)
+            .unwrap_or_else(|| vec![client.to_string(), server.clone()]);
+        self.next_event += 1;
+        self.sim_time += 0.001;
+        self.events.push(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(client),
+            at: self.name_of(&server),
+            kind: "DNS".into(),
+            proto: "DNS".into(),
+            path,
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                "DNS",
+                vec![
+                    ("Capture".into(), "Control-plane service exchange".into()),
+                    ("Query".into(), format!("{query} A")),
+                    ("Server".into(), crate::model::ipv4_string(server_ip)),
+                    (
+                        "Response".into(),
+                        answer.map_or_else(|| "No A record".into(), crate::model::ipv4_string),
+                    ),
+                ],
+            )],
+            status: "Successful".into(),
+            reason: None,
+            size: 80,
+        });
+        answer
     }
 }

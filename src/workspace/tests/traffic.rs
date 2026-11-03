@@ -85,11 +85,12 @@ fn shutting_an_interface_breaks_the_path() {
         err.contains("Router0 GigabitEthernet0/0 is administratively down"),
         "{err}"
     );
-    assert!(ws.events.is_empty());
+    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events[0].status, "Dropped");
 
     assert!(ws.set_port_up("router0", "GigabitEthernet0/0", true));
     ws.send_pdu("pc0", "pc2").unwrap();
-    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events.len(), 2);
 }
 
 #[test]
@@ -118,7 +119,9 @@ fn pdu_rejects_unknown_and_disconnected() {
     let laptop = ws.add("Laptop", 800.0, 120.0).unwrap();
     let err = ws.send_pdu("pc0", &laptop).unwrap_err();
     assert!(err.contains("no path"), "{err}");
-    assert!(ws.events.is_empty());
+    assert_eq!(ws.events.len(), 1, "invalid endpoints are not captures");
+    assert_eq!(ws.events[0].status, "Dropped");
+    assert_eq!(ws.events[0].reason.as_deref(), Some(err.as_str()));
 }
 
 #[test]
@@ -141,7 +144,8 @@ fn pdu_checks_subnet_when_addresses_exist() {
     let err = ws.send_pdu(&pcs[0], &pcs[1]).unwrap_err();
     assert!(err.contains("no route to 10.0.0.5"), "{err}");
     assert!(err.contains("no default gateway"), "{err}");
-    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events.len(), 2);
+    assert_eq!(ws.events[1].status, "Dropped");
 }
 
 #[test]
@@ -199,7 +203,8 @@ fn cross_subnet_delivery_follows_gateways() {
     let err = ws.send_pdu(&a, &b).unwrap_err();
     assert!(err.contains("no route"), "{err}");
     assert!(err.contains("no default gateway"), "{err}");
-    assert_eq!(ws.events.len(), 2);
+    assert_eq!(ws.events.len(), 3);
+    assert_eq!(ws.events[2].status, "Dropped");
 }
 
 #[test]
@@ -217,7 +222,8 @@ fn cross_subnet_without_gateway_is_refused() {
     let err = ws.send_pdu(&pcs[0], &pcs[1]).unwrap_err();
     assert!(err.contains("no route to 10.0.0.5"), "{err}");
     assert!(err.contains("no default gateway"), "{err}");
-    assert!(ws.events.is_empty());
+    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events[0].status, "Dropped");
 }
 
 #[test]
@@ -230,7 +236,10 @@ fn vlan_membership_controls_switching() {
     assert!(err.contains("VLAN mismatch"), "{err}");
     ws.set_access_vlan("switch0", "FastEthernet0/2", 20).unwrap();
     ws.send_pdu("pc0", "pc1").unwrap();
-    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events.len(), 2);
+    assert_eq!(ws.events[0].status, "Dropped");
+    assert!(ws.events[0].hops.is_empty(), "path selection failed before forwarding");
+    assert!(ws.events[0].reason.as_deref().is_some_and(|r| r.contains("VLAN mismatch")));
     assert!(ws.vlan_delete("switch0", 20).is_err(), "still in use");
     assert!(ws.vlan_delete("switch0", 1).is_err(), "default VLAN");
     assert!(ws.vlan_create("switch0", 0, "").is_err());

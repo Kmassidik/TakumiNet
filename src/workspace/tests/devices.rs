@@ -207,11 +207,13 @@ fn power_off_drops_traffic_until_switched_back_on() {
     assert!(!ws.is_powered("pc1"));
     let err = ws.send_pdu("pc0", "pc1").unwrap_err();
     assert!(err.contains("powered off"), "{err}");
-    assert!(ws.events.is_empty());
+    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events[0].status, "Dropped");
+    assert_eq!(ws.events[0].reason.as_deref(), Some(err.as_str()));
 
     assert!(ws.set_power("pc1", true));
     ws.send_pdu("pc0", "pc1").unwrap();
-    assert_eq!(ws.events.len(), 1);
+    assert_eq!(ws.events.len(), 2);
 }
 
 #[test]

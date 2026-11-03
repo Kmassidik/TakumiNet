@@ -369,6 +369,18 @@ impl Workspace {
             proto: "DHCP".into(),
             path,
             hops: Vec::new(),
+            layers: vec![Layer::new(
+                "DHCP",
+                vec![
+                    ("Capture".into(), "Control-plane service exchange".into()),
+                    ("Exchange".into(), "DISCOVER / OFFER / REQUEST / ACK".into()),
+                    ("Client".into(), self.name_of(id)),
+                    ("Server".into(), self.name_of(&server)),
+                    ("Offered Address".into(), crate::model::ipv4_string(ip)),
+                ],
+            )],
+            status: "Successful".into(),
+            reason: None,
             size: 342,
         });
 

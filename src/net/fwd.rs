@@ -9,8 +9,8 @@ use std::collections::VecDeque;
 
 use crate::cli::expand_iface;
 use crate::model::ipv4_string;
-use crate::net::packet::{Frame, Mac, Packet, Transit};
-use crate::workspace::{Device, Workspace};
+use crate::net::packet::{Frame, IpProto, Mac, Packet, Payload, Transit};
+use crate::workspace::{Device, Layer, Workspace};
 
 /// What happened at one device during a delivery.
 #[derive(Clone, Debug)]
@@ -29,6 +29,8 @@ pub struct Hop {
     /// IPv4 header after this device's forwarding decisions (including NAT).
     pub src_ip: u32,
     pub dst_ip: u32,
+    /// Decoded from the packet at this point, after NAT and TTL forwarding.
+    pub layers: Vec<Layer>,
     /// Human-readable reason: learning, flooding, routing, ARP.
     pub note: String,
 }
@@ -50,6 +52,23 @@ impl Delivery {
     }
 }
 
+/// An unsuccessful delivery retains every device hop captured before the drop.
+#[derive(Clone, Debug)]
+pub struct DeliveryError {
+    pub reason: String,
+    pub path: Vec<String>,
+    pub hops: Vec<Hop>,
+    pub size: usize,
+    pub finished_at: f64,
+}
+
+#[derive(Default)]
+struct Capture {
+    path: Vec<String>,
+    hops: Vec<Hop>,
+    size: usize,
+}
+
 #[derive(Clone, Debug)]
 struct DataPath {
     devices: Vec<String>,
@@ -58,7 +77,50 @@ struct DataPath {
 }
 
 /// Deliver one ICMP echo request from `src` to `dst`.
-pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, String> {
+pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, DeliveryError> {
+    deliver_with(ws, src, dst, |sip, dip| Packet::echo_request(sip, dip, 0x0a01, 1))
+}
+
+/// Deliver one actual TCP segment carrying an HTTP GET.
+pub fn deliver_http(
+    ws: &mut Workspace,
+    src: &str,
+    dst: &str,
+    host: &str,
+) -> Result<Delivery, DeliveryError> {
+    deliver_with(ws, src, dst, |sip, dip| Packet::http_request(sip, dip, host))
+}
+
+fn deliver_with<F>(
+    ws: &mut Workspace,
+    src: &str,
+    dst: &str,
+    make_packet: F,
+) -> Result<Delivery, DeliveryError>
+where
+    F: FnOnce(u32, u32) -> Packet,
+{
+    let started_at = ws.sim_time as f64;
+    let mut capture = Capture::default();
+    deliver_inner(ws, src, dst, &mut capture, make_packet).map_err(|reason| DeliveryError {
+        reason,
+        path: capture.path,
+        size: capture.size,
+        finished_at: started_at + capture.hops.len() as f64 * 0.001,
+        hops: capture.hops,
+    })
+}
+
+fn deliver_inner<F>(
+    ws: &mut Workspace,
+    src: &str,
+    dst: &str,
+    capture: &mut Capture,
+    make_packet: F,
+) -> Result<Delivery, String>
+where
+    F: FnOnce(u32, u32) -> Packet,
+{
     let sdev = find(ws, src)?.clone();
     let ddev = find(ws, dst)?.clone();
     if src == dst {
@@ -84,14 +146,15 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
             None => return Err(blocked_reason(ws, src, dst)),
         },
     };
-    let path = &data_path.devices;
+    capture.path = data_path.devices;
+    let path = &capture.path;
 
-    let mut packet = match (src_ip, dst_ip) {
-        (Some(sip), Some(dip)) => Packet::echo_request(sip, dip, 0x0a01, 1),
-        _ => Packet::echo_request(0, 0, 0x0a01, 1),
+    let (sip, dip) = match (src_ip, dst_ip) {
+        (Some(sip), Some(dip)) => (sip, dip),
+        _ => (0, 0),
     };
+    let mut packet = make_packet(sip, dip);
 
-    let mut hops: Vec<Hop> = Vec::new();
     let last = path.len() - 1;
     // The frame's source MAC is whoever put it on this L2 segment: the host at
     // first, then each router that re-encapsulates.
@@ -119,8 +182,30 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
         let next_l3 = next_l3_id(ws, &path, i, dst);
         let src_mac = cur_src;
         let dst_mac = Mac::for_device(&next_l3);
+        capture.size = 14 + 20 + packet.payload_len();
 
         let mut note = String::new();
+
+        macro_rules! drop_here {
+            ($reason:expr) => {{
+                let reason = $reason;
+                capture.hops.push(Hop {
+                    id: dev_id.clone(),
+                    name: dev.name.clone(),
+                    ingress: ingress.clone(),
+                    egress: egress.clone(),
+                    t: ws.sim_time as f64 + capture.hops.len() as f64 * 0.001,
+                    ttl: packet.ttl,
+                    src_mac,
+                    dst_mac,
+                    src_ip: packet.src,
+                    dst_ip: packet.dst,
+                    layers: decode_layers(src_mac, dst_mac, &packet),
+                    note: reason.clone(),
+                });
+                return Err(reason);
+            }};
+        }
 
         match dev.kind.as_str() {
             "router" | "asa" => {
@@ -130,7 +215,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                     match vlan {
                         None => vlan = Some(expected),
                         Some(actual) if actual != expected => {
-                            return Err(format!(
+                            drop_here!(format!(
                                 "802.1Q VLAN mismatch: {} {} expects VLAN {}",
                                 dev.name, ingress.as_ref().unwrap(), expected
                             ));
@@ -144,7 +229,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                     crate::net::packet::IpProto::Udp => "udp",
                 };
                 if ws.ips_drops(dev_id, proto) {
-                    return Err(format!("IPS dropped {proto} at {}", dev.name));
+                    drop_here!(format!("IPS dropped {proto} at {}", dev.name));
                 }
                 if dev.kind == "asa" {
                     if proto == "icmp" && ws.inspection_on(dev_id) {
@@ -155,7 +240,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                             .as_ref()
                             .and_then(|p| ws.nat_role(dev_id, p));
                         if in_side == Some(false) && out_side == Some(true) {
-                            return Err(format!(
+                            drop_here!(format!(
                                 "inspection denied icmp entering {} from outside",
                                 dev.name
                             ));
@@ -164,12 +249,12 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                 }
                 if let Some(p) = ingress.as_ref() {
                     if !ws.acl_allows(dev_id, p, true, packet.src, packet.dst) {
-                        return Err(format!("ACL denied on {} {}", dev.name, p));
+                        drop_here!(format!("ACL denied on {} {}", dev.name, p));
                     }
                 }
                 if let Some(p) = egress.as_ref() {
                     if !ws.acl_allows(dev_id, p, false, packet.src, packet.dst) {
-                        return Err(format!("ACL denied on {} {}", dev.name, p));
+                        drop_here!(format!("ACL denied on {} {}", dev.name, p));
                     }
                 }
                 let mut nat_note: Option<String> = None;
@@ -194,7 +279,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                             vlan = None; // the egress interface selects the next L2 VLAN
                         }
                         Transit::TimeExceeded(_) => {
-                            return Err(format!(
+                            drop_here!(format!(
                                 "TTL expired at {} — destination unreachable",
                                 dev.name
                             ));
@@ -223,7 +308,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                     match vlan {
                         None => vlan = Some(p.vlan),
                         Some(v) if v != p.vlan => {
-                            return Err(format!(
+                            drop_here!(format!(
                                 "VLAN mismatch: {} {} is VLAN {}",
                                 dev.name, p.name, p.vlan
                             ));
@@ -233,7 +318,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                 }
                 if let Some(p) = ingress.as_ref() {
                     if !ws.port_security_allowed(dev_id, p, &format!("{src_mac}")) {
-                        return Err(format!(
+                        drop_here!(format!(
                             "port-security violation on {} {}",
                             dev.name, p
                         ));
@@ -255,7 +340,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
             _ => {}
         }
 
-        hops.push(Hop {
+        capture.hops.push(Hop {
             id: dev_id.clone(),
             name: dev.name.clone(),
             ingress,
@@ -266,6 +351,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
             dst_mac,
             src_ip: packet.src,
             dst_ip: packet.dst,
+            layers: decode_layers(src_mac, dst_mac, &packet),
             note,
         });
     }
@@ -274,7 +360,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
     // is when the last device saw the frame.
     let mut scheduler = crate::net::sched::Scheduler::new();
     let times = scheduler.schedule(ws.sim_time as f64, &path);
-    for (hop, t) in hops.iter_mut().zip(times.iter()) {
+    for (hop, t) in capture.hops.iter_mut().zip(times.iter()) {
         hop.t = *t;
     }
     let finished_at = times.last().copied().unwrap_or(ws.sim_time as f64);
@@ -285,7 +371,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
         let now = ws.sim_time as f64;
         if same_subnet(sdev.prefix, sip, ddev.prefix, dip) {
             ws.tables.arps(src).insert(dip, Mac::for_device(dst), now);
-            if let Some(h) = hops.get_mut(1) {
+            if let Some(h) = capture.hops.get_mut(1) {
                 if h.note.is_empty() {
                     h.note = format!("ARP: {} is at {}", ipv4_string(dip), Mac::for_device(dst));
                 }
@@ -299,20 +385,122 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
     }
 
     // The frame as it arrives: last segment's header, final TTL in the packet.
-    let (last_src, last_dst) = match hops.last() {
+    let (last_src, last_dst) = match capture.hops.last() {
         Some(h) => (h.src_mac, h.dst_mac),
         None => (cur_src, Mac::BROADCAST),
     };
     let frame = Frame::ipv4(last_dst, last_src, packet);
-    let time = 0.001 * hops.len() as f32;
+    let time = 0.001 * capture.hops.len() as f32;
 
     Ok(Delivery {
-        path: data_path.devices,
-        hops,
+        path: std::mem::take(&mut capture.path),
+        hops: std::mem::take(&mut capture.hops),
         frame,
         time,
         finished_at,
     })
+}
+
+fn decode_layers(src_mac: Mac, dst_mac: Mac, packet: &Packet) -> Vec<Layer> {
+    let (ip_proto, proto_number) = match packet.proto {
+        IpProto::Icmp => ("ICMP", 1),
+        IpProto::Tcp => ("TCP", 6),
+        IpProto::Udp => ("UDP", 17),
+    };
+    let mut layers = vec![
+        Layer::new(
+            "Ethernet II",
+            vec![
+                ("Destination".into(), dst_mac.to_string()),
+                ("Source".into(), src_mac.to_string()),
+                ("EtherType".into(), "IPv4 (0x0800)".into()),
+            ],
+        ),
+        Layer::new(
+            "IPv4",
+            vec![
+                ("Source".into(), ipv4_string(packet.src)),
+                ("Destination".into(), ipv4_string(packet.dst)),
+                ("TTL".into(), packet.ttl.to_string()),
+                ("Protocol".into(), format!("{ip_proto} ({proto_number})")),
+            ],
+        ),
+    ];
+
+    match (&packet.proto, &packet.payload) {
+        (IpProto::Icmp, Payload::EchoRequest { id, seq }) => {
+            layers.push(Layer::new(
+                "ICMP",
+                vec![
+                    ("Type".into(), "8 (Echo Request)".into()),
+                    ("Identifier".into(), id.to_string()),
+                    ("Sequence".into(), seq.to_string()),
+                    ("Data Bytes".into(), "32".into()),
+                ],
+            ));
+        }
+        (IpProto::Icmp, Payload::EchoReply { id, seq }) => {
+            layers.push(Layer::new(
+                "ICMP",
+                vec![
+                    ("Type".into(), "0 (Echo Reply)".into()),
+                    ("Identifier".into(), id.to_string()),
+                    ("Sequence".into(), seq.to_string()),
+                    ("Data Bytes".into(), "32".into()),
+                ],
+            ));
+        }
+        (IpProto::Tcp, Payload::Bytes(bytes)) => {
+            if bytes.len() >= 20 {
+                let src_port = u16::from_be_bytes([bytes[0], bytes[1]]);
+                let dst_port = u16::from_be_bytes([bytes[2], bytes[3]]);
+                let offset = ((bytes[12] >> 4) as usize) * 4;
+                layers.push(Layer::new(
+                    "TCP",
+                    vec![
+                        ("Source Port".into(), src_port.to_string()),
+                        ("Destination Port".into(), dst_port.to_string()),
+                        (
+                            "Sequence".into(),
+                            u32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]).to_string(),
+                        ),
+                        ("Flags".into(), format!("0x{:02x}", bytes[13])),
+                    ],
+                ));
+                if offset >= 20 && offset <= bytes.len() && (src_port == 80 || dst_port == 80) {
+                    if let Ok(text) = std::str::from_utf8(&bytes[offset..]) {
+                        let request = text.lines().next().unwrap_or("");
+                        if request.starts_with("GET ") || request.starts_with("HTTP/") {
+                            let mut fields = vec![("Request Line".into(), request.to_string())];
+                            if let Some(host) = text.lines().find_map(|line| line.strip_prefix("Host: ")) {
+                                fields.push(("Host".into(), host.trim().to_string()));
+                            }
+                            layers.push(Layer::new("HTTP", fields));
+                        }
+                    }
+                }
+            } else {
+                layers.push(Layer::new("TCP", vec![("Captured Bytes".into(), bytes.len().to_string())]));
+            }
+        }
+        (IpProto::Udp, Payload::Bytes(bytes)) => {
+            if bytes.len() >= 8 {
+                layers.push(Layer::new(
+                    "UDP",
+                    vec![
+                        ("Source Port".into(), u16::from_be_bytes([bytes[0], bytes[1]]).to_string()),
+                        ("Destination Port".into(), u16::from_be_bytes([bytes[2], bytes[3]]).to_string()),
+                        ("Length".into(), u16::from_be_bytes([bytes[4], bytes[5]]).to_string()),
+                    ],
+                ));
+            }
+        }
+        (_, Payload::Bytes(bytes)) => {
+            layers.push(Layer::new(ip_proto, vec![("Captured Bytes".into(), bytes.len().to_string())]));
+        }
+        _ => {}
+    }
+    layers
 }
 
 fn find<'a>(ws: &'a Workspace, id: &str) -> Result<&'a Device, String> {

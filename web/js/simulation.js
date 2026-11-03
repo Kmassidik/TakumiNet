@@ -1,9 +1,8 @@
 /* ---------------- simulation panel ---------------- */
 function enabledFilters() {
   const on = new Set();
-  document.querySelectorAll('#filters label').forEach((l) => {
-    const cb = l.querySelector('input');
-    if (cb && cb.checked) on.add(l.textContent.trim());
+  document.querySelectorAll('#filters input').forEach((cb) => {
+    if (cb.checked) on.add(cb.dataset.protocol);
   });
   return on;
 }
@@ -11,22 +10,25 @@ function enabledFilters() {
 function visibleEvents() {
   if (!data) return [];
   const on = enabledFilters();
-  return data.events.filter((e) => on.size === 0 || on.has(e.proto) || on.has(e.type));
+  return data.events.filter((e) => on.has(e.proto) || on.has(e.type));
 }
 
 function renderEvents() {
   const tbody = document.getElementById('events');
   tbody.replaceChildren();
   const events = visibleEvents();
+  const current = events.findIndex((e) => e.id === simCursor);
 
   if (!events.length) {
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td colspan="5" style="color:#98a2b3">No events — send a PDU to capture</td>';
+    const td = document.createElement('td');
+    td.textContent = 'No events — send a PDU to capture';
+    tr.appendChild(td);
     tbody.appendChild(tr);
   } else {
-    events.forEach((e, i) => {
+    events.forEach((e) => {
       const tr = document.createElement('tr');
-      if (i === simCursor) tr.className = 'current';
+      if (e.id === simCursor) tr.className = 'current';
       for (const cell of ['•', e.time.toFixed(3), e.last, e.at, e.type]) {
         const td = document.createElement('td');
         td.textContent = cell;
@@ -34,13 +36,13 @@ function renderEvents() {
       }
       tr.onclick = () => {
         const now = performance.now();
-        if (lastRowClick.i === i && now - lastRowClick.t < 400) {
-          lastRowClick = { i: -1, t: 0 };
+        if (lastRowClick.id === e.id && now - lastRowClick.t < 400) {
+          lastRowClick = { id: -1, t: 0 };
           openPduDetail(e);
           return;
         }
-        lastRowClick = { i, t: now };
-        simCursor = i;
+        lastRowClick = { id: e.id, t: now };
+        simCursor = e.id;
         renderEvents();
         animatePath(e.path);
         sfx('addPacketButton');
@@ -50,18 +52,22 @@ function renderEvents() {
     });
   }
 
-  const total = data.events.length;
   document.getElementById('captured').textContent =
-    `Captured: ${simCursor + 1}/${total}`;
-  const last = total ? data.events[total - 1].time : 0;
-  document.getElementById('clock').textContent = `${last.toFixed(1)}s`;
-  const tbodyEl = document.getElementById('events');
-  const row = tbodyEl.querySelector('tr.current');
+    `Captured: ${current < 0 ? 0 : current + 1}/${events.length}`;
+  const shown = current >= 0 ? events[current] : events[events.length - 1];
+  document.getElementById('clock').textContent = `${(shown ? shown.time : 0).toFixed(1)}s`;
+  const row = tbody.querySelector('tr.current');
   if (row) row.scrollIntoView({ block: 'nearest' });
 }
 
 /* ---------------- PDU detail (per-hop In/Out layers) ---------------- */
-const PDU_LAYERS = ['Ethernet II', 'IPv4', 'ICMP'];
+function layerText(layers) {
+  if (!layers || !layers.length) return '—';
+  return layers.map((layer) => {
+    const fields = (layer.fields || []).map((field) => `  ${field.name}: ${field.value}`);
+    return [layer.name, ...fields].join('\n');
+  }).join('\n\n');
+}
 
 function openPduDetail(e) {
   const win = document.getElementById('pdu-dialog');
@@ -69,7 +75,8 @@ function openPduDetail(e) {
   const table = document.getElementById('pdu-table');
   const hops = e.hops || [];
   document.getElementById('pdu-title').textContent = `PDU Detail — ${e.last} → ${e.at}`;
-  meta.textContent = `${e.type} · ${e.size || 0} bytes · t=${Number(e.time).toFixed(3)}s · ${hops.length} devices`;
+  const outcome = e.status || 'Successful';
+  meta.textContent = `${e.type} · ${outcome} · ${e.size || 0} bytes · t=${Number(e.time).toFixed(3)}s · ${hops.length} devices${e.reason ? ` · ${e.reason}` : ''}`;
   table.replaceChildren();
 
   const head = document.createElement('tr');
@@ -80,21 +87,7 @@ function openPduDetail(e) {
   }
   table.appendChild(head);
 
-  hops.forEach((h, i) => {
-    const inLayers = i === 0 ? '—' : PDU_LAYERS.join('\n');
-    const outLayers = i === hops.length - 1 ? '—' : PDU_LAYERS.join('\n');
-    const cells = [
-      [h.name, ''],
-      [Number(h.t || 0).toFixed(3), ''],
-      [inLayers, 'in'],
-      [outLayers, 'out'],
-      [h.in || '—', ''],
-      [h.out || '—', ''],
-      [String(h.ttl), ''],
-      [h.srcMac || '—', ''],
-      [h.dstMac || '—', ''],
-      [h.note || '', 'note'],
-    ];
+  const appendRow = (cells) => {
     const tr = document.createElement('tr');
     for (const [text, cls] of cells) {
       const td = document.createElement('td');
@@ -103,7 +96,33 @@ function openPduDetail(e) {
       tr.appendChild(td);
     }
     table.appendChild(tr);
+  };
+
+  hops.forEach((h, i) => {
+    appendRow([
+      [h.name, ''],
+      [Number(h.t || 0).toFixed(3), ''],
+      [i === 0 ? '—' : layerText(h.layers), 'in'],
+      [i === hops.length - 1 ? '—' : layerText(h.layers), 'out'],
+      [h.in || '—', ''],
+      [h.out || '—', ''],
+      [String(h.ttl), ''],
+      [h.srcMac || '—', ''],
+      [h.dstMac || '—', ''],
+      [h.note || '', 'note'],
+    ]);
   });
+
+  if (!hops.length) {
+    appendRow([
+      ['Control Plane', ''],
+      [Number(e.time || 0).toFixed(3), ''],
+      [layerText(e.layers), 'in'],
+      ['—', 'out'],
+      ['—', ''], ['—', ''], ['—', ''], ['—', ''], ['—', ''],
+      [e.reason || 'Service exchange; no frame-level hops captured', 'note'],
+    ]);
+  }
 
   win.hidden = false;
   bringToFront(win);
@@ -114,12 +133,21 @@ function openPduDetail(e) {
 
 function renderFilters() {
   const box = document.getElementById('filters');
+  const previous = new Map();
+  document.querySelectorAll('#filters input').forEach((cb) => {
+    previous.set(cb.dataset.protocol, cb.checked);
+  });
+  const labels = [...new Set([
+    ...data.filters,
+    ...data.events.flatMap((e) => [e.proto, e.type]),
+  ])];
   box.replaceChildren();
-  for (const f of data.filters) {
+  for (const f of labels) {
     const label = document.createElement('label');
     const cb = document.createElement('input');
     cb.type = 'checkbox';
-    cb.checked = true;
+    cb.dataset.protocol = f;
+    cb.checked = previous.has(f) ? previous.get(f) : true;
     cb.addEventListener('change', renderEvents);
     label.appendChild(cb);
     label.appendChild(document.createTextNode(f));

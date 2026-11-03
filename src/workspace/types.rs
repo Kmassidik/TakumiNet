@@ -226,7 +226,20 @@ impl Link {
     }
 }
 
-/// One captured simulation event (a PDU delivered along a path).
+/// One decoded layer in a captured frame or an explicit service-plane exchange.
+#[derive(Clone, Debug)]
+pub struct Layer {
+    pub name: String,
+    pub fields: Vec<(String, String)>,
+}
+
+impl Layer {
+    pub fn new(name: impl Into<String>, fields: Vec<(String, String)>) -> Self {
+        Self { name: name.into(), fields }
+    }
+}
+
+/// One captured simulation event (a PDU delivered or dropped along a path).
 #[derive(Clone)]
 pub struct Event {
     pub id: u32,
@@ -236,8 +249,12 @@ pub struct Event {
     pub kind: String,
     pub proto: String,
     pub path: Vec<String>,
-    /// Per-device detail: ingress/egress ports, TTL, MACs, decision.
+    /// Per-device detail: ingress/egress ports, decoded layers and decision.
     pub hops: Vec<crate::net::fwd::Hop>,
+    /// Service-plane detail for exchanges which have no frame-level capture.
+    pub layers: Vec<Layer>,
+    pub status: String,
+    pub reason: Option<String>,
     /// Frame size in bytes on the wire.
     pub size: usize,
 }

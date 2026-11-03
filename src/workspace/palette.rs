@@ -66,9 +66,9 @@ pub(super) const GROUPS: &[(&str, &str)] = &[
 pub(super) const FILTERS: &[&str] = &[
     "ACL", "AAA", "AEP", "BGP", "BT", "DHCP", "DHCPv6", "DNS", "EIGRP", "E-mail", "FTP", "H.323",
     "HTTP", "HTTPS", "ICMP", "ICMPv6", "IEEE802.1X", "IPSEC", "ISAKMP", "IS-IS", "LACP", "LISP",
-    "MQTT", "NAC", "NDP", "NETCONF", "NTP", "OSPF", "PAgP", "PAP", "POP3", "PPP", "RADIUS", "RIP",
-    "RTP", "SCCP", "SCTP", "SIP", "SMTP", "SNMP", "SSH", "STP", "SYSLOG", "TACACS", "TCP", "TFTP",
-    "Telnet", "UDP", "VTP",
+    "MODBUS", "MQTT", "NAC", "NDP", "NETCONF", "NTP", "OSPF", "PAgP", "PAP", "POP3", "PPP",
+    "PROFINET", "PRP", "PTP", "RADIUS", "RIP", "RTP", "SCCP", "SCTP", "SIP", "SMTP", "SNMP",
+    "SSH", "STP", "SYSLOG", "TACACS", "TCP", "TFTP", "Telnet", "UDP", "VTP", "Cellular",
 ];
 
 pub(super) fn default_port_metrics(name: &str) -> (u32, u32) {

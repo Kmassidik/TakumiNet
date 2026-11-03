@@ -43,7 +43,42 @@ impl Workspace {
 
     /// Send one ICMP echo request through the frame-level engine and record it.
     pub fn send_pdu(&mut self, src: &str, dst: &str) -> Result<(), String> {
-        let delivery = crate::net::fwd::deliver(self, src, dst)?;
+        self.validate_pdu(src, dst)?;
+        match crate::net::fwd::deliver(self, src, dst) {
+            Ok(delivery) => self.record_delivery(src, dst, "ICMP", delivery),
+            Err(error) => self.record_drop(src, dst, "ICMP", error),
+        }
+    }
+
+    /// Send an actual TCP/HTTP GET and retain its decoded capture.
+    pub fn send_http(&mut self, src: &str, dst: &str, host: &str) -> Result<(), String> {
+        self.validate_pdu(src, dst)?;
+        match crate::net::fwd::deliver_http(self, src, dst, host) {
+            Ok(delivery) => self.record_delivery(src, dst, "HTTP", delivery),
+            Err(error) => self.record_drop(src, dst, "HTTP", error),
+        }
+    }
+
+    fn validate_pdu(&self, src: &str, dst: &str) -> Result<(), String> {
+        if !self.devices.iter().any(|d| d.id == src) {
+            return Err(format!("unknown device {src}"));
+        }
+        if !self.devices.iter().any(|d| d.id == dst) {
+            return Err(format!("unknown device {dst}"));
+        }
+        if src == dst {
+            return Err("source and destination are the same".into());
+        }
+        Ok(())
+    }
+
+    fn record_delivery(
+        &mut self,
+        src: &str,
+        dst: &str,
+        proto: &str,
+        delivery: crate::net::fwd::Delivery,
+    ) -> Result<(), String> {
         let size = delivery.size();
         self.next_event += 1;
         self.sim_time = delivery.finished_at as f32;
@@ -52,15 +87,45 @@ impl Workspace {
             time: self.sim_time,
             last: self.name_of(src),
             at: self.name_of(dst),
-            kind: "ICMP".into(),
-            proto: "ICMP".into(),
+            kind: proto.into(),
+            proto: proto.into(),
             path: delivery.path,
             hops: delivery.hops,
+            layers: Vec::new(),
+            status: "Successful".into(),
+            reason: None,
             size,
         });
-        let line = format!("{} -> {} ICMP", self.name_of(src), self.name_of(dst));
+        let line = format!("{} -> {} {proto}", self.name_of(src), self.name_of(dst));
         self.syslog_record(src, "info", &line);
         self.syslog_record(dst, "info", &line);
         Ok(())
+    }
+
+    pub(super) fn record_drop(
+        &mut self,
+        src: &str,
+        dst: &str,
+        proto: &str,
+        error: crate::net::fwd::DeliveryError,
+    ) -> Result<(), String> {
+        self.next_event += 1;
+        self.sim_time = error.finished_at as f32;
+        let reason = error.reason;
+        self.events.push(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(src),
+            at: self.name_of(dst),
+            kind: proto.into(),
+            proto: proto.into(),
+            path: error.path,
+            hops: error.hops,
+            layers: Vec::new(),
+            status: "Dropped".into(),
+            reason: Some(reason.clone()),
+            size: error.size,
+        });
+        Err(reason)
     }
 }

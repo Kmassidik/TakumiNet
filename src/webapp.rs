@@ -31,7 +31,7 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
         return Err("Invalid URL".into());
     }
 
-    let Some(ip) = crate::model::parse_ipv4(host).or_else(|| ws.resolve_name(client, host)) else {
+    let Some(ip) = crate::model::parse_ipv4(host).or_else(|| ws.resolve_name_captured(client, host)) else {
         return Err(format!("Request timed out: no host answers for {host}"));
     };
     let Some(server) = ws
@@ -48,13 +48,8 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
     }
 
     let custom = ws.http_pages.get(&server.0).cloned();
-    ws.send_pdu(client, &server.0)
+    ws.send_http(client, &server.0, host)
         .map_err(|_| format!("Request timed out while reaching {host}"))?;
-
-    if let Some(event) = ws.events.last_mut() {
-        event.kind = "HTTP".into();
-        event.proto = "HTTP".into();
-    }
 
     Ok(Page {
         status: 200,

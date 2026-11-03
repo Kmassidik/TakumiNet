@@ -96,13 +96,25 @@ async function pduClick(d) {
   pduFrom = null;
   pduMode = false;
   const r = await api('/api/pdu', { src, dst: d.id });
-  if (!r.error) {
-    sfx('addPacketDevice');
-    simCursor = data.events.length - 1;
-    renderEvents();
-    animatePath(data.events[simCursor].path);
-    status(`PDU delivered ${data.events[simCursor].last} → ${data.events[simCursor].at}`);
+  if (r.error) {
+    const snapshot = await getJson('/api/workspace');
+    if (!snapshot.events) return;
+    setData(snapshot);
+    const event = snapshot.events[snapshot.events.length - 1];
+    if (event && event.status === 'Dropped') {
+      simCursor = event.id;
+      renderEvents();
+      animatePath(event.path);
+    }
+    return;
   }
+  const event = data.events[data.events.length - 1];
+  if (!event) return;
+  sfx('addPacketDevice');
+  simCursor = event.id;
+  renderEvents();
+  animatePath(event.path);
+  status(`PDU delivered ${event.last} → ${event.at}`);
 }
 
 const tipEl = document.getElementById('tip');

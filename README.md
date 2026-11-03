@@ -14,12 +14,14 @@ simulation is ours and runs server-side in Rust.
 
 ## What is proven right now
 
-- `cargo test` — 146 unit + 41 integration/HTTP conformance tests (187 total):
+- `cargo test` — 154 unit + 59 integration/HTTP conformance tests (213 total):
   frames, TTL, MAC/ARP tables, interface state, IOS CLI, VLAN/STP/EtherChannel,
-  editing, assets, `.pkt` import.
+  editing, assets, `.pkt` import, services and simulation parity.
+- `node --test tests/js/simulation.test.js` — 6 dependency-free DOM tests for
+  filters, stable event selection/playback, layer details and dropped PDUs.
 - `cargo run` — asset browser on `http://localhost:3000`, verified in Chromium
   (icon grid renders, preview opens, 6,455 files / 811 MB indexed).
-- Workspace UI verified in Chromium: 7 devices, 6 labeled links, 49 event
+- Workspace UI verified in Chromium: 7 devices, 6 labeled links, 54 event
   filters, 20 palette tiles, Realtime/Simulation bar, toolbars from real art.
 - Interactive editing verified: palette drag → device created on canvas,
   pointer drag moves it, `Delete` removes it, all persisted server-side.
@@ -57,8 +59,10 @@ simulation is ours and runs server-side in Rust.
   Zoom In/Out/Reset, Palette toggle, Grid toggle, Custom Device, Simple/Complex
   PDU, Reset Simulation, Play/Step/Back/Forward/Fast-forward, Show All/None,
   Help, Asset Browser. Menus mirror the toolbar.
-- Simulation is real: PDU runs a BFS over the link graph, records an event
-  (time, last device, at device, type) and animates the path.
+- Simulation is real: PDU delivery records stable-ID events and animates the
+  path. Filters include every emitted protocol, Hide All shows no events, and
+  selection/playback/counts remain correct while filtered. Failed PDUs remain
+  visible as `Dropped` with their reason and all partial hops.
 - **`.pkt`/`.pka` decode in Rust** (`src/storage/ptfile.rs`): reverse-XOR → Twofish-EAX
   (key `0x89`×16, nonce `0x10`×16) → XOR → zlib with 4-byte BE length. Verified
   against shipped samples (`PACKETTRACER5`, PT 7.1–9.x). `pkt2rs` converts any
@@ -71,7 +75,8 @@ simulation is ours and runs server-side in Rust.
   correct header checksum. Switches learn source MACs (300 s ageing) and flood
   unknown unicast; every router decrements the TTL and re-encapsulates for the
   next segment. Each captured event carries per-hop detail — ingress/egress
-  port, TTL, source/destination MAC and the decision taken.
+  port, TTL, source/destination MAC and the decision taken — plus decoded
+  Ethernet II, IPv4, transport and application fields from the actual packet.
 - **Eight cable types with real eligibility**: Copper, Cross, Serial, Fiber,
   Console, Phone, Coax, IoT. Each is checked before a link exists — fiber only
   between switches/routers, serial only where both ends have a free `Serial`
@@ -95,9 +100,10 @@ simulation is ours and runs server-side in Rust.
   labels, names, descriptions, OS images, groups and slot counts.
   `GET /api/catalog` serves 63 of them; the other 26 are IoT/home templates
   whose container variant is still unidentified (`notes/09-catalog.md`).
-- **PDU detail**: double-click an event row for PT's layer stack per device —
-  In/Out layers, ingress/egress interface, TTL, source/destination MAC and the
-  forwarding decision (learn, flood, route, ARP).
+- **PDU detail**: double-click an event row for the captured layer stack per
+  device — In/Out layers, interfaces, addresses, TTL and forwarding decision.
+  DHCP, DNS and SMTP exchanges explicitly show control-plane details instead of
+  a blank or invented frame stack; drop details include the failure reason.
 - **Command Prompt is the simulation** (`src/cmd.rs`): `ipconfig`, `ping`,
   `tracert`, `arp -a`, `nslookup`, `netstat` and `telnet` all run server-side
   against the same topology the packet engine uses, so `ping` produces a real
@@ -127,8 +133,8 @@ simulation is ours and runs server-side in Rust.
   (bounded central-directory walk, stored/deflate entries, 512 MiB cap, unsafe
   names skipped) and decrypts the inner save; `pkt2rs` uses it for `--xml`.
 - **Web Browser talks to the server** (`src/webapp.rs`): the Desktop browser
-  resolves the URL host, forwards a real delivery through the topology (so it
-  appears in the capture buffer as `HTTP`), and renders the server's page —
+  resolves the URL host, forwards a checksummed TCP segment carrying a real HTTP
+  GET through the topology (captured with TCP/HTTP layers), and renders the page —
   `200 OK — 192.168.2.20 / Server0`. A host without an HTTP service answers
   `Connection refused`, a missing host or broken path `Request timed out`.
 - **Windows behave like windows**: drag any title bar, maximize (`□`) to fill

@@ -494,14 +494,16 @@ impl Workspace {
                 o.push(',');
             }
             o.push_str(&format!(
-                "{{\"id\":{},\"time\":{},\"last\":{},\"at\":{},\"type\":{},\"proto\":{},\"size\":{},\"path\":[",
+                "{{\"id\":{},\"time\":{},\"last\":{},\"at\":{},\"type\":{},\"proto\":{},\"size\":{},\"status\":{},\"reason\":{},\"path\":[",
                 e.id,
                 e.time,
                 s(&e.last),
                 s(&e.at),
                 s(&e.kind),
                 s(&e.proto),
-                e.size
+                e.size,
+                s(&e.status),
+                opt_str(e.reason.as_deref())
             ));
             for (j, hop) in e.path.iter().enumerate() {
                 if j > 0 {
@@ -515,7 +517,7 @@ impl Workspace {
                     o.push(',');
                 }
                 o.push_str(&format!(
-                    "{{\"id\":{},\"name\":{},\"in\":{},\"out\":{},\"t\":{},\"ttl\":{},\"srcMac\":{},\"dstMac\":{},\"srcIp\":{},\"dstIp\":{},\"note\":{}}}",
+                    "{{\"id\":{},\"name\":{},\"in\":{},\"out\":{},\"t\":{},\"ttl\":{},\"srcMac\":{},\"dstMac\":{},\"srcIp\":{},\"dstIp\":{},\"note\":{},\"layers\":",
                     s(&h.id),
                     s(&h.name),
                     opt_str(h.ingress.as_deref()),
@@ -528,8 +530,30 @@ impl Workspace {
                     s(&crate::model::ipv4_string(h.dst_ip)),
                     s(&h.note)
                 ));
+                json_layers(o, &h.layers);
+                o.push('}');
             }
-            o.push_str("]}");
+            o.push_str("],\"layers\":");
+            json_layers(o, &e.layers);
+            o.push('}');
         }
     }
+}
+
+fn json_layers(o: &mut String, layers: &[Layer]) {
+    o.push('[');
+    for (i, layer) in layers.iter().enumerate() {
+        if i > 0 {
+            o.push(',');
+        }
+        o.push_str(&format!("{{\"name\":{},\"fields\":[", s(&layer.name)));
+        for (j, (name, value)) in layer.fields.iter().enumerate() {
+            if j > 0 {
+                o.push(',');
+            }
+            o.push_str(&format!("{{\"name\":{},\"value\":{}}}", s(name), s(value)));
+        }
+        o.push_str("]}");
+    }
+    o.push(']');
 }

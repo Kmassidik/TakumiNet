@@ -8,12 +8,15 @@ Status: landed 2026-11-01.
 
 1. `host_of` strips scheme, port and path, so `http://h/`, `h` and
    `https://h:80/x.html` all resolve to the same host.
-2. The host is matched against device addresses (`Device::ip` and every
-   `PortCfg::ip`).
+2. Literal addresses are matched against device addresses (`Device::ip` and every
+   `PortCfg::ip`); names generate an inspectable control-plane DNS exchange through
+   the client's configured server.
 3. Only `kind == "server"` answers; anything else is
    `Connection refused by <host> (no HTTP service)`.
-4. `Workspace::send_pdu` forwards the request through the real topology, so the
-   capture buffer records it; the event's protocol is rewritten to `HTTP`.
+4. `Workspace::send_http` builds an IPv4/TCP packet with a real HTTP GET and valid
+   TCP checksum, then forwards it through the real topology. Each captured hop
+   decodes Ethernet, IPv4, TCP and HTTP fields from that packet; no ICMP relabeling
+   is involved. Failed delivery remains in the capture as a dropped HTTP PDU.
 5. A missing host or a broken path is `Request timed out`.
 
 The page is our own text, not PT's bundled HTML: `Server0` plus its address.
@@ -50,7 +53,14 @@ for `/api/webfetch`.
   event).
 - Chromium: PC0 → Web Browser → `192.168.2.20` renders `Server0`.
 
+## Simulation parity verification
+
+- Canonical HTTP labs prove mixed ICMP/HTTP event lists, per-hop layer contents,
+  real TCP/HTTP payloads, retained ACL drops and inspectable DHCP/DNS/SMTP exchanges.
+- `node --test tests/js/simulation.test.js` exercises Hide All, stable-ID selection
+  and playback under filtering, dynamic filters, captured layer rendering and drop
+  refresh in a dependency-free local DOM harness.
+
 ## Not covered yet
 
-- DNS names resolve through the client's configured server; no auth or path routing.
-- HTTPS is still on the list.
+- No auth or path routing; HTTPS is still on the list.
