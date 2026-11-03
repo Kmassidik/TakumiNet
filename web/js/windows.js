@@ -77,9 +77,7 @@ async function boot() {
   wireCanvasDrop();
   wireCanvasSelection();
   for (const id of ['device-window', 'cmd-window', 'term-window', 'web-dialog',
-    'editor-dialog', 'traffic-dialog', 'mib-dialog', 'pdu-dialog',
-    'wifi-dialog', 'vpn-dialog', 'pppoe-dialog', 'phone-dialog',
-    'firewall-dialog']) {
+    'editor-dialog', 'pdu-dialog', 'firewall-dialog']) {
     makeWindowMovable(document.getElementById(id));
   }
   status('Ready');

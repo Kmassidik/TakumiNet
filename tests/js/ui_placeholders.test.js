@@ -85,13 +85,6 @@ test('every Desktop app dispatches to its real handler', () => {
     term: 'openTerm',
     cmd: 'openCmd',
     browser: 'openBrowser',
-    wifi: 'openWifi',
-    vpn: 'openVpn',
-    traffic: 'openTraffic',
-    mib: 'openMib',
-    phone: 'openPhone',
-    email: 'openMail',
-    pppoe: 'openPppoe',
     editor: 'openEditor',
     firewall: 'openFirewall',
   };
@@ -111,7 +104,7 @@ test('every Desktop app dispatches to its real handler', () => {
   const pane = new Element();
   context.tabDesktop(pane, device);
   const buttons = pane.children[0].children;
-  assert.equal(apps.length, 14);
+  assert.equal(apps.length, 7);
   assert.equal(buttons.length, apps.length);
   assert.equal(apps.some(([, label]) => label === 'Dialup'), false);
 

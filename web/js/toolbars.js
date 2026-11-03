@@ -14,7 +14,7 @@ const PRIMARY = [
 ];
 
 const SECONDARY = [
-  ['toolbar/simple', 'Simple PDU', 'pdu'], ['toolbar/complex', 'Complex PDU', 'pdu'], null,
+  ['toolbar/simple', 'Send PDU', 'pdu'], null,
   ['toolbar/grid', 'Grid', 'toggle-grid'], null,
   ['toolbar/home', 'Home', 'zoom-reset'],
 ];

@@ -37,13 +37,6 @@ function tabDesktop(pane, d) {
       else if (action === 'term') openTerm(d);
       else if (action === 'browser') openBrowser(d);
       else if (action === 'editor') openEditor(d);
-      else if (action === 'traffic') openTraffic(d);
-      else if (action === 'mib') openMib(d);
-      else if (action === 'email') openMail(d);
-      else if (action === 'wifi') openWifi(d);
-      else if (action === 'vpn') openVpn(d);
-      else if (action === 'pppoe') openPppoe(d);
-      else if (action === 'phone') openPhone(d);
       else if (action === 'firewall') openFirewall(d);
     };
     desk.appendChild(app);

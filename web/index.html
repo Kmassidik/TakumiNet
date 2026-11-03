@@ -69,14 +69,6 @@
         </div>
       </div>
       <div class="menu">
-        <button>Extensions</button>
-        <div class="drop"><button disabled>Extension Manager…</button></div>
-      </div>
-      <div class="menu">
-        <button>Window</button>
-        <div class="drop"><button disabled>Workspace</button></div>
-      </div>
-      <div class="menu">
         <button>Help</button>
         <div class="drop">
           <a href="/about.html">About &amp; licence</a>
@@ -384,91 +376,6 @@
   </div>
 </div>
 
-<div id="mail-dialog" class="overlay" hidden>
-  <div class="preview mailwin">
-    <div class="devwin-title">
-      <span id="mail-title">Email</span>
-      <span class="dw-btns"><button id="mail-close" title="close">×</button></span>
-    </div>
-    <div class="mail-body">
-      <fieldset class="ip-group">
-        <legend>Account</legend>
-        <label class="ipfield"><span>Server IP</span><input id="mail-server" placeholder="192.168.2.20" spellcheck="false" autocomplete="off"></label>
-        <label class="ipfield"><span>User</span><input id="mail-user" placeholder="alice" spellcheck="false" autocomplete="off"></label>
-        <label class="ipfield"><span>Password</span><input id="mail-pass" type="password" placeholder="mailbox password" autocomplete="off"></label>
-        <div class="ip-actions"><button class="btn" id="mail-create">Create Mailbox</button>
-          <span id="mail-account-note" class="meta"></span></div>
-      </fieldset>
-      <fieldset class="ip-group">
-        <legend>Inbox</legend>
-        <div class="ip-actions mail-actions"><button class="btn" id="mail-refresh">Refresh</button>
-          <span id="mail-inbox-note" class="meta"></span></div>
-        <div id="mail-inbox" class="mail-inbox"></div>
-      </fieldset>
-      <fieldset class="ip-group">
-        <legend>Compose</legend>
-        <div class="meta mail-from">From: <span id="mail-from">—</span></div>
-        <label class="ipfield"><span>To</span><input id="mail-to" placeholder="bob" spellcheck="false" autocomplete="off"></label>
-        <label class="ipfield"><span>Subject</span><input id="mail-subject" spellcheck="false" autocomplete="off"></label>
-        <textarea id="mail-text" class="http-page mail-text" rows="4" spellcheck="false" placeholder="Message body"></textarea>
-        <div class="ip-actions"><button class="btn" id="mail-send">Send</button>
-          <span id="mail-note" class="meta"></span></div>
-      </fieldset>
-    </div>
-  </div>
-</div>
-
-<div id="traffic-dialog" class="overlay" hidden>
-  <div class="preview trafficwin">
-    <div class="devwin-title">
-      <span id="traffic-title">Traffic Generator</span>
-      <span class="dw-btns"><button id="traffic-close" title="close">×</button></span>
-    </div>
-    <div class="traffic-body">
-      <div class="traffic-form">
-        <label for="traffic-ip">Destination IP</label>
-        <input id="traffic-ip" spellcheck="false" autocomplete="off">
-        <label for="traffic-count">Packets (1–200)</label>
-        <input id="traffic-count" type="number" min="1" max="200" step="1" value="4">
-        <label for="traffic-interval">Interval (ms)</label>
-        <input id="traffic-interval" type="number" min="0" max="60000" step="10" value="200">
-      </div>
-      <div class="traffic-stats">
-        <span>Sent: <b id="traffic-sent">0</b></span>
-        <span>Received: <b id="traffic-received">0</b></span>
-        <span>Lost: <b id="traffic-lost">0</b></span>
-      </div>
-      <div id="traffic-note" class="traffic-note"></div>
-      <div class="traffic-actions">
-        <button class="btn" id="traffic-start">Start</button>
-        <button class="btn" id="traffic-stop" disabled>Stop</button>
-      </div>
-      <pre id="traffic-log" class="traffic-log"></pre>
-    </div>
-  </div>
-</div>
-
-<div id="mib-dialog" class="overlay" hidden>
-  <div class="preview mibwin">
-    <div class="devwin-title">
-      <span id="mib-title">MIB Browser</span>
-      <span class="dw-btns"><button id="mib-close" title="close">×</button></span>
-    </div>
-    <div class="mib-body">
-      <p class="mib-note">Local device table from the running workspace. No SNMP agent or MIB object identifiers are simulated.</p>
-      <div class="mib-scroll">
-        <table id="mib-table" class="mib-table">
-          <thead>
-            <tr><th>Name</th><th>Model</th><th>Kind</th><th>IP</th><th>Ports</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div id="mib-detail" class="mib-detail">Select a row to read its interface table.</div>
-    </div>
-  </div>
-</div>
-
 <div id="pdu-dialog" class="overlay" hidden>
   <div class="preview pduwin">
     <div class="devwin-title">
@@ -477,131 +384,6 @@
     </div>
     <div id="pdu-meta" class="pdu-meta"></div>
     <div class="pdu-scroll"><table id="pdu-table" class="pdu-table"></table></div>
-  </div>
-</div>
-
-<div id="wifi-dialog" class="overlay" hidden>
-  <div class="preview wifiwin">
-    <div class="devwin-title">
-      <span id="wifi-title">PC Wireless</span>
-      <span class="dw-btns"><button id="wifi-close" title="close">×</button></span>
-    </div>
-    <div class="wifi-body">
-      <fieldset class="ip-group" id="wifi-client">
-        <legend>Wireless Networks</legend>
-        <div class="ip-actions">
-          <button class="btn" id="wifi-scan">Scan</button>
-          <span id="wifi-scan-note" class="meta"></span>
-        </div>
-        <label class="ipfield"><span>Network</span>
-          <select id="wifi-ssid"><option value="">Scan for networks</option></select>
-        </label>
-        <label class="ipfield"><span>Pre-shared Key</span>
-          <input id="wifi-psk" type="password" autocomplete="off" spellcheck="false">
-        </label>
-        <label class="ipfield"><span>User (Enterprise)</span>
-          <input id="wifi-user" type="text" autocomplete="off" spellcheck="false">
-        </label>
-        <div class="ip-actions">
-          <button class="btn" id="wifi-connect">Connect</button>
-          <button class="btn" id="wifi-disconnect">Disconnect</button>
-          <span id="wifi-note" class="meta"></span>
-        </div>
-        <div class="stat-line" id="wifi-status">Checking…</div>
-      </fieldset>
-
-      <fieldset class="ip-group" id="wifi-wlan-group" hidden>
-        <legend>WLANs</legend>
-        <div class="wifi-list" id="wifi-wlan-list"></div>
-        <div class="tftp-form">
-          <input id="wifi-wlan-ssid" placeholder="SSID" autocomplete="off" spellcheck="false">
-          <input id="wifi-wlan-psk" type="password" placeholder="WPA2 pre-shared key (at least 8 characters)" autocomplete="off">
-          <div class="ip-actions">
-            <button class="btn" id="wifi-wlan-add">Add WLAN</button>
-            <span id="wifi-wlan-note" class="meta"></span>
-          </div>
-        </div>
-      </fieldset>
-    </div>
-  </div>
-</div>
-
-<div id="vpn-dialog" class="overlay" hidden>
-  <div class="preview vpnwin">
-    <div class="devwin-title">
-      <span id="vpn-title">VPN</span>
-      <span class="dw-btns"><button id="vpn-close" title="close">×</button></span>
-    </div>
-    <div class="vpn-body">
-      <fieldset class="ip-group">
-        <legend>VPN Client</legend>
-        <label class="ipfield"><span>Server</span>
-          <input id="vpn-server" placeholder="192.168.2.1" autocomplete="off" spellcheck="false">
-        </label>
-        <label class="ipfield"><span>User Name</span>
-          <input id="vpn-user" placeholder="vpnuser" autocomplete="off" spellcheck="false">
-        </label>
-        <div class="ip-actions">
-          <button class="btn" id="vpn-connect">Connect</button>
-          <button class="btn" id="vpn-disconnect">Disconnect</button>
-          <span id="vpn-note" class="meta"></span>
-        </div>
-        <div class="stat-line" id="vpn-status">Checking…</div>
-      </fieldset>
-    </div>
-  </div>
-</div>
-
-<div id="pppoe-dialog" class="overlay" hidden>
-  <div class="preview pppoewin">
-    <div class="devwin-title">
-      <span id="pppoe-title">PPPoE Dialer</span>
-      <span class="dw-btns"><button id="pppoe-close" title="close">×</button></span>
-    </div>
-    <div class="pppoe-body">
-      <fieldset class="ip-group">
-        <legend>PPPoE Client</legend>
-        <label class="ipfield"><span>Server</span>
-          <input id="pppoe-server" placeholder="192.168.2.1" autocomplete="off" spellcheck="false">
-        </label>
-        <label class="ipfield"><span>User Name</span>
-          <input id="pppoe-user" placeholder="dsluser" autocomplete="off" spellcheck="false">
-        </label>
-        <div class="ip-actions">
-          <button class="btn" id="pppoe-dial">Dial</button>
-          <span id="pppoe-note" class="meta"></span>
-        </div>
-        <div class="stat-line" id="pppoe-status">Checking…</div>
-      </fieldset>
-    </div>
-  </div>
-</div>
-
-<div id="phone-dialog" class="overlay" hidden>
-  <div class="preview phonewin">
-    <div class="devwin-title">
-      <span id="phone-title">IP Phone</span>
-      <span class="dw-btns"><button id="phone-close" title="close">×</button></span>
-    </div>
-    <div class="phone-body">
-      <div class="phone-screen">
-        <div class="phone-label" id="phone-label">IP Phone</div>
-        <div class="phone-state" id="phone-status">Not registered</div>
-      </div>
-      <fieldset class="ip-group">
-        <legend>Registration</legend>
-        <label class="ipfield"><span>Call Manager</span>
-          <input id="phone-cm" placeholder="192.168.2.1" autocomplete="off" spellcheck="false">
-        </label>
-        <label class="ipfield"><span>Extension</span>
-          <input id="phone-ext" type="number" min="1" max="65535" step="1" placeholder="1001">
-        </label>
-        <div class="ip-actions">
-          <button class="btn" id="phone-register">Register</button>
-          <span id="phone-note" class="meta"></span>
-        </div>
-      </fieldset>
-    </div>
   </div>
 </div>
 
@@ -643,10 +425,6 @@
 <script src="/js/services_tab.js"></script>
 <script src="/js/command_prompt.js"></script>
 <script src="/js/web_apps.js"></script>
-<script src="/js/mail.js"></script>
-<script src="/js/traffic.js"></script>
-<script src="/js/mib.js"></script>
-<script src="/js/wireless.js"></script>
 <script src="/js/clients.js"></script>
 <script src="/js/terminal.js"></script>
 <script src="/js/windows.js"></script>
