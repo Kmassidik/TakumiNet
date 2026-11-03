@@ -96,6 +96,8 @@ impl Workspace {
                 pppoe: HashMap::new(),
                 phones: HashMap::new(),
                 unknown_elements: Vec::new(),
+                record_extras: Vec::new(),
+                load_problems: Vec::new(),
         }
     }
 
@@ -292,6 +294,8 @@ impl Workspace {
                 pppoe: HashMap::new(),
                 phones: HashMap::new(),
                 unknown_elements: Vec::new(),
+                record_extras: Vec::new(),
+                load_problems: Vec::new(),
             };
         }
         let hub = self

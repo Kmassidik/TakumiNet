@@ -290,6 +290,49 @@ pub struct PortSecurity {
     pub macs: Vec<String>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ProblemSeverity {
+    Error,
+    Warning,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Problem {
+    pub line: usize,
+    pub element: String,
+    pub attribute: String,
+    pub message: String,
+    pub severity: ProblemSeverity,
+    pub recoverable: bool,
+}
+
+impl Problem {
+    pub(crate) fn error(line: usize, element: &str, attribute: &str, message: impl Into<String>) -> Self {
+        Self { line, element: element.into(), attribute: attribute.into(), message: message.into(), severity: ProblemSeverity::Error, recoverable: true }
+    }
+
+    pub(crate) fn fatal(line: usize, element: &str, attribute: &str, message: impl Into<String>) -> Self {
+        Self { line, element: element.into(), attribute: attribute.into(), message: message.into(), severity: ProblemSeverity::Error, recoverable: false }
+    }
+
+    pub(crate) fn warning(line: usize, element: &str, attribute: &str, message: impl Into<String>) -> Self {
+        Self { line, element: element.into(), attribute: attribute.into(), message: message.into(), severity: ProblemSeverity::Warning, recoverable: false }
+    }
+}
+
+impl std::fmt::Display for Problem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "line {}: <{}> attribute '{}': {}", self.line, self.element, self.attribute, self.message)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub(super) struct RecordExtras {
+    pub element: String,
+    pub key: Vec<(String, String)>,
+    pub attributes: Vec<(String, String)>,
+}
+
 #[derive(Clone)]
 pub struct Workspace {
     pub devices: Vec<Device>,
@@ -394,6 +437,10 @@ pub struct Workspace {
     pub phones: HashMap<String, (String, u16)>,
     /// Elements outside the native record schema, retained verbatim on save.
     pub(super) unknown_elements: Vec<crate::storage::xml::Element>,
+    /// Unknown attributes on known records, keyed by their stable record ids.
+    pub(super) record_extras: Vec<RecordExtras>,
+    /// Warnings from a valid load, or dropped-record reports from open-anyway.
+    pub load_problems: Vec<Problem>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -200,4 +200,26 @@ mod tests {
         assert!(String::from_utf8(result).unwrap().contains("error"));
         assert_eq!(ctx.ws.lock().unwrap().to_tnet(), before);
     }
+
+    #[test]
+    fn native_open_anyway_reports_drops_and_preserves_strict_transaction() {
+        let ctx = context();
+        let before = ctx.ws.lock().unwrap().to_tnet();
+        let text = br#"<takuminet version="1">
+<device id="bad" kind="pc" model="PC-PT" x="1" y="2" name="Bad" ip="bad" prefix="24"/>
+<device id="good" kind="pc" model="PC-PT" x="3" y="4" name="Good" ip="192.168.1.2" prefix="24"/>
+</takuminet>
+"#;
+        let (_, strict) = file_routes::route(&ctx, "POST", "/api/import", "", text).unwrap();
+        let strict = String::from_utf8(strict).unwrap();
+        assert!(strict.contains("line 2"), "{strict}");
+        assert!(strict.contains("\"canOpenAnyway\":true"), "{strict}");
+        assert_eq!(ctx.ws.lock().unwrap().to_tnet(), before);
+
+        let (_, recovered) = file_routes::route(&ctx, "POST", "/api/import", "openAnyway=true", text).unwrap();
+        let recovered = String::from_utf8(recovered).unwrap();
+        assert!(recovered.contains("\"dropped\":1"), "{recovered}");
+        assert_eq!(ctx.ws.lock().unwrap().devices.len(), 1);
+        assert_eq!(ctx.ws.lock().unwrap().devices[0].id, "good");
+    }
 }

@@ -1,4 +1,19 @@
 /* ---------------- actions ---------------- */
+function confirmOpenAnyway(response) {
+  if (!response.error || !response.canOpenAnyway) return false;
+  const problems = (response.problems || []).map((p) => p.text || p.message).join('\n');
+  return confirm(`${problems || response.error}\n\nOpen anyway without the broken parts?`);
+}
+
+function reportLoadProblems(response) {
+  const problems = response.problems || [];
+  const dropped = response.dropped || problems.filter((p) => p.severity === 'error').length;
+  const warnings = problems.filter((p) => p.severity === 'warning').length;
+  if (dropped) return `Opened without ${dropped} broken record${dropped === 1 ? '' : 's'}`;
+  if (warnings) return `Opened with ${warnings} warning${warnings === 1 ? '' : 's'}`;
+  return '';
+}
+
 const ACTIONS = {
   async new() {
     if (!confirm('Discard the current topology?')) return;
@@ -10,8 +25,14 @@ const ACTIONS = {
     if (!names.length) { status('No saved topologies'); sfx('errorMsg'); return; }
     const name = prompt(`Open topology (${names.join(', ')})`, names[0]);
     if (!name) return;
-    const r = await api('/api/load', { name });
-    if (!r.error) { currentName = name; simCursor = -1; status(`Opened ${name}`); sfx('newScenarioButton'); }
+    let r = await api('/api/load', { name });
+    if (confirmOpenAnyway(r)) r = await api('/api/load', { name, openAnyway: 'true' });
+    if (!r.error) {
+      currentName = name;
+      simCursor = -1;
+      status(reportLoadProblems(r) || `Opened ${name}`);
+      sfx('newScenarioButton');
+    }
   },
   async save() {
     const name = prompt('Save topology as', currentName);
@@ -27,17 +48,22 @@ const ACTIONS = {
       const file = input.files[0];
       if (!file) return;
       try {
-        const res = await fetch('/api/import', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/xml; charset=utf-8' },
-          body: await file.text(),
-        });
-        const r = await res.json();
+        const body = await file.text();
+        const send = async (openAnyway = false) => {
+          const res = await fetch(`/api/import${openAnyway ? '?openAnyway=true' : ''}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/xml; charset=utf-8' },
+            body,
+          });
+          return { res, json: await res.json() };
+        };
+        let { res, json: r } = await send();
+        if (confirmOpenAnyway(r)) ({ res, json: r } = await send(true));
         if (!res.ok || r.error) throw new Error(r.error || 'import failed');
         setData(r);
         currentName = file.name.replace(/\.tnet$/i, '');
         simCursor = -1;
-        status(`Imported ${file.name}`);
+        status(reportLoadProblems(r) || `Imported ${file.name}`);
         sfx('newScenarioButton');
       } catch (e) {
         status(e.message || 'import failed', true);

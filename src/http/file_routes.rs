@@ -7,7 +7,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str, body: &[u8
         ("POST", "/api/load") => Some(handle_load(ctx, query)),
         ("GET", "/api/saves") => Some(handle_saves()),
         ("GET", "/api/export") => Some(handle_export(ctx)),
-        ("POST", "/api/import") => Some(handle_import(ctx, body)),
+        ("POST", "/api/import") => Some(handle_import(ctx, query, body)),
         ("GET", "/api/topology") => Some(handle_topology(ctx)),
         ("POST", "/api/ping") => Some(handle_ping(ctx, query)),
         _ => None,
@@ -34,15 +34,18 @@ fn handle_load(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
             return (json, json_error("no such topology").as_bytes().to_vec())
         }
     };
-    match Workspace::from_tnet(&text) {
-        Some(loaded) => {
+    let recover = matches!(query_value(query, "openAnyway").as_deref(), Some("1" | "true"));
+    let loaded = if recover { Workspace::from_tnet_open_anyway(&text) } else { Workspace::from_tnet(&text) };
+    match loaded {
+        Ok(loaded) => {
+            let report = loaded.load_problems.clone();
             let (out, _) = apply(ctx, |ws| {
                 *ws = loaded;
                 Ok(())
             });
-            (json, out.into_bytes())
+            (json, attach_problems(out, &report).into_bytes())
         }
-        None => (json, json_error("corrupt topology file").into_bytes()),
+        Err(problems) => (json, problems_response(&problems).into_bytes()),
     }
 }
 
@@ -71,21 +74,52 @@ fn handle_export(ctx: &Ctx) -> (&'static str, Vec<u8>) {
     ("application/xml; charset=utf-8", ws.to_tnet().into_bytes())
 }
 
-fn handle_import(ctx: &Ctx, body: &[u8]) -> (&'static str, Vec<u8>) {
+fn handle_import(ctx: &Ctx, query: &str, body: &[u8]) -> (&'static str, Vec<u8>) {
     let json = "application/json";
     let Ok(text) = std::str::from_utf8(body) else {
         return (json, json_error("topology is not UTF-8 XML").into_bytes());
     };
-    match Workspace::from_tnet(text) {
-        Some(imported) => {
+    let recover = matches!(query_value(query, "openAnyway").as_deref(), Some("1" | "true"));
+    let imported = if recover { Workspace::from_tnet_open_anyway(text) } else { Workspace::from_tnet(text) };
+    match imported {
+        Ok(imported) => {
+            let report = imported.load_problems.clone();
             let (out, _) = apply(ctx, |ws| {
                 *ws = imported;
                 Ok(())
             });
-            (json, out.into_bytes())
+            (json, attach_problems(out, &report).into_bytes())
         }
-        None => (json, json_error("corrupt topology file").into_bytes()),
+        Err(problems) => (json, problems_response(&problems).into_bytes()),
     }
+}
+
+fn problems_response(problems: &[crate::workspace::Problem]) -> String {
+    let summary = problems.first().map(ToString::to_string).unwrap_or_else(|| "corrupt topology file".into());
+    let recoverable = problems.iter().all(|problem| problem.recoverable);
+    format!("{{\"error\":{},\"canOpenAnyway\":{},\"problems\":{}}}", json_str(&summary), recoverable, problem_list(problems))
+}
+
+fn attach_problems(mut workspace: String, problems: &[crate::workspace::Problem]) -> String {
+    if problems.is_empty() || !workspace.ends_with('}') {
+        return workspace;
+    }
+    workspace.pop();
+    workspace.push_str(&format!(",\"problems\":{},\"dropped\":{}}}", problem_list(problems), problems.iter().filter(|p| p.severity == crate::workspace::ProblemSeverity::Error).count()));
+    workspace
+}
+
+fn problem_list(problems: &[crate::workspace::Problem]) -> String {
+    let entries = problems.iter().map(|problem| {
+        format!("{{\"line\":{},\"element\":{},\"attribute\":{},\"message\":{},\"severity\":{},\"text\":{}}}",
+            problem.line,
+            json_str(&problem.element),
+            json_str(&problem.attribute),
+            json_str(&problem.message),
+            json_str(if problem.severity == crate::workspace::ProblemSeverity::Error { "error" } else { "warning" }),
+            json_str(&problem.to_string()))
+    }).collect::<Vec<_>>().join(",");
+    format!("[{entries}]")
 }
 
 fn handle_topology(ctx: &Ctx) -> (&'static str, Vec<u8>) {

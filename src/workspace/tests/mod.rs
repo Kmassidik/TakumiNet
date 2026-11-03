@@ -3,6 +3,7 @@ mod catalog;
 mod devices;
 mod persistence;
 mod routing;
+mod robustness;
 mod services;
 mod traffic;
 mod wireless_iot;
