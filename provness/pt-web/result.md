@@ -4,6 +4,8 @@ Checked on 2026-11-03. No proof tool has been run: Bend is not installed.
 
 P4 Chrome found a hidden device-window icon with no initial source. `every static image has a real source before its window opens` failed before the fix; `cargo test` passed 218 tests and `node --test tests/js/*.test.js` passed 35 after it.
 
+P4 Chrome had no link LEDs. `link_json_exposes_green_amber_and_red_endpoint_states` and `link endpoints render LEDs directly from green amber and red port states` failed before the fix. Chrome then showed twelve green LEDs on the demo and red/amber endpoints after shutting down Router0 GigabitEthernet0/0, with zero console errors or broken images.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |

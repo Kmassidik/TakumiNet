@@ -115,6 +115,10 @@ html, body {
 /* A console cable is out of band: dashed and cool-coloured, like PT's. */
 .link.console { stroke: #7ab8ff; stroke-width: 1.6; stroke-dasharray: 7 5; }
 .link-hit { stroke: transparent; stroke-width: 14; cursor: pointer; pointer-events: stroke; }
+.link-led { stroke: #fff; stroke-width: 1.5; }
+.link-led[data-state="green"] { fill: #20a464; }
+.link-led[data-state="amber"] { fill: #e6a23c; }
+.link-led[data-state="red"] { fill: #d64545; }
 .dev.cable-src rect.sel { fill: #0a5ed71f; stroke: #0a5ed7; stroke-width: 1.6; }
 .canvas-wrap.cable-mode { cursor: crosshair; }
 .cable-tool.active { border-color: var(--accent); background: #e8f0fd; }

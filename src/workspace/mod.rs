@@ -451,13 +451,26 @@ impl Workspace {
             if i > 0 {
                 o.push(',');
             }
+            let state = |id: &str, port: &str| {
+                let canonical = self.canonical_iface(id, port).unwrap_or_else(|_| port.to_string());
+                let state = self.port_state(id, &canonical);
+                if !state.admin_up {
+                    "red"
+                } else if state.line_up {
+                    "green"
+                } else {
+                    "amber"
+                }
+            };
             o.push_str(&format!(
-                "{{\"a\":{},\"aPort\":{},\"b\":{},\"bPort\":{},\"kind\":{}}}",
+                "{{\"a\":{},\"aPort\":{},\"b\":{},\"bPort\":{},\"kind\":{},\"aState\":{},\"bState\":{}}}",
                 s(&l.a),
                 s(&l.a_port),
                 s(&l.b),
                 s(&l.b_port),
-                s(&l.kind)
+                s(&l.kind),
+                s(state(&l.a, &l.a_port)),
+                s(state(&l.b, &l.b_port))
             ));
         }
     }

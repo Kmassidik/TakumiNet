@@ -12,6 +12,20 @@ fn json_is_balanced_and_complete() {
 }
 
 #[test]
+fn link_json_exposes_green_amber_and_red_endpoint_states() {
+    let ws = Workspace::new();
+    let json = ws.json();
+    let router_link = json.split("\"links\":[").nth(1).and_then(|tail| tail.split('}').next()).unwrap();
+    assert!(router_link.contains("\"aState\":\"green\",\"bState\":\"green\""), "{router_link}");
+
+    let mut ws = Workspace::new();
+    assert!(ws.set_port_up("router0", "GigabitEthernet0/0", false));
+    let json = ws.json();
+    let router_link = json.split("\"links\":[").nth(1).and_then(|tail| tail.split('}').next()).unwrap();
+    assert!(router_link.contains("\"aState\":\"red\",\"bState\":\"amber\""), "{router_link}");
+}
+
+#[test]
 fn add_names_and_counts_by_kind() {
     let mut ws = Workspace::new();
     let before = ws.devices.len();

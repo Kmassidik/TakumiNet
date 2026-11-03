@@ -39,6 +39,22 @@ function renderTopology() {
 
     const dx = b.x - a.x;
     const dy = b.y - a.y;
+    for (const [t, id, port, state] of [
+      [0.08, l.a, l.aPort, l.aState],
+      [0.92, l.b, l.bPort, l.bState],
+    ]) {
+      const led = node('circle', {
+        cx: a.x + dx * t,
+        cy: a.y + dy * t,
+        r: 4,
+        class: 'link-led',
+        'data-state': state || 'red',
+        'data-device': id,
+        'data-port': port,
+      });
+      s.appendChild(led);
+    }
+
     const len = Math.hypot(dx, dy) || 1;
     const nx = (-dy / len) * 11;
     const ny = (dx / len) * 11;
