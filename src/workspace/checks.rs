@@ -77,6 +77,17 @@ impl Workspace {
                     None => (false, format!("cannot resolve {} to IPv4", check.to), "Use a device with a configured IPv4 address.".to_string()),
                 }
             }
+            "nslookup" => {
+                let output = crate::cmd::run(self, &check.from, &format!("nslookup {}", check.to));
+                let answer = format!("Name:    {}\nAddress:  {}", check.to, check.expect);
+                let passed = output.contains(&answer);
+                let actual = if passed {
+                    format!("{} resolves to {}", check.to, check.expect)
+                } else {
+                    output.trim().to_string()
+                };
+                (passed, actual, format!("Run nslookup {} on {} and check its DNS server and A record.", check.to, self.name_of(&check.from)))
+            }
             "mac-table" => {
                 let expected = check.expect.parse::<usize>().unwrap_or(usize::MAX);
                 let rows = self.tables.mac_rows(&check.from);

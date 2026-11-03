@@ -209,6 +209,28 @@ fn l20_t4_routed_networks_deliver_ttl127_and_connected_routes() {
 }
 
 #[test]
+fn l21_t5_dns_name_resolves_and_opens_website_after_solution() {
+    let server = spawn(38_232);
+    let initial = server.open("t5");
+    assert!(initial.contains("\"id\":\"server0\"") && initial.contains("\"dnsRecords\":[]"), "{initial}");
+    assert_check(&server.checks(), "c1", false);
+    assert_check(&server.checks(), "c2", false);
+
+    server.set_ip("server0", "192.168.1.100", "", "");
+    server.set_ip("pc0", "192.168.1.10", "", "192.168.1.100");
+    server.set_ip("pc1", "192.168.1.11", "", "192.168.1.100");
+    server.post_ok("/api/devices/dns?id=server0&name=www.takumi.lab&ip=192.168.1.100");
+    server.post_ok("/api/devices/http?id=server0&body=Welcome%20to%20the%20Takumi%20lab");
+    let lookup = server.command("pc0", "nslookup www.takumi.lab");
+    assert!(lookup.contains("Name:    www.takumi.lab"), "{lookup}");
+    assert!(lookup.contains("Address:  192.168.1.100"), "{lookup}");
+    let page = server.post_ok("/api/webfetch?id=pc0&url=http%3A%2F%2Fwww.takumi.lab%2F");
+    assert!(page.contains("\"status\":200") && page.contains("\"title\":\"Server0\""), "{page}");
+    assert!(page.contains("Welcome to the Takumi lab"), "{page}");
+    assert_all_passed(&server.checks(), 2);
+}
+
+#[test]
 fn l16_every_native_template_loads_without_unresolved_devices_or_ports() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let server = spawn(38_227);

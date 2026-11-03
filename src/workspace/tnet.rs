@@ -564,6 +564,15 @@ fn validate_lesson_records(
                     "mac-table" if element.get("expect").unwrap_or("").parse::<usize>().is_err() => {
                         invalidate(valid, problems, index, element, "expect", "MAC-table expectation must be an unsigned integer");
                     }
+                    "nslookup" => {
+                        let name = element.get("to").unwrap_or("");
+                        if name.is_empty() || name.chars().any(|c| c.is_whitespace()) {
+                            invalidate(valid, problems, index, element, "to", "nslookup check requires one DNS name");
+                        }
+                        if crate::model::parse_ipv4(element.get("expect").unwrap_or("")).is_none() {
+                            invalidate(valid, problems, index, element, "expect", "nslookup expectation must be an IPv4 address");
+                        }
+                    }
                     "route" => {
                         let expect = element.get("expect").unwrap_or("");
                         let valid_route = expect.split_once('/').is_some_and(|(network, prefix)| {
