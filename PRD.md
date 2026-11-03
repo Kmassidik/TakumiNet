@@ -6,7 +6,7 @@ Read first: this file, then `task.md` (history, roadmap, audit) and `provness/pt
 
 ## 0. Rules for the builder (omp). These override defaults.
 1. Every task = failing test first, then code, then `cargo test` green, then commit and push to `main`. **No Co-Authored-By, no attribution line, ever.**
-2. **Install nothing** (no Bend, Kani, Lean, Playwright, npm, rustup targets). Ask in `QUESTIONS.md` first. Python 3 + Pillow, swift, cargo are present.
+2. **Install nothing** (no Bend, Kani, Lean, Playwright, npm, further rustup targets; wasm32-unknown-unknown is already installed). Ask the previous session first. Python 3 + Pillow, swift, cargo are present.
 3. **No Cisco file formats at all**: `.pkt/.pka/.pktz` support is removed (decision 2026-11-03). Our only file format is our own XML (`.tnet`).
 3b. **Own art and own code only.** Never copy, download or reference Cisco files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
 4. **Fix what you find.** If you see a bug, wrong output, broken image or console error while working: write a failing test, fix it, commit it separately (`fix: ...`), note it in `provness/pt-web/result.md`. Do not skip it, do not ask permission for fixes.
