@@ -10,7 +10,7 @@ Read first: this file, then `task.md` (history, roadmap, audit) and `provness/pt
 3. **No Cisco file formats at all**: `.pkt/.pka/.pktz` support is removed (decision 2026-11-03). Our only file format is our own XML (`.tnet`).
 3b. **Own art and own code only.** Never copy, download or reference Cisco files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
 4. **Fix what you find.** If you see a bug, wrong output, broken image or console error while working: write a failing test, fix it, commit it separately (`fix: ...`), note it in `provness/pt-web/result.md`. Do not skip it, do not ask permission for fixes.
-5. If you are unsure about *what the user wants*, or a step fails twice: stop, append the question and what you tried to `QUESTIONS.md`, tell the user, wait. Do not guess a product decision.
+5. **If you are confused, ask the previous Claude session (`takuminet-d6`), do not stop.** Send one specific question with what you tried (`SendMessage({to: "takuminet-d6", ...})` if your harness has it; otherwise print it on its own line starting `ASK-CLAUDE:` so the user can relay it). Then keep working on any task that is not blocked by the answer. A step that fails twice is also a reason to ask. Never guess a product decision, never wait idle.
 6. Claims need data. "Done" means a test or a measurement, shown. If something is unverified, say so.
 7. Code style: small functions, readable names, few comments, no dead code, no AI slop. Match the existing layout (`src/net`, `src/workspace`, `src/cli`, `src/http`, `src/storage`, `web/js`).
 8. Be token-frugal: ranged reads, no full-file rereads, no recaps.
@@ -121,7 +121,7 @@ Decision (owner, 2026-11-03): the Rust engine runs **in the browser as WebAssemb
 - **Step 4, service worker** `web/sw.js` caches `/`, `/js/*`, css, `/art3d/*`, `/sounds/*`, `/templates/*`, `engine.wasm`: full offline.
 - **Size/speed budget:** `engine.wasm` <= 3 MB uncompressed (release, `opt-level="z"`, `lto`, `panic="abort"`), cold start <= 1 s, a ping on template T4 <= 50 ms. Measure and record in `result.md`.
 - **Laws:** **L25** the same scripted lab gives byte-identical output through the native test harness and through WASM (run the 20 lab scripts in headless Chrome via the Chrome tool and compare to the native results stored as fixtures). **L34** offline reload (Chrome offline mode) shows the full working app, no console errors. **L35** two browser tabs have independent workspaces.
-- **Interim (only if WASM is blocked):** per-session workspaces on the server (session cookie, 30 min idle expiry, max 200 sessions, 5 MB each). Write to `QUESTIONS.md` before choosing this.
+- **Interim (only if WASM is blocked):** per-session workspaces on the server (session cookie, 30 min idle expiry, max 200 sessions, 5 MB each). Ask the previous session before choosing this.
 
 ## 10. P6: public face and housekeeping
 - About/licence page `web/about.html`: what this is, own code/art, how art was made (ChatGPT sheets + `tools/build_art.py`, `MANIFEST.json`), no Cisco account needed, "not affiliated with Cisco". Link in the Help menu.
@@ -136,5 +136,5 @@ Decision (owner, 2026-11-03): the Rust engine runs **in the browser as WebAssemb
 - Missing and allowed to request from the owner (ChatGPT, words only): template cover images, level badges, a "check passed" medal, an empty-state illustration. Write the prompts into `CHATGPT.md`; do not block on them (use existing icons meanwhile).
 
 ## 12. Task order and gates
-P0 -> P0b -> P1 -> P2 (T1..T5) -> P3 -> P4 -> P4b -> P5 -> P6. Gate after P2: owner reviews G1 live. Gate after P4b: owner reviews the engineer view live. Every task: laws added, `result.md` updated, `cargo test` green, pushed. Final report to the owner lists: laws and test names, commands, anything unverified, anything in `QUESTIONS.md`.
+P0 -> P0b -> P1 -> P2 (T1..T5) -> P3 -> P4 -> P4b -> P5 -> P6. Milestones (report in one short message, then keep going, do not stop): after P2 the owner can review G1 live; after P4b the engineer view. Every task: laws added, `result.md` updated, `cargo test` green, pushed. Final report to the owner lists: laws and test names, commands, anything unverified, any open `ASK-CLAUDE` questions.
 Owner reference: the real Packet Tracer is installed on the owner's Fedora laptop; use it only if the owner offers access. Otherwise rely on the protocol specs and the existing lab tests, and say what was not compared.
