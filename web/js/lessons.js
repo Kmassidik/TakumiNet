@@ -16,6 +16,11 @@ function setLessonMascot(name) {
   if (img) img.src = LESSON_MASCOTS[name] || LESSON_MASCOTS.wave;
 }
 
+function setGalleryMascot(name) {
+  const img = document.getElementById('gallery-mascot');
+  if (img) img.src = LESSON_MASCOTS[name] || LESSON_MASCOTS.wave;
+}
+
 function hideGallery() {
   const gallery = document.getElementById('lesson-gallery');
   if (gallery) gallery.hidden = true;
@@ -27,6 +32,7 @@ function renderGallery(payload = {}) {
   const note = document.getElementById('gallery-note');
   if (!gallery || !cards) return;
   gallery.hidden = false;
+  setGalleryMascot(payload.error ? 'error' : 'wave');
   const templates = [...(payload.templates || [])].sort((a, b) => a.id.localeCompare(b.id));
   const elements = templates.map((template) => {
     const card = document.createElement('button');
@@ -71,6 +77,7 @@ async function showGallery() {
   const gallery = document.getElementById('lesson-gallery');
   const note = document.getElementById('gallery-note');
   if (gallery) gallery.hidden = false;
+  setGalleryMascot('think');
   if (note) note.textContent = 'Loading lessons…';
   renderGallery(await getJson('/api/templates'));
 }

@@ -14,6 +14,8 @@ P4 Chrome also caught the new packet at SVG `(0,0)` before its first animation f
 
 P4 Chrome New blank produced an empty SVG with no empty-state mascot. `an empty logical workspace shows the sleeping mascot and a useful next step` failed before the fix. Chrome then showed the sleeping mascot and “No devices yet — Drop a device here to begin,” with zero console errors or broken images.
 
+P4 Chrome kept the waving mascot during gallery loading and errors. `gallery loading and errors use distinct mascot states` failed before the fix; `loading mascot is preloaded before the gallery can replace it` also caught and prevented an aborted-image console error. Chrome then showed think while loading, wave after loading, and error on failure with zero console errors or broken images.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |

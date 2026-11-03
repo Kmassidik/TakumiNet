@@ -27,7 +27,7 @@ class Element {
 
 function harness(responses = {}) {
   const ids = ['lesson-gallery', 'gallery-cards', 'gallery-note', 'lesson-panel',
-    'lesson-mascot', 'lesson-title', 'lesson-goal', 'lesson-meta', 'lesson-steps',
+    'gallery-mascot', 'lesson-mascot', 'lesson-title', 'lesson-goal', 'lesson-meta', 'lesson-steps',
     'lesson-checks', 'lesson-hint', 'check-work'];
   const elements = Object.fromEntries(ids.map((id) => [id, new Element()]));
   const sounds = [];
@@ -71,6 +71,23 @@ test('gallery renders native lesson cards with original icons and start actions'
   cards.forEach(visit);
   assert.ok(images.every((src) => src === '/art3d/misc/network.png'));
   assert.equal(typeof cards[0].onclick, 'function');
+});
+
+test('gallery loading and errors use distinct mascot states', async () => {
+  let resolveTemplates;
+  const response = new Promise((resolve) => { resolveTemplates = resolve; });
+  const { context, elements } = harness({ '/api/templates': response });
+  const showing = context.showGallery();
+  assert.match(elements['gallery-mascot'].src || '', /think\.png$/);
+  assert.equal(elements['gallery-note'].textContent, 'Loading lessons…');
+
+  resolveTemplates({ templates: [] });
+  await showing;
+  assert.match(elements['gallery-mascot'].src, /wave\.png$/);
+
+  context.renderGallery({ error: 'Lessons unavailable' });
+  assert.match(elements['gallery-mascot'].src, /error\.png$/);
+  assert.equal(elements['gallery-note'].textContent, 'Lessons unavailable');
 });
 
 test('blank workspaces hide the lesson panel and lessons render steps and results', () => {
