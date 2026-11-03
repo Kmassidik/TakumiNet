@@ -38,9 +38,13 @@ function applicationHarness(serverWorkspace, fetchedWorkspace = workspace(50)) {
   const listeners = {};
   const calls = [];
   const notices = [];
+  const timers = new Map();
+  let nextTimer = 1;
   const window = {
     localStorage,
     sessionStorage,
+    setTimeout(fn, delay) { const id = nextTimer++; timers.set(id, { fn, delay }); return id; },
+    clearTimeout(id) { timers.delete(id); },
     addEventListener(name, fn) { listeners[name] = fn; },
     fetch: async () => ({ ok: true, json: async () => fetchedWorkspace }),
   };
@@ -66,7 +70,12 @@ function applicationHarness(serverWorkspace, fetchedWorkspace = workspace(50)) {
   `, context);
   context.calls = calls;
   vm.runInContext(source, context, { filename: 'web/js/recovery.js' });
-  return { context, window, localStorage, sessionStorage, listeners, calls, notices };
+  const flushTimers = () => {
+    const pending = [...timers.values()];
+    timers.clear();
+    pending.forEach(({ fn }) => fn());
+  };
+  return { context, window, localStorage, sessionStorage, listeners, calls, notices, timers, flushTimers };
 }
 
 test('autosave rotates current and previous without replacing last-known-good', () => {
@@ -246,4 +255,41 @@ test('open-anyway responses never replace last-known-good', async () => {
   const response = await app.window.fetch('/api/import?openAnyway=true', { method: 'POST' });
   await response.json();
   assert.equal(JSON.parse(app.localStorage.getItem(keys.good)).devices[0].id, 'pc4');
+});
+
+test('workspace edits autosave only the latest snapshot after a one-second debounce', async () => {
+  const app = applicationHarness(workspace(0));
+  const keys = vm.runInContext('RECOVERY_KEYS', app.context);
+  await vm.runInContext('boot()', app.context);
+  vm.runInContext(`setData(${JSON.stringify(workspace(1))}); setData(${JSON.stringify(workspace(2))});`, app.context);
+
+  assert.equal(JSON.parse(app.localStorage.getItem(keys.current)).devices[0].id, 'pc0');
+  assert.equal(app.timers.size, 1);
+  assert.equal([...app.timers.values()][0].delay, 1000);
+  app.flushTimers();
+  assert.equal(JSON.parse(app.localStorage.getItem(keys.current)).devices[0].id, 'pc2');
+  assert.equal(JSON.parse(app.localStorage.getItem(keys.previous)).devices[0].id, 'pc0');
+});
+
+test('boot offers Restore last session and a decline keeps the server workspace', async () => {
+  const app = applicationHarness(workspace(9));
+  const keys = vm.runInContext('RECOVERY_KEYS', app.context);
+  app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
+  const prompts = [];
+  app.window.confirm = (message) => { prompts.push(message); return false; };
+
+  await vm.runInContext('boot()', app.context);
+  assert.equal(prompts.length, 1);
+  assert.match(prompts[0], /Restore last session/);
+  assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc9');
+});
+
+test('accepting Restore last session loads the browser snapshot', async () => {
+  const app = applicationHarness(workspace(9));
+  const keys = vm.runInContext('RECOVERY_KEYS', app.context);
+  app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
+  app.window.confirm = () => true;
+
+  await vm.runInContext('boot()', app.context);
+  assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc3');
 });

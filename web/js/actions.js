@@ -14,6 +14,57 @@ function reportLoadProblems(response) {
   return '';
 }
 
+function fileActionError(message) {
+  status(message || 'Import failed', true);
+  if (typeof setLessonMascot === 'function') setLessonMascot('error');
+  sfx('errorMsg');
+}
+
+function importProblemMessage(response, fallback = 'Import failed') {
+  const problems = (response && response.problems || [])
+    .map((problem) => problem.text || problem.message)
+    .filter(Boolean);
+  return problems.join('\n') || (response && response.error) || fallback;
+}
+
+/* Shared by the picker and workspace drop. The server parses the whole file
+   before replacing its workspace; the client likewise waits for success before
+   touching the rendered snapshot or its current filename. */
+async function importTnetFile(file) {
+  if (!file) return false;
+  if (!/\.tnet$/i.test(file.name || '')) {
+    fileActionError(`“${file.name || 'This file'}” is not a TakumiNet file. Choose a .tnet file.`);
+    return false;
+  }
+  try {
+    const body = await file.text();
+    const send = async (openAnyway = false) => {
+      const res = await fetch(`/api/import${openAnyway ? '?openAnyway=true' : ''}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/xml; charset=utf-8' },
+        body,
+      });
+      return { res, json: await res.json() };
+    };
+    let { res, json: response } = await send();
+    if (confirmOpenAnyway(response)) ({ res, json: response } = await send(true));
+    if (!res.ok || response.error) throw new Error(importProblemMessage(response));
+    setData(response);
+    currentName = file.name.replace(/\.tnet$/i, '');
+    currentTemplate = null;
+    simCursor = -1;
+    if (typeof resetLessonState === 'function') resetLessonState();
+    if (typeof renderLesson === 'function') renderLesson();
+    if (typeof hideGallery === 'function') hideGallery();
+    status(reportLoadProblems(response) || `Imported ${file.name}`);
+    sfx('newScenarioButton');
+    return true;
+  } catch (error) {
+    fileActionError(error.message || 'Import failed');
+    return false;
+  }
+}
+
 const ACTIONS = {
   async new() {
     const gallery = document.getElementById('lesson-gallery');
@@ -59,37 +110,8 @@ const ACTIONS = {
   async import() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.tnet,application/xml';
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (!file) return;
-      try {
-        const body = await file.text();
-        const send = async (openAnyway = false) => {
-          const res = await fetch(`/api/import${openAnyway ? '?openAnyway=true' : ''}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/xml; charset=utf-8' },
-            body,
-          });
-          return { res, json: await res.json() };
-        };
-        let { res, json: r } = await send();
-        if (confirmOpenAnyway(r)) ({ res, json: r } = await send(true));
-        if (!res.ok || r.error) throw new Error(r.error || 'import failed');
-        setData(r);
-        currentName = file.name.replace(/\.tnet$/i, '');
-        currentTemplate = null;
-        simCursor = -1;
-        if (typeof resetLessonState === 'function') resetLessonState();
-        if (typeof renderLesson === 'function') renderLesson();
-        if (typeof hideGallery === 'function') hideGallery();
-        status(reportLoadProblems(r) || `Imported ${file.name}`);
-        sfx('newScenarioButton');
-      } catch (e) {
-        status(e.message || 'import failed', true);
-        sfx('errorMsg');
-      }
-    };
+    input.accept = '.tnet';
+    input.onchange = () => importTnetFile(input.files[0]);
     input.click();
   },
   async export() {

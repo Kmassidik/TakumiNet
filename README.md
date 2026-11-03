@@ -55,9 +55,13 @@ in `src/storage/xml.rs`; the table-driven record converter is
 
 - **Save / Open** manage named files under `topologies/` through `POST
   /api/save?name=`, `POST /api/load?name=` and `GET /api/saves`.
-- **Export** downloads the current workspace from `GET /api/export`.
-- **Import** sends UTF-8 `.tnet` XML to `POST /api/import` and replaces the
-  workspace only when parsing succeeds.
+- **Export** downloads `<name>.tnet` through a browser Blob using
+  `GET /api/export`; it does not write a server-side save.
+- **Import** accepts `.tnet` files from the File picker or a workspace drop,
+  sends UTF-8 XML to `POST /api/import`, and replaces the workspace only when
+  parsing succeeds. Validation errors are shown without discarding current work.
+- **Browser recovery** autosaves the latest edit after a one-second debounce and
+  offers to restore the last session on reload. Storage failures are non-fatal.
 
 The previous `.ptw` text format has a read-only compatibility loader. New files
 are always `.tnet`.

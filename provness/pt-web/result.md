@@ -17,6 +17,16 @@ Checked on 2026-11-03. No proof tool has been run: Bend is not installed.
 | L11 | tested | `xml_escape_round_trips_2000_random_strings`; `cargo test` on 2026-11-03 |
 | L12 | tested | `malformed_tnet_truncations_and_random_bytes_never_panic`; `cargo test` on 2026-11-03 |
 | L13 | tested | `legacy_ptw_loads_to_the_same_workspace_as_tnet`; `cargo test` on 2026-11-03 |
+| L22 | tested | `l22_exported_text_import_restores_identical_http_workspace`; Blob download JS test; Chrome export/picker round trip on 2026-11-03 |
+| L23 | tested | `l23_invalid_http_import_never_changes_the_workspace`; picker rejection/problem JS tests; Chrome bad-file drops preserved byte-identical JSON on 2026-11-03 |
+
+P3 browser native-file verification on 2026-11-03:
+
+- Failing first: the new browser suite reported 6 failures before implementation (picker extension filtering, pre-read rejection, readable problems/mascot, file drop, one-second debounce, and Restore offer). The two new focused HTTP law tests passed against the already transactional parser before UI work.
+- `cargo test`: **218 passed, 0 failed** across 6 suites.
+- `node --test tests/js/*.test.js`: **34 passed, 0 failed**.
+- Actual Google Chrome 2026-11-03 smoke: Blob export downloaded `untitled.tnet` (37 bytes), native picker import produced identical workspace JSON, workspace drop imported T2 with 4 devices and 3 links, `.txt` and malformed `.tnet` drops both preserved workspace JSON and displayed the error mascot/readable problem, and the final clean run had **0 console errors**.
+- Chrome also observed the one-second autosave containing all 4 dropped devices, displayed “Restore last session?”, and restored identical workspace JSON after reload. No P4 work was started.
 
 P0 native XML verification on 2026-11-03:
 

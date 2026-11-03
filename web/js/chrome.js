@@ -104,6 +104,12 @@ function wireCanvasDrop() {
   wrap.addEventListener('drop', async (e) => {
     e.preventDefault();
     wrap.classList.remove('drop-target');
+    const files = e.dataTransfer.files;
+    if (files && files.length) {
+      if (files.length === 1) await importTnetFile(files[0]);
+      else fileActionError('Drop one .tnet file at a time.');
+      return;
+    }
     const model = e.dataTransfer.getData('text/plain');
     if (!model) return;
     const p = toSvg(e);

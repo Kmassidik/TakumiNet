@@ -173,8 +173,9 @@ function installBrowserRecovery() {
   if (typeof window === 'undefined' || window.__takumiRecoveryInstalled) return;
   window.__takumiRecoveryInstalled = true;
 
-  const snapshots = new BrowserSnapshotStore(window.localStorage);
-  const history = new SessionWorkspaceHistory(window.sessionStorage);
+  const storage = (name) => { try { return window[name]; } catch (_) { return null; } };
+  const snapshots = new BrowserSnapshotStore(storage('localStorage'));
+  const history = new SessionWorkspaceHistory(storage('sessionStorage'));
   const originalSetData = setData;
   const originalApi = api;
   const originalGetJson = getJson;
@@ -183,6 +184,25 @@ function installBrowserRecovery() {
   let booting = false;
   let recoveredWorkspace = null;
   let suspendSetData = false;
+  let autosaveTimer = null;
+  let pendingSnapshot = null;
+
+  const flushAutosave = () => {
+    if (autosaveTimer !== null && typeof window.clearTimeout === 'function') {
+      window.clearTimeout(autosaveTimer);
+    }
+    autosaveTimer = null;
+    if (pendingSnapshot) snapshots.save(pendingSnapshot);
+    pendingSnapshot = null;
+  };
+  const scheduleAutosave = (workspace) => {
+    pendingSnapshot = workspace;
+    if (autosaveTimer !== null && typeof window.clearTimeout === 'function') {
+      window.clearTimeout(autosaveTimer);
+    }
+    if (typeof window.setTimeout !== 'function') { flushAutosave(); return; }
+    autosaveTimer = window.setTimeout(flushAutosave, 1000);
+  };
 
   setData = function (json, options = {}) {
     if (suspendSetData) return;
@@ -193,12 +213,13 @@ function installBrowserRecovery() {
         return;
       }
       originalSetData(recovered.workspace);
+      scheduleAutosave(recovered.workspace);
       history.restore(recovered.workspace);
       status(recovered.notice || 'Recovered the last valid browser snapshot.', true);
       return;
     }
     originalSetData(json);
-    snapshots.save(json);
+    scheduleAutosave(json);
     if (!options.skipHistory) history.record(json);
   };
 
@@ -229,21 +250,26 @@ function installBrowserRecovery() {
 
   boot = async function () {
     const recovered = snapshots.recover();
-    recoveredWorkspace = recovered.workspace;
+    let restore = recovered.workspace;
+    if (recovered.source === 'current' && typeof window.confirm === 'function' &&
+        !window.confirm('Restore last session? Your latest browser workspace can replace the server workspace.')) {
+      restore = null;
+    }
+    recoveredWorkspace = restore;
     booting = true;
     try { await originalBoot(); } finally { booting = false; recoveredWorkspace = null; }
 
     if (validWorkspaceSnapshot(data)) {
-      if (!recovered.workspace) {
+      if (!restore) {
         snapshots.save(data);
-        if (!readWorkspace(window.localStorage, RECOVERY_KEYS.good).workspace) {
+        if (!readWorkspace(snapshots.storage, RECOVERY_KEYS.good).workspace) {
           snapshots.markKnownGood(data);
         }
       }
       history.restore(data);
     }
-    if (recovered.notice) status(recovered.notice, true);
-    try { window.localStorage.setItem(RECOVERY_KEYS.active, '1'); } catch (_) {}
+    if (restore && recovered.notice) status(recovered.notice, true);
+    try { snapshots.storage.setItem(RECOVERY_KEYS.active, '1'); } catch (_) {}
   };
 
   // Successful native/XML load and import responses are the only updates to
@@ -269,7 +295,8 @@ function installBrowserRecovery() {
   }
 
   const cleanExit = () => {
-    try { window.localStorage.removeItem(RECOVERY_KEYS.active); } catch (_) {}
+    flushAutosave();
+    try { snapshots.storage.removeItem(RECOVERY_KEYS.active); } catch (_) {}
   };
   window.addEventListener('pagehide', cleanExit);
   window.addEventListener('beforeunload', cleanExit);

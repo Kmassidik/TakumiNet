@@ -1,3 +1,10 @@
+# P3 browser native files result
+
+- File > Export downloads `<name>.tnet` with a Blob and no server-side save. The picker accepts only `.tnet`; picker and workspace drop share one atomic import path, show every readable validation problem, and use the error mascot without changing current data on failure.
+- Browser edits autosave the latest snapshot after a one-second debounce, flush on page exit, and offer “Restore last session” on reload. Storage access and calls remain guarded.
+- L22 and L23 are registered in `provness/pt-web/LAWS.md`. `cargo test`: **218 passed, 0 failed**; `node --test tests/js/*.test.js`: **34 passed, 0 failed**.
+- Actual Chrome export/picker round trip matched workspace JSON, T2 drop loaded 4 devices/3 links, `.txt` and malformed `.tnet` drops were atomic with readable mascot errors, and autosave/reload restored identical JSON. Final clean run: **0 console errors**. No P4 work was started.
+
 # P2 beginner templates result
 
 - `docs/templates-next.md` contains prompts only for T6 VLANs, T7 router-on-a-stick, T8 static routes, T9 ACLs, and T10 NAT. No T6–T10 template or P3 work was started.

@@ -517,9 +517,10 @@ fn e2e_save_and_load_round_trips_configuration() {
 }
 
 #[test]
-fn e2e_native_export_import_round_trip() {
+fn l22_exported_text_import_restores_identical_http_workspace() {
     let s = spawn(38_226);
     s.post("/api/reset");
+    let (_, _, before) = s.get("/api/workspace");
     let (status, head, exported) = s.get_raw("/api/export");
     assert_eq!(status, 200);
     assert!(head.contains("application/xml"), "{head}");
@@ -529,8 +530,29 @@ fn e2e_native_export_import_round_trip() {
     let (status, _, imported) = s.post_body("/api/import", text.as_bytes());
     assert_eq!(status, 200, "{imported}");
     assert!(!imported.contains("\"error\""), "{imported}");
+    let (_, _, after) = s.get("/api/workspace");
+    assert_eq!(after, before, "GET workspace must match after exported-text import");
     let (_, _, again) = s.get_raw("/api/export");
     assert_eq!(again, text.as_bytes());
+}
+
+#[test]
+fn l23_invalid_http_import_never_changes_the_workspace() {
+    let s = spawn(38_227);
+    s.post("/api/reset");
+    s.post("/api/devices?model=PC-PT&x=700&y=450");
+    let (_, _, before) = s.get("/api/workspace");
+
+    for invalid in [
+        &b"<takuminet version=\"1\"><device id=\"pc9\" kind=\"pc\">"[..],
+        &b"<takuminet version=\"1\"><device id=\"pc0\" kind=\"pc\"/><device id=\"pc0\" kind=\"pc\"/></takuminet>"[..],
+        &[0xff, 0xfe, 0x00, 0x9c][..],
+    ] {
+        let (_, _, response) = s.post_body("/api/import", invalid);
+        assert!(response.contains("\"error\""), "{response}");
+        let (_, _, after) = s.get("/api/workspace");
+        assert_eq!(after, before, "invalid import partially changed workspace");
+    }
 }
 
 #[test]
