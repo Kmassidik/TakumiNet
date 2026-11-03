@@ -58,3 +58,12 @@ P0 native XML verification on 2026-11-03:
 - Repository policy: `removed_vendor_formats_are_not_named_in_the_repo` passed; `frontend_has_no_vendor_art_references` remained at zero. `Cargo.lock` contains only `pt-web`.
 
 No Bend or other proof tool was run.
+
+C0 UI verification, 2026-11-03 (Bun 1.4.4, Node, cargo):
+
+- `bun test tests/ts`: 12 pass, 0 fail (modal stack, modal, button, toolbar, bundle freshness).
+- `./node_modules/.bin/tsc -p tsconfig.json`: no errors.
+- `node --test tests/js/*.test.js`: 63 pass, 0 fail.
+- `cargo test`: all suites pass, 0 failures (includes L46 404 check).
+- Real browser: NOT RUN. The Claude in Chrome extension was not connected, so the modal, toolbar and dialog stacking have no browser evidence yet.
+- Laws L41, L42, L45, L46 recorded in LAWS.md. Laws L36 to L40, L43 and L44 remain open.

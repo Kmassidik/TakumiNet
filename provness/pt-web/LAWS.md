@@ -42,5 +42,19 @@ Each law names the Rust that keeps it and the test that covers it today.
 | L34 | After one online load, Chrome offline mode reloads the complete application and its WASM engine, opens templates and runs real labs with no console or page errors. | `web/sw.js`, `web/js/engine.js`, `src/http/static_routes.rs` | `service_worker.test.js`; real Chrome offline solved-T4 run |
 | L35 | Two browser tabs own independent WASM workspaces, history and CLI state; browser named-save/load in one tab does not mutate the other. | `src/engine.rs`, `web/js/engine.js` | `raw_engine_instances_and_embedded_templates_are_independent`; real Chrome two-tab run |
 
+## C0 UI laws (PRD-UI section 7)
+
+| Law | Claim | Where enforced | Executable check |
+|-----|-------|----------------|------------------|
+| L41 | Modal stack: Escape closes only the top dialog, focus returns to its opener, a dialog hidden by its own control leaves the stack without its close handler. | `web/ts/ui/modal_stack.ts`, `web/ts/ui/dialogs.ts` | `tests/ts/modal_stack.test.ts` (4 tests); `tests/ts/modal.test.ts` (OK, Escape, text value, cancel). Focus trap and backdrop focus are NOT covered. |
+| L42 | Toolbar buttons render from the list with icon, action and title; separators divide groups; re-render replaces old buttons. | `web/ts/ui/toolbar.ts`, `web/ts/ui/button.ts` | `tests/ts/toolbar.test.ts` (2 tests); `tests/js/ui_placeholders.test.js` (every toolbar action exists) |
+| L45 | The shipped `web/js/ui.js` is exactly the build of `web/ts/`. | `package.json` build script | `tests/ts/bundle_fresh.test.ts` |
+| L46 | A missing or refused static file answers 404, never 200. | `src/http/static_routes.rs`, `src/http/util.rs` | `e2e_missing_or_refused_static_files_are_404` |
+
+Not yet covered by any law: L36 (hit-test), L37 (camera), L38 (scene purity),
+L39 (draw determinism), L40 (sidebar), L43 (one layout rule), L44 (200-device
+redraw timing). Real-browser checks of the modal and toolbar are not run:
+the Chrome extension was not connected.
+
 Open items: L2 and L8 need dedicated tests, L3 and L6 need property tests
 over many inputs, not one example.
