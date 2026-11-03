@@ -7,37 +7,8 @@ use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
-#[allow(dead_code, unused_variables)]
-#[path = "../src/storage/ptfile.rs"]
-mod ptfile;
-
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-}
-
-fn asset_root() -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("ASSET_ROOT") {
-        let pb = PathBuf::from(p);
-        if pb.is_dir() {
-            return Some(pb);
-        }
-    }
-    let intake = repo_root().join("intake");
-    let mut best: Option<(String, PathBuf)> = None;
-    if let Ok(rd) = std::fs::read_dir(&intake) {
-        for e in rd.flatten() {
-            let stamp = e.file_name().to_string_lossy().to_string();
-            for leaf in ["appimage/opt/pt", "tree/opt/pt", "root/opt/pt"] {
-                let cand = e.path().join(leaf);
-                if cand.is_dir() {
-                    if best.as_ref().map_or(true, |(n, _)| stamp > *n) {
-                        best = Some((stamp.clone(), cand));
-                    }
-                }
-            }
-        }
-    }
-    best.map(|(_, p)| p)
 }
 
 struct Server {
@@ -61,6 +32,10 @@ impl Server {
     }
     fn get_raw(&self, path: &str) -> (u16, String, Vec<u8>) {
         request_raw(self.port, "GET", path)
+    }
+    fn post_body(&self, path: &str, body: &[u8]) -> (u16, String, String) {
+        let (status, head, body) = request_with_body(self.port, path, body);
+        (status, head, String::from_utf8_lossy(&body).into_owned())
     }
 }
 
@@ -91,6 +66,23 @@ fn request_raw(port: u16, method: &str, path: &str) -> (u16, String, Vec<u8>) {
     (status, head, raw[split..].to_vec())
 }
 
+fn request_with_body(port: u16, path: &str, body: &[u8]) -> (u16, String, Vec<u8>) {
+    let mut stream = TcpStream::connect(("127.0.0.1", port)).expect("connect");
+    stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
+    let req = format!(
+        "POST {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: application/xml\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        body.len()
+    );
+    stream.write_all(req.as_bytes()).expect("write headers");
+    stream.write_all(body).expect("write body");
+    let mut raw = Vec::new();
+    stream.read_to_end(&mut raw).expect("read");
+    let split = raw.windows(4).position(|w| w == b"\r\n\r\n").map(|p| p + 4).unwrap_or(raw.len());
+    let head = String::from_utf8_lossy(&raw[..split]).into_owned();
+    let status = head.split_whitespace().nth(1).and_then(|s| s.parse().ok()).unwrap_or(0);
+    (status, head, raw[split..].to_vec())
+}
+
 fn spawn(default_port: u16) -> Server {
     let port: u16 = std::env::var("E2E_PORT")
         .ok()
@@ -103,10 +95,6 @@ fn spawn(default_port: u16) -> Server {
         .env("WEB_ROOT", repo_root().join("web"))
         .stdout(Stdio::null())
         .stderr(Stdio::null());
-    if let Some(root) = asset_root() {
-        cmd.env("ASSET_ROOT", root);
-    }
-
     let child = cmd.spawn().expect("spawn server");
     let server = Server { child, port };
 
@@ -213,125 +201,6 @@ fn e2e_workspace_editing_and_simulation() {
     assert_eq!(count(&body, "\"id\":\""), 7);
     let (_, _, body) = s.post("/api/reset");
     assert_eq!(count(&body, "\"id\":\""), 7);
-}
-
-#[test]
-fn e2e_assets_and_pkt_import() {
-    let Some(root) = asset_root() else {
-        eprintln!("skipping: no asset tree found");
-        return;
-    };
-    let s = spawn(38_172);
-
-    let (status, _, body) = s.get("/api/status");
-    assert_eq!(status, 200);
-    assert!(body.contains("\"exists\":true"), "{body}");
-
-    // a real asset byte stream
-    let (status, head, _) = s.get("/assets/art/app.png");
-    assert_eq!(status, 200);
-    assert!(head.contains("image/png"), "{head}");
-
-    // traversal is refused
-    let (status, _, _) = s.get("/assets/../Cargo.toml");
-    assert_eq!(status, 404);
-
-    // pkt inventory
-    let (status, _, body) = s.get("/api/pkt/list");
-    assert_eq!(status, 200);
-    assert!(body.contains("\"files\":["), "{body}");
-    let files: Vec<String> = body
-        .split("\"files\":[\"")
-        .nth(1)
-        .unwrap_or("")
-        .split("\"],\"")
-        .next()
-        .unwrap_or("")
-        .split("\",\"")
-        .map(|s| s.to_string())
-        .collect();
-    assert!(!files.is_empty(), "no .pkt files listed");
-
-    // open the first real save and check it produced a topology
-    let first = files[0].replace(' ', "%20");
-    let (status, _, body) = s.post(&format!("/api/pkt/open?path={first}"));
-    assert_eq!(status, 200);
-    assert!(body.contains("\"devices\":["), "{body}");
-    let devices = count(&body, "\"id\":\"");
-    assert!(devices >= 1, "import produced no devices: {body}");
-    assert!(body.contains("\"kind\":\""), "{body}");
-
-    // restore
-    let (_, _, body) = s.post("/api/reset");
-    assert_eq!(count(&body, "\"id\":\""), 7);
-
-    // the asset root really is the unpacked tree
-    assert!(root.join("art/app.png").is_file());
-}
-
-#[test]
-fn e2e_pkt_export_preserves_original_document() {
-    let Some(root) = asset_root() else {
-        eprintln!("skipping: no asset tree found");
-        return;
-    };
-    let s = spawn(38_225);
-    let (_, _, body) = s.get("/api/pkt/list");
-    let first = body
-        .split("\"files\":[\"")
-        .nth(1)
-        .and_then(|tail| tail.split('"').next())
-        .expect("a corpus save");
-    let original = std::fs::read(root.join("saves").join(first)).expect("read corpus save");
-    let original_xml = ptfile::decrypt(&original).expect("decrypt corpus save");
-    let encoded_path = first.replace(' ', "%20");
-    let open = || {
-        let (status, _, body) = s.post(&format!("/api/pkt/open?path={encoded_path}"));
-        assert_eq!(status, 200);
-        assert!(!body.contains("\"error\""), "{body}");
-    };
-    let assert_unavailable = |why: &str| {
-        let (_, head, body) = s.get_raw("/api/pkt/export");
-        assert!(head.contains("application/json"), "{why}: {head}");
-        assert!(
-            String::from_utf8_lossy(&body).contains("no unchanged opened .pkt"),
-            "{why}: {}",
-            String::from_utf8_lossy(&body)
-        );
-    };
-
-    open();
-    let (status, head, exported) = s.get_raw("/api/pkt/export");
-    assert_eq!(status, 200);
-    assert!(head.contains("application/octet-stream"), "{head}");
-    let exported_xml = ptfile::decrypt(&exported).expect("decrypt exported save");
-    assert_eq!(exported_xml, original_xml, "export changed the decoded XML bytes");
-
-    let (_, _, body) = s.post("/api/devices?model=PC-PT&x=700&y=450");
-    assert!(!body.contains("\"error\""), "{body}");
-    assert_unavailable("mutation retained stale export");
-
-    open();
-    s.post("/api/reset");
-    assert_unavailable("new workspace retained stale export");
-
-    open();
-    let (_, _, body) = s.post("/api/save?name=e2e-pkt-export");
-    assert!(!body.contains("\"error\""), "{body}");
-    let (_, head, exported) = s.get_raw("/api/pkt/export");
-    assert!(head.contains("application/octet-stream"), "{head}");
-    assert_eq!(ptfile::decrypt(&exported).unwrap(), original_xml);
-    s.post("/api/load?name=e2e-pkt-export");
-    assert_unavailable(".ptw load retained stale export");
-
-    open();
-    s.post("/api/undo");
-    assert_unavailable("undo retained stale export");
-
-    open();
-    s.post("/api/undo");
-    s.post("/api/redo");
-    assert_unavailable("redo retained stale export");
 }
 
 #[test]
@@ -631,6 +500,10 @@ fn e2e_save_and_load_round_trips_configuration() {
 
     let (status, _, _) = s.post("/api/save?name=e2e");
     assert_eq!(status, 200);
+    let saved = std::fs::read_to_string(repo_root().join("topologies/e2e.tnet")).unwrap();
+    assert!(saved.starts_with("<takuminet version=\"1\">"));
+    let (_, _, saves) = s.get("/api/saves");
+    assert!(saves.contains("\"e2e\""), "{saves}");
     let (status, _, _) = s.post("/api/reset");
     assert_eq!(status, 200);
 
@@ -641,6 +514,23 @@ fn e2e_save_and_load_round_trips_configuration() {
     assert_eq!(status, 200);
     assert!(body.contains("banner motd ^authorised access only^"), "{body}");
     assert!(body.contains("password cisco"), "{body}");
+}
+
+#[test]
+fn e2e_native_export_import_round_trip() {
+    let s = spawn(38_226);
+    s.post("/api/reset");
+    let (status, head, exported) = s.get_raw("/api/export");
+    assert_eq!(status, 200);
+    assert!(head.contains("application/xml"), "{head}");
+    let text = String::from_utf8(exported).unwrap();
+    assert!(text.starts_with("<takuminet version=\"1\">"));
+    s.post("/api/devices/delete?id=pc0");
+    let (status, _, imported) = s.post_body("/api/import", text.as_bytes());
+    assert_eq!(status, 200, "{imported}");
+    assert!(!imported.contains("\"error\""), "{imported}");
+    let (_, _, again) = s.get_raw("/api/export");
+    assert_eq!(again, text.as_bytes());
 }
 
 #[test]
@@ -766,27 +656,6 @@ fn e2e_cli_completion_follows_the_session_mode() {
     let (status, _, body) = s.post("/api/complete?id=router0&line=sh");
     assert_eq!(status, 200, "{body}");
     assert!(body.contains("show running-config"), "{body}");
-}
-
-#[test]
-fn e2e_catalog_lists_models_with_labels() {
-    let s = spawn(38_214);
-
-    let (status, head, body) = s.get("/api/catalog");
-    assert_eq!(status, 200, "{body}");
-    assert!(head.contains("application/json"), "{head}");
-    assert!(body.contains("\"models\":["), "{body}");
-
-    let models = count(&body, "\"label\":\"");
-    if models == 0 {
-        // No asset tree (or one without decoded templates): an empty list.
-        assert!(body.contains("\"models\":[]"), "{body}");
-        eprintln!("skipping model count: no templates unpacked");
-    } else {
-        assert!(models >= 50, "catalog only lists {models} models: {body}");
-        assert_eq!(models, count(&body, "\"kind\":\""), "{body}");
-        assert_eq!(models, count(&body, "\"name\":\""), "{body}");
-    }
 }
 
 #[test]

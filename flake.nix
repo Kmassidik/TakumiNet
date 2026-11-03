@@ -1,5 +1,5 @@
 {
-  description = "pt-web — browser asset viewer for a Packet Tracer tree";
+  description = "TakumiNet — clean-room browser network emulator";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -33,7 +33,7 @@
           packages = [ pkgs.cargo pkgs.rustc pkgs.rustfmt pkgs.clippy ];
           shellHook = ''
             export PORT=3000
-            echo "pt-web dev shell — cargo run (assets auto-discovered under ./intake)"
+            echo "TakumiNet dev shell — cargo run"
           '';
         };
       });

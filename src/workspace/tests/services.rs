@@ -25,7 +25,7 @@ fn ftp_ntp_syslog_and_aaa_work_and_persist() {
     assert!(ws.aaa_add_user("server0", "bob", "").is_err());
 
     ws.ftp_put("server0", "b.txt", "x").unwrap();
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.ftp_list("server0"), vec!["b.txt"]);
     assert_eq!(back.ntp_status("pc0").unwrap().0, "192.168.2.20");
     assert_eq!(back.syslog_list("pc0").len(), 1);
@@ -48,7 +48,7 @@ fn port_security_limits_macs_and_channel_groups_persist() {
     assert_eq!(groups[0].0, 1);
     assert_eq!(groups[0].1.len(), 2);
 
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.port_security_rows("switch0")[0].2, 1);
     assert_eq!(back.channel_groups("switch0")[0].1.len(), 2);
 }
@@ -73,7 +73,7 @@ fn acl_binding_denies_and_persists() {
     ws.send_pdu("pc0", "server0").unwrap();
 
     ws.acl_bind("router0", "g0/0", 10, true).unwrap();
-    let mut back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let mut back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert!(back
         .send_pdu("pc0", "server0")
         .unwrap_err()
@@ -115,7 +115,7 @@ fn nat_overload_translates_and_persists() {
     assert_eq!(hops.last().unwrap().src_ip, parse_ipv4("192.168.2.1").unwrap());
     assert_eq!(hops.last().unwrap().dst_ip, parse_ipv4("192.168.2.20").unwrap());
 
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.nat_binding_lines("router0").len(), 1);
     assert_eq!(back.nat_roles["router0"]["GigabitEthernet0/0"], true);
 }

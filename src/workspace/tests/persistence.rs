@@ -1,11 +1,11 @@
 use super::super::*;
 
 #[test]
-fn ptw_round_trip_preserves_topology() {
+fn tnet_round_trip_preserves_topology() {
     let mut ws = Workspace::new();
     ws.send_pdu("pc0", "pc1").unwrap();
-    let text = ws.to_ptw();
-    let back = Workspace::from_ptw(&text).unwrap();
+    let text = ws.to_tnet();
+    let back = Workspace::from_tnet(&text).unwrap();
     assert_eq!(back.devices.len(), ws.devices.len());
     assert_eq!(back.links.len(), ws.links.len());
     assert_eq!(back.devices[0].name, ws.devices[0].name);
@@ -30,7 +30,7 @@ fn legacy_routing_records_use_protocol_defaults() {
     )
     .unwrap();
     let mut legacy = String::new();
-    for line in ws.to_ptw().lines() {
+    for line in ws.to_records().lines() {
         let keep = if line.starts_with("route\t") {
             5
         } else if line.starts_with("port\t") {
@@ -62,7 +62,7 @@ fn legacy_routing_records_use_protocol_defaults() {
 }
 
 #[test]
-fn ptw_round_trip_covers_every_edited_field() {
+fn tnet_round_trip_covers_every_edited_field() {
     let mut ws = Workspace::new();
     ws.set_config("pc0", "192.168.1.10", "255.255.255.0", "192.168.1.1", "8.8.8.8")
         .unwrap();
@@ -103,9 +103,9 @@ fn ptw_round_trip_covers_every_edited_field() {
     ws.tftp_put("server0", "config.txt", "hostname x").unwrap();
     ws.link_kind("pc0", "router0", "eConsole").unwrap();
 
-    let text = ws.to_ptw();
-    let back = Workspace::from_ptw(&text).expect("reload");
-    assert_eq!(back.to_ptw(), text, "save/load is idempotent");
+    let text = ws.to_tnet();
+    let back = Workspace::from_tnet(&text).expect("reload");
+    assert_eq!(back.to_tnet(), text, "save/load is idempotent");
 
     let pc0 = back.devices.iter().find(|d| d.id == "pc0").unwrap();
     assert_eq!(
@@ -202,4 +202,61 @@ fn ptw_round_trip_covers_every_edited_field() {
         .links
         .iter()
         .any(|l| l.kind == "eConsole" && l.a_port == "RS-232"));
+}
+
+fn random_state(seed: &mut u64) -> u64 {
+    *seed = seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+    *seed
+}
+
+#[test]
+fn xml_escape_round_trips_2000_random_strings() {
+    let alphabet: Vec<char> = "\t\r\n&<>'\"amp;#09;x🦀é漢字 plain".chars().collect();
+    let mut seed = 0x4d59_5df4_d0f3_3173;
+    for case in 0..2000 {
+        let len = (random_state(&mut seed) % 80) as usize;
+        let mut value = String::new();
+        for _ in 0..len {
+            value.push(alphabet[(random_state(&mut seed) as usize) % alphabet.len()]);
+        }
+        if case % 97 == 0 {
+            value.push_str("&amp;\t\r\n\"'🦀");
+        }
+        assert_eq!(crate::storage::xml::unescape(&crate::storage::xml::escape(&value)), Some(value));
+    }
+}
+
+#[test]
+fn malformed_tnet_truncations_and_random_bytes_never_panic() {
+    let valid = Workspace::new().to_tnet();
+    for end in 0..=valid.len() {
+        let prefix = String::from_utf8_lossy(&valid.as_bytes()[..end]);
+        let _ = Workspace::from_tnet(&prefix);
+    }
+    let mut seed = 0x9e37_79b9_7f4a_7c15;
+    for _ in 0..2000 {
+        let len = (random_state(&mut seed) % 160) as usize;
+        let mut bytes = Vec::with_capacity(len);
+        for _ in 0..len {
+            bytes.push(random_state(&mut seed) as u8);
+        }
+        let _ = Workspace::from_tnet(&String::from_utf8_lossy(&bytes));
+    }
+}
+
+#[test]
+fn legacy_ptw_loads_to_the_same_workspace_as_tnet() {
+    let ws = Workspace::new();
+    let legacy = ws.to_records();
+    let old = Workspace::from_ptw(&legacy).expect("legacy read-only load");
+    let native = Workspace::from_tnet(&ws.to_tnet()).expect("native load");
+    assert_eq!(old.to_records(), native.to_records());
+    assert_eq!(old.to_tnet(), native.to_tnet());
+}
+
+#[test]
+fn unknown_tnet_elements_survive_load_and_save() {
+    let text = "<takuminet version=\"1\">\n<lesson id=\"l&amp;1\" note=\"漢字&#10;next\"/>\n</takuminet>\n";
+    let ws = Workspace::from_tnet(text).expect("unknown elements are retained");
+    assert_eq!(ws.to_tnet(), text);
 }

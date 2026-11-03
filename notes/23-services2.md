@@ -11,7 +11,7 @@ Status: landed 2026-11-01.
 | Syslog | `POST /api/devices/syslog?id&on`, `/api/syslog/list` | per-device collection; one entry per delivered PDU on each enabled endpoint, capped at 200, cleared on disable |
 | AAA | `POST /api/devices/aaa?id&user&pass`, `/api/aaa/list` | local user table per server, duplicate user refused, passwords never sent to the UI |
 
-All four persist in `.ptw` (`ftp`, `ntp`, `syslogon`, `syslog`, `aaa` lines) and were
+All four persist in `.tnet` (`ftp`, `ntp`, `syslogon`, `syslog`, `aaa` lines) and were
 verified through HTTP and the Services tab.
 
 ## ACLs

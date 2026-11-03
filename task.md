@@ -152,7 +152,7 @@ Audit matrix (to be executed in PR 8; columns filled with pass/fail and the comm
 | Cabling | 8 cable types, eligibility rejections, delete link, console | API test (exists) plus UI |
 | Simulation | PDU simple/complex, play, step, back, forward, ffw, reset, event filters (49), PDU detail | UI test |
 | Menus | File, Edit, Options, View, Tools, Extensions, Window, Help (8 menus) | Manual checklist then UI |
-| File | New, Open (.pkt list), Save, Load `.ptw`, import `.pkt` | API test (exists) plus UI |
+| File | New, Open, Save, Import and Export `.tnet` | API test (exists) plus UI |
 | Device window | Physical, Config, Desktop, Services, tabs | UI test |
 | Desktop apps | 14 apps, each opens and does its one core action | UI test |
 | CLI | user, priv, config, interface, router, line modes; completion; `?` help | Rust tests (137) plus UI terminal |
@@ -181,7 +181,7 @@ that does nothing is a defect.
 | Pure-AI images carry weaker copyright than hand-made art | Manifest records prompt, tool and date; owner decides whether that is acceptable |
 | Icons illegible at canvas size | Test at 32, 48 and 64 px; keep silhouette first, detail second |
 | Scope creep into "make it exactly like X" | Section 2 non-goals; D2 decided up front |
-| Removing the vendor tree breaks features that read it (`.ptd` catalog, `.pkt` import samples) | Those are data inputs, not art. Keep them optional; only art is removed |
+| Persistence must not depend on external assets | Native `.tnet` files contain the complete editable workspace |
 | Audit finds many defects | Triage: fix or hide; each fix has a test; defects do not block art PRs |
 
 ## 9. Order of work
@@ -213,7 +213,7 @@ the start except generating the pilot sheet with Codex.
    - Property tests: Dijkstra equals brute force on random graphs; converged tables are loop-free; every router's route to a prefix is consistent.
 5. Services: verify DHCP/DNS/NAT/ACL with labs (they exist, prove them).
 6. Simulation mode parity: PDU list, event filters, per-layer inspection.
-7. File interop: open real .pkt, round-trip save (corpus test exists).
+7. Native files: save, open, import and export `.tnet`, with round-trip tests.
 8. Remaining UI placeholders and art (art steps 1-4 first, because broken icons hurt now).
 
 **Not now:** BGP, HSRP, IPv6 routing protocols, wireless controller depth: after the CCNA path passes.

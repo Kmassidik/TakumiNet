@@ -1,7 +1,4 @@
 //! Strict guardrail for the "no vendor art" goal (task.md, goal G2).
-//!
-//! `web/browser.*` is the raw asset explorer, which exists to browse that tree,
-//! so it is not scanned.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -26,9 +23,8 @@ fn scanned_files(root: &Path) -> Vec<PathBuf> {
         let Ok(entries) = fs::read_dir(root.join(dir)) else { continue };
         for e in entries.flatten() {
             let p = e.path();
-            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
             let ext = p.extension().and_then(|x| x.to_str()).unwrap_or("");
-            if matches!(ext, "js" | "css") && !name.starts_with("browser.") {
+            if matches!(ext, "js" | "css") {
                 out.push(p);
             }
         }
@@ -55,4 +51,33 @@ fn server_does_not_send_more_vendor_icons() {
     let src = fs::read_to_string(root.join("src/workspace/palette.rs")).unwrap();
     let now = count(&src, "art/Workspace/Logical");
     assert_eq!(now, 0, "palette.rs still has vendor logical-icon paths");
+}
+
+#[test]
+fn removed_vendor_formats_are_not_named_in_the_repo() {
+    fn walk(dir: &Path, files: &mut Vec<PathBuf>) {
+        for entry in fs::read_dir(dir).unwrap().flatten() {
+            let path = entry.path();
+            let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if matches!(name, ".git" | "target") {
+                continue;
+            }
+            if path.is_dir() {
+                walk(&path, files);
+            } else if !name.to_ascii_lowercase().starts_with("changelog") {
+                files.push(path);
+            }
+        }
+    }
+
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut files = Vec::new();
+    walk(root, &mut files);
+    let extensions = [format!(".{}", "pkt"), format!(".{}", "pka")];
+    let problems: Vec<String> = files.into_iter().filter_map(|path| {
+        let text = fs::read_to_string(&path).ok()?;
+        extensions.iter().any(|extension| text.contains(extension))
+            .then(|| path.display().to_string())
+    }).collect();
+    assert!(problems.is_empty(), "removed format names: {}", problems.join(", "));
 }

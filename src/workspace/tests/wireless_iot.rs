@@ -18,7 +18,7 @@ fn wireless_vpn_pppoe_and_phones_work_and_persist() {
     ws.phone_register("pc0", "192.168.2.20", 1001).unwrap();
     assert_eq!(ws.phone_status("pc0").unwrap().1, 1001);
 
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.wlan_list(&wlc).len(), 1);
     assert_eq!(back.wifi_status("pc0").unwrap().0, "LAB-WIFI");
     assert!(back.vpn_status("pc0").is_some());
@@ -51,7 +51,7 @@ fn wireless_enterprise_roaming_and_capwap() {
     assert_eq!(err, "authentication failed");
     assert!(ws.wifi_join_auth("pc0", "CORP", "pw1234", "alice").is_ok());
 
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.wlan_list(&wlc1).len(), 2);
     assert_eq!(back.wifi_status("pc0").unwrap().0, "CORP");
     assert_eq!(back.capwap_status(&ap).as_deref(), Some(wlc1.as_str()));
@@ -84,7 +84,7 @@ fn industrial_protocols_and_cell_tower_work() {
     let err = ws.send_iot(&phone, &plc, "cellular", 0).unwrap_err();
     assert!(err.contains("same cell tower"), "{err}");
 
-    let mut back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let mut back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.iot_read(&plc, 5).unwrap(), 42);
     assert!(back.prp_on.contains(&plc));
     assert_eq!(back.ptp_status(&ioe).unwrap().0, plc);

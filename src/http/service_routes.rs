@@ -230,7 +230,6 @@ fn handle_webfetch(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let url = query_value(query, "url").unwrap_or_default();
     let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     let result = crate::webapp::fetch(&mut ws, &id, &url);
-    invalidate_pkt_source(ctx);
     match result {
         Ok(p) => (
             json,

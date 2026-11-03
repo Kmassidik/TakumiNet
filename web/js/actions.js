@@ -6,9 +6,6 @@ const ACTIONS = {
     if (!r.error) { currentName = 'lab1'; simCursor = -1; status('New workspace'); }
   },
   async open() {
-    await openPktDialog();
-  },
-  async 'open-ptw'() {
     const { names = [] } = await getJson('/api/saves');
     if (!names.length) { status('No saved topologies'); sfx('errorMsg'); return; }
     const name = prompt(`Open topology (${names.join(', ')})`, names[0]);
@@ -20,28 +17,48 @@ const ACTIONS = {
     const name = prompt('Save topology as', currentName);
     if (!name) return;
     const r = await api('/api/save', { name });
-    if (!r.error) { currentName = name; status(`Saved ${name}.ptw`); sfx('newScenarioButton'); }
+    if (!r.error) { currentName = name; status(`Saved ${name}.tnet`); sfx('newScenarioButton'); }
   },
-  async 'export-pkt'() {
-    const source = await getJson('/api/pkt/source');
-    if (source.error) { status(source.error, true); sfx('errorMsg'); return; }
-    try {
-      const res = await fetch('/api/pkt/export');
-      if (!res.ok || (res.headers.get('content-type') || '').includes('application/json')) {
-        const r = await res.json().catch(() => ({}));
-        throw new Error(r.error || `export failed (${res.status})`);
+  async import() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.tnet,application/xml';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      try {
+        const res = await fetch('/api/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/xml; charset=utf-8' },
+          body: await file.text(),
+        });
+        const r = await res.json();
+        if (!res.ok || r.error) throw new Error(r.error || 'import failed');
+        setData(r);
+        currentName = file.name.replace(/\.tnet$/i, '');
+        simCursor = -1;
+        status(`Imported ${file.name}`);
+        sfx('newScenarioButton');
+      } catch (e) {
+        status(e.message || 'import failed', true);
+        sfx('errorMsg');
       }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+    };
+    input.click();
+  },
+  async export() {
+    try {
+      const res = await fetch('/api/export');
+      if (!res.ok) throw new Error(`export failed (${res.status})`);
+      const url = URL.createObjectURL(await res.blob());
       const a = document.createElement('a');
-      const base = (source.filename || 'topology.pkt').replace(/\.[^.]+$/, '');
       a.href = url;
-      a.download = `${base}.pkt`;
+      a.download = `${currentName || 'topology'}.tnet`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      status(`Exported original ${a.download}; later edits are saved as .ptw`);
+      status(`Exported ${a.download}`);
       sfx('newScenarioButton');
     } catch (e) {
       status(e.message || 'export failed', true);
@@ -150,9 +167,7 @@ const ACTIONS = {
     const r = await api('/api/sim/reset');
     if (!r.error) { simCursor = -1; renderEvents(); status('Simulation reset'); }
   },
-  help() { window.open('/browser', '_blank'); },
-  assets() { window.open('/browser', '_blank'); },
-  dialogs() { openDialogs(); },
+  help() { ACTIONS.about(); },
   preferences() {
     const dlg = document.getElementById('prefs-dialog');
     document.getElementById('pref-grid').checked = prefs.grid;

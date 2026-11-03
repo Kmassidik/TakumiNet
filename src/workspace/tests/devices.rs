@@ -108,7 +108,7 @@ fn console_cable_joins_only_a_host_to_a_network_device() {
 
 #[test]
 fn cables_only_join_devices_that_support_them() {
-    let mut ws = Workspace::from_ptw("# cable rules\n").unwrap();
+    let mut ws = Workspace::empty();
     let r1 = ws.add("2911", 200.0, 100.0).unwrap();
     let r2 = ws.add("2911", 700.0, 100.0).unwrap();
     let pc = ws.add("PC-PT", 200.0, 400.0).unwrap();
@@ -152,29 +152,6 @@ fn duplicate_copies_model_and_offsets() {
     let d = ws.devices.iter().find(|d| d.id == id).unwrap();
     assert_eq!(d.model, "PC-PT");
     assert!(d.x > 105.0);
-}
-
-#[test]
-fn from_pkt_builds_typed_topology() {
-    let xml = r#"<PACKETTRACER5><VERSION>7.3</VERSION><NETWORK>
-    <DEVICE><TYPE model="1941">Router</TYPE><NAME>R1</NAME>
-      <SAVE_REF_ID>r1</SAVE_REF_ID>
-      <WORKSPACE><LOGICAL><X>10</X><Y>10</Y></LOGICAL></WORKSPACE></DEVICE>
-    <DEVICE><TYPE model="2960">Switch</TYPE><NAME>SW1</NAME>
-      <SAVE_REF_ID>s1</SAVE_REF_ID>
-      <WORKSPACE><LOGICAL><X>300</X><Y>200</Y></LOGICAL></WORKSPACE></DEVICE>
-    <LINK><TYPE>eCopper</TYPE><FROM>r1</FROM><PORT>GigabitEthernet0/0</PORT>
-      <TO>s1</TO><PORT>FastEthernet0/1</PORT></LINK>
-    </NETWORK></PACKETTRACER5>"#;
-    let pkt = crate::storage::ptxml::parse(xml);
-    let ws = Workspace::from_pkt(&pkt);
-    assert_eq!(ws.devices.len(), 2);
-    assert_eq!(ws.links.len(), 1);
-    assert_eq!(ws.devices[0].name, "R1");
-    assert_eq!(ws.devices[0].kind, "router");
-    assert_eq!(ws.links[0].a_port, "Gig0/0");
-    assert_eq!(ws.links[0].b_port, "Fa0/1");
-    assert!(ws.devices[0].x >= 40.0 && ws.devices[1].x >= 40.0);
 }
 
 #[test]

@@ -4,14 +4,14 @@ Every phase in this project ends with the Rust suite and a live Chromium pass.
 Chromium is not installed in this repository or its container (assets are
 mounted read-only at run time), so the browser checks below were executed from
 the developer harness against `http://127.0.0.1:3000` and recorded here; the
-HTTP half is automated in `tests/e2e.rs` and `tests/corpus.rs`.
+HTTP half is automated in `tests/e2e.rs`.
 
 ## Automated
 
 - `cargo test` — full unit, integration and canonical HTTP-lab suite.
   - unit: forwarding, VLAN/STP, ACL/NAT, routing (RIP/OSPF), port-security,
     EtherChannel, DHCP, DNS/HTTP/mail/TFTP/FTP/NTP/syslog/AAA, wireless/VPN/
-    PPPoE/phone state, SLAAC, `.ptw` round-trip for every one of them.
+    PPPoE/phone state, SLAAC, `.tnet` round-trip for every one of them.
   - labs (`tests/labs/main.rs`): routed protocols and services plus simulation
     parity for real TCP/HTTP layers, mixed PDU lists, partial-hop drop captures,
     and DHCP/DNS/SMTP control-plane inspection.
@@ -20,8 +20,6 @@ HTTP half is automated in `tests/e2e.rs` and `tests/corpus.rs`.
 - `node --test tests/js/*.test.js` — dependency-free DOM conformance
   for filters, stable event IDs, playback/capture counts, layer inspection,
   implemented toolbar/Desktop actions and supported device tabs.
-- `PT_CORPUS=1 cargo test --test corpus` — 239 opened, 239 valid JSON,
-  226 simulated, 96 delivered, 18 skipped containers, 0 errors.
 - `cargo test --test e2e` covers the same endpoints without a browser.
 
 ## Chromium passes (feature → observed)

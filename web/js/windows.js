@@ -42,9 +42,7 @@ function makeWindowMovable(win) {
 }
 
 async function boot() {
-  const [fresh, cat] = await Promise.all([getJson('/api/workspace'), getJson('/api/catalog')]);
-  data = fresh;
-  catalog = Array.isArray(cat.models) ? cat.models : [];
+  data = await getJson('/api/workspace');
   document.getElementById('physical-tab').textContent = data.tabs.physical;
   renderToolbar(document.getElementById('toolbar-primary'), PRIMARY);
   renderToolbar(document.getElementById('toolbar-secondary'), SECONDARY);
@@ -73,7 +71,7 @@ async function boot() {
   for (const id of ['device-window', 'cmd-window', 'term-window', 'web-dialog',
     'editor-dialog', 'traffic-dialog', 'mib-dialog', 'pdu-dialog',
     'wifi-dialog', 'vpn-dialog', 'pppoe-dialog', 'phone-dialog',
-    'firewall-dialog', 'dialogs-dialog']) {
+    'firewall-dialog']) {
     makeWindowMovable(document.getElementById(id));
   }
   status('Ready');

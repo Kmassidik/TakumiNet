@@ -1,17 +1,12 @@
-//! HTTP/1.1 server: static UI, asset tree, workspace mutations, simulation.
+//! HTTP/1.1 server: static UI, workspace mutations, simulation and native files.
 
-use crate::storage::assets::Assets;
 use crate::model::{demo, to_json, Topology};
 use crate::net::sim::ping;
 use crate::cli::{self, Session as CliSession};
-use crate::storage::ptfile;
-use crate::storage::ptxml;
 use crate::workspace::Workspace;
-use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::path::Path;
-use std::sync::{Arc, LazyLock, Mutex};
+use std::sync::{Arc, Mutex};
 use std::thread;
 
 mod device_routes;
@@ -24,60 +19,33 @@ mod util;
 use util::*;
 
 
-/// The `.ptd`-derived model list, decoded once per process.
-static CATALOG: LazyLock<Vec<crate::storage::catalog::Model>> =
-    LazyLock::new(crate::storage::catalog::load_assets);
-
 #[derive(Default)]
 struct History {
     undo: Vec<Workspace>,
     redo: Vec<Workspace>,
 }
 
-struct PktSource {
-    xml: Vec<u8>,
-    filename: String,
-}
-
 #[derive(Clone)]
 struct Ctx {
     topo: Topology,
-    assets: Option<Assets>,
     web_root: String,
-    totals: Option<(usize, u64)>,
     ws: Arc<Mutex<Workspace>>,
     hist: Arc<Mutex<History>>,
     cli: Arc<Mutex<std::collections::HashMap<String, CliSession>>>,
-    pkt_source: Arc<Mutex<Option<PktSource>>>,
 }
 
 const SAVE_DIR: &str = "topologies";
 
 pub fn serve(addr: &str, web_root: &str) -> io::Result<()> {
     let listener = TcpListener::bind(addr)?;
-    let assets = Assets::discover();
-    let totals = assets.as_ref().map(|a| a.totals());
-
-    match (&assets, totals) {
-        (Some(a), Some((files, bytes))) => println!(
-            "assets: {} ({} files, {:.1} MB)",
-            a.root.display(),
-            files,
-            bytes as f64 / 1_048_576.0
-        ),
-        _ => println!("assets: none found — set ASSET_ROOT to the extracted opt/pt"),
-    }
     println!("pt-web listening on http://{addr}");
 
     let ctx = Ctx {
         topo: demo(),
-        assets,
         web_root: web_root.to_string(),
-        totals,
         ws: Arc::new(Mutex::new(Workspace::new())),
         hist: Arc::new(Mutex::new(History::default())),
         cli: Arc::new(Mutex::new(std::collections::HashMap::new())),
-        pkt_source: Arc::new(Mutex::new(None)),
     };
 
     for stream in listener.incoming() {
@@ -88,10 +56,6 @@ pub fn serve(addr: &str, web_root: &str) -> io::Result<()> {
         });
     }
     Ok(())
-}
-
-fn invalidate_pkt_source(ctx: &Ctx) {
-    *ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner()) = None;
 }
 
 /// Run a mutation, snapshotting first so Undo works. On error the workspace is
@@ -111,7 +75,6 @@ where
                 hist.undo.remove(0);
             }
             hist.redo.clear();
-            invalidate_pkt_source(ctx);
             (ws.json(), true)
         }
         Err(e) => {
@@ -137,7 +100,6 @@ where
                 hist.undo.remove(0);
             }
             hist.redo.clear();
-            invalidate_pkt_source(ctx);
             (ws.json(), true)
         }
         Err(e) if ws.events.len() > event_count => {
@@ -146,7 +108,6 @@ where
                 hist.undo.remove(0);
             }
             hist.redo.clear();
-            invalidate_pkt_source(ctx);
             (json_error(&e), false)
         }
         Err(e) => {
@@ -165,6 +126,7 @@ fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
     let method = parts.next().unwrap_or("");
     let target = parts.next().unwrap_or("/");
 
+    let mut content_length = 0usize;
     loop {
         let mut header = String::new();
         if reader.read_line(&mut header)? == 0 {
@@ -173,24 +135,26 @@ fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
         if header == "\r\n" || header == "\n" {
             break;
         }
+        if let Some((name, value)) = header.split_once(':') {
+            if name.eq_ignore_ascii_case("content-length") {
+                content_length = value.trim().parse().unwrap_or(0);
+            }
+        }
     }
+    let mut request_body = vec![0; content_length];
+    reader.read_exact(&mut request_body)?;
 
     let (path, query) = match target.split_once('?') {
         Some((p, q)) => (p, q),
         None => (target, ""),
     };
 
-    if let Some(rel) = path.strip_prefix("/assets/") {
-        return serve_asset(&mut stream, ctx, &pct_decode(rel));
-    }
-
-
     let routed = static_routes::route(ctx, method, path, query)
         .or_else(|| device_routes::route(ctx, method, path, query))
         .or_else(|| service_routes::route(ctx, method, path, query))
         .or_else(|| radio_routes::route(ctx, method, path, query))
         .or_else(|| terminal_routes::route(ctx, method, path, query))
-        .or_else(|| file_routes::route(ctx, method, path, query));
+        .or_else(|| file_routes::route(ctx, method, path, query, &request_body));
 
     let Some((ctype, body)) = routed else {
         return respond(&mut stream, "404 Not Found", "text/plain; charset=utf-8", b"not found\n");
@@ -206,51 +170,34 @@ mod tests {
     fn context() -> Ctx {
         Ctx {
             topo: demo(),
-            assets: None,
             web_root: String::new(),
-            totals: None,
             ws: Arc::new(Mutex::new(Workspace::new())),
             hist: Arc::new(Mutex::new(History::default())),
             cli: Arc::new(Mutex::new(std::collections::HashMap::new())),
-            pkt_source: Arc::new(Mutex::new(None)),
         }
     }
 
-    fn retain_source(ctx: &Ctx) {
-        *ctx.pkt_source.lock().unwrap() = Some(PktSource {
-            xml: b"<PACKETTRACER5>exact bytes</PACKETTRACER5>".to_vec(),
-            filename: "original.pkt".into(),
-        });
-    }
-
     #[test]
-    fn successful_mutation_invalidates_original_pkt_export_without_assets() {
+    fn native_export_import_round_trip() {
         let ctx = context();
-        retain_source(&ctx);
-        let (_, metadata) = file_routes::route(&ctx, "GET", "/api/pkt/source", "").unwrap();
-        assert!(String::from_utf8(metadata).unwrap().contains("original.pkt"));
-
-        let (_, changed) = apply(&ctx, |ws| {
-            ws.reset_sim();
+        let (ctype, exported) = file_routes::route(&ctx, "GET", "/api/export", "", b"").unwrap();
+        assert_eq!(ctype, "application/xml; charset=utf-8");
+        apply(&ctx, |ws| {
+            *ws = Workspace::empty();
             Ok(())
         });
-        assert!(changed);
-        assert!(ctx.pkt_source.lock().unwrap().is_none());
-        let (ctype, body) = file_routes::route(&ctx, "GET", "/api/pkt/export", "").unwrap();
-        assert_eq!(ctype, "application/json");
-        assert!(String::from_utf8(body).unwrap().contains("no unchanged opened .pkt"));
+        let (_, imported) = file_routes::route(&ctx, "POST", "/api/import", "", &exported).unwrap();
+        assert!(!String::from_utf8(imported).unwrap().contains("error"));
+        let (_, again) = file_routes::route(&ctx, "GET", "/api/export", "", b"").unwrap();
+        assert_eq!(again, exported);
     }
 
     #[test]
-    fn failed_mutation_preserves_exact_original_pkt_export_without_assets() {
+    fn invalid_native_import_preserves_workspace() {
         let ctx = context();
-        retain_source(&ctx);
-        let (_, changed) = apply(&ctx, |_| Err("not changed".into()));
-        assert!(!changed);
-
-        let (ctype, exported) = file_routes::route(&ctx, "GET", "/api/pkt/export", "").unwrap();
-        assert_eq!(ctype, "application/octet-stream");
-        let decrypted = ptfile::decrypt(&exported).unwrap();
-        assert_eq!(decrypted, b"<PACKETTRACER5>exact bytes</PACKETTRACER5>");
+        let before = ctx.ws.lock().unwrap().to_tnet();
+        let (_, result) = file_routes::route(&ctx, "POST", "/api/import", "", b"<broken").unwrap();
+        assert!(String::from_utf8(result).unwrap().contains("error"));
+        assert_eq!(ctx.ws.lock().unwrap().to_tnet(), before);
     }
 }

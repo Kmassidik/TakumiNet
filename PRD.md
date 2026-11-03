@@ -7,7 +7,7 @@ Read first: this file, then `task.md` (history, roadmap, audit) and `provness/pt
 ## 0. Rules for the builder (omp). These override defaults.
 1. Every task = failing test first, then code, then `cargo test` green, then commit and push to `main`. **No Co-Authored-By, no attribution line, ever.**
 2. **Install nothing** (no Bend, Kani, Lean, Playwright, npm, further rustup targets; wasm32-unknown-unknown is already installed). Ask the previous session first. Python 3 + Pillow, swift, cargo are present.
-3. **No Cisco file formats at all**: `.pkt/.pka/.pktz` support is removed (decision 2026-11-03). Our only file format is our own XML (`.tnet`).
+3. **No vendor file formats at all** (decision 2026-11-03). Our only file format is our own XML (`.tnet`).
 3b. **Own art and own code only.** Never copy, download or reference Cisco files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
 4. **Fix what you find.** If you see a bug, wrong output, broken image or console error while working: write a failing test, fix it, commit it separately (`fix: ...`), note it in `provness/pt-web/result.md`. Do not skip it, do not ask permission for fixes.
 5. **If you are confused, ask the previous Claude session (`takuminet-d6`), do not stop.** Send one specific question with what you tried (`SendMessage({to: "takuminet-d6", ...})` if your harness has it; otherwise print it on its own line starting `ASK-CLAUDE:` so the user can relay it). Then keep working on any task that is not blocked by the answer. A step that fails twice is also a reason to ask. Never guess a product decision, never wait idle.
@@ -26,7 +26,7 @@ Bend is **not installed and was never run**; the owner said not to install it. T
 - Engine: L2 switching, VLAN, STP/RSTP, EtherChannel, static/RIP/OSPF/EIGRP, DHCP, DNS, NAT, ACL, IPv6, wireless, IoT, simulation capture. 20 CCNA lab tests (`tests/labs/main.rs`), ~220 tests total, all green.
 - UI: logical workspace, device windows (Physical/Config/Desktop/Services), CLI terminal, Realtime and Simulation modes, event list.
 - Assets we own: **97 3D icons** (`web/art/3d/`: 31 devices, 21 toolbar, 7 sim, 8 cables, 9 groups, 12 apps, 3 misc, 6 mascot poses), 11 generated sounds (`web/sounds/`), 31 flat SVG fallbacks (`web/art/*.svg`). Vendor references in `web/`: 0.
-- Files: own text `.ptw` (to be replaced by XML, see P0). `.pkt/.pka` readers exist today and are **removed in P0**.
+- Files: own XML `.tnet`; the previous `.ptw` text format is read-only legacy compatibility.
 - Server: Rust HTTP server holding **one shared workspace** (`ws: Arc<Mutex<Workspace>>`, `src/http/mod.rs:48`): every visitor edits the same network, so it cannot be hosted for many users as is. Target architecture (P5): the engine runs in the browser as WebAssembly and the server only serves static files.
 
 ## 3. Goals
@@ -40,11 +40,11 @@ Non-goals now: BGP, HSRP, accounts, cloud sync, collaboration, grading server, m
 ## 4. P0: own XML format (prerequisite for G1 and G2)
 Native file = our own XML, extension `.tnet`, root `<takuminet version="1">`. The plan already agreed:
 - `src/storage/xml.rs`: tiny std-only writer/reader for a flat list of self-closing child elements with attributes. Escape `& < > " '` and encode tab/CR/LF as `&#9; &#13; &#10;`. Unescape named and numeric references. Malformed input returns `None`, never panics.
-- `src/workspace/tnet.rs`: **table-driven converter**: `RECORDS: &[(&str, &[&str])]` gives the field names of each of the 49 record types (take them from the match patterns in `ptw_load.rs`, longest form; extra trailing fields become `v<N>`; unknown tags are kept losslessly). `to_tnet()` turns each line of the existing record stream into `<device id="pc0" kind="pc" .../>`; `from_tnet()` maps attributes back in table order and reuses the proven loaders. Rename `ptw_save/ptw_load` to `records_save/records_load` (internal stream, no longer a file format). Keep a read-only legacy `.ptw` loader for one version.
-- **Delete all Cisco-format code**: `src/storage/ptfile.rs`, `ptxml.rs`, `src/workspace/pkt_import.rs`, `src/bin/pkt2rs.rs`, `tests/corpus.rs`, the vendor asset tree reader (`storage/assets.rs`, `catalog.rs`, `/api/files` listing of shipped `.pkt`), "Import .pkt" and "Export Opened .pkt" in the UI and API, and the crates `cipher`, `twofish`, `miniz_oxide` from `Cargo.toml` (zero dependencies afterwards: also makes the WASM build trivial). Update README and `task.md`. Never reuse Cisco's element names in our schema.
+- `src/workspace/tnet.rs`: **table-driven converter**: `RECORDS: &[(&str, &[&str])]` gives the field names of each of the 49 record types (taken from the longest legacy match patterns; extra trailing fields become `v<N>`; unknown tags are kept losslessly). `to_tnet()` turns each line of the existing record stream into `<device id="pc0" kind="pc" .../>`; `from_tnet()` maps attributes back in table order and reuses the proven loaders. The internal stream lives in `records_save/records_load` and is not a file format. Keep a read-only legacy `.ptw` loader for one version.
+- **Delete all vendor-format code**, including its container readers, workspace importer, converter, corpus tests, asset tree and catalog readers, file APIs and UI actions. Remove `cipher`, `twofish` and `miniz_oxide` from `Cargo.toml` (zero dependencies afterwards: also makes the WASM build trivial). Update README and `task.md`. Never reuse vendor element names in our schema.
 - API/UI: save/open/list use `.tnet`; labels "Save", "Open", "Import".
 - Laws: **L10** `from_tnet(to_tnet(w))` has identical `to_tnet` (idempotent) and restores every edited field. **L11** `xml::unescape(xml::escape(s)) == s` for all strings (property test, 2000 random strings incl. tabs, quotes, `&amp;`, unicode). **L12** malformed XML never panics (property test on truncations and random bytes). **L13** a legacy `.ptw` loads to a workspace equal to the one saved.
-- Done when: all old persistence tests also pass through `.tnet`, no file in the repo mentions `.pkt` except the changelog, `Cargo.toml` has no dependencies, e2e save/open works.
+- Done when: all old persistence tests also pass through `.tnet`, removed vendor extensions are absent from the repo except the changelog, `Cargo.toml` has no dependencies, e2e save/open works.
 
 ## 4b. P0b: robust XML gameplay (the file is the product)
 Players will edit, share and break these files by hand, like draw.io files. Loading must never crash, hang or half-load.

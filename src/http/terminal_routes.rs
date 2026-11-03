@@ -59,9 +59,6 @@ fn handle_cli(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let mut sess = sessions.remove(&id).unwrap_or_default();
     let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     let output = cli::run(&mut ws, &id, &mut sess, &line);
-    if !line.trim().is_empty() {
-        invalidate_pkt_source(ctx);
-    }
     let prompt = cli::prompt(&ws, &id, &sess);
     sessions.insert(id, sess);
     (

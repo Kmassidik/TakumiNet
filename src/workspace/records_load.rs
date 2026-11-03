@@ -1,26 +1,39 @@
 use super::*;
 
 impl Workspace {
-    /// Rebuilds a workspace from the text written by `to_ptw`.
+    /// Read-only compatibility with the previous text persistence format.
     pub fn from_ptw(text: &str) -> Option<Workspace> {
+        Self::from_records(text)
+    }
+
+    pub(crate) fn from_records(text: &str) -> Option<Workspace> {
         let mut ws = Workspace::empty();
         for line in text.lines() {
             if line.starts_with('#') || line.trim().is_empty() {
                 continue;
             }
             let f: Vec<&str> = line.split('\t').collect();
-            ws.load_topology_line(&f)?;
-            ws.load_device_setting_line(&f)?;
-            ws.load_app_service_line(&f)?;
-            ws.load_security_line(&f)?;
-            ws.load_iot_wireless_line(&f)?;
-            ws.load_routing_line(&f)?;
+            ws.load_record(&f)?;
         }
-        ws.recompute_routing();
-        for d in &ws.devices {
-            *ws.counters.entry(d.kind.clone()).or_insert(0) += 1;
-        }
+        ws.finish_record_load();
         Some(ws)
+    }
+
+    pub(super) fn load_record(&mut self, f: &[&str]) -> Option<()> {
+        self.load_topology_line(f)?;
+        self.load_device_setting_line(f)?;
+        self.load_app_service_line(f)?;
+        self.load_security_line(f)?;
+        self.load_iot_wireless_line(f)?;
+        self.load_routing_line(f)?;
+        Some(())
+    }
+
+    pub(super) fn finish_record_load(&mut self) {
+        self.recompute_routing();
+        for d in &self.devices {
+            *self.counters.entry(d.kind.clone()).or_insert(0) += 1;
+        }
     }
 
     /// Devices, cables, addresses, routes and ports.

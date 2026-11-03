@@ -237,7 +237,7 @@ fn routing_protocols_do_not_redistribute_implicitly() {
     ws.add_routing_network(&r2, parse_ipv4("10.1.0.0").unwrap(), 24, 0).unwrap();
     assert!(!ws.dyn_routes.contains_key(&r1), "{:?}", ws.dyn_routes);
     assert!(!ws.show_routes(&r1).contains("10.1.0.0/24"));
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert!(back.routing.contains_key(&r1));
     assert!(!back.dyn_routes.contains_key(&r1));
 }
@@ -276,7 +276,7 @@ fn dhcpv6_ips_and_inspection_are_real_state() {
     ws.set_inspection("router0", true).unwrap();
     assert!(ws.inspection_on("router0"));
 
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.devices.iter().find(|d| d.id == "pc0").unwrap().ipv6.as_deref(), Some(addr.as_str()));
     assert!(back.inspection_on("router0"));
     assert!(!back.ips_drops("router0", "icmp"));
@@ -292,7 +292,7 @@ fn ospfv3_stores_ipv6_prefixes_and_shows_them() {
     let out = ws.show_ipv6_routes("router0");
     assert!(out.contains("O  2001:db8:9::/64"), "{out}");
     assert!(out.contains("2001:db8:9::1/64"), "{out}");
-    let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert!(back.show_ipv6_routes("router0").contains("2001:db8:9::/64"));
 }
 

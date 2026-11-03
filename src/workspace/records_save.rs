@@ -1,8 +1,8 @@
 use super::*;
 
 impl Workspace {
-    /// Portable text format: tab-separated, one device or link per line.
-    pub fn to_ptw(&self) -> String {
+    /// Internal tab-separated record stream used by the proven state loader.
+    pub(crate) fn to_records(&self) -> String {
         let mut out = String::from("# pt-web topology 1\n");
         self.write_devices(&mut out);
         self.write_links(&mut out);

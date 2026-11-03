@@ -1,18 +1,13 @@
 use super::*;
 
 /// Returns `None` when this group does not own the route.
-pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<(&'static str, Vec<u8>)> {
+pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str, body: &[u8]) -> Option<(&'static str, Vec<u8>)> {
     match (method, path) {
         ("POST", "/api/save") => Some(handle_save(ctx, query)),
         ("POST", "/api/load") => Some(handle_load(ctx, query)),
         ("GET", "/api/saves") => Some(handle_saves()),
-        ("GET", "/api/pkt/list") => Some(handle_pkt_list(ctx)),
-        ("POST", "/api/pkt/open") => Some(handle_pkt_open(ctx, query)),
-        ("GET", "/api/pkt/source") => Some(handle_pkt_source(ctx)),
-        ("GET", "/api/pkt/export") => Some(handle_pkt_export(ctx)),
-        ("GET", "/api/status") => Some(handle_status(ctx)),
-        ("GET", "/api/catalog") => Some(handle_catalog()),
-        ("GET", "/api/assets") => Some(handle_assets(ctx, query)),
+        ("GET", "/api/export") => Some(handle_export(ctx)),
+        ("POST", "/api/import") => Some(handle_import(ctx, body)),
         ("GET", "/api/topology") => Some(handle_topology(ctx)),
         ("POST", "/api/ping") => Some(handle_ping(ctx, query)),
         _ => None,
@@ -24,7 +19,7 @@ fn handle_save(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let name = sanitize(&query_value(query, "name").unwrap_or_else(|| "untitled".into()));
     let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     let _ = std::fs::create_dir_all(SAVE_DIR);
-    match std::fs::write(format!("{SAVE_DIR}/{name}.ptw"), ws.to_ptw()) {
+    match std::fs::write(format!("{SAVE_DIR}/{name}.tnet"), ws.to_tnet()) {
         Ok(()) => (json, ws.json().into_bytes()),
         Err(e) => (json, json_error(&format!("save failed: {e}")).into_bytes()),
     }
@@ -33,13 +28,13 @@ fn handle_save(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
 fn handle_load(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let json = "application/json";
     let name = sanitize(&query_value(query, "name").unwrap_or_default());
-    let text = match std::fs::read_to_string(format!("{SAVE_DIR}/{name}.ptw")) {
+    let text = match std::fs::read_to_string(format!("{SAVE_DIR}/{name}.tnet")) {
         Ok(t) => t,
         Err(_) => {
             return (json, json_error("no such topology").as_bytes().to_vec())
         }
     };
-    match Workspace::from_ptw(&text) {
+    match Workspace::from_tnet(&text) {
         Some(loaded) => {
             let (out, _) = apply(ctx, |ws| {
                 *ws = loaded;
@@ -58,7 +53,7 @@ fn handle_saves() -> (&'static str, Vec<u8>) {
             rd.flatten()
                 .filter_map(|e| {
                     let p = e.path();
-                    if p.extension().and_then(|x| x.to_str()) != Some("ptw") {
+                    if p.extension().and_then(|x| x.to_str()) != Some("tnet") {
                         return None;
                     }
                     p.file_stem().map(|s| s.to_string_lossy().to_string())
@@ -71,108 +66,25 @@ fn handle_saves() -> (&'static str, Vec<u8>) {
     (json, format!("{{\"names\":[{list}]}}").into_bytes())
 }
 
-fn handle_pkt_list(ctx: &Ctx) -> (&'static str, Vec<u8>) {
-    let json = "application/json";
-    let files = match &ctx.assets {
-        Some(a) => list_pkt(&a.root.join("saves"), &a.root.join("saves"), 0),
-        None => Vec::new(),
-    };
-    let list = files
-        .iter()
-        .map(|f| json_str(f))
-        .collect::<Vec<_>>()
-        .join(",");
-    (json, format!("{{\"files\":[{list}]}}").into_bytes())
+fn handle_export(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    ("application/xml; charset=utf-8", ws.to_tnet().into_bytes())
 }
 
-fn handle_pkt_open(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+fn handle_import(ctx: &Ctx, body: &[u8]) -> (&'static str, Vec<u8>) {
     let json = "application/json";
-    let rel = query_value(query, "path").unwrap_or_default();
-    let Some(assets) = &ctx.assets else {
-        return (json, json_error("no asset root").as_bytes().to_vec());
+    let Ok(text) = std::str::from_utf8(body) else {
+        return (json, json_error("topology is not UTF-8 XML").into_bytes());
     };
-    let full = assets
-        .resolve(&format!("saves/{rel}"))
-        .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "no such file"));
-    let Ok(full) = full else {
-        return (json, json_error("no such file").as_bytes().to_vec());
-    };
-    let parsed = std::fs::read(&full)
-        .map_err(|e| e.to_string())
-        .and_then(|bytes| ptfile::decrypt(&bytes));
-    match parsed {
-        Ok(xml) => {
-            let text = String::from_utf8_lossy(&xml);
-            let topo = ptxml::parse(&text);
-            if topo.devices.is_empty() {
-                return (json, json_error("no devices in file").as_bytes().to_vec());
-            }
-            let imported = Workspace::from_pkt(&topo);
-            let filename = full
-                .file_name()
-                .map(|n| n.to_string_lossy().into_owned())
-                .unwrap_or_else(|| "topology.pkt".into());
-            let (out, changed) = apply(ctx, |ws| {
+    match Workspace::from_tnet(text) {
+        Some(imported) => {
+            let (out, _) = apply(ctx, |ws| {
                 *ws = imported;
                 Ok(())
             });
-            if changed {
-                *ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner()) =
-                    Some(PktSource { xml, filename });
-            }
             (json, out.into_bytes())
         }
-        Err(e) => (json, json_error(&e).into_bytes()),
-    }
-}
-
-fn handle_pkt_source(ctx: &Ctx) -> (&'static str, Vec<u8>) {
-    let json = "application/json";
-    let source = ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner());
-    match source.as_ref() {
-        Some(source) => (
-            json,
-            format!("{{\"filename\":{}}}", json_str(&source.filename)).into_bytes(),
-        ),
-        None => (
-            json,
-            json_error("no unchanged opened .pkt; use Save Editable .ptw for edited workspaces")
-                .into_bytes(),
-        ),
-    }
-}
-
-fn handle_pkt_export(ctx: &Ctx) -> (&'static str, Vec<u8>) {
-    let source = ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner());
-    match source.as_ref() {
-        Some(source) => ("application/octet-stream", ptfile::encode(&source.xml)),
-        None => (
-            "application/json",
-            json_error("no unchanged opened .pkt; use Save Editable .ptw for edited workspaces")
-                .into_bytes(),
-        ),
-    }
-}
-
-fn handle_status(ctx: &Ctx) -> (&'static str, Vec<u8>) {
-    let json = "application/json";
-    (json, status_json(ctx).into_bytes())
-}
-
-fn handle_catalog() -> (&'static str, Vec<u8>) {
-    let json = "application/json";
-    (json, crate::storage::catalog::to_json(&CATALOG).into_bytes())
-}
-
-fn handle_assets(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
-    let json = "application/json";
-    let dir = query_value(query, "dir").unwrap_or_default();
-    match &ctx.assets {
-        Some(assets) => match assets.list(&dir) {
-            Ok(entries) => (json, list_json(&dir, &entries).into_bytes()),
-            Err(_) => (json, json_error("no such directory").into_bytes()),
-        },
-        None => (json, json_error("no asset root; set ASSET_ROOT").into_bytes()),
+        None => (json, json_error("corrupt topology file").into_bytes()),
     }
 }
 

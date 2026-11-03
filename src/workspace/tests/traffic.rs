@@ -2,7 +2,7 @@ use super::super::*;
 
 #[test]
 fn console_link_does_not_carry_traffic() {
-    let mut ws = Workspace::from_ptw("# console only\n").unwrap();
+    let mut ws = Workspace::empty();
     let pc = ws.add("PC-PT", 100.0, 300.0).unwrap();
     let r = ws.add("2911", 500.0, 100.0).unwrap();
     ws.link_kind(&pc, &r, "eConsole").unwrap();
@@ -150,7 +150,7 @@ fn pdu_checks_subnet_when_addresses_exist() {
 
 #[test]
 fn same_subnet_delivery_uses_links() {
-    let mut ws = Workspace::from_ptw("# lan\n").unwrap();
+    let mut ws = Workspace::empty();
     let hub = ws.add("Hub", 400.0, 100.0).unwrap();
     let a = ws.add("PC-PT", 100.0, 300.0).unwrap();
     let b = ws.add("PC-PT", 700.0, 300.0).unwrap();
@@ -166,7 +166,7 @@ fn same_subnet_delivery_uses_links() {
 
 #[test]
 fn cross_subnet_delivery_follows_gateways() {
-    let mut ws = Workspace::from_ptw("# routed lan\n").unwrap();
+    let mut ws = Workspace::empty();
     let a = ws.add("PC-PT", 80.0, 380.0).unwrap();
     let b = ws.add("PC-PT", 820.0, 380.0).unwrap();
     let r = ws.add("2911", 450.0, 90.0).unwrap();

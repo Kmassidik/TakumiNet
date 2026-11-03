@@ -47,11 +47,6 @@ html, body {
 }
 .menubar nav button:hover { background: #e3e8ee; }
 
-.browser-link {
-  margin-left: auto; font-size: 11px; color: var(--accent); text-decoration: none;
-}
-.browser-link:hover { text-decoration: underline; }
-
 /* ---------- toolbars ---------- */
 .toolbar {
   display: flex;
@@ -270,31 +265,6 @@ html, body {
 .devices .dev-tile.mesh-tool { border-color: var(--line-soft); }
 .devices .dev-tile.mesh-tool:hover { border-color: var(--accent); background: #e8f0fd; }
 
-/* Templates: catalogue entries with no palette tile. Muted and inert, in their
-   own horizontally scrolling group after the device tiles. */
-.devices .tpl-section {
-  display: flex; gap: 6px; flex: 0 0 auto; align-items: flex-start;
-  padding-left: 8px; border-left: 1px solid var(--line);
-}
-.devices .tpl-heading {
-  writing-mode: vertical-rl; transform: rotate(180deg);
-  font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
-  color: var(--muted); white-space: nowrap;
-}
-.devices .tpl-group { display: flex; flex-direction: column; gap: 2px; flex: 0 0 auto; }
-.devices .tpl-group-label {
-  max-width: 120px; font-size: 9px; color: var(--muted);
-  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.devices .tpl-tiles { display: flex; gap: 4px; }
-.devices .tpl-tile {
-  display: flex; align-items: center; justify-content: center;
-  width: 62px; height: 54px; flex: 0 0 auto; padding: 3px; overflow: hidden;
-  font: inherit; font-size: 9px; line-height: 1.1; text-align: center;
-  color: #8a939c; background: #eef1f4;
-  border: 1px dashed #c7ced6; border-radius: 4px; cursor: not-allowed;
-}
-
 .tip {
   position: fixed; pointer-events: none; z-index: 50;
   background: #1b1f23; color: #fff; font-size: 10px;
@@ -339,19 +309,6 @@ html, body {
 .events tr.current td { background: #fff3c4; }
 .packet { fill: #e8590c; }
 .canvas-wrap.crosshair { cursor: crosshair; }
-
-.pkt-filter {
-  width: 100%; margin-top: 8px; padding: 6px 8px; font: inherit;
-  background: var(--panel); color: var(--text);
-  border: 1px solid var(--line); border-radius: 4px;
-}
-.pkt-list { list-style: none; margin: 8px 0 0; padding: 0; max-height: 55vh; overflow: auto; }
-.pkt-list li button {
-  display: block; width: 100%; text-align: left; padding: 6px 8px;
-  background: none; border: none; border-bottom: 1px solid var(--line-soft);
-  font: inherit; color: var(--text); cursor: pointer;
-}
-.pkt-list li button:hover { background: #e8f0fd; }
 
 .dev-ip { font-size: 9px; fill: var(--accent); text-anchor: middle; font-family: ui-monospace, monospace; }
 .ip-dialog { max-width: 360px; }
@@ -753,26 +710,8 @@ html, body {
 .phone-label { font-size: 16px; font-weight: 700; letter-spacing: 0.03em; }
 .phone-state { margin-top: 4px; font-size: 11px; color: #9ed4ae; }
 .phone-state.ok { color: #eafff0; }
-.dialogs-bar { display: flex; align-items: center; gap: 6px; }
-.dialogs-bar input {
-  flex: 1; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px;
-  font: inherit; background: #fff; color: var(--text);
-}
-.dialogs-bar .meta { min-width: 54px; text-align: center; }
-.dialogs-list {
-  display: flex; flex-direction: column;
-  max-height: 55vh; overflow: auto;
-  border: 1px solid var(--line-soft); border-radius: 3px;
-}
-.dialog-row { padding: 4px 8px; border-bottom: 1px solid var(--line-soft); font-size: 12px; }
-.dialog-row:last-child { border-bottom: none; }
-.dialog-name { font-weight: 600; font-family: ui-monospace, monospace; word-break: break-all; }
-.dialog-text { color: #4b5563; word-break: break-word; }
-
 .prefs { position: fixed; top: 120px; left: 50%; transform: translateX(-50%); width: 320px; z-index: 60; }
 .prefs-body { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
 .prefs-body label { display: flex; gap: 8px; align-items: center; font: inherit; }
 .prefs-body p { margin: 0; }
 
-.dialog-wired { cursor: pointer; }
-.dialog-wired:hover { background: rgba(127, 127, 127, 0.12); }

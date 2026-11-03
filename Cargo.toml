@@ -12,6 +12,3 @@ opt-level = "z"
 lto = true
 
 [dependencies]
-cipher = "0.5.2"
-miniz_oxide = "0.9.1"
-twofish = "0.8.0"

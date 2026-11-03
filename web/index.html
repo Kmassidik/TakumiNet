@@ -17,10 +17,10 @@
         <button>File</button>
         <div class="drop">
           <button data-action="new">New</button>
-          <button data-action="open">Open .pkt / .pka…</button>
-          <button data-action="open-ptw">Open Saved Topology…</button>
-          <button data-action="save">Save Editable .ptw…</button>
-          <button data-action="export-pkt">Export Opened .pkt…</button>
+          <button data-action="open">Open…</button>
+          <button data-action="save">Save…</button>
+          <button data-action="import">Import…</button>
+          <button data-action="export">Export…</button>
           <div class="sep"></div>
           <button data-action="print">Print…</button>
         </div>
@@ -77,14 +77,10 @@
       <div class="menu">
         <button>Help</button>
         <div class="drop">
-          <button data-action="help">Contents</button>
-          <button data-action="assets">Asset Browser</button>
-          <button data-action="dialogs">Dialogs…</button>
           <button data-action="about">About</button>
         </div>
       </div>
     </nav>
-    <a class="browser-link" href="/browser">assets</a>
   </div>
 
   <div class="preview prefs" id="prefs-dialog" hidden>
@@ -178,15 +174,6 @@
     <span id="status-mode">Realtime</span>
   </div>
 
-</div>
-
-<div id="pkt-dialog" class="overlay" hidden>
-  <div class="preview">
-    <button id="pkt-close" class="close" aria-label="close">×</button>
-    <h2>Open .pkt file</h2>
-    <input id="pkt-filter" class="pkt-filter" placeholder="filter…" spellcheck="false">
-    <ul id="pkt-list" class="pkt-list"></ul>
-  </div>
 </div>
 
 <div id="ip-dialog" class="overlay" hidden>
@@ -569,25 +556,6 @@
   </div>
 </div>
 
-<div id="dialogs-dialog" class="overlay" hidden>
-  <div class="preview dialogswin">
-    <div class="devwin-title">
-      <span id="dialogs-title">Dialogs</span>
-      <span class="dw-btns"><button id="dialogs-close" title="close">×</button></span>
-    </div>
-    <div class="dialogs-body">
-      <div class="dialogs-bar">
-        <input id="dialogs-search" placeholder="Search dialog name or text…" autocomplete="off" spellcheck="false">
-        <button class="btn" id="dialogs-prev" disabled>Prev</button>
-        <span id="dialogs-page" class="meta"></span>
-        <button class="btn" id="dialogs-next">Next</button>
-      </div>
-      <div id="dialogs-note" class="meta"></div>
-      <div id="dialogs-list" class="dialogs-list"></div>
-    </div>
-  </div>
-</div>
-
 <div id="tip" class="tip" hidden></div>
 <script src="/js/state.js"></script>
 <script src="/js/icons.js"></script>
@@ -611,7 +579,6 @@
 <script src="/js/mib.js"></script>
 <script src="/js/wireless.js"></script>
 <script src="/js/clients.js"></script>
-<script src="/js/dialogs.js"></script>
 <script src="/js/terminal.js"></script>
 <script src="/js/windows.js"></script>
 <script src="/js/main.js"></script>

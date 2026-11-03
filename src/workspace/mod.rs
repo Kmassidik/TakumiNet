@@ -17,9 +17,9 @@ mod ipv6;
 mod links;
 mod nat;
 mod palette;
-mod pkt_import;
-mod ptw_load;
-mod ptw_save;
+mod records_load;
+mod records_save;
+mod tnet;
 mod routing;
 mod security;
 mod startup;
@@ -95,6 +95,7 @@ impl Workspace {
                 vpn: HashMap::new(),
                 pppoe: HashMap::new(),
                 phones: HashMap::new(),
+                unknown_elements: Vec::new(),
         }
     }
 
@@ -290,6 +291,7 @@ impl Workspace {
                 vpn: HashMap::new(),
                 pppoe: HashMap::new(),
                 phones: HashMap::new(),
+                unknown_elements: Vec::new(),
             };
         }
         let hub = self
