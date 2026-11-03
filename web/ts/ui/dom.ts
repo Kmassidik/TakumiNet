@@ -11,6 +11,7 @@ export interface ElementLike {
   className: string;
   value: string;
   disabled: boolean;
+  dataset: Record<string, string | undefined>;
   setAttribute(name: string, value: string): void;
   getAttribute(name: string): string | null;
   addEventListener(type: string, handler: (event: EventLike) => void): void;
@@ -18,6 +19,7 @@ export interface ElementLike {
   focus(): void;
   select(): void;
   remove(): void;
+  replaceChildren(): void;
 }
 
 export interface DocLike {

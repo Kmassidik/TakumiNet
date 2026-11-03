@@ -18,24 +18,3 @@ const SECONDARY = [
   ['toolbar/grid', 'Grid', 'toggle-grid'], null,
   ['toolbar/home', 'Home', 'zoom-reset'],
 ];
-
-function renderToolbar(el, items) {
-  el.replaceChildren();
-  for (const item of items) {
-    if (!item) {
-      const sep = document.createElement('span');
-      sep.className = 'sep';
-      el.appendChild(sep);
-      continue;
-    }
-    const [file, title, action] = item;
-    const b = document.createElement('button');
-    b.title = title;
-    b.dataset.action = action;
-    const img = document.createElement('img');
-    img.src = icon3d(file);
-    img.alt = title;
-    b.appendChild(img);
-    el.appendChild(b);
-  }
-}

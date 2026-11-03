@@ -64,7 +64,16 @@
   function createButton(doc, options) {
     const button = doc.createElement("button");
     button.className = options.className ? `ui-button ${options.className}` : "ui-button";
-    button.textContent = options.label;
+    if (options.icon) {
+      const img = doc.createElement("img");
+      img.setAttribute("src", options.icon);
+      img.setAttribute("alt", options.label);
+      button.appendChild(img);
+    } else {
+      button.textContent = options.label;
+    }
+    if (options.action)
+      button.dataset.action = options.action;
     button.title = options.title ?? options.label;
     button.setAttribute("type", "button");
     if (options.toggled !== undefined)
@@ -72,9 +81,24 @@
     button.disabled = options.disabled ?? false;
     button.addEventListener("click", () => {
       if (!button.disabled)
-        options.onClick();
+        options.onClick?.();
     });
     return button;
+  }
+
+  // web/ts/ui/toolbar.ts
+  function renderToolbar(doc, bar, items, iconSrc) {
+    bar.replaceChildren();
+    for (const item of items) {
+      if (!item) {
+        const separator = doc.createElement("span");
+        separator.className = "sep";
+        bar.appendChild(separator);
+        continue;
+      }
+      const [icon, title, action] = item;
+      bar.appendChild(createButton(doc, { label: title, icon: iconSrc(icon), action }));
+    }
   }
 
   // web/ts/ui/modal.ts
@@ -180,6 +204,7 @@
   globalThis.askConfirm = async (message, okText = "OK") => await openModal(doc, stack, { message, okText }) === true;
   globalThis.askText = async (message, value = "") => await openModal(doc, stack, { message, input: value });
   globalThis.bringToFront = bringToFront;
+  globalThis.renderToolbar = (bar, items) => renderToolbar(doc, bar, items, (key) => icon3d(key));
   globalThis.makeWindowMovable = makeWindowMovable;
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));

@@ -6,12 +6,17 @@ export class FakeElement implements ElementLike {
   className = "";
   value = "";
   disabled = false;
+  dataset: Record<string, string | undefined> = {};
   children: FakeElement[] = [];
   private parent: FakeElement | null = null;
   private attrs = new Map<string, string>();
   private listeners = new Map<string, Array<(event: EventLike) => void>>();
 
-  constructor(readonly tagName: string) {}
+  readonly tagName: string;
+
+  constructor(tagName: string) {
+    this.tagName = tagName.toUpperCase();
+  }
 
   setAttribute(name: string, value: string): void {
     this.attrs.set(name, value);
@@ -35,6 +40,11 @@ export class FakeElement implements ElementLike {
 
   focus(): void {}
   select(): void {}
+  replaceChildren(): void {
+    for (const child of this.children) child.parent = null;
+    this.children = [];
+  }
+
   remove(): void {
     if (!this.parent) return;
     this.parent.children = this.parent.children.filter((c) => c !== this);

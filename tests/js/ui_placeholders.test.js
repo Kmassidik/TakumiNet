@@ -22,6 +22,12 @@ class Element {
     return child;
   }
 
+  setAttribute(name, value) {
+    this[name] = value;
+  }
+
+  addEventListener() {}
+
   replaceChildren(...children) {
     this.children = children;
   }
@@ -38,11 +44,18 @@ class Element {
 
 test('toolbars contain only implemented actions and tidy separators', () => {
   const context = vm.createContext({
-    document: { createElement: (tag) => new Element(tag) },
+    document: {
+      createElement: (tag) => new Element(tag),
+      readyState: 'complete',
+      querySelectorAll: () => [],
+      addEventListener() {},
+    },
+    MutationObserver: class { observe() {} },
     icon3d: (name) => name,
   });
   vm.runInContext(source('web/js/actions.js'), context);
   vm.runInContext(source('web/js/toolbars.js'), context);
+  vm.runInContext(source('web/js/ui.js'), context);
   const { primary, secondary, actions } = vm.runInContext(
     '({ primary: PRIMARY, secondary: SECONDARY, actions: ACTIONS })', context,
   );
