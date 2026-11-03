@@ -1,9 +1,4 @@
-# pt-web — static Rust binary in a minimal runtime image.
-#
-# Packet Tracer assets are NEVER baked into the image (Cisco EULA).
-# Mount them read-only at /assets at run time:
-#   docker run --rm -p 3000:3000 \
-#     -v "$PWD/intake/20261101-102334/appimage/opt/pt:/assets:ro" pt-web
+# TakumiNet — static Rust binary in a minimal runtime image.
 
 FROM rust:1.97-slim AS build
 WORKDIR /src
@@ -18,8 +13,7 @@ COPY --from=build /src/target/release/pt-web /app/pt-web
 COPY web /app/web
 ENV HOST=0.0.0.0 \
     PORT=3000 \
-    WEB_ROOT=/app/web \
-    ASSET_ROOT=/assets
+    WEB_ROOT=/app/web
 USER pt
 EXPOSE 3000
 ENTRYPOINT ["/app/pt-web"]

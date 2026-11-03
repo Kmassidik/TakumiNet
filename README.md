@@ -294,7 +294,7 @@ web/workspace.css  styles
 web/browser.*      raw asset explorer at /browser
 scripts/           intake.sh: unpack + inventory a PT installer
 notes/             findings, one file per investigation
-Dockerfile         multi-stage build; assets mounted at /assets, never copied
+Dockerfile         multi-stage, self-contained application image
 flake.nix          devShell + package
 ```
 
@@ -311,17 +311,11 @@ Assets are auto-discovered under `intake/*/appimage/opt/pt`; override with
 ### Docker
 
 ```bash
-docker build -t pt-web:dev .
-docker run --rm -p 3000:3000 \
-  --security-opt label=disable \
-  -v "$PWD/intake/20261101-102334/appimage/opt/pt:/assets:ro" pt-web:dev
+docker build -t takuminet:dev .
+docker run --rm -p 3000:3000 takuminet:dev
 ```
 
-`--security-opt label=disable` is required on Fedora: SELinux `Enforcing`
-otherwise denies the bind mount and the container sees an empty `/assets`.
-(Alternative: suffix the volume with `:z` to relabel the directory.)
-
-The image does **not** contain Cisco assets — they are mounted read-only.
+The image contains the application and all original artwork; no asset mount is required.
 
 ### Nix
 

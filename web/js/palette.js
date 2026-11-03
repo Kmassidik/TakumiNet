@@ -120,7 +120,7 @@ function renderPalette() {
   bus.title = 'Build a bus segment: hub + N computers with addresses';
   bus.id = 'bus-tool';
   const bimg = document.createElement('img');
-  bimg.src = asset('art/ComponentBox/SpecificCoaxial_40x40.png');
+  bimg.src = icon3d('cables/coax');
   bimg.alt = 'Bus';
   const blabel = document.createElement('span');
   blabel.textContent = 'Bus';
@@ -134,7 +134,7 @@ function renderPalette() {
   meshTool.className = 'dev-tile mesh-tool';
   meshTool.title = 'Create Full Mesh — link every device';
   const mimg = document.createElement('img');
-  mimg.src = asset('art/ComponentBox/SpecificMultiuser.png');
+  mimg.src = icon3d('devices/multiuser');
   const mlabel = document.createElement('span');
   mlabel.textContent = 'Mesh';
   meshTool.appendChild(mimg);

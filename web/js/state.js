@@ -1,6 +1,4 @@
 const NS = 'http://www.w3.org/2000/svg';
-const asset = (p) => (p.startsWith('/') ? p : '/assets/' + p.split('/').map(encodeURIComponent).join('/'));
-
 let data = null;
 /* Packed templates the shipped build carries (`/api/catalog`); empty when the
    asset tree is not unpacked, in which case the palette looks as it always did. */
