@@ -1,0 +1,13 @@
+{
+  "name": "takuminet-web",
+  "private": true,
+  "description": "Front-end tooling only. The shipped app has no runtime dependencies.",
+  "scripts": {
+    "check": "tsc -p tsconfig.json",
+    "build": "bun build web/ts/main.ts --target=browser --outfile=web/js/ui.js",
+    "test": "node --test tests/js/*.test.js"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

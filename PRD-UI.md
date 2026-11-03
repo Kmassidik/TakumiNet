@@ -13,6 +13,14 @@ Today the page is hand-written HTML plus one SVG. Measured: the right panel is f
 5. Every dialog (device window, IP config, terminal, command prompt, browser, editor, firewall, PDU, preferences, lesson gallery, confirm and prompt) is a Modal.
 6. Cut features stay cut (see `git show e1ff0a7`). Do not bring back the removed menus or desktop apps.
 
+## 2b. Toolchain (owner: TypeScript, Bun, as few packages as possible)
+- New UI code is TypeScript in `web/ts/` (strict, `noUncheckedIndexedAccess`). One dev dependency: `typescript` (type checking only). Runtime dependencies: none.
+- `bun run check` type-checks; `bun run build` bundles `web/ts/main.ts` to the single file `web/js/ui.js`, which is committed so the Rust server and Docker image need no Node or Bun.
+- Add a test that rebuilds into a temp file and fails if `web/js/ui.js` is stale. Add `/js/ui.js` to `web/sw.js`.
+- Old plain JS files are deleted as each phase replaces them. No new packages without asking `takuminet-d6`.
+- Existing Node `vm` tests keep running with `node --test`. New TS code is unit-tested through its built output or by importing the modules in Bun; pick one in C0 and keep it.
+- Unverified: whether `bun build` output runs on the owner's Chrome without changes (checked in C0 with a smoke test).
+
 ## 3. Components (public API, one file each in `web/js/ui/`)
 - `Button({label, icon, title, onClick, toggled, disabled})`: the only clickable control. Toolbar buttons, menu items, tabs, sidebar tabs and modal buttons are all Buttons. Keyboard focusable, visible focus ring.
 - `Modal({title, body, buttons, onClose})`: one stack, Esc closes the top one, backdrop click closes, draggable by the title, focus trapped. Replaces `modal.js`, `windows.js`, all `*-dialog` and `*-window` markup in `index.html`.
