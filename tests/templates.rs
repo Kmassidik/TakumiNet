@@ -155,6 +155,27 @@ fn l18_t2_switch_star_learns_three_macs() {
 }
 
 #[test]
+fn l19_t3_dhcp_leases_and_web_page_after_solution() {
+    let server = spawn(38_230);
+    let initial = server.open("t3");
+    assert!(initial.contains("\"id\":\"homerouter0\""), "{initial}");
+    assert!(initial.contains("\"id\":\"laptop0\""), "{initial}");
+    assert_check(&server.checks(), "c1", false);
+    assert_check(&server.checks(), "c3", false);
+
+    server.set_ip("server0", "192.168.1.2", "192.168.1.1", "");
+    server.post_ok("/api/devices/dhcp?id=server0&network=192.168.1.0&prefix=24&gateway=192.168.1.1&dns=192.168.1.2");
+    for client in ["laptop0", "pc0"] {
+        let renewed = server.command(client, "ipconfig /renew");
+        assert!(renewed.contains("DHCP enabled: Yes"), "{renewed}");
+        assert!(renewed.contains("Lease from server0:"), "{renewed}");
+    }
+    let page = server.post_ok("/api/webfetch?id=laptop0&url=http%3A%2F%2F192.168.1.2%2F");
+    assert!(page.contains("\"status\":200") && page.contains("\"title\":\"Server0\""), "{page}");
+    assert_all_passed(&server.checks(), 3);
+}
+
+#[test]
 fn l16_every_native_template_loads_without_unresolved_devices_or_ports() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let server = spawn(38_227);

@@ -1,5 +1,7 @@
 # P2 beginner templates result
 
+- T3 ships the required home-router, laptop, PC, and server star with no addresses, DHCP pool, clients, or leases. Home routers now expose four real FastEthernet LAN ports so all three links validate. L19 `l19_t3_dhcp_leases_and_web_page_after_solution` observes lease and HTTP failure, configures Server0 and its pool through the API, renews both clients through `ipconfig /renew`, fetches the actual page, and passes all three checks. Tested 2026-11-03 with `cargo test`: **215 passed, 0 failed** across 6 suites.
+
 - T2 ships a blank three-PC switch star. The new `mac-table` lesson evaluator reads the same live learned rows as `show mac address-table`; it is not a ping-only substitute. L18 `l18_t2_switch_star_learns_three_macs` checks ping and MAC failure before the solution, configures all hosts, runs three pairwise terminal pings, verifies the real switch CLI total of 3, then passes all four checks. Tested 2026-11-03 with `cargo test`: **214 passed, 0 failed** across 6 suites.
 
 - T1 ships an ordinary `.tnet` cross-cable topology with blank host addressing. L17 `l17_t1_static_addresses_fail_before_and_ping_after` observes `c1` failing before configuration, then applies both static addresses through `/api/devices/ip`, succeeds with a real terminal ping, and passes the lesson check. Ping and TTL lesson checks now reject unaddressed endpoints instead of using the bare-L2 simulation fallback, matching terminal behavior. Tested 2026-11-03 with `cargo test`: **213 passed, 0 failed** across 6 suites.
