@@ -159,6 +159,18 @@ Cell 5: leave empty.
 Cell 6: leave empty.
 ```
 
+### T6 toolbar: traffic and grid (3 icons, rest empty): `T6-ui.png`
+
+```text
+A sheet of 6 separate 3D button icons in a 3 by 2 grid (3 columns, 2 rows), each centered in its own equal square cell with empty space around it. Chunky rounded 3D glyphs with a glossy plastic finish, bold simple silhouette that stays readable when shrunk to 24 pixels, one object per cell, no tiny details. Same camera (front view, slightly from above), same top-left light, same palette: blue-grey base, teal accent, warm amber highlight, off-white shine. No text, no letters, no numbers, no borders, no watermark, transparent background. Image size 1536 x 1024 pixels.
+Cell 1 (simple-pdu): a closed envelope.
+Cell 2 (complex-pdu): an envelope with a small gear on it.
+Cell 3 (grid): a 3 by 3 grid of small tiles.
+Cell 4: leave empty.
+Cell 5: leave empty.
+Cell 6: leave empty.
+```
+
 ### S1 simulation controls: `S1-ui.png`
 
 ```text
