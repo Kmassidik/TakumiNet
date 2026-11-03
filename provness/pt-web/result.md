@@ -6,6 +6,8 @@ P4 Chrome found a hidden device-window icon with no initial source. `every stati
 
 P4 Chrome had no link LEDs. `link_json_exposes_green_amber_and_red_endpoint_states` and `link endpoints render LEDs directly from green amber and red port states` failed before the fix. Chrome then showed twelve green LEDs on the demo and red/amber endpoints after shutting down Router0 GigabitEthernet0/0, with zero console errors or broken images.
 
+P4 Chrome showed that terminal `shutdown` left the old LED colors on screen. `terminal output returns immediately while live port state refreshes behind it` failed before the fix. After it, Chrome printed `no shutdown` output in 41 ms, re-enabled input, and restored green LEDs without waiting for the background workspace refresh.
+
 | Law | Status | Evidence |
 |---|---|---|
 | L1 | tested | `cargo test` (137 unit, 24 e2e pass) |

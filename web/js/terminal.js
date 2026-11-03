@@ -89,6 +89,9 @@ async function openTerm(d) {
       const r = await cliRequest('/api/cli', { id: target.id, line });
       if (r.output) out.textContent += r.output.endsWith('\n') ? r.output : `${r.output}\n`;
       if (r.prompt) promptEl.textContent = r.prompt;
+      getJson('/api/workspace').then((snapshot) => {
+        if (Array.isArray(snapshot.devices)) setData(snapshot);
+      });
     } catch {
       out.textContent += '% console session lost\n';
     }
