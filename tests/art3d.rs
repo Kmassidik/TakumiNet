@@ -87,3 +87,21 @@ fn every_icon_is_a_square_webp() {
 fn the_front_end_actually_uses_some_icons() {
     assert!(used_by_front_end().len() >= 25, "scan found too few icons");
 }
+
+#[test]
+fn every_art3d_path_in_the_server_is_a_webp_on_disk() {
+    let mut bad = Vec::new();
+    for file in ["src/workspace/palette.rs", "src/workspace/mod.rs"] {
+        let text = fs::read_to_string(Path::new(ROOT).join(file)).unwrap();
+        for part in text.split("/art3d/").skip(1) {
+            let path: String = part.chars().take_while(|c| *c != '"').collect();
+            if path.contains('{') {
+                continue;
+            }
+            if !path.ends_with(".webp") || !Path::new(ROOT).join("web/art/3d").join(&path).exists() {
+                bad.push(path);
+            }
+        }
+    }
+    assert!(bad.is_empty(), "server names icons that are not webp on disk: {bad:?}");
+}
