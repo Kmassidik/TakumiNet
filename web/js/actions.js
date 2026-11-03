@@ -290,6 +290,11 @@ function togglePlay() {
     status('Paused');
     return;
   }
+  if (!visibleEvents().length) {
+    status('Nothing to play yet. Send a PDU first');
+    return;
+  }
+  sfx('movieControlButton');
   document.querySelector('#play-btn img').src = icon3d('sim/pause');
   status('Playing events');
   playTimer = setInterval(() => {
