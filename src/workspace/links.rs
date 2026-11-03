@@ -19,15 +19,18 @@ impl Workspace {
         if self.devices.iter().all(|d| d.id != b) {
             return Err(format!("unknown device {b}"));
         }
-        if self
+        let duplicate = self
             .links
             .iter()
-            .any(|l| (l.a == a && l.b == b) || (l.a == b && l.b == a))
-        {
+            .any(|l| (l.a == a && l.b == b) || (l.a == b && l.b == a));
+        if duplicate && !(self.kind_of(a) == "switch" && self.kind_of(b) == "switch") {
             return Err("already linked".into());
         }
         self.media_check(a, b, kind)?;
         let (a_port, b_port) = self.assign_ports(a, b, kind);
+        if duplicate && (self.port_used(a, &a_port) || self.port_used(b, &b_port)) {
+            return Err("no free interface for another link".into());
+        }
         self.links.push(Link {
             a: a.to_string(),
             a_port,
@@ -62,6 +65,8 @@ impl Workspace {
 
     /// The device and interface on the far end of a cable, if any.
     pub fn peer_port(&self, id: &str, port: &str) -> Option<(String, String)> {
+        // Router subinterfaces share their parent's cable and line state.
+        let port = port.split_once('.').map(|(parent, _)| parent).unwrap_or(port);
         let dev = self.devices.iter().find(|d| d.id == id)?;
         let names: Vec<String> = dev.ports.iter().map(|p| p.name.clone()).collect();
         for l in &self.links {
@@ -85,8 +90,9 @@ impl Workspace {
 
     /// Admin, cable and line-protocol state of one interface.
     pub fn port_state(&self, id: &str, port: &str) -> PortState {
-        let admin_up = self.port_admin(id, port);
-        let peer = self.peer_port(id, port);
+        let parent = port.split_once('.').map(|(parent, _)| parent).unwrap_or(port);
+        let admin_up = self.port_admin(id, port) && self.port_admin(id, parent);
+        let peer = self.peer_port(id, parent);
         let linked = peer.is_some();
         let line_up = admin_up && linked && peer.map(|(pid, pp)| self.port_admin(&pid, &pp)).unwrap_or(false);
         PortState {
@@ -209,9 +215,10 @@ impl Workspace {
             return false;
         };
         let names: Vec<String> = dev.ports.iter().map(|p| p.name.clone()).collect();
+        let full = crate::cli::expand_iface(port, &names).unwrap_or_else(|| port.to_string());
         self.links.iter().any(|l| {
-            (l.a == id && crate::cli::expand_iface(&l.a_port, &names).as_deref() == Some(port))
-                || (l.b == id && crate::cli::expand_iface(&l.b_port, &names).as_deref() == Some(port))
+            (l.a == id && crate::cli::expand_iface(&l.a_port, &names).as_deref() == Some(full.as_str()))
+                || (l.b == id && crate::cli::expand_iface(&l.b_port, &names).as_deref() == Some(full.as_str()))
         })
     }
 
@@ -259,8 +266,10 @@ impl Workspace {
         let mut created = 0;
         for i in 0..peers.len() {
             for j in (i + 1)..peers.len() {
-                // `link` rejects an existing pair, which is exactly the skip we want.
-                if self.link(&peers[i], &peers[j]).is_ok() {
+                let already_linked = self.links.iter().any(|l| {
+                    (l.a == peers[i] && l.b == peers[j]) || (l.a == peers[j] && l.b == peers[i])
+                });
+                if !already_linked && self.link(&peers[i], &peers[j]).is_ok() {
                     created += 1;
                 }
             }

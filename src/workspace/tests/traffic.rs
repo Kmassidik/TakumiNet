@@ -244,7 +244,7 @@ fn spanning_tree_blocks_a_redundant_link() {
     ws.link("switch1", &s2).unwrap();
     ws.link("switch0", &s2).unwrap();
     let blocked = ws.stp_blocked_ports();
-    assert_eq!(blocked.len(), 2, "one blocked link = both ends: {blocked:?}");
+    assert_eq!(blocked.len(), 1, "only the non-designated endpoint blocks: {blocked:?}");
     // Traffic still flows over the tree.
     ws.send_pdu("pc0", "pc2").unwrap();
     assert_eq!(ws.events.len(), 1);

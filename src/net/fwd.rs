@@ -10,7 +10,7 @@ use std::collections::VecDeque;
 use crate::cli::expand_iface;
 use crate::model::ipv4_string;
 use crate::net::packet::{Frame, Mac, Packet, Transit};
-use crate::workspace::{Device, Link, Workspace};
+use crate::workspace::{Device, Workspace};
 
 /// What happened at one device during a delivery.
 #[derive(Clone, Debug)]
@@ -47,6 +47,13 @@ impl Delivery {
     }
 }
 
+#[derive(Clone, Debug)]
+struct DataPath {
+    devices: Vec<String>,
+    /// Exact cable indices, including the selected member of an EtherChannel.
+    links: Vec<usize>,
+}
+
 /// Deliver one ICMP echo request from `src` to `dst`.
 pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, String> {
     let sdev = find(ws, src)?.clone();
@@ -67,13 +74,14 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
     // With addresses, the control plane decides: source → next hop → … →
     // destination, then each leg becomes an L2 path. Without addresses the
     // packet is a bare L2 walk, which is what an unaddressed lab looks like.
-    let path = match (src_ip, dst_ip) {
+    let data_path = match (src_ip, dst_ip) {
         (Some(_), Some(dip)) => routed_path(ws, &sdev, &ddev, dip)?,
         _ => match usable_path(ws, src, dst) {
             Some(p) => p,
             None => return Err(blocked_reason(ws, src, dst)),
         },
     };
+    let path = &data_path.devices;
 
     let mut packet = match (src_ip, dst_ip) {
         (Some(sip), Some(dip)) => Packet::echo_request(sip, dip, 0x0a01, 1),
@@ -93,13 +101,14 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
         let ingress = if i == 0 {
             None
         } else {
-            link_between(ws, &path[i - 1], dev_id).map(|l| port_on(&dev, if l.a == *dev_id { &l.a_port } else { &l.b_port }))
+            let l = &ws.links[data_path.links[i - 1]];
+            Some(port_on(&dev, if l.a == *dev_id { &l.a_port } else { &l.b_port }))
         };
         let egress = if i == last {
             None
         } else {
-            link_between(ws, dev_id, &path[i + 1])
-                .map(|l| port_on(&dev, if l.a == *dev_id { &l.a_port } else { &l.b_port }))
+            let l = &ws.links[data_path.links[i]];
+            Some(port_on(&dev, if l.a == *dev_id { &l.a_port } else { &l.b_port }))
         };
 
         // Every L2 boundary is a new Ethernet header: the next L3 device along
@@ -112,6 +121,20 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
 
         match dev.kind.as_str() {
             "router" | "asa" => {
+                if let Some(expected) = ingress.as_ref().and_then(|name| {
+                    dev.ports.iter().find(|p| &p.name == name).and_then(|p| p.dot1q)
+                }) {
+                    match vlan {
+                        None => vlan = Some(expected),
+                        Some(actual) if actual != expected => {
+                            return Err(format!(
+                                "802.1Q VLAN mismatch: {} {} expects VLAN {}",
+                                dev.name, ingress.as_ref().unwrap(), expected
+                            ));
+                        }
+                        _ => {}
+                    }
+                }
                 let proto = match packet.proto {
                     crate::net::packet::IpProto::Icmp => "icmp",
                     crate::net::packet::IpProto::Tcp => "tcp",
@@ -165,7 +188,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                             note = format!("routed: TTL {} -> {}", packet.ttl, next.ttl);
                             packet = next;
                             cur_src = Mac::for_device(dev_id);
-                            vlan = None; // routed boundary: untagged again
+                            vlan = None; // the egress interface selects the next L2 VLAN
                         }
                         Transit::TimeExceeded(_) => {
                             return Err(format!(
@@ -174,6 +197,11 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
                             ));
                         }
                     }
+                }
+                if let Some(tag) = egress.as_ref().and_then(|name| {
+                    dev.ports.iter().find(|p| &p.name == name).and_then(|p| p.dot1q)
+                }) {
+                    vlan = Some(tag);
                 }
                 if let Some(n) = nat_note {
                     note = if note.is_empty() { n } else { format!("{note}; {n}") };
@@ -274,7 +302,7 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
     let time = 0.001 * hops.len() as f32;
 
     Ok(Delivery {
-        path,
+        path: data_path.devices,
         hops,
         frame,
         time,
@@ -290,84 +318,99 @@ fn find<'a>(ws: &'a Workspace, id: &str) -> Result<&'a Device, String> {
 }
 
 /// Shortest path whose every interface is administratively up.
-fn usable_path(ws: &Workspace, src: &str, dst: &str) -> Option<Vec<String>> {
-    bfs(ws, src, dst, true)
+fn usable_path(ws: &Workspace, src: &str, dst: &str) -> Option<DataPath> {
+    bfs(ws, src, dst, true, None)
+}
+
+fn usable_path_vlan(ws: &Workspace, src: &str, dst: &str, vlan: Option<u16>) -> Option<DataPath> {
+    bfs(ws, src, dst, true, vlan)
 }
 
 /// Shortest data path ignoring interface state, used only to explain a failure.
-fn any_path(ws: &Workspace, src: &str, dst: &str) -> Option<Vec<String>> {
-    bfs(ws, src, dst, false)
+fn any_path(ws: &Workspace, src: &str, dst: &str) -> Option<DataPath> {
+    bfs(ws, src, dst, false, None)
 }
 
-fn bfs(ws: &Workspace, src: &str, dst: &str, require_up: bool) -> Option<Vec<String>> {
-    let mut adj: Vec<(&str, &str, &str, &str)> = Vec::new();
-    for l in &ws.links {
-        if !l.carries_data() {
-            continue;
-        }
-        adj.push((&l.a, &l.a_port, &l.b, &l.b_port));
-    }
+fn bfs(ws: &Workspace, src: &str, dst: &str, require_up: bool, vlan: Option<u16>) -> Option<DataPath> {
     // Ports the spanning tree puts in blocking state never forward traffic.
-    let blocked = if require_up {
-        ws.stp_blocked_ports()
-    } else {
-        Vec::new()
-    };
-    let mut q: VecDeque<Vec<String>> = VecDeque::new();
-    let mut seen: Vec<String> = vec![src.to_string()];
-    q.push_back(vec![src.to_string()]);
-    while let Some(path) = q.pop_front() {
-        let last = path.last()?.clone();
+    let blocked = if require_up { ws.stp_blocked_ports() } else { Vec::new() };
+    let initial = DataPath { devices: vec![src.to_string()], links: Vec::new() };
+    let mut q: VecDeque<(DataPath, Option<u16>)> = VecDeque::new();
+    let mut seen: Vec<(String, Option<u16>)> = vec![(src.to_string(), vlan)];
+    q.push_back((initial, vlan));
+    while let Some((path, path_vlan)) = q.pop_front() {
+        let last = path.devices.last()?.clone();
         if last == dst {
             return Some(path);
         }
-        if path.len() > 64 {
+        if path.devices.len() > 64 {
             continue;
         }
-        for (a, a_port, b, b_port) in &adj {
-            let (next, from_port, to_port) = if *a == last {
-                (*b, *a_port, *b_port)
-            } else if *b == last {
-                (*a, *b_port, *a_port)
+        for (link_idx, l) in ws.links.iter().enumerate() {
+            if !l.carries_data() {
+                continue;
+            }
+            let (next, from_port, to_port) = if l.a == last {
+                (&l.b, &l.a_port, &l.b_port)
+            } else if l.b == last {
+                (&l.a, &l.b_port, &l.a_port)
             } else {
                 continue;
             };
-            if seen.iter().any(|s| s == next) {
+            let Some(cur) = ws.devices.iter().find(|d| d.id == last) else {
                 continue;
-            }
+            };
+            let Some(dev) = ws.devices.iter().find(|d| d.id == *next) else {
+                continue;
+            };
+            let mut next_vlan = path_vlan;
             if require_up {
-                let Some(cur) = ws.devices.iter().find(|d| d.id == last) else {
-                    continue;
-                };
-                let Some(dev) = ws.devices.iter().find(|d| d.id == next) else {
-                    continue;
-                };
                 // A cable is only usable when both ends are administratively up.
                 if !port_is_up(cur, from_port) || !port_is_up(dev, to_port) {
                     continue;
                 }
                 let from_full = port_on(cur, from_port);
                 let to_full = port_on(dev, to_port);
-                if blocked
-                    .iter()
-                    .any(|(d, p)| *d == last && *p == from_full)
+                if blocked.iter().any(|(d, p)| *d == last && *p == from_full)
+                    || blocked.iter().any(|(d, p)| d == next && *p == to_full)
                 {
                     continue;
                 }
-                if blocked
-                    .iter()
-                    .any(|(d, p)| *d == *next && *p == to_full)
-                {
+                if cur.kind == "switch" && !switch_port_vlan(cur, from_port, &mut next_vlan) {
+                    continue;
+                }
+                if dev.kind == "switch" && !switch_port_vlan(dev, to_port, &mut next_vlan) {
                     continue;
                 }
             }
-            seen.push(next.to_string());
+            if seen.iter().any(|(id, v)| id == next && *v == next_vlan) {
+                continue;
+            }
+            seen.push((next.clone(), next_vlan));
             let mut p = path.clone();
-            p.push(next.to_string());
-            q.push_back(p);
+            p.devices.push(next.clone());
+            p.links.push(link_idx);
+            q.push_back((p, next_vlan));
         }
     }
     None
+}
+
+/// Apply an access or native/802.1Q port to the frame's VLAN context.
+fn switch_port_vlan(dev: &Device, raw: &str, vlan: &mut Option<u16>) -> bool {
+    let name = port_on(dev, raw);
+    let Some(port) = dev.ports.iter().find(|p| p.name == name) else {
+        return true;
+    };
+    let port_vlan = if port.trunk { 1 } else { port.vlan };
+    match *vlan {
+        None => {
+            *vlan = Some(port_vlan);
+            true
+        }
+        Some(current) if port.trunk => current > 0,
+        Some(current) => current == port_vlan,
+    }
 }
 
 /// Why no path exists, naming the first down interface on the link-only path.
@@ -375,11 +418,8 @@ fn blocked_reason(ws: &Workspace, src: &str, dst: &str) -> String {
     let Some(path) = any_path(ws, src, dst) else {
         return "no path: devices are not connected".into();
     };
-    for pair in path.windows(2) {
-        let (a, b) = (&pair[0], &pair[1]);
-        let Some(link) = link_between(ws, a, b) else {
-            continue;
-        };
+    for (idx, _) in path.devices.windows(2).enumerate() {
+        let link = &ws.links[path.links[idx]];
         for (id, name) in [(&link.a, &link.a_port), (&link.b, &link.b_port)] {
             let Some(dev) = ws.devices.iter().find(|d| d.id == *id) else {
                 continue;
@@ -393,6 +433,30 @@ fn blocked_reason(ws: &Workspace, src: &str, dst: &str) -> String {
             }
         }
     }
+    let mut vlan = None;
+    for (i, id) in path.devices.iter().enumerate() {
+        let Some(dev) = ws.devices.iter().find(|d| &d.id == id) else {
+            continue;
+        };
+        if dev.kind != "switch" {
+            continue;
+        }
+        let ingress = (i > 0).then(|| &ws.links[path.links[i - 1]]);
+        let egress = (i + 1 < path.devices.len()).then(|| &ws.links[path.links[i]]);
+        for raw in [
+            ingress.map(|l| if l.a == *id { &l.a_port } else { &l.b_port }),
+            egress.map(|l| if l.a == *id { &l.a_port } else { &l.b_port }),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            if !switch_port_vlan(dev, raw, &mut vlan) {
+                let name = port_on(dev, raw);
+                let access = dev.ports.iter().find(|p| p.name == name).map(|p| p.vlan).unwrap_or(1);
+                return format!("VLAN mismatch: {} {name} is VLAN {access}", dev.name);
+            }
+        }
+    }
     if let Some((dev_id, port)) = ws.stp_blocked_ports().first() {
         let name = ws
             .devices
@@ -403,12 +467,6 @@ fn blocked_reason(ws: &Workspace, src: &str, dst: &str) -> String {
         return format!("spanning tree is blocking {name} {port} — remove the redundant link");
     }
     "no path: devices are not connected".into()
-}
-
-fn link_between<'a>(ws: &'a Workspace, a: &str, b: &str) -> Option<&'a Link> {
-    ws.links
-        .iter()
-        .find(|l| (l.a == a && l.b == b) || (l.a == b && l.b == a))
 }
 
 fn port_on(dev: &Device, raw: &str) -> String {
@@ -454,13 +512,11 @@ fn next_l3_id(ws: &Workspace, path: &[String], i: usize, dst: &str) -> String {
     dst.to_string()
 }
 
-/// What a device does with a packet for `dst`.
+/// What a device does with a packet for `dst`, including the 802.1Q tag of
+/// the directly connected interface used for the next L2 leg.
 enum NextHop {
-    /// The destination is on a directly connected network (or on-link).
-    Direct,
-    /// Hand it to this address.
-    Via(u32),
-    /// No route; the message is the IOS-style refusal.
+    Direct(Option<u16>),
+    Via(u32, Option<u16>),
     NoRoute(String),
 }
 
@@ -473,13 +529,13 @@ fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
         for p in &dev.ports {
             if let Some(ip) = p.ip {
                 if contains(dst, ip, p.prefix) && best.as_ref().map(|(l, _)| p.prefix > *l).unwrap_or(true) {
-                    best = Some((p.prefix, NextHop::Direct));
+                    best = Some((p.prefix, NextHop::Direct(p.dot1q)));
                 }
             }
         }
         for (net, prefix, via) in &dev.routes {
             if contains(dst, *net, *prefix) && best.as_ref().map(|(l, _)| *prefix > *l).unwrap_or(true) {
-                best = Some((*prefix, NextHop::Via(*via)));
+                best = Some((*prefix, NextHop::Via(*via, None)));
             }
         }
         if let Some(list) = ws.dyn_routes.get(&dev.id) {
@@ -487,11 +543,20 @@ fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
                 if contains(dst, *net, *prefix)
                     && best.as_ref().map(|(l, _)| *prefix > *l).unwrap_or(true)
                 {
-                    best = Some((*prefix, NextHop::Via(*via)));
+                    best = Some((*prefix, NextHop::Via(*via, None)));
                 }
             }
         }
         return match best {
+            Some((_, NextHop::Via(via, _))) => {
+                let tag = dev
+                    .ports
+                    .iter()
+                    .filter(|p| p.ip.is_some_and(|ip| contains(via, ip, p.prefix)))
+                    .max_by_key(|p| p.prefix)
+                    .and_then(|p| p.dot1q);
+                NextHop::Via(via, tag)
+            }
             Some((_, nh)) => nh,
             None => NextHop::NoRoute(format!(
                 "no route to {}: {} has no route to that network",
@@ -504,11 +569,11 @@ fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
     let own = addr_of(dev);
     if let Some(ip) = own {
         if contains(dst, ip, dev.prefix) {
-            return NextHop::Direct;
+            return NextHop::Direct(None);
         }
     }
     match dev.gateway {
-        Some(gw) => NextHop::Via(gw),
+        Some(gw) => NextHop::Via(gw, None),
         None => NextHop::NoRoute(format!(
             "no route to {}: {} has no default gateway",
             ipv4_string(dst),
@@ -518,24 +583,26 @@ fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
 }
 
 /// Control-plane walk: follow next hops until the destination, then stitch the
-/// L2 legs into the device path the packet actually traverses.
+/// VLAN-constrained L2 legs into the exact device and cable path.
 fn routed_path(
     ws: &Workspace,
     sdev: &Device,
     ddev: &Device,
     dst_ip: u32,
-) -> Result<Vec<String>, String> {
+) -> Result<DataPath, String> {
     use crate::model::ipv4_string;
 
     let mut chain: Vec<String> = vec![sdev.id.clone()];
+    let mut leg_vlans = Vec::new();
     let mut current = sdev.clone();
     for _ in 0..16 {
-        let next = match next_hop(ws, &current, dst_ip) {
-            NextHop::Direct => {
+        let (next, next_vlan) = match next_hop(ws, &current, dst_ip) {
+            NextHop::Direct(vlan) => {
                 chain.push(ddev.id.clone());
+                leg_vlans.push(vlan);
                 break;
             }
-            NextHop::Via(ip) => ip,
+            NextHop::Via(ip, vlan) => (ip, vlan),
             NextHop::NoRoute(msg) => return Err(msg),
         };
 
@@ -556,10 +623,17 @@ fn routed_path(
         if chain.iter().any(|id| *id == peer.id) {
             return Err(format!("routing loop at {}", peer.name));
         }
+        let peer_tag = peer
+            .ports
+            .iter()
+            .find(|p| p.ip == Some(next))
+            .and_then(|p| p.dot1q);
+        let vlan = next_vlan.or(peer_tag);
         let from = chain.last().cloned().unwrap_or_default();
-        if usable_path(ws, &from, &peer.id).is_none() {
+        if usable_path_vlan(ws, &from, &peer.id, vlan).is_none() {
             return Err(blocked_reason(ws, &from, &peer.id));
         }
+        leg_vlans.push(vlan);
         chain.push(peer.id.clone());
         current = peer;
     }
@@ -570,15 +644,16 @@ fn routed_path(
         ));
     }
 
-    let mut path = vec![chain[0].clone()];
-    for pair in chain.windows(2) {
-        let leg = usable_path(ws, &pair[0], &pair[1])
+    let mut path = DataPath { devices: vec![chain[0].clone()], links: Vec::new() };
+    for (idx, pair) in chain.windows(2).enumerate() {
+        let leg = usable_path_vlan(ws, &pair[0], &pair[1], leg_vlans[idx])
             .ok_or_else(|| blocked_reason(ws, &pair[0], &pair[1]))?;
-        for id in leg.into_iter().skip(1) {
-            if path.last() != Some(&id) {
-                path.push(id);
+        for id in leg.devices.into_iter().skip(1) {
+            if path.devices.last() != Some(&id) {
+                path.devices.push(id);
             }
         }
+        path.links.extend(leg.links);
     }
     Ok(path)
 }

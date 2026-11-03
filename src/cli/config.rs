@@ -7,6 +7,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("inspect icmp") || l.starts_with("no inspect icmp"), inspect_icmp),
     (|l| l.starts_with("ips signature ") || l.starts_with("no ips signature "), ips_signature),
     (|l| l.starts_with("spanning-tree mode "), spanning_tree_mode),
+    (|l| l.starts_with("spanning-tree vlan "), spanning_tree_priority),
     (|l| l.starts_with("router "), router_protocol),
     (|l| l.starts_with("ip nat inside source list "), nat_source_list),
     (|l| l.starts_with("no ip nat inside source"), nat_clear),
@@ -64,6 +65,24 @@ fn ips_signature(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, low
 fn spanning_tree_mode(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
     let mode = line["spanning-tree mode ".len()..].trim().to_ascii_lowercase();
     match ws.set_stp_mode(id, &mode) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
+}
+
+fn spanning_tree_priority(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: &str) -> String {
+    let mut words = line["spanning-tree vlan ".len()..].split_whitespace();
+    let (Some(vlan), Some(keyword), Some(priority)) = (words.next(), words.next(), words.next()) else {
+        return "% Incomplete command.\n".into();
+    };
+    if !keyword.eq_ignore_ascii_case("priority") {
+        return "% Only spanning-tree vlan ... priority is supported\n".into();
+    }
+    let parsed = match (vlan.parse::<u16>(), priority.parse::<u16>()) {
+        (Ok(vlan), Ok(priority)) => (vlan, priority),
+        _ => return "% Invalid VLAN or priority\n".into(),
+    };
+    match ws.set_stp_priority(id, parsed.0, parsed.1) {
         Ok(()) => String::new(),
         Err(e) => format!("% {e}\n"),
     }
@@ -137,7 +156,12 @@ fn hostname(ws: &mut Workspace, id: &str, _s: &mut Session, line: &str, _lower: 
 fn enter_interface(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
     let Some(rest) = iface_arg(&lower) else { return invalid(line, Mode::Config) };
     let ports = ports_of(ws, id);
-    match expand_iface(rest.trim(), &ports) {
+    let resolved = if rest.trim().contains('.') {
+        ws.ensure_subinterface(id, rest.trim()).ok()
+    } else {
+        expand_iface(rest.trim(), &ports)
+    };
+    match resolved {
         Some(name) => {
             s.mode = Mode::Iface;
             s.iface = Some(name);

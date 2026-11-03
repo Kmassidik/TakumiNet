@@ -82,6 +82,7 @@ impl Workspace {
                         up: true,
                         vlan: 1,
                         trunk: false,
+                        dot1q: None,
                     });
                 }
             }

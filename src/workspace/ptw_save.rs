@@ -46,16 +46,17 @@ impl Workspace {
                 ));
             }
             for p in &d.ports {
-                if p.ip.is_some() || !p.up || p.vlan != 1 || p.trunk {
+                if p.ip.is_some() || !p.up || p.vlan != 1 || p.trunk || p.dot1q.is_some() {
                     out.push_str(&format!(
-                        "port\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                        "port\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                         d.id,
                         p.name,
                         u8::from(p.up),
                         p.ip.map(crate::model::ipv4_string).unwrap_or_default(),
                         p.prefix,
                         p.vlan,
-                        u8::from(p.trunk)
+                        u8::from(p.trunk),
+                        p.dot1q.map(|v| v.to_string()).unwrap_or_default()
                     ));
                 }
             }
@@ -258,7 +259,27 @@ impl Workspace {
             let mut rows: Vec<_> = table.iter().collect();
             rows.sort_by_key(|(iface, _)| iface.as_str());
             for (iface, group) in rows {
-                out.push_str(&format!("channel\t{}\t{}\t{}\n", dev, iface, group));
+                out.push_str(&format!(
+                    "channel\t{}\t{}\t{}\t{}\n",
+                    dev,
+                    iface,
+                    group,
+                    self.channel_mode(dev, iface)
+                ));
+            }
+        }
+        let mut stp_modes: Vec<_> = self.stp_modes.iter().collect();
+        stp_modes.sort_by_key(|(id, _)| id.as_str());
+        for (dev, mode) in stp_modes {
+            out.push_str(&format!("stpmode\t{dev}\t{mode}\n"));
+        }
+        let mut stp_priorities: Vec<_> = self.stp_priorities.iter().collect();
+        stp_priorities.sort_by_key(|(id, _)| id.as_str());
+        for (dev, priorities) in stp_priorities {
+            let mut rows: Vec<_> = priorities.iter().collect();
+            rows.sort_by_key(|(vlan, _)| **vlan);
+            for (vlan, priority) in rows {
+                out.push_str(&format!("stppriority\t{dev}\t{vlan}\t{priority}\n"));
             }
         }
         let mut acls: Vec<_> = self.acls.iter().collect();

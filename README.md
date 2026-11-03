@@ -14,8 +14,9 @@ simulation is ours and runs server-side in Rust.
 
 ## What is proven right now
 
-- `cargo test` — 136 unit + 24 e2e: frames, TTL, MAC/ARP tables, interface
-  state, IOS CLI, editing, assets, `.pkt` import.
+- `cargo test` — 146 unit + 41 integration/HTTP conformance tests (187 total):
+  frames, TTL, MAC/ARP tables, interface state, IOS CLI, VLAN/STP/EtherChannel,
+  editing, assets, `.pkt` import.
 - `cargo run` — asset browser on `http://localhost:3000`, verified in Chromium
   (icon grid renders, preview opens, 6,455 files / 811 MB indexed).
 - Workspace UI verified in Chromium: 7 devices, 6 labeled links, 49 event
@@ -49,8 +50,9 @@ simulation is ours and runs server-side in Rust.
   **Tools → Create Full Mesh**, or the palette **Mesh** button to mesh
   everything. Verified: 3 selected → 6→9 links; all 7 → 21 links; undo → 6.
 - Cabling verified: cable tool → click two devices → link created with
-  auto-assigned ports (`Fa0`, `Fa0/4`, `Gig0/2`); duplicates, self-links and
-  unknown devices rejected; link selectable and deletable.
+  auto-assigned ports (`Fa0`, `Fa0/4`, `Gig0/2`); parallel switch links use
+  distinct ports, duplicate host links, self-links and unknown devices are
+  rejected; links are selectable and deletable.
 - Every control wired: New, Open, Save, Print, Undo, Redo, Copy, Paste, Delete,
   Zoom In/Out/Reset, Palette toggle, Grid toggle, Custom Device, Simple/Complex
   PDU, Reset Simulation, Play/Step/Back/Forward/Fast-forward, Show All/None,
@@ -159,13 +161,15 @@ simulation is ours and runs server-side in Rust.
 - **`.pkt` writer**: `ptfile::encode` re-encodes a decrypted save; the corpus
   round-trip is **275 ok, 18 skipped (known undecodable container), 0 failed**,
   exposed as `cargo run --bin pkt2rs -- --roundtrip <dir>`.
-- **VLANs and spanning tree**: `vlan 20 SALES`, `switchport mode access|trunk`
-  and `switchport access vlan 20` configure it; switching enforces the access
-  VLAN (`VLAN mismatch: Switch0 FastEthernet0/3 is VLAN 20`), a trunk carries
-  tagged frames across, `show vlan brief` / `show spanning-tree` /
-  `show interfaces switchport|trunk` report the state, and a redundant switch
-  loop puts one end in `BLK` while traffic still flows over the tree. VLAN and
-  switchport state persist in `.ptw`.
+- **VLANs, router-on-a-stick and IEEE spanning tree**: access/trunk ports
+  enforce 802.1Q VLANs, while router subinterfaces (`interface g0/0.10`,
+  `encapsulation dot1Q 10`, `ip address ...`) route between them with the usual
+  TTL decrement. STP/RSTP elects a root by extended bridge priority then MAC,
+  uses root path cost and IEEE port tie-breakers, and blocks only the
+  non-designated endpoint of a redundant link. `spanning-tree vlan 1 priority`
+  and `spanning-tree mode rapid-pvst` change the live topology and appear in
+  running/startup configuration; shutdowns immediately reconverge the tree.
+  VLAN, subinterface, mode and priority state persist in `.ptw`.
 - **Industrial protocols**: Modbus holding registers per industrial device
   (`/api/iot/read|write`), PROFINET PDUs, PRP duplicate suppression by
   sequence number, PTP master/slave sync, and cellular clients that route
@@ -185,11 +189,14 @@ simulation is ours and runs server-side in Rust.
   the router hop; `ip nat inside|outside` plus `ip nat inside source list N
   interface g0/1 overload` rewrites inside sources and `show ip nat
   translations` reports the bindings.
-- **Switch hardening**: `switchport port-security maximum N` enforces a MAC
-  limit with a `port-security violation` drop, `channel-group N mode ...` is
-  stored and shown by `show etherchannel summary`, `spanning-tree mode
-  rapid-pvst` is recorded, and `dot1x port-control auto` sets the 802.1X state
-  shown by `show authentication sessions`.
+- **Switch hardening and EtherChannel**: `switchport port-security maximum N`
+  enforces a MAC limit with a `port-security violation` drop. Compatible
+  `channel-group N mode on|active|passive|auto|desirable` members form one
+  logical STP/forwarding link; `show etherchannel summary` reports LACP/PAgP,
+  bundle and member state, and traffic fails over when a member is shut down.
+  Group numbers and modes persist in running/startup configuration and `.ptw`.
+  `dot1x port-control auto` sets the 802.1X state shown by `show authentication
+  sessions`.
 - **Wireless, VPN, PPPoE and phones**: controllers hold WLANs
   (`/api/wifi/wlan`), clients scan and associate with WPA2-PSK
   (`/api/wifi/scan`, `/api/wifi/join`, `/api/wifi/status`), and VPN/PPPoE
@@ -208,8 +215,9 @@ simulation is ours and runs server-side in Rust.
 - **Own artwork**: original 3D PNGs in `web/art/3d/` serve device, cable,
   palette, toolbar, simulation, application, and mascot imagery through
   `/art3d/<group>/<name>.png`. TakumiNet uses the fluffy mascot as its logo.
-- **Tests**: 136 unit + 24 end-to-end. `tests/e2e.rs` spawns the real binary and
-  drives HTTP; `tests/corpus.rs` (opt-in `PT_CORPUS=1`) opens all 299 shipped
+- **Tests**: 146 unit + 41 integration/HTTP tests. `tests/e2e.rs` and the
+  router-on-a-stick, STP/RSTP and EtherChannel labs in `tests/labs/main.rs`
+  spawn the real binary and drive HTTP; `tests/corpus.rs` (opt-in `PT_CORPUS=1`) opens all 299 shipped
   saves through `/api/pkt/open` — **239 opened, 42 empty, 18 skipped (known
   undecodable container), 0 errors** — and asserts every link endpoint exists.
 - Asset coverage 71/6,455 files (1.1%): toolbar, palette, logical device art,

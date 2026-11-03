@@ -87,7 +87,7 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         .into_iter()
         // A cabled interface is up until something shuts it down, and the demo
         // workspace ships already wired.
-        .map(|name| PortCfg { name, ip: None, prefix: 24, up: true, vlan: 1, trunk: false })
+        .map(|name| PortCfg { name, ip: None, prefix: 24, up: true, vlan: 1, trunk: false, dot1q: None })
         .collect()
 }
 

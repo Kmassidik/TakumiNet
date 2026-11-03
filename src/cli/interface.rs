@@ -7,6 +7,7 @@ type Handler = fn(&mut Workspace, &str, &mut Session, &str, &str) -> String;
 const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| iface_arg(l).is_some(), switch_interface),
     (|l| l.starts_with("ip address "), ip_address),
+    (|l| l.starts_with("encapsulation dot1q "), encapsulation_dot1q),
     (|l| l.starts_with("ip helper-address "), ip_helper_address),
     (|l| l.starts_with("no ip helper-address"), no_ip_helper_address),
     (|l| l.starts_with("switchport mode "), switchport_mode),
@@ -35,7 +36,12 @@ fn switch_interface(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, l
     // IOS allows switching interfaces straight from config-if.
     let Some(rest) = iface_arg(&lower) else { return invalid(line, Mode::Iface) };
     let ports = ports_of(ws, id);
-    match expand_iface(rest.trim(), &ports) {
+    let resolved = if rest.trim().contains('.') {
+        ws.ensure_subinterface(id, rest.trim()).ok()
+    } else {
+        expand_iface(rest.trim(), &ports)
+    };
+    match resolved {
         Some(name) => {
             s.iface = Some(name);
             String::new()
@@ -55,6 +61,18 @@ fn ip_address(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _lower:
         return format!("% Invalid mask: {mask}\n");
     };
     match ws.set_port_ip(id, &iface, addr, prefix) {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
+}
+
+fn encapsulation_dot1q(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    let vlan = line["encapsulation dot1q ".len()..].trim();
+    let Ok(vlan) = vlan.parse::<u16>() else {
+        return format!("% Invalid VLAN id: {vlan}\n");
+    };
+    match ws.set_port_dot1q(id, &iface, vlan) {
         Ok(()) => String::new(),
         Err(e) => format!("% {e}\n"),
     }
@@ -213,7 +231,7 @@ fn channel_group(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _low
         return "% Invalid channel-group mode\n".into();
     }
     match group.parse::<u16>() {
-        Ok(g) => match ws.set_channel_group(id, &iface, g) {
+        Ok(g) => match ws.set_channel_group_mode(id, &iface, g, &mode.to_ascii_lowercase()) {
             Ok(()) => String::new(),
             Err(e) => format!("% {e}\n"),
         },

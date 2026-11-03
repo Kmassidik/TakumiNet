@@ -141,7 +141,7 @@ pub(super) fn vlan_table(ws: &Workspace, id: &str) -> String {
     out
 }
 
-/// `show spanning-tree`: one line per cabled port with its state.
+/// `show spanning-tree`: IEEE root election and per-port roles for VLAN 1.
 pub(super) fn stp_table(ws: &Workspace, id: &str) -> String {
     let Some(dev) = ws.devices.iter().find(|d| d.id == id) else {
         return String::new();
@@ -149,21 +149,15 @@ pub(super) fn stp_table(ws: &Workspace, id: &str) -> String {
     if dev.kind != "switch" {
         return "% spanning-tree is only shown on switches\n".into();
     }
-    let blocked = ws.stp_blocked_ports();
-    let root = ws
-        .devices
-        .iter()
-        .filter(|d| d.kind == "switch")
-        .map(|d| d.id.clone())
-        .min()
-        .unwrap_or_else(|| id.to_string());
-    let mut out = String::from("VLAN0001\n  Spanning tree enabled protocol ieee\n");
+    let (root_priority, root_mac, root_ports, blocked) = ws.stp_device_state(id);
+    let protocol = if ws.stp_mode(id) == "rapid-pvst" { "rstp" } else { "ieee" };
+    let mut out = format!("VLAN0001\n  Spanning tree enabled protocol {protocol}\n");
     out.push_str(&format!(
-        "  Root ID    Address     {}\n",
-        crate::net::packet::Mac::for_device(&root)
+        "  Root ID    Priority    {root_priority}\n    Address     {root_mac}\n"
     ));
     out.push_str(&format!(
-        "  Bridge ID  Address     {}\n",
+        "  Bridge ID  Priority    {}\n    Address     {}\n",
+        ws.stp_priority(id, 1) + 1,
         crate::net::packet::Mac::for_device(id)
     ));
     out.push_str("Interface        Role Sts\n---------------- ---- ---\n");
@@ -173,11 +167,22 @@ pub(super) fn stp_table(ws: &Workspace, id: &str) -> String {
             continue;
         }
         shown += 1;
-        let down = blocked.iter().any(|(d, port)| d == id && *port == p.name);
+        if !ws.port_state(id, &p.name).line_up {
+            out.push_str(&format!("{:<16} Disabled DIS\n", p.name));
+            continue;
+        }
+        let down = blocked.contains(&p.name);
+        let role = if down {
+            "Altn"
+        } else if root_ports.contains(&p.name) {
+            "Root"
+        } else {
+            "Desig"
+        };
         out.push_str(&format!(
             "{:<16} {:<4} {}\n",
             p.name,
-            if down { "Altn" } else { "Desig" },
+            role,
             if down { "BLK" } else { "FWD" }
         ));
     }
@@ -243,9 +248,23 @@ pub(super) fn etherchannel_summary(ws: &Workspace, id: &str) -> String {
     }
     let mut out = String::from("Group  Ports                     Protocol  Status\n");
     for (group, ports) in groups {
+        let members = ports
+            .iter()
+            .map(|port| {
+                let state = if ws.channel_member_active(id, port) { "P" } else { "D" };
+                format!("{port}({state})")
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        let mode = ports.first().map(|port| ws.channel_mode(id, port)).unwrap_or("on");
+        let protocol = match mode {
+            "active" | "passive" => "LACP",
+            "auto" | "desirable" => "PAgP",
+            _ => "-",
+        };
+        let state = if ws.channel_group_active(id, group) { "SU" } else { "SD" };
         out.push_str(&format!(
-            "{group:<7}{:<25}LACP      Po{group}(SU)\n",
-            ports.join(" ")
+            "{group:<7}{members:<35}{protocol:<10}Po{group}({state})\n"
         ));
     }
     out
@@ -476,6 +495,7 @@ pub(super) fn running_config(ws: &Workspace, id: &str) -> String {
         ws.banners.get(id).map(String::as_str),
         ws.line_passwords.get(id).map(String::as_str),
         ws.routing.get(id),
+        &ws.switching_config(id),
     )
 }
 
@@ -493,6 +513,7 @@ pub(crate) fn config_for(
     banner: Option<&str>,
     line_pw: Option<&str>,
     routing: Option<&(String, Vec<(u32, u8)>)>,
+    switching: &crate::workspace::SwitchingConfig,
 ) -> String {
     let mut out = String::from(
         "Building configuration...\n\nCurrent configuration : 1024 bytes\n!\nversion 15.1\n",
@@ -501,8 +522,36 @@ pub(crate) fn config_for(
     if let Some(b) = banner {
         out.push_str(&format!("banner motd ^{b}^\n!\n"));
     }
+    for (vlan, name) in &switching.vlans {
+        out.push_str(&format!("vlan {vlan}\n name {name}\n!\n"));
+    }
+    if let Some(mode) = &switching.stp_mode {
+        out.push_str(&format!("spanning-tree mode {mode}\n"));
+    }
+    let mut priorities: Vec<_> = switching.stp_priorities.iter().collect();
+    priorities.sort_by_key(|(vlan, _)| **vlan);
+    for (vlan, priority) in &priorities {
+        out.push_str(&format!("spanning-tree vlan {vlan} priority {priority}\n"));
+    }
+    if switching.stp_mode.is_some() || !priorities.is_empty() {
+        out.push_str("!\n");
+    }
     for p in &d.ports {
         out.push_str(&format!("interface {}\n", p.name));
+        if let Some(vlan) = p.dot1q {
+            out.push_str(&format!(" encapsulation dot1Q {vlan}\n"));
+        }
+        if d.kind == "switch" {
+            if p.trunk {
+                out.push_str(" switchport mode trunk\n");
+            } else if p.vlan != 1 {
+                out.push_str(&format!(" switchport access vlan {}\n", p.vlan));
+            }
+        }
+        if let Some(group) = switching.channels.get(&p.name) {
+            let mode = switching.channel_modes.get(&p.name).map(String::as_str).unwrap_or("on");
+            out.push_str(&format!(" channel-group {group} mode {mode}\n"));
+        }
         if let Some(ip) = p.ip {
             out.push_str(&format!(
                 " ip address {} {}\n",

@@ -182,7 +182,7 @@ fn e2e_workspace_editing_and_simulation() {
     assert_eq!(count(&body, "\"aPort\":"), 7, "{body}");
     assert!(body.contains("\"aPort\":\"Fa0\""), "{body}");
 
-    // duplicate link is rejected
+    // Duplicate host links are rejected; parallel switch links use new ports.
     let (_, _, body) = s.post("/api/links?a=switch1&b=pc3");
     assert!(body.contains("already linked"), "{body}");
 

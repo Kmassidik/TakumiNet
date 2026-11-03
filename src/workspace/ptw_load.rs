@@ -124,6 +124,29 @@ impl Workspace {
                     }
                 }
             }
+            ["port", id, name, up, ip, prefix, vlan, trunk, dot1q] => {
+                if let Some(d) = self.devices.iter_mut().find(|d| d.id == *id) {
+                    if !d.ports.iter().any(|p| p.name == *name) && name.contains('.') {
+                        d.ports.push(PortCfg {
+                            name: name.to_string(),
+                            ip: None,
+                            prefix: 24,
+                            up: true,
+                            vlan: 1,
+                            trunk: false,
+                            dot1q: None,
+                        });
+                    }
+                    if let Some(p) = d.ports.iter_mut().find(|p| p.name == *name) {
+                        p.up = *up == "1";
+                        p.ip = crate::model::parse_ipv4(ip);
+                        p.prefix = prefix.parse().unwrap_or(24);
+                        p.vlan = vlan.parse().unwrap_or(1);
+                        p.trunk = *trunk == "1";
+                        p.dot1q = dot1q.parse::<u16>().ok();
+                    }
+                }
+            }
             _ => {}
         }
         Some(())
@@ -284,6 +307,29 @@ impl Workspace {
                         .entry(dev.to_string())
                         .or_default()
                         .insert(iface.to_string(), g);
+                }
+            }
+            ["channel", dev, iface, group, mode] => {
+                if let Ok(g) = group.parse::<u16>() {
+                    self.channels
+                        .entry(dev.to_string())
+                        .or_default()
+                        .insert(iface.to_string(), g);
+                    self.channel_modes
+                        .entry(dev.to_string())
+                        .or_default()
+                        .insert(iface.to_string(), mode.to_string());
+                }
+            }
+            ["stpmode", dev, mode] => {
+                self.stp_modes.insert(dev.to_string(), mode.to_string());
+            }
+            ["stppriority", dev, vlan, priority] => {
+                if let (Ok(vlan), Ok(priority)) = (vlan.parse::<u16>(), priority.parse::<u16>()) {
+                    self.stp_priorities
+                        .entry(dev.to_string())
+                        .or_default()
+                        .insert(vlan, priority);
                 }
             }
             ["acl", dev, num, action, src, swc, dip, dwc] => {

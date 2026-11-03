@@ -38,6 +38,11 @@ fn ptw_round_trip_covers_every_edited_field() {
     ws.vlan_create("switch0", 20, "SALES").unwrap();
     ws.set_access_vlan("switch0", "FastEthernet0/3", 20).unwrap();
     ws.set_trunk("switch0", "FastEthernet0/1", true).unwrap();
+    ws.ensure_subinterface("router0", "g0/0.10").unwrap();
+    ws.set_port_ip("router0", "GigabitEthernet0/0.10", "192.168.10.1", 24).unwrap();
+    ws.set_channel_group_mode("switch0", "FastEthernet0/1", 1, "active").unwrap();
+    ws.set_stp_mode("switch0", "rapid-pvst").unwrap();
+    ws.set_stp_priority("switch0", 1, 4096).unwrap();
     ws.add_mail_user("server0", "alice", "pw").unwrap();
     ws.add_mail_user("server0", "bob", "pw2").unwrap();
     ws.send_mail("pc0", "server0", "alice", "bob", "subject", "body\ntext")
@@ -63,6 +68,9 @@ fn ptw_round_trip_covers_every_edited_field() {
 
     let r0 = back.devices.iter().find(|d| d.id == "router0").unwrap();
     assert_eq!(r0.routes.len(), 1);
+    let subif = r0.ports.iter().find(|p| p.name == "GigabitEthernet0/0.10").unwrap();
+    assert_eq!(subif.dot1q, Some(10));
+    assert_eq!(subif.ip, crate::model::parse_ipv4("192.168.10.1"));
     assert!(
         !r0.ports
             .iter()
@@ -91,6 +99,9 @@ fn ptw_round_trip_covers_every_edited_field() {
             .trunk
     );
     assert_eq!(back.vlan_name("switch0", 20), "SALES");
+    assert_eq!(back.channel_mode("switch0", "FastEthernet0/1"), "active");
+    assert_eq!(back.stp_mode("switch0"), "rapid-pvst");
+    assert_eq!(back.stp_priority("switch0", 1), 4096);
     let inbox = back.mail_list("server0", "bob");
     assert_eq!(inbox.len(), 1);
     assert_eq!(inbox[0].body, "body\ntext");

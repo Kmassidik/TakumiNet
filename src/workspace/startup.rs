@@ -11,6 +11,7 @@ impl Workspace {
             banner: self.banners.get(id).cloned(),
             line_password: self.line_passwords.get(id).cloned(),
             routing: self.routing.get(id).cloned(),
+            switching: self.switching_config(id),
         };
         self.startup.get_or_insert_with(HashMap::new).insert(id.to_string(), saved);
     }
@@ -23,6 +24,7 @@ impl Workspace {
             saved.banner.as_deref(),
             saved.line_password.as_deref(),
             saved.routing.as_ref(),
+            &saved.switching,
         ))
     }
 
@@ -47,6 +49,31 @@ impl Workspace {
                 Some(routing) => self.routing.insert(id.clone(), routing),
                 None => self.routing.remove(&id),
             };
+            let switching = saved.switching;
+            if switching.vlans.is_empty() {
+                self.vlans.remove(&id);
+            } else {
+                self.vlans.insert(id.clone(), switching.vlans);
+            }
+            if switching.channels.is_empty() {
+                self.channels.remove(&id);
+            } else {
+                self.channels.insert(id.clone(), switching.channels);
+            }
+            if switching.channel_modes.is_empty() {
+                self.channel_modes.remove(&id);
+            } else {
+                self.channel_modes.insert(id.clone(), switching.channel_modes);
+            }
+            match switching.stp_mode {
+                Some(mode) => self.stp_modes.insert(id.clone(), mode),
+                None => self.stp_modes.remove(&id),
+            };
+            if switching.stp_priorities.is_empty() {
+                self.stp_priorities.remove(&id);
+            } else {
+                self.stp_priorities.insert(id.clone(), switching.stp_priorities);
+            }
         }
         self.recompute_routing();
         self.events.clear();

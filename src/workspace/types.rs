@@ -20,6 +20,8 @@ pub struct PortCfg {
     pub vlan: u16,
     /// 802.1Q trunk: carries every VLAN, tagged.
     pub trunk: bool,
+    /// Router subinterface's 802.1Q VLAN; physical interfaces use `None`.
+    pub dot1q: Option<u16>,
 }
 
 /// State a live network keeps between deliveries: switch MAC learning and ARP
@@ -90,12 +92,22 @@ pub struct Device {
     pub dot1x_pass: Option<String>,
 }
 
+#[derive(Clone, Default)]
+pub struct SwitchingConfig {
+    pub vlans: Vec<(u16, String)>,
+    pub channels: HashMap<String, u16>,
+    pub channel_modes: HashMap<String, String>,
+    pub stp_mode: Option<String>,
+    pub stp_priorities: HashMap<u16, u16>,
+}
+
 #[derive(Clone)]
 pub struct StartupConfig {
     pub device: Device,
     pub banner: Option<String>,
     pub line_password: Option<String>,
     pub routing: Option<(String, Vec<(u32, u8)>)>,
+    pub switching: SwitchingConfig,
 }
 
 #[derive(Clone)]
@@ -221,8 +233,9 @@ pub struct Workspace {
     pub aaa_users: HashMap<String, Vec<(String, String)>>,
     /// Port security per switch: interface -> policy.
     pub port_security: HashMap<String, HashMap<String, PortSecurity>>,
-    /// EtherChannel membership per switch: interface -> group number.
+    /// EtherChannel membership and negotiation mode per switch/interface.
     pub channels: HashMap<String, HashMap<String, u16>>,
+    pub channel_modes: HashMap<String, HashMap<String, String>>,
     /// ACLs per device: list number -> ordered rules.
     pub acls: HashMap<String, HashMap<u16, Vec<AclRule>>>,
     /// ACL bindings per device: interface -> (list number, inbound).
@@ -237,8 +250,9 @@ pub struct Workspace {
     pub routing: HashMap<String, (String, Vec<(u32, u8)>)>,
     /// Installed dynamic routes: router -> (network, prefix, via, proto, metric).
     pub dyn_routes: HashMap<String, Vec<(u32, u8, u32, String, u8)>>,
-    /// Spanning-tree mode per switch (`pvst` or `rapid-pvst`).
+    /// Spanning-tree mode and configured priority per switch/VLAN.
     pub stp_modes: HashMap<String, String>,
+    pub stp_priorities: HashMap<String, HashMap<u16, u16>>,
     /// WLANs per wireless LAN controller: (SSID, PSK).
     pub wlans: HashMap<String, Vec<Wlan>>,
     /// Wireless association: client -> (SSID, controller id).
