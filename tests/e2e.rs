@@ -992,3 +992,18 @@ fn e2e_capture_bytes_and_pcap_export_reparse_real_frames() {
     let hex = records[2].iter().map(|byte| format!("{byte:02x}")).collect::<String>();
     assert!(bytes.contains(&hex), "bytes endpoint and pcap contain different ICMP wire frames");
 }
+
+#[test]
+fn e2e_missing_or_refused_static_files_are_404() {
+    let s = spawn(38_241);
+    for path in [
+        "/js/modal.js",
+        "/js/../index.html",
+        "/art3d/toolbar/missing.webp",
+        "/art3d/..%2f..%2fCargo.toml",
+        "/sounds/none.wav",
+    ] {
+        let (status, _, _) = s.get(path);
+        assert_eq!(status, 404, "{path} must be a 404, not a 200");
+    }
+}

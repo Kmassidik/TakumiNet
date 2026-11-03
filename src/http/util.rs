@@ -25,9 +25,8 @@ pub(super) fn respond(stream: &mut TcpStream, status: &str, ctype: &str, body: &
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub(super) fn file_bytes(root: &str, name: &str) -> Vec<u8> {
-    std::fs::read(format!("{root}/{name}"))
-        .unwrap_or_else(|e| format!("cannot read {name}: {e}").into_bytes())
+pub(super) fn file_bytes(root: &str, name: &str) -> Option<Vec<u8>> {
+    std::fs::read(format!("{root}/{name}")).ok()
 }
 
 pub(super) fn query_value(query: &str, key: &str) -> Option<String> {
