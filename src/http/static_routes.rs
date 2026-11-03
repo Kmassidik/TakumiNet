@@ -16,7 +16,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
             }
         }
         ("GET", p) if p.starts_with("/art3d/") => match art3d_file(&p["/art3d/".len()..]) {
-            Some(file) => ("image/png", file_bytes(&ctx.web_root, &file)),
+            Some(file) => ("image/webp", file_bytes(&ctx.web_root, &file)),
             None => (html, b"not found".to_vec()),
         },
         ("GET", p) if p.starts_with("/js/") => {
@@ -36,21 +36,6 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
             let safe = name.ends_with(".tnet") && !name.contains('/') && !name.contains("..");
             if safe {
                 ("application/xml; charset=utf-8", file_bytes(&ctx.web_root, &format!("templates/{name}")))
-            } else {
-                (html, b"not found".to_vec())
-            }
-        }
-        ("GET", p) if p.starts_with("/art/") => {
-            let name = &p["/art/".len()..];
-            let safe = !name.is_empty()
-                && name.ends_with(".svg")
-                && !name.contains('/')
-                && !name.contains("..");
-            if safe {
-                (
-                    "image/svg+xml",
-                    file_bytes(&ctx.web_root, &format!("art/{name}")),
-                )
             } else {
                 (html, b"not found".to_vec())
             }

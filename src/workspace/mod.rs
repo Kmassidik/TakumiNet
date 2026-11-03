@@ -413,12 +413,11 @@ impl Workspace {
                 None => "[]".to_string(),
             };
             o.push_str(&format!(
-                "{{\"id\":{},\"name\":{},\"model\":{},\"icon\":{},\"art\":{},\"kind\":{},\"x\":{},\"y\":{},\"ip\":{},\"prefix\":{},\"gateway\":{},\"dns\":{},\"ipv6\":{},\"ipv6Prefix\":{},\"ipv6Gateway\":{},\"ipv6Dns\":{},\"ipv6Auto\":{},\"dot1x\":{},\"dot1xUser\":{},\"dhcp\":{},\"pool\":{},\"powered\":{},\"slots\":{},\"dnsRecords\":{},\"httpPage\":{},\"reservations\":{},\"helpers\":{}}}",
+                "{{\"id\":{},\"name\":{},\"model\":{},\"icon\":{},\"kind\":{},\"x\":{},\"y\":{},\"ip\":{},\"prefix\":{},\"gateway\":{},\"dns\":{},\"ipv6\":{},\"ipv6Prefix\":{},\"ipv6Gateway\":{},\"ipv6Dns\":{},\"ipv6Auto\":{},\"dot1x\":{},\"dot1xUser\":{},\"dhcp\":{},\"pool\":{},\"powered\":{},\"slots\":{},\"dnsRecords\":{},\"httpPage\":{},\"reservations\":{},\"helpers\":{}}}",
                 s(&d.id),
                 s(&d.name),
                 s(&d.model),
                 s(&d.icon),
-                s(logical_art(&d.kind)),
                 s(&d.kind),
                 d.x,
                 d.y,
@@ -503,10 +502,9 @@ impl Workspace {
             }
             let _ = icon;
             o.push_str(&format!(
-                "{{\"label\":{},\"icon\":{},\"art\":{},\"kind\":{}}}",
+                "{{\"label\":{},\"icon\":{},\"kind\":{}}}",
                 s(label),
                 s(&logical_icon(label, kind)),
-                s(logical_art(kind)),
                 s(kind)
             ));
         }

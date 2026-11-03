@@ -19,7 +19,7 @@ function renderTopology() {
     const cx = vb.x + vb.w / 2;
     const cy = vb.y + vb.h / 2;
     s.appendChild(node('image', {
-      href: '/art3d/mascot/sleep.png', x: cx - 48, y: cy - 84, width: 96, height: 96,
+      href: '/art3d/mascot/sleep.webp', x: cx - 48, y: cy - 84, width: 96, height: 96,
       class: 'empty-mascot',
     }));
     const message = node('text', { x: cx, y: cy + 36, class: 'empty-state', 'text-anchor': 'middle' });

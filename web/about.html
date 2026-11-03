@@ -44,12 +44,12 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/"><img src="/art3d/mascot/idle.png" alt="">TakumiNet</a>
+    <a class="brand" href="/"><img src="/art3d/mascot/idle.webp" alt="">TakumiNet</a>
     <a class="back" href="/">← Back to workspace</a>
   </header>
   <main>
     <section class="hero">
-      <img src="/art3d/mascot/happy.png" alt="The TakumiNet mascot waving">
+      <img src="/art3d/mascot/happy.webp" alt="The TakumiNet mascot waving">
       <p class="eyebrow">About &amp; licence</p>
       <h1>A network lab that belongs in your browser.</h1>
       <p class="lede">TakumiNet is a clean-room network emulator for learning and teaching. Build a topology, configure real protocol state, follow each packet, and check your work without installing a simulator.</p>
@@ -64,7 +64,7 @@
       </article>
       <article>
         <h2>Independent and original</h2>
-        <p>TakumiNet's Rust engine, browser code, hand-drawn SVG icons, generated 3D artwork, and synthesized sounds are original to this project. No Cisco media or third-party icon libraries are bundled.</p>
+        <p>TakumiNet's Rust engine, browser code, generated 3D artwork, and synthesized sounds are original to this project. No Cisco media or third-party icon libraries are bundled.</p>
         <p><strong>TakumiNet is not affiliated with Cisco</strong>, and is not endorsed by or derived from Cisco Packet Tracer.</p>
       </article>
     </div>
@@ -78,7 +78,7 @@
         <li><strong>Cut and validate the icons.</strong> <code>tools/build_art.py</code> uses <code>tools/slice_sheets.py</code> and the macOS Vision helper <code>tools/cutout.swift</code> to remove backgrounds, split each grid, center square icons, and check that every image is non-empty and correctly framed.</li>
         <li><strong>Record the source.</strong> <code>web/art/3d/MANIFEST.json</code> records every source sheet title, short SHA-256 digest, output group, icon order, and grid dimensions. The optimized PNGs are committed with the application.</li>
       </ol>
-      <p class="note">The fallback SVG device icons were drawn from scratch as geometric primitives. Sound effects were synthesized for TakumiNet by <code>tools/make_sounds.py</code>.</p>
+      <p class="note">Icons are shipped as WebP. Sound effects were synthesized for TakumiNet by <code>tools/make_sounds.py</code>.</p>
     </section>
 
     <section class="wide">

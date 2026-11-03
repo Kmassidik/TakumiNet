@@ -34,7 +34,7 @@ fn add_names_and_counts_by_kind() {
     let dev = ws.devices.iter().find(|d| d.id == id).unwrap();
     assert_eq!(dev.name, "PC3");
     assert_eq!(dev.kind, "pc");
-    assert_eq!(dev.icon, "/art3d/devices/pc.png");
+    assert_eq!(dev.icon, "/art3d/devices/pc.webp");
 }
 
 #[test]

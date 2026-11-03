@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TakumiNet</title>
-<link rel="icon" type="image/png" href="/art3d/mascot/idle.png">
-<link rel="preload" as="image" href="/art3d/mascot/think.png">
+<link rel="icon" type="image/webp" href="/art3d/mascot/idle.webp">
+<link rel="preload" as="image" href="/art3d/mascot/think.webp">
 <link rel="stylesheet" href="/workspace.css">
 </head>
 <body>
 <div class="app">
 
   <div class="menubar">
-    <span class="brand"><img src="/art3d/mascot/idle.png" alt="">TakumiNet</span>
+    <span class="brand"><img src="/art3d/mascot/idle.webp" alt="">TakumiNet</span>
     <nav id="menus">
       <div class="menu">
         <button>File</button>
@@ -128,7 +128,7 @@
         </div>
         <div id="flow-view" class="flow-view" hidden><svg id="flow-graph" role="img" aria-label="Packet flow ladder"></svg></div>
         <div class="narration" aria-live="polite">
-          <img id="narration-mascot" src="/art3d/mascot/think.png" alt="TakumiNet mascot think" width="36" height="36">
+          <img id="narration-mascot" src="/art3d/mascot/think.webp" alt="TakumiNet mascot think" width="36" height="36">
           <span id="narration-text">Step through a capture to watch each device make its decision.</span>
         </div>
       </section>
@@ -136,9 +136,9 @@
       <div class="modebar">
         <span class="clock" id="clock">00:00:00.0</span>
         <span class="playgroup">
-          <button title="Reset simulation" data-sfx="movieControlButton" data-sim="reset"><img src="/art3d/sim/reset.png" alt="reset"></button>
-          <button title="Play" id="play-btn" data-sfx="movieControlButton" data-sim="play"><img src="/art3d/sim/play.png" alt="play"></button>
-          <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/art3d/sim/stepa.png" alt="step"></button>
+          <button title="Reset simulation" data-sfx="movieControlButton" data-sim="reset"><img src="/art3d/sim/reset.webp" alt="reset"></button>
+          <button title="Play" id="play-btn" data-sfx="movieControlButton" data-sim="play"><img src="/art3d/sim/play.webp" alt="play"></button>
+          <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/art3d/sim/stepa.webp" alt="step"></button>
         </span>
         <label class="playback-speed" title="Playback speed (Space play/pause, Left back, Right step)">
           <span>Speed</span>
@@ -155,7 +155,7 @@
     <aside class="sim">
       <section class="lesson-panel" id="lesson-panel" hidden>
         <div class="lesson-heading">
-          <img id="lesson-mascot" src="/art3d/mascot/wave.png" alt="TakumiNet mascot" width="52" height="52">
+          <img id="lesson-mascot" src="/art3d/mascot/wave.webp" alt="TakumiNet mascot" width="52" height="52">
           <div><span class="lesson-kicker">Guided lab</span><h2 id="lesson-title"></h2><span class="lesson-meta" id="lesson-meta"></span></div>
         </div>
         <p class="lesson-goal" id="lesson-goal"></p>
@@ -183,10 +183,10 @@
       </div>
 
       <div class="playbar">
-        <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/art3d/sim/back.png" alt="back"></button>
-        <button title="Play" data-sfx="movieControlButton" data-sim="play2"><img src="/art3d/sim/play.png" alt="play"></button>
-        <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.png" alt="forward"></button>
-        <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.png" alt="ffw"></button>
+        <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/art3d/sim/back.webp" alt="back"></button>
+        <button title="Play" data-sfx="movieControlButton" data-sim="play2"><img src="/art3d/sim/play.webp" alt="play"></button>
+        <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.webp" alt="forward"></button>
+        <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.webp" alt="ffw"></button>
       </div>
 
       <div class="filter-head">
@@ -207,7 +207,7 @@
   </div>
 
   <div class="statusbar">
-    <span><img id="status-icon" src="/art3d/mascot/error.png" alt="" width="18" height="18" hidden> <span id="status-msg">Ready</span></span>
+    <span><img id="status-icon" src="/art3d/mascot/error.webp" alt="" width="18" height="18" hidden> <span id="status-msg">Ready</span></span>
     <span id="status-mode">Realtime</span>
   </div>
 
@@ -216,16 +216,16 @@
 <div id="lesson-gallery" class="overlay gallery-overlay" hidden>
   <main class="preview gallery" aria-labelledby="gallery-title">
     <header class="gallery-hero">
-      <img class="gallery-network" src="/art3d/misc/network.png" alt="" width="88" height="88">
+      <img class="gallery-network" src="/art3d/misc/network.webp" alt="" width="88" height="88">
       <div><span class="gallery-kicker">TakumiNet learning lab</span><h1 id="gallery-title">Build a network. See it work.</h1><p>Hands-on lessons use the same packets, commands, and network state as your own labs.</p></div>
-      <img class="gallery-mascot" id="gallery-mascot" src="/art3d/mascot/wave.png" alt="TakumiNet mascot" width="104" height="104">
+      <img class="gallery-mascot" id="gallery-mascot" src="/art3d/mascot/wave.webp" alt="TakumiNet mascot" width="104" height="104">
     </header>
     <div class="gallery-cards" id="gallery-cards"></div>
     <p class="gallery-note" id="gallery-note" role="status">Loading lessons…</p>
     <div class="gallery-start">
-      <button class="btn gallery-new" data-action="new"><img src="/art3d/toolbar/new.png" alt="">New blank</button>
-      <button class="btn" data-action="open"><img src="/art3d/toolbar/open.png" alt="">Open file</button>
-      <button class="btn" data-action="import"><img src="/art3d/toolbar/open.png" alt="">Import</button>
+      <button class="btn gallery-new" data-action="new"><img src="/art3d/toolbar/new.webp" alt="">New blank</button>
+      <button class="btn" data-action="open"><img src="/art3d/toolbar/open.webp" alt="">Open file</button>
+      <button class="btn" data-action="import"><img src="/art3d/toolbar/open.webp" alt="">Import</button>
     </div>
   </main>
 </div>
@@ -301,7 +301,7 @@
 <div id="device-window" class="overlay" hidden>
   <div class="preview devwin">
     <div class="devwin-title">
-      <img id="dw-icon" src="/art3d/devices/pc.png" alt="">
+      <img id="dw-icon" src="/art3d/devices/pc.webp" alt="">
       <span id="dw-name">PC0</span>
       <span class="dw-btns">
         <button id="dw-min" title="minimize">—</button>

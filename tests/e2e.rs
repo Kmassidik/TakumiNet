@@ -177,11 +177,11 @@ fn e2e_workspace_editing_and_simulation() {
         assert!(head.contains("audio/wav"), "{name}: {head}");
     }
 
-    // our own 3D icons; anything outside group/name.png is refused
-    let (status, head, body) = s.get("/art3d/toolbar/new.png");
+    // our own 3D icons; anything outside group/name.webp is refused
+    let (status, head, body) = s.get("/art3d/toolbar/new.webp");
     assert_eq!(status, 200);
-    assert!(head.contains("image/png"), "{head}");
-    assert!(body.chars().skip(1).take(3).collect::<String>() == "PNG", "not a png");
+    assert!(head.contains("image/webp"), "{head}");
+    assert!(body.starts_with("RIFF"), "not a webp");
     let (_, _, body) = s.get("/art3d/..%2f..%2fCargo.toml");
     assert!(body.contains("not found"), "{body}");
 
@@ -767,24 +767,6 @@ fn e2e_tftp_put_list_and_remove() {
     let (status, _, body) = s.post("/api/tftp/list?id=server0");
     assert_eq!(status, 200);
     assert!(body.contains("\"files\":[]"), "{body}");
-}
-
-#[test]
-fn e2e_art_svg_and_art_directory_traversal() {
-    let s = spawn(38_222);
-
-    let (status, head, body) = s.get("/art/router.svg");
-    assert_eq!(status, 200);
-    assert!(head.contains("image/svg+xml"), "{head}");
-    assert!(body.starts_with("<svg"), "asset body is not an SVG: {body}");
-
-    // The art directory only serves plain .svg names: an encoded traversal is
-    // answered with the plain not-found body, never the UI shell.
-    let (status, _, body) = s.get("/art/..%2Findex.html");
-    assert_eq!(status, 200);
-    assert_eq!(body.trim(), "not found", "{body}");
-    assert!(!body.contains("Simulation Panel"), "{body}");
-    assert!(!body.contains("<html"), "{body}");
 }
 
 #[test]

@@ -11,7 +11,7 @@
     HTTP: '#d6336c', DNS: '#f08c00', DHCP: '#2f9e44', OTHER: '#59636e',
   });
   const NARRATION_MASCOTS = Object.freeze({
-    think: '/art3d/mascot/think.png', happy: '/art3d/mascot/happy.png', error: '/art3d/mascot/error.png',
+    think: '/art3d/mascot/think.webp', happy: '/art3d/mascot/happy.webp', error: '/art3d/mascot/error.webp',
   });
   let narrationState = 'think';
 

@@ -69,7 +69,7 @@ test('gallery renders native lesson cards with original icons and start actions'
   const images = [];
   const visit = (el) => { if (el.tagName === 'IMG') images.push(el.src); el.children.forEach(visit); };
   cards.forEach(visit);
-  assert.ok(images.every((src) => src === '/art3d/misc/network.png'));
+  assert.ok(images.every((src) => src === '/art3d/misc/network.webp'));
   assert.equal(typeof cards[0].onclick, 'function');
 });
 
@@ -78,15 +78,15 @@ test('gallery loading and errors use distinct mascot states', async () => {
   const response = new Promise((resolve) => { resolveTemplates = resolve; });
   const { context, elements } = harness({ '/api/templates': response });
   const showing = context.showGallery();
-  assert.match(elements['gallery-mascot'].src || '', /think\.png$/);
+  assert.match(elements['gallery-mascot'].src || '', /think\.webp$/);
   assert.equal(elements['gallery-note'].textContent, 'Loading lessons…');
 
   resolveTemplates({ templates: [] });
   await showing;
-  assert.match(elements['gallery-mascot'].src, /wave\.png$/);
+  assert.match(elements['gallery-mascot'].src, /wave\.webp$/);
 
   context.renderGallery({ error: 'Lessons unavailable' });
-  assert.match(elements['gallery-mascot'].src, /error\.png$/);
+  assert.match(elements['gallery-mascot'].src, /error\.webp$/);
   assert.equal(elements['gallery-note'].textContent, 'Lessons unavailable');
 });
 
@@ -116,7 +116,7 @@ test('check action refreshes captures and uses success and failure mascot sounds
   });
   vm.runInContext("data = { lesson: { id: 'lab', title: 'Lab', level: 1, minutes: 5, goal: '', steps: [], checks: [{ id: 'c1', label: 'Check' }] } }", success.context);
   await success.context.checkWork();
-  assert.match(success.elements['lesson-mascot'].src, /happy\.png$/);
+  assert.match(success.elements['lesson-mascot'].src, /happy\.webp$/);
   assert.deepEqual(success.sounds, ['popUp']);
   assert.equal(success.elements['check-work'].disabled, false);
 
@@ -126,7 +126,7 @@ test('check action refreshes captures and uses success and failure mascot sounds
   });
   vm.runInContext("data = { lesson: { id: 'lab', title: 'Lab', level: 1, minutes: 5, goal: '', steps: [], checks: [{ id: 'c1', label: 'Check' }] } }", failure.context);
   await failure.context.checkWork();
-  assert.match(failure.elements['lesson-mascot'].src, /error\.png$/);
+  assert.match(failure.elements['lesson-mascot'].src, /error\.webp$/);
   assert.deepEqual(failure.sounds, ['errorMsg']);
   assert.equal(failure.elements['lesson-hint'].textContent, 'Set a gateway');
 });

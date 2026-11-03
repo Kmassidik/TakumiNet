@@ -130,45 +130,7 @@ pub(super) fn logical_icon(model: &str, kind: &str) -> String {
         .iter()
         .find(|(label, _, _)| *label == model)
         .map_or(kind, |(_, _, kind)| kind);
-    format!("/art3d/devices/{icon}.png")
-}
-
-/// Original fallback artwork shipped in `web/art/<kind>.svg`.
-pub(super) fn logical_art(kind: &str) -> &'static str {
-    match kind {
-        "router" => "/art/router.svg",
-        "switch" => "/art/switch.svg",
-        "pc" => "/art/pc.svg",
-        "laptop" => "/art/laptop.svg",
-        "server" => "/art/server.svg",
-        "printer" => "/art/printer.svg",
-        "cloud" => "/art/cloud.svg",
-        "hub" => "/art/hub.svg",
-        "ap" => "/art/ap.svg",
-        "asa" => "/art/asa.svg",
-        "phone" => "/art/phone.svg",
-        "tv" => "/art/tv.svg",
-        "pda" => "/art/pda.svg",
-        "tablet" => "/art/tablet.svg",
-        "sniffer" => "/art/sniffer.svg",
-        "wlc" => "/art/wlc.svg",
-        "plc" => "/art/plc.svg",
-        "thing" => "/art/thing.svg",
-        "ioe" => "/art/ioe.svg",
-        "analogphone" => "/art/analogphone.svg",
-        "homerouter" => "/art/homerouter.svg",
-        "linksys" => "/art/linksys.svg",
-        "cablemodem" => "/art/cablemodem.svg",
-        "dsl" => "/art/dsl.svg",
-        "multiuser" => "/art/multiuser.svg",
-        "celltower" => "/art/celltower.svg",
-        "ie2000" => "/art/ie2000.svg",
-        "netcontroller" => "/art/netcontroller.svg",
-        "meraki" => "/art/meraki.svg",
-        "historian" => "/art/historian.svg",
-        "patchpanel" => "/art/patchpanel.svg",
-        _ => "/art/pc.svg",
-    }
+    format!("/art3d/devices/{icon}.webp")
 }
 
 pub(super) fn name_prefix(kind: &str) -> &'static str {

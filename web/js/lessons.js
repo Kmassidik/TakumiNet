@@ -5,10 +5,10 @@ let completedSteps = new Set();
 let currentTemplate = null;
 
 const LESSON_MASCOTS = Object.freeze({
-  wave: '/art3d/mascot/wave.png',
-  think: '/art3d/mascot/think.png',
-  happy: '/art3d/mascot/happy.png',
-  error: '/art3d/mascot/error.png',
+  wave: '/art3d/mascot/wave.webp',
+  think: '/art3d/mascot/think.webp',
+  happy: '/art3d/mascot/happy.webp',
+  error: '/art3d/mascot/error.webp',
 });
 
 function setLessonMascot(name) {
@@ -42,7 +42,7 @@ function renderGallery(payload = {}) {
     card.onclick = () => openTemplate(template.id);
 
     const icon = document.createElement('img');
-    icon.src = '/art3d/misc/network.png';
+    icon.src = '/art3d/misc/network.webp';
     icon.alt = '';
     icon.width = 72;
     icon.height = 72;

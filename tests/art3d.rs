@@ -37,7 +37,7 @@ fn in_manifest() -> BTreeSet<String> {
     out
 }
 
-/// Icons named in the front end: `/art3d/x/y.png` URLs and `'x/y'` toolbar keys.
+/// Icons named in the front end: `/art3d/x/y.webp` URLs and `'x/y'` toolbar keys.
 fn used_by_front_end() -> BTreeSet<String> {
     let groups: BTreeSet<String> = on_disk().iter().map(|k| k.split('/').next().unwrap().to_string()).collect();
     let mut files = vec![Path::new(ROOT).join("web/index.html")];
@@ -46,7 +46,7 @@ fn used_by_front_end() -> BTreeSet<String> {
     for f in files.into_iter().filter(|f| !f.ends_with("icons.js")) {
         let text = fs::read_to_string(&f).unwrap();
         for part in text.split("/art3d/").skip(1) {
-            out.insert(part.split(".png").next().unwrap().to_string());
+            out.insert(part.split(".webp").next().unwrap().to_string());
         }
         if f.ends_with("toolbars.js") {
             for quoted in text.split('\'').skip(1).step_by(2) {
@@ -72,13 +72,14 @@ fn every_icon_the_front_end_uses_exists() {
 }
 
 #[test]
-fn every_icon_is_a_square_png() {
+fn every_icon_is_a_square_webp() {
     for key in on_disk() {
-        let bytes = fs::read(Path::new(ROOT).join(format!("web/art/3d/{key}.png"))).unwrap();
-        assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n", "{key}");
-        let width = u32::from_be_bytes(bytes[16..20].try_into().unwrap());
-        let height = u32::from_be_bytes(bytes[20..24].try_into().unwrap());
-        assert_eq!((width, height), (256, 256), "{key}");
+        let bytes = fs::read(Path::new(ROOT).join(format!("web/art/3d/{key}.webp"))).unwrap();
+        assert_eq!(&bytes[..4], b"RIFF", "{key}");
+        assert_eq!(&bytes[8..12], b"WEBP", "{key}");
+        assert_eq!(&bytes[12..16], b"VP8X", "{key}: needs the extended header so it can carry alpha");
+        let dim = |at: usize| u32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], 0]) + 1;
+        assert_eq!((dim(24), dim(27)), (256, 256), "{key}");
     }
 }
 

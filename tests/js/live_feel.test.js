@@ -153,7 +153,7 @@ test('an empty logical workspace shows the sleeping mascot and a useful next ste
   vm.runInContext(topologySource, context);
   context.renderTopology();
   const mascot = svg.children.find((element) => element.attributes.class === 'empty-mascot');
-  assert.equal(mascot?.attributes.href, '/art3d/mascot/sleep.png');
+  assert.equal(mascot?.attributes.href, '/art3d/mascot/sleep.webp');
   const message = svg.children.find((element) => element.attributes.class === 'empty-state');
   assert.match(message?.textContent || '', /No devices yet.*Drop a device here to begin/);
 });

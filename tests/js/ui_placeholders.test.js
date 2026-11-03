@@ -135,5 +135,5 @@ test('every static image has a real source before its window opens', () => {
 
 test('loading mascot is preloaded before the gallery can replace it', () => {
   const html = source('web/index.html');
-  assert.match(html, /<link rel="preload" as="image" href="\/art3d\/mascot\/think\.png">/);
+  assert.match(html, /<link rel="preload" as="image" href="\/art3d\/mascot\/think\.webp">/);
 });

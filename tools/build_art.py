@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cut every downloaded 3D sheet into web/art/3d/<group>/<name>.png and write MANIFEST.json.
+"""Cut every downloaded 3D sheet into web/art/3d/<group>/<name>.webp and write MANIFEST.json.
 
     swiftc -O tools/cutout.swift -o /tmp/cutout
     python3 tools/build_art.py ~/Downloads /tmp/cutout
@@ -12,6 +12,7 @@ from pathlib import Path
 from PIL import Image
 from slice_sheets import COLS, ROWS, cells, slice_sheet, square_icon
 
+QUALITY = 90
 ROOT = Path(__file__).resolve().parent.parent / "web" / "art" / "3d"
 
 SHEETS = [  # (file title, group, icon names in reading order)
@@ -77,7 +78,7 @@ def main(downloads, cutout):
             assert (group, name) not in seen, f"duplicate {group}/{name}"
             seen.add((group, name))
             check(f"{group}/{name}", icon)
-            icon.save(out / f"{name}.png", optimize=True)
+            icon.save(out / f"{name}.webp", "WEBP", quality=QUALITY, method=6)
         manifest.append({"source": title, "sha256": hashlib.sha256(src.read_bytes()).hexdigest()[:16],
                          "group": group, "icons": names, "grid": f"{COLS}x{ROWS}"})
         print(f"ok  {group:8} {title}")

@@ -18,13 +18,12 @@ fn palette_and_canvas_share_3d_icons() {
     for (label, tile, kind) in CATALOG {
         let _ = tile;
         let icon = logical_icon(label, kind);
-        let art = logical_art(kind);
-        let needle = format!("\"label\":\"{label}\",\"icon\":\"{icon}\",\"art\":\"{art}\"");
+        let needle = format!("\"label\":\"{label}\",\"icon\":\"{icon}\",\"kind\":\"{kind}\"");
         assert!(json.contains(&needle), "{label}: palette entry mismatch");
     }
     for d in &ws.devices {
         assert_eq!(d.icon, logical_icon(&d.model, &d.kind));
-        let needle = format!("\"icon\":\"{}\",\"art\":\"{}\"", d.icon, logical_art(&d.kind));
+        let needle = format!("\"icon\":\"{}\",\"kind\":\"{}\"", d.icon, d.kind);
         assert!(json.contains(&needle), "{}: device icon mismatch", d.name);
     }
 }
@@ -33,6 +32,6 @@ fn palette_and_canvas_share_3d_icons() {
 fn every_catalog_kind_is_named_and_drawn() {
     for (label, _, kind) in CATALOG {
         assert_ne!(name_prefix(kind), "Device", "{label} lacks a name prefix");
-        assert_eq!(logical_icon(label, kind), format!("/art3d/devices/{kind}.png"));
+        assert_eq!(logical_icon(label, kind), format!("/art3d/devices/{kind}.webp"));
     }
 }

@@ -123,7 +123,7 @@ test('precache manifest contains every production file and no documentation asse
     if (filename.endsWith('.js')) expected.push(`/js/${filename}`);
   }
   if (!expected.includes('/js/engine.js')) expected.push('/js/engine.js');
-  for (const filename of filesUnder(path.join(root, 'web/art/3d'), '.png')) {
+  for (const filename of filesUnder(path.join(root, 'web/art/3d'), '.webp')) {
     expected.push(`/art3d/${path.relative(path.join(root, 'web/art/3d'), filename).split(path.sep).join('/')}`);
   }
   for (const filename of fs.readdirSync(path.join(root, 'web/sounds'))) {

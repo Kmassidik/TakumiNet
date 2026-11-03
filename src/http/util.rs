@@ -114,14 +114,14 @@ pub(super) fn _read_all(mut r: impl Read) -> io::Result<Vec<u8>> {
     Ok(v)
 }
 
-/// Maps `group/name.png` to `art/3d/group/name.png`. Both parts must be lowercase
+/// Maps `group/name.webp` to `art/3d/group/name.webp`. Both parts must be lowercase
 /// letters and digits, so nothing can climb out of the art folder.
 #[cfg(not(target_arch = "wasm32"))]
 pub(super) fn art3d_file(request: &str) -> Option<String> {
     let (group, file) = request.split_once('/')?;
-    let name = file.strip_suffix(".png")?;
+    let name = file.strip_suffix(".webp")?;
     let plain = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit());
-    (plain(group) && plain(name)).then(|| format!("art/3d/{group}/{name}.png"))
+    (plain(group) && plain(name)).then(|| format!("art/3d/{group}/{name}.webp"))
 }
 
 #[cfg(test)]
@@ -129,13 +129,13 @@ mod tests {
     use super::art3d_file;
 
     #[test]
-    fn accepts_group_slash_name_png() {
-        assert_eq!(art3d_file("toolbar/new.png").as_deref(), Some("art/3d/toolbar/new.png"));
+    fn accepts_group_slash_name_webp() {
+        assert_eq!(art3d_file("toolbar/new.webp").as_deref(), Some("art/3d/toolbar/new.webp"));
     }
 
     #[test]
     fn rejects_anything_that_could_leave_the_folder() {
-        for bad in ["../x.png", "toolbar/../x.png", "toolbar/new.svg", "toolbar/New.png", "new.png", "a/b/c.png", "/a.png", "toolbar/.png", ""] {
+        for bad in ["../x.webp", "toolbar/../x.webp", "toolbar/new.png", "toolbar/New.webp", "new.webp", "a/b/c.webp", "/a.webp", "toolbar/.webp", ""] {
             assert_eq!(art3d_file(bad), None, "{bad}");
         }
     }
