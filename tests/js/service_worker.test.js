@@ -173,18 +173,27 @@ test('activate deletes only old TakumiNet caches and claims clients', async () =
   assert.equal(worker.claims, 1);
 });
 
-test('same-origin cache hits never touch the network', async () => {
+test('a reachable network answer wins over a stale cached copy and refreshes the cache', async () => {
+  const worker = loadWorker();
+  const request = getRequest('/js/simulation.js');
+  worker.stored.set(requestKey(request), makeResponse('stale simulation.js'));
+  const fresh = makeResponse('fresh simulation.js');
+  worker.setFetch(async () => fresh);
+
+  const response = await worker.dispatch(request);
+  assert.equal(await response, fresh);
+  assert.equal(worker.puts.length, 1);
+});
+
+test('offline falls back to the cached copy', async () => {
   const worker = loadWorker();
   const request = getRequest('/workspace.css');
   const cached = makeResponse('cached css');
   worker.stored.set(requestKey(request), cached);
-  let networkCalls = 0;
-  worker.setFetch(async () => { networkCalls += 1; });
+  worker.setFetch(async () => { throw new Error('offline'); });
 
   const response = await worker.dispatch(request);
   assert.equal(await response, cached);
-  assert.equal(networkCalls, 0);
-  assert.equal(worker.puts.length, 0);
 });
 
 test('same-origin cache misses are fetched and cached for offline reuse', async () => {

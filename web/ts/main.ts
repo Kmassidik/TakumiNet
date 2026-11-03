@@ -1,6 +1,7 @@
 import { bringToFront, makeWindowMovable, watchOverlays } from "./ui/dialogs";
 import type { DocLike, ElementLike } from "./ui/dom";
 import { renderToolbar, type ToolbarItem } from "./ui/toolbar";
+import { buildRunLog, formatLogLine, type CommandRecord, type LogEntry, type RunEvent } from "./ui/run_log";
 import { openModal } from "./ui/modal";
 import { ModalStack } from "./ui/modal_stack";
 
@@ -14,6 +15,8 @@ globalThis.askText = async (message: string, value = ""): Promise<string | null>
   (await openModal(doc, stack, { message, input: value })) as string | null;
 
 globalThis.bringToFront = bringToFront;
+globalThis.buildRunLog = buildRunLog;
+globalThis.formatLogLine = formatLogLine;
 globalThis.renderToolbar = (bar, items) => renderToolbar(doc, bar as unknown as ElementLike, items, (key) => icon3d(key));
 globalThis.makeWindowMovable = makeWindowMovable;
 if (document.readyState === "loading") {
@@ -23,6 +26,8 @@ if (document.readyState === "loading") {
 }
 
 declare global {
+  var buildRunLog: (events: RunEvent[], commands: CommandRecord[], query: string) => LogEntry[];
+  var formatLogLine: (entry: LogEntry) => string;
   var icon3d: (key: string) => string;
   var renderToolbar: (bar: HTMLElement, items: readonly ToolbarItem[]) => void;
   var bringToFront: (win: HTMLElement | null) => void;

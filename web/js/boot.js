@@ -27,6 +27,7 @@ async function boot() {
   });
   renderPalette();
   renderFilters();
+  document.getElementById('run-log-filter').addEventListener('input', renderRunLog);
   renderAll();
   wireMenus();
   wireActions();

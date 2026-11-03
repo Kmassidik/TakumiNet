@@ -73,6 +73,7 @@ function openCmd(d) {
     try {
       const r = await cmdRequest(d.id, line);
       out.textContent += r.output || '';
+      if (typeof recordCommand === 'function') recordCommand(d.name, line, r.output);
       if (r.peer) {
         telnetPeer = r.peer;
         const p = await cliRequest('/api/cli', { id: r.peer, line: '' });

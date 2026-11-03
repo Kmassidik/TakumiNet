@@ -186,14 +186,13 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request);
-    if (cached) return cached;
-
     try {
       const response = await fetch(request);
       if (response.ok) await cache.put(request, response.clone());
       return response;
     } catch (error) {
+      const cached = await cache.match(request);
+      if (cached) return cached;
       if (request.mode === 'navigate') return cache.match('/');
       throw error;
     }

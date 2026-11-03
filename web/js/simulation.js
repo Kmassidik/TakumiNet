@@ -58,6 +58,7 @@ function renderEvents() {
 
   document.getElementById('captured').textContent =
     `Captured: ${current < 0 ? 0 : current + 1}/${events.length}`;
+  renderRunLog();
   const shown = current >= 0 ? events[current] : events[events.length - 1];
   document.getElementById('clock').textContent = `${(shown ? shown.time : 0).toFixed(1)}s`;
   const row = tbody.querySelector('tr.current');
@@ -163,4 +164,37 @@ function renderFilters() {
 function setAllFilters(value) {
   for (const cb of document.querySelectorAll('#filters input')) cb.checked = value;
   renderEvents();
+}
+
+/* ---------------- run log: one line per packet hop and per command ---------------- */
+let commandLog = [];
+
+function recordCommand(device, action, output) {
+  const events = data && data.events ? data.events : [];
+  const time = events.length ? events[events.length - 1].time : 0;
+  const result = (output || '').trim().split('\n')[0] || 'done';
+  commandLog.push({ time, device, action, result });
+  renderRunLog();
+}
+
+function renderRunLog() {
+  const list = document.getElementById('run-log');
+  if (!list || !data || typeof buildRunLog !== 'function') return;
+  const query = document.getElementById('run-log-filter')?.value ?? '';
+  const entries = buildRunLog(data.events || [], commandLog, query);
+  list.replaceChildren();
+  if (!entries.length) {
+    const empty = document.createElement('li');
+    empty.textContent = 'Log is empty: send a PDU or run a command';
+    list.appendChild(empty);
+    return;
+  }
+  for (const entry of entries) {
+    const line = document.createElement('li');
+    line.textContent = formatLogLine(entry);
+    if (entry.id !== undefined) {
+      line.onclick = () => { if (typeof selectCaptureEvent === 'function') selectCaptureEvent(entry.id); };
+    }
+    list.appendChild(line);
+  }
 }

@@ -233,7 +233,7 @@ const ACTIONS = {
   },
   async 'reset-sim'() {
     const r = await api('/api/sim/reset');
-    if (!r.error) { simCursor = -1; renderEvents(); status('Simulation reset'); }
+    if (!r.error) { simCursor = -1; commandLog = []; renderEvents(); status('Simulation reset'); }
   },
   help() { ACTIONS.about(); },
   preferences() {
