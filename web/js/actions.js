@@ -22,6 +22,32 @@ const ACTIONS = {
     const r = await api('/api/save', { name });
     if (!r.error) { currentName = name; status(`Saved ${name}.ptw`); sfx('newScenarioButton'); }
   },
+  async 'export-pkt'() {
+    const source = await getJson('/api/pkt/source');
+    if (source.error) { status(source.error, true); sfx('errorMsg'); return; }
+    try {
+      const res = await fetch('/api/pkt/export');
+      if (!res.ok || (res.headers.get('content-type') || '').includes('application/json')) {
+        const r = await res.json().catch(() => ({}));
+        throw new Error(r.error || `export failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const base = (source.filename || 'topology.pkt').replace(/\.[^.]+$/, '');
+      a.href = url;
+      a.download = `${base}.pkt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status(`Exported original ${a.download}; later edits are saved as .ptw`);
+      sfx('newScenarioButton');
+    } catch (e) {
+      status(e.message || 'export failed', true);
+      sfx('errorMsg');
+    }
+  },
   print() { status('Printing…'); window.print(); },
 
   async undo() { const r = await api('/api/undo'); if (!r.error) status('Undo'); },

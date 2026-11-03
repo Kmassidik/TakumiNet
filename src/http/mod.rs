@@ -34,6 +34,11 @@ struct History {
     redo: Vec<Workspace>,
 }
 
+struct PktSource {
+    xml: Vec<u8>,
+    filename: String,
+}
+
 #[derive(Clone)]
 struct Ctx {
     topo: Topology,
@@ -43,6 +48,7 @@ struct Ctx {
     ws: Arc<Mutex<Workspace>>,
     hist: Arc<Mutex<History>>,
     cli: Arc<Mutex<std::collections::HashMap<String, CliSession>>>,
+    pkt_source: Arc<Mutex<Option<PktSource>>>,
 }
 
 const SAVE_DIR: &str = "topologies";
@@ -71,6 +77,7 @@ pub fn serve(addr: &str, web_root: &str) -> io::Result<()> {
         ws: Arc::new(Mutex::new(Workspace::new())),
         hist: Arc::new(Mutex::new(History::default())),
         cli: Arc::new(Mutex::new(std::collections::HashMap::new())),
+        pkt_source: Arc::new(Mutex::new(None)),
     };
 
     for stream in listener.incoming() {
@@ -81,6 +88,10 @@ pub fn serve(addr: &str, web_root: &str) -> io::Result<()> {
         });
     }
     Ok(())
+}
+
+fn invalidate_pkt_source(ctx: &Ctx) {
+    *ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner()) = None;
 }
 
 /// Run a mutation, snapshotting first so Undo works. On error the workspace is
@@ -100,6 +111,7 @@ where
                 hist.undo.remove(0);
             }
             hist.redo.clear();
+            invalidate_pkt_source(ctx);
             (ws.json(), true)
         }
         Err(e) => {
@@ -125,6 +137,7 @@ where
                 hist.undo.remove(0);
             }
             hist.redo.clear();
+            invalidate_pkt_source(ctx);
             (ws.json(), true)
         }
         Err(e) if ws.events.len() > event_count => {
@@ -133,6 +146,7 @@ where
                 hist.undo.remove(0);
             }
             hist.redo.clear();
+            invalidate_pkt_source(ctx);
             (json_error(&e), false)
         }
         Err(e) => {
@@ -183,4 +197,60 @@ fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
     };
 
     respond(&mut stream, "200 OK", ctype, &body)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn context() -> Ctx {
+        Ctx {
+            topo: demo(),
+            assets: None,
+            web_root: String::new(),
+            totals: None,
+            ws: Arc::new(Mutex::new(Workspace::new())),
+            hist: Arc::new(Mutex::new(History::default())),
+            cli: Arc::new(Mutex::new(std::collections::HashMap::new())),
+            pkt_source: Arc::new(Mutex::new(None)),
+        }
+    }
+
+    fn retain_source(ctx: &Ctx) {
+        *ctx.pkt_source.lock().unwrap() = Some(PktSource {
+            xml: b"<PACKETTRACER5>exact bytes</PACKETTRACER5>".to_vec(),
+            filename: "original.pkt".into(),
+        });
+    }
+
+    #[test]
+    fn successful_mutation_invalidates_original_pkt_export_without_assets() {
+        let ctx = context();
+        retain_source(&ctx);
+        let (_, metadata) = file_routes::route(&ctx, "GET", "/api/pkt/source", "").unwrap();
+        assert!(String::from_utf8(metadata).unwrap().contains("original.pkt"));
+
+        let (_, changed) = apply(&ctx, |ws| {
+            ws.reset_sim();
+            Ok(())
+        });
+        assert!(changed);
+        assert!(ctx.pkt_source.lock().unwrap().is_none());
+        let (ctype, body) = file_routes::route(&ctx, "GET", "/api/pkt/export", "").unwrap();
+        assert_eq!(ctype, "application/json");
+        assert!(String::from_utf8(body).unwrap().contains("no unchanged opened .pkt"));
+    }
+
+    #[test]
+    fn failed_mutation_preserves_exact_original_pkt_export_without_assets() {
+        let ctx = context();
+        retain_source(&ctx);
+        let (_, changed) = apply(&ctx, |_| Err("not changed".into()));
+        assert!(!changed);
+
+        let (ctype, exported) = file_routes::route(&ctx, "GET", "/api/pkt/export", "").unwrap();
+        assert_eq!(ctype, "application/octet-stream");
+        let decrypted = ptfile::decrypt(&exported).unwrap();
+        assert_eq!(decrypted, b"<PACKETTRACER5>exact bytes</PACKETTRACER5>");
+    }
 }

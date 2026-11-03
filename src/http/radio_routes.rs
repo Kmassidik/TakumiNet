@@ -256,7 +256,10 @@ fn handle_iot_write(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         .unwrap_or(0);
     let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     match ws.iot_write(&id, addr, value) {
-        Ok(old) => (json, format!("{{\"old\":{old}}}").into_bytes()),
+        Ok(old) => {
+            invalidate_pkt_source(ctx);
+            (json, format!("{{\"old\":{old}}}").into_bytes())
+        }
         Err(e) => (json, format!("{{\"error\":{}}}", json_str(&e)).into_bytes()),
     }
 }
@@ -270,7 +273,9 @@ fn handle_iot_send(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         .and_then(|s| s.parse::<u32>().ok())
         .unwrap_or(0);
     let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
-    match ws.send_iot(&src, &dst, &proto, seq) {
+    let result = ws.send_iot(&src, &dst, &proto, seq);
+    invalidate_pkt_source(ctx);
+    match result {
         Ok(msg) => (json, format!("{{\"status\":{}}}", json_str(&msg)).into_bytes()),
         Err(e) => (json, format!("{{\"error\":{}}}", json_str(&e)).into_bytes()),
     }
@@ -282,7 +287,10 @@ fn handle_ptp_sync(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let slave = query_value(query, "slave").unwrap_or_default();
     let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     match ws.ptp_sync(&master, &slave) {
-        Ok(off) => (json, format!("{{\"offsetMs\":{off:.3}}}").into_bytes()),
+        Ok(off) => {
+            invalidate_pkt_source(ctx);
+            (json, format!("{{\"offsetMs\":{off:.3}}}").into_bytes())
+        }
         Err(e) => (json, format!("{{\"error\":{}}}", json_str(&e)).into_bytes()),
     }
 }

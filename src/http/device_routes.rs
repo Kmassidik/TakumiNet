@@ -199,7 +199,10 @@ fn handle_ipv6_dhcp(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let server = query_value(query, "server").unwrap_or_default();
     let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     match ws.dhcpv6(&id, &server) {
-        Ok(addr) => (json, format!("{{\"address\":{}}}", json_str(&addr)).into_bytes()),
+        Ok(addr) => {
+            invalidate_pkt_source(ctx);
+            (json, format!("{{\"address\":{}}}", json_str(&addr)).into_bytes())
+        }
         Err(e) => (json, format!("{{\"error\":{}}}", json_str(&e)).into_bytes()),
     }
 }
@@ -355,6 +358,7 @@ fn handle_undo(ctx: &Ctx) -> (&'static str, Vec<u8>) {
         Some(prev) => {
             hist.redo.push(ws.clone());
             *ws = prev;
+            invalidate_pkt_source(ctx);
             (json, ws.json().into_bytes())
         }
         None => (json, json_error("nothing to undo").into_bytes()),
@@ -369,6 +373,7 @@ fn handle_redo(ctx: &Ctx) -> (&'static str, Vec<u8>) {
         Some(next) => {
             hist.undo.push(ws.clone());
             *ws = next;
+            invalidate_pkt_source(ctx);
             (json, ws.json().into_bytes())
         }
         None => (json, json_error("nothing to redo").into_bytes()),

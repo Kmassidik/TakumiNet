@@ -14,7 +14,7 @@ simulation is ours and runs server-side in Rust.
 
 ## What is proven right now
 
-- `cargo test` — 154 unit + 59 integration/HTTP conformance tests (213 total):
+- `cargo test` — 156 unit + 67 integration/HTTP conformance tests (223 total):
   frames, TTL, MAC/ARP tables, interface state, IOS CLI, VLAN/STP/EtherChannel,
   editing, assets, `.pkt` import, services and simulation parity.
 - `node --test tests/js/simulation.test.js` — 6 dependency-free DOM tests for
@@ -70,6 +70,12 @@ simulation is ours and runs server-side in Rust.
 - **Open a real save in the app**: File → Open lists all 299 shipped `.pkt`
   files, decodes and types them (`src/ptxml.rs`), fits PT's logical coordinates
   onto the canvas, and renders devices + links with their real interface names.
+- **Original-document `.pkt` export**: after a successful open, File → Export
+  Opened `.pkt` re-encodes the retained decoded XML bytes with `ptfile::encode`;
+  decrypting the download reproduces those bytes exactly. This exports the
+  original document, not later workspace edits. Any subsequent mutation,
+  undo/redo, New, or editable `.ptw` load invalidates export; use Save Editable
+  `.ptw` for changed state. Saving a `.ptw` by itself does not invalidate it.
 - **Real packets, not path labels** (`src/net/packet.rs`, `src/net/fwd.rs`): a ping is
   an Ethernet frame carrying an IPv4/ICMP echo with a 32-byte payload and a
   correct header checksum. Switches learn source MACs (300 s ageing) and flood

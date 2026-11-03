@@ -8,6 +8,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("GET", "/api/saves") => Some(handle_saves()),
         ("GET", "/api/pkt/list") => Some(handle_pkt_list(ctx)),
         ("POST", "/api/pkt/open") => Some(handle_pkt_open(ctx, query)),
+        ("GET", "/api/pkt/source") => Some(handle_pkt_source(ctx)),
+        ("GET", "/api/pkt/export") => Some(handle_pkt_export(ctx)),
         ("GET", "/api/status") => Some(handle_status(ctx)),
         ("GET", "/api/catalog") => Some(handle_catalog()),
         ("GET", "/api/assets") => Some(handle_assets(ctx, query)),
@@ -97,22 +99,58 @@ fn handle_pkt_open(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     };
     let parsed = std::fs::read(&full)
         .map_err(|e| e.to_string())
-        .and_then(|bytes| ptfile::decrypt(&bytes))
-        .and_then(|xml| Ok(String::from_utf8_lossy(&xml).into_owned()));
+        .and_then(|bytes| ptfile::decrypt(&bytes));
     match parsed {
         Ok(xml) => {
-            let topo = ptxml::parse(&xml);
+            let text = String::from_utf8_lossy(&xml);
+            let topo = ptxml::parse(&text);
             if topo.devices.is_empty() {
                 return (json, json_error("no devices in file").as_bytes().to_vec());
             }
             let imported = Workspace::from_pkt(&topo);
-            let (out, _) = apply(ctx, |ws| {
+            let filename = full
+                .file_name()
+                .map(|n| n.to_string_lossy().into_owned())
+                .unwrap_or_else(|| "topology.pkt".into());
+            let (out, changed) = apply(ctx, |ws| {
                 *ws = imported;
                 Ok(())
             });
+            if changed {
+                *ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner()) =
+                    Some(PktSource { xml, filename });
+            }
             (json, out.into_bytes())
         }
         Err(e) => (json, json_error(&e).into_bytes()),
+    }
+}
+
+fn handle_pkt_source(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let source = ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner());
+    match source.as_ref() {
+        Some(source) => (
+            json,
+            format!("{{\"filename\":{}}}", json_str(&source.filename)).into_bytes(),
+        ),
+        None => (
+            json,
+            json_error("no unchanged opened .pkt; use Save Editable .ptw for edited workspaces")
+                .into_bytes(),
+        ),
+    }
+}
+
+fn handle_pkt_export(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let source = ctx.pkt_source.lock().unwrap_or_else(|e| e.into_inner());
+    match source.as_ref() {
+        Some(source) => ("application/octet-stream", ptfile::encode(&source.xml)),
+        None => (
+            "application/json",
+            json_error("no unchanged opened .pkt; use Save Editable .ptw for edited workspaces")
+                .into_bytes(),
+        ),
     }
 }
 
