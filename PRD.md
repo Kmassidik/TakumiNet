@@ -7,7 +7,8 @@ Read first: this file, then `task.md` (history, roadmap, audit) and `provness/pt
 ## 0. Rules for the builder (omp). These override defaults.
 1. Every task = failing test first, then code, then `cargo test` green, then commit and push to `main`. **No Co-Authored-By, no attribution line, ever.**
 2. **Install nothing** (no Bend, Kani, Lean, Playwright, npm, rustup targets). Ask in `QUESTIONS.md` first. Python 3 + Pillow, swift, cargo are present.
-3. **Own art and own code only.** Never copy, download or reference Cisco files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
+3. **No Cisco file formats at all**: `.pkt/.pka/.pktz` support is removed (decision 2026-11-03). Our only file format is our own XML (`.tnet`).
+3b. **Own art and own code only.** Never copy, download or reference Cisco files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
 4. **Fix what you find.** If you see a bug, wrong output, broken image or console error while working: write a failing test, fix it, commit it separately (`fix: ...`), note it in `provness/pt-web/result.md`. Do not skip it, do not ask permission for fixes.
 5. If you are unsure about *what the user wants*, or a step fails twice: stop, append the question and what you tried to `QUESTIONS.md`, tell the user, wait. Do not guess a product decision.
 6. Claims need data. "Done" means a test or a measurement, shown. If something is unverified, say so.
@@ -25,25 +26,36 @@ Bend is **not installed and was never run**; the owner said not to install it. T
 - Engine: L2 switching, VLAN, STP/RSTP, EtherChannel, static/RIP/OSPF/EIGRP, DHCP, DNS, NAT, ACL, IPv6, wireless, IoT, simulation capture. 20 CCNA lab tests (`tests/labs/main.rs`), ~220 tests total, all green.
 - UI: logical workspace, device windows (Physical/Config/Desktop/Services), CLI terminal, Realtime and Simulation modes, event list.
 - Assets we own: **97 3D icons** (`web/art/3d/`: 31 devices, 21 toolbar, 7 sim, 8 cables, 9 groups, 12 apps, 3 misc, 6 mascot poses), 11 generated sounds (`web/sounds/`), 31 flat SVG fallbacks (`web/art/*.svg`). Vendor references in `web/`: 0.
-- Files: own text `.ptw` (to be replaced, see P0), Cisco `.pkt/.pka` import (kept as optional compatibility).
-- Server: Rust std-only HTTP server, hosted; the browser is only the UI.
+- Files: own text `.ptw` (to be replaced by XML, see P0). `.pkt/.pka` readers exist today and are **removed in P0**.
+- Server: Rust HTTP server holding **one shared workspace** (`ws: Arc<Mutex<Workspace>>`, `src/http/mod.rs:48`): every visitor edits the same network, so it cannot be hosted for many users as is. Target architecture (P5): the engine runs in the browser as WebAssembly and the server only serves static files.
 
 ## 3. Goals
 - **G1 (first, what the owner wants to see):** 5 beginner templates, each opens in one click and **runs live**: packets animate, link lights change, terminal commands answer, and a "Check my work" button turns green when the lesson goal is met.
-- **G2:** draw.io-style files: build anything, **Export** an XML file (download), **Import** one (picker or drag and drop), autosave in the browser. Our own schema.
+- **G2:** draw.io-style files, XML is the only format and the engine's persistence layer: build anything, **Export** an XML file (download), **Import** one (picker or drag and drop), autosave in the browser. Our own schema.
 - **G3:** works offline after first load (browser cache).
 - **G4:** clean public face: name TakumiNet, mascot, licence/provenance page, no account, no login.
 
-Non-goals now: BGP, HSRP, accounts, cloud sync, multiuser, grading server, mobile layout.
+Non-goals now: BGP, HSRP, accounts, cloud sync, collaboration, grading server, mobile layout, any Cisco file format.
 
 ## 4. P0: own XML format (prerequisite for G1 and G2)
 Native file = our own XML, extension `.tnet`, root `<takuminet version="1">`. The plan already agreed:
 - `src/storage/xml.rs`: tiny std-only writer/reader for a flat list of self-closing child elements with attributes. Escape `& < > " '` and encode tab/CR/LF as `&#9; &#13; &#10;`. Unescape named and numeric references. Malformed input returns `None`, never panics.
 - `src/workspace/tnet.rs`: **table-driven converter**: `RECORDS: &[(&str, &[&str])]` gives the field names of each of the 49 record types (take them from the match patterns in `ptw_load.rs`, longest form; extra trailing fields become `v<N>`; unknown tags are kept losslessly). `to_tnet()` turns each line of the existing record stream into `<device id="pc0" kind="pc" .../>`; `from_tnet()` maps attributes back in table order and reuses the proven loaders. Rename `ptw_save/ptw_load` to `records_save/records_load` (internal stream, no longer a file format). Keep a read-only legacy `.ptw` loader for one version.
-- Cisco `.pkt/.pka/.pktz`: **import only**. Remove "Export Opened .pkt" and `pkt_source`. Never reuse Cisco's element names in our schema.
-- API/UI: save/open/list use `.tnet`; labels "Save", "Open", "Import .pkt".
+- **Delete all Cisco-format code**: `src/storage/ptfile.rs`, `ptxml.rs`, `src/workspace/pkt_import.rs`, `src/bin/pkt2rs.rs`, `tests/corpus.rs`, the vendor asset tree reader (`storage/assets.rs`, `catalog.rs`, `/api/files` listing of shipped `.pkt`), "Import .pkt" and "Export Opened .pkt" in the UI and API, and the crates `cipher`, `twofish`, `miniz_oxide` from `Cargo.toml` (zero dependencies afterwards: also makes the WASM build trivial). Update README and `task.md`. Never reuse Cisco's element names in our schema.
+- API/UI: save/open/list use `.tnet`; labels "Save", "Open", "Import".
 - Laws: **L10** `from_tnet(to_tnet(w))` has identical `to_tnet` (idempotent) and restores every edited field. **L11** `xml::unescape(xml::escape(s)) == s` for all strings (property test, 2000 random strings incl. tabs, quotes, `&amp;`, unicode). **L12** malformed XML never panics (property test on truncations and random bytes). **L13** a legacy `.ptw` loads to a workspace equal to the one saved.
-- Done when: all old persistence tests also pass through `.tnet`, corpus test (299 `.pkt` import) still passes, e2e save/open works.
+- Done when: all old persistence tests also pass through `.tnet`, no file in the repo mentions `.pkt` except the changelog, `Cargo.toml` has no dependencies, e2e save/open works.
+
+## 4b. P0b: robust XML gameplay (the file is the product)
+Players will edit, share and break these files by hand, like draw.io files. Loading must never crash, hang or half-load.
+- **Schema versions + migration:** `version="1"` now; `from_tnet` accepts any version `<= current`, runs migrations in order (`migrate_1_to_2` ...), rejects newer with "made by a newer TakumiNet". Test with a frozen v1 fixture kept forever in `tests/fixtures/`.
+- **Validation with useful errors:** every error names element, attribute and line ("line 14: <link> refers to device 'pc9' that does not exist"). Checks: unique ids, links point to existing devices and free ports, port names valid for the model, addresses/masks parse, VLAN 1..4094, no duplicate IPs on one subnet is a *warning* not an error. Returns `Result<Workspace, Vec<Problem>>`; the UI lists problems and offers "Open anyway without the broken parts" (drops only invalid records, reports what was dropped).
+- **Forward compatibility:** unknown elements and attributes are ignored on load and preserved on re-save (carried in an `extras` list per record), so a newer file edited in an older build does not lose data.
+- **Limits:** max file 8 MB, 2000 devices, 20 000 records, nesting depth 8; exceeding returns an error, never an allocation spike. XML reader is non-recursive (no stack overflow), rejects DTD/entity definitions (no billion-laughs), only the five named and numeric references.
+- **Autosave and recovery:** 3 rotating snapshots in browser storage (current, previous, last-known-good = last load that passed validation); crash or corrupt snapshot falls back automatically with a visible notice. Undo/redo keeps the last 100 steps and is saved in the session, not the file.
+- **Determinism:** `to_tnet` output is stable (sorted where order is not semantic, fixed attribute order, `\n` line ends, UTF-8, no timestamps) so files diff cleanly in git and two exports of the same network are byte-identical.
+- **Laws:** **L29** every error string contains a line number and an element name (test over a table of 30 broken files). **L30** fuzz: 5000 random mutations of a valid file (delete/duplicate/swap bytes and lines) never panic and never return a partial workspace (either `Ok` identical to a valid network or `Err`). **L31** migration then save yields a v-current file that reloads equal. **L32** unknown attributes survive load then save. **L33** limits: a 9 MB file and a 10 000-deep nesting are rejected quickly (time < 200 ms in the test).
+- **Gameplay tie-in:** templates (section 5) are ordinary `.tnet` files, so the same robustness protects lessons; "Reset lesson" reloads the pristine template; "Save my progress" exports a `.tnet` containing the lesson state.
 
 ## 5. P1: template engine
 A template is a `.tnet` file in `web/templates/` plus lesson data in the same file (flat elements, so the P0 reader handles them):
@@ -71,9 +83,9 @@ After the five: write T6-T10 prompts in `docs/templates-next.md` (VLANs, router-
 
 ## 7. P3: import / export in the browser (G2, draw.io style)
 - **Export**: toolbar/File menu -> downloads `<name>.tnet` via a Blob link (no server write). Also "Export PNG" of the canvas (SVG serialise -> canvas -> download), nice to have.
-- **Import**: file picker and drag and drop anywhere on the workspace; accepts `.tnet` (native) and `.pkt/.pka` (compat). Bad file -> mascot `error` + readable message, never a blank screen.
+- **Import**: file picker and drag and drop anywhere on the workspace; accepts `.tnet` only. Bad file -> mascot `error` + readable message, never a blank screen.
 - **Autosave**: every edit debounced 1 s to `localStorage` (or IndexedDB if > 4 MB); on load offer "Restore last session". Wrap every storage call in try/catch, app must work without storage.
-- Laws: **L22** export then import yields an identical workspace (browser e2e via the HTTP API: POST exported text, GET workspace, compare). **L23** import never changes the saved server state when the file is invalid.
+- Laws: **L22** export then import yields an identical workspace (browser e2e via the HTTP API: POST exported text, GET workspace, compare). **L23** an invalid file never changes the current workspace (all-or-nothing load).
 
 ## 8. P4: "live" feel
 Verify each in Chrome and fix what is missing: PDU animation along the real path at 1x speed in Realtime; link LEDs green/amber/red from port state; device state change sounds (`devicePlacement`, `removeDevice`, `popUp`, `errorMsg`); terminal typing answers instantly; mascot states in empty/error/loading. Law **L24** event order in Simulation mode follows the forwarding path (test on T4).
@@ -101,8 +113,15 @@ Verify each in Chrome and fix what is missing: PDU animation along the real path
 
 **Done when:** on template T4, step through a ping and see in the three panes and the ladder the ARP exchange, the ICMP echo, the TTL going 128 to 127, the narration for each step, and the checks lighting up; a `.pcap` of it opens in Wireshark (owner check); no console errors; no broken images.
 
-## 9. P5: offline (G3)
-Service worker `web/sw.js` caching `/`, `/js/*`, `/style.css`, `/workspace.css`, `/art3d/*`, `/sounds/*`, `/templates/*`. The engine is still the Rust server, so offline can only mean UI loads from cache and shows "engine offline, read-only". Full offline needs the engine compiled to WASM: **write the study in `docs/wasm.md` (what blocks `wasm32-unknown-unknown`, estimate), do not install the target.** Law **L25** (Chrome, offline mode): reload shows the app shell and the offline notice, no console errors.
+## 9. P5: engine in the browser (WebAssembly) and offline (G3)
+Decision (owner, 2026-11-03): the Rust engine runs **in the browser as WebAssembly**; the server only serves static files (a tiny machine is enough, no shared-state problem, many users at once). The install of the target is **approved**: `rustup target add wasm32-unknown-unknown` (nothing else; no wasm-bindgen, no npm, no wasm-pack: use the raw `extern "C"` ABI and a ~100-line JS loader).
+- **Step 1, split the crate:** `src/lib.rs` holds the engine (`net`, `workspace`, `cli`, `cmd`, `model`, tnet), `src/main.rs` keeps only the HTTP server. The server becomes optional (dev + static hosting).
+- **Step 2, engine API for WASM:** one exported function `handle(request_ptr, len) -> response_ptr` taking the same method/path/query/body the HTTP layer takes today and returning the same JSON, so `web/js/*` keeps calling `fetch('/api/...')` through a thin shim `web/js/engine.js` that routes those calls to WASM (and falls back to the server if WASM fails to load). Reuse `src/http/*::route` functions unchanged: factor them so they do not touch `TcpStream`.
+- **Step 3, state per tab:** workspace lives in WASM memory; persistence = P0b snapshots in browser storage.
+- **Step 4, service worker** `web/sw.js` caches `/`, `/js/*`, css, `/art3d/*`, `/sounds/*`, `/templates/*`, `engine.wasm`: full offline.
+- **Size/speed budget:** `engine.wasm` <= 3 MB uncompressed (release, `opt-level="z"`, `lto`, `panic="abort"`), cold start <= 1 s, a ping on template T4 <= 50 ms. Measure and record in `result.md`.
+- **Laws:** **L25** the same scripted lab gives byte-identical output through the native test harness and through WASM (run the 20 lab scripts in headless Chrome via the Chrome tool and compare to the native results stored as fixtures). **L34** offline reload (Chrome offline mode) shows the full working app, no console errors. **L35** two browser tabs have independent workspaces.
+- **Interim (only if WASM is blocked):** per-session workspaces on the server (session cookie, 30 min idle expiry, max 200 sessions, 5 MB each). Write to `QUESTIONS.md` before choosing this.
 
 ## 10. P6: public face and housekeeping
 - About/licence page `web/about.html`: what this is, own code/art, how art was made (ChatGPT sheets + `tools/build_art.py`, `MANIFEST.json`), no Cisco account needed, "not affiliated with Cisco". Link in the Help menu.
@@ -117,5 +136,5 @@ Service worker `web/sw.js` caching `/`, `/js/*`, `/style.css`, `/workspace.css`,
 - Missing and allowed to request from the owner (ChatGPT, words only): template cover images, level badges, a "check passed" medal, an empty-state illustration. Write the prompts into `CHATGPT.md`; do not block on them (use existing icons meanwhile).
 
 ## 12. Task order and gates
-P0 -> P1 -> P2 (T1..T5) -> P3 -> P4 -> P4b -> P5 -> P6. Gate after P2: owner reviews G1 live. Gate after P4b: owner reviews the engineer view live. Every task: laws added, `result.md` updated, `cargo test` green, pushed. Final report to the owner lists: laws and test names, commands, anything unverified, anything in `QUESTIONS.md`.
+P0 -> P0b -> P1 -> P2 (T1..T5) -> P3 -> P4 -> P4b -> P5 -> P6. Gate after P2: owner reviews G1 live. Gate after P4b: owner reviews the engineer view live. Every task: laws added, `result.md` updated, `cargo test` green, pushed. Final report to the owner lists: laws and test names, commands, anything unverified, anything in `QUESTIONS.md`.
 Owner reference: the real Packet Tracer is installed on the owner's Fedora laptop; use it only if the owner offers access. Otherwise rely on the protocol specs and the existing lab tests, and say what was not compared.
