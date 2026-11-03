@@ -293,3 +293,15 @@ test('accepting Restore last session loads the browser snapshot', async () => {
   await vm.runInContext('boot()', app.context);
   assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc3');
 });
+
+test('boot does not offer Restore when the browser snapshot equals the server workspace', async () => {
+  const app = applicationHarness(workspace(3));
+  const keys = vm.runInContext('RECOVERY_KEYS', app.context);
+  app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
+  Object.assign(app.context, { asked: 0 });
+  vm.runInContext('askConfirm = async () => { asked++; return false; }', app.context);
+
+  await vm.runInContext('boot()', app.context);
+  assert.equal(vm.runInContext('asked', app.context), 0);
+  assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc3');
+});
