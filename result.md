@@ -1,3 +1,13 @@
+# P4 live feel result
+
+- Actual Chrome Realtime animation followed the captured PC0 → Switch0 → Router0 → Switch1 → PC2 path, started at PC0 rather than SVG origin, and used 420 ms per segment at 1x. Command Prompt ping populated the capture and animated the same path.
+- Link LEDs come from each endpoint's real `PortState`: solved links are green; a shutdown router interface is red and its connected switch peer amber. Terminal `no shutdown` refreshed them back to green. T4 started with red/amber router links and became all green after configuration.
+- Chrome played `devicePlacement.wav`, `popUp.wav`, `removeDevice.wav`, and `errorMsg.wav` from their real placement, IP-save, removal, and invalid-action handlers.
+- Router terminal output appeared in 41 ms and Command Prompt ping output in 13 ms, with input re-enabled immediately; workspace/capture refreshes happen behind the answers.
+- Blank Logical workspaces show the sleeping mascot and a next step. The gallery shows think while loading, wave after success, and error on failure; workspace boot failures retain a visible error state and file actions.
+- L24 is registered in `provness/pt-web/LAWS.md`. `l24_t4_simulation_device_order_equals_forwarding_path` checks solved T4 hop IDs and increasing times against PC0 → Switch0 → Router0 → Switch1 → PC3. Actual Chrome Simulation showed identical path/hop order and a completed PDU with zero console errors or broken images.
+- `cargo test`: **220 passed, 0 failed**; `node --test tests/js/*.test.js`: **43 passed, 0 failed**. No P4b work was started.
+
 # P3 browser native files result
 
 - File > Export downloads `<name>.tnet` with a Blob and no server-side save. The picker accepts only `.tnet`; picker and workspace drop share one atomic import path, show every readable validation problem, and use the error mascot without changing current data on failure.

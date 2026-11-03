@@ -37,6 +37,7 @@ T4 Chrome Simulation exposed a same-frame RAF timestamp slightly earlier than `p
 | L13 | tested | `legacy_ptw_loads_to_the_same_workspace_as_tnet`; `cargo test` on 2026-11-03 |
 | L22 | tested | `l22_exported_text_import_restores_identical_http_workspace`; Blob download JS test; Chrome export/picker round trip on 2026-11-03 |
 | L23 | tested | `l23_invalid_http_import_never_changes_the_workspace`; picker rejection/problem JS tests; Chrome bad-file drops preserved byte-identical JSON on 2026-11-03 |
+| L24 | tested | `l24_t4_simulation_device_order_equals_forwarding_path`; Chrome solved-T4 Simulation path and hop IDs both PC0 → Switch0 → Router0 → Switch1 → PC3 on 2026-11-03 |
 
 P3 browser native-file verification on 2026-11-03:
 

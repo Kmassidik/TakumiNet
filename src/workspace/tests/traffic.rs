@@ -57,6 +57,31 @@ fn pdu_is_a_real_frame_across_the_router() {
 }
 
 #[test]
+fn l24_t4_simulation_device_order_equals_forwarding_path() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/t4.tnet")).unwrap();
+    for (id, ip, gateway) in [
+        ("pc0", "192.168.1.10", "192.168.1.1"),
+        ("pc1", "192.168.1.11", "192.168.1.1"),
+        ("pc2", "192.168.2.10", "192.168.2.1"),
+        ("pc3", "192.168.2.11", "192.168.2.1"),
+    ] {
+        ws.set_config(id, ip, "255.255.255.0", gateway, "").unwrap();
+    }
+    for (port, ip) in [("GigabitEthernet0/0", "192.168.1.1"), ("GigabitEthernet0/1", "192.168.2.1")] {
+        ws.set_port_ip("router0", port, ip, 24).unwrap();
+        assert!(ws.set_port_up("router0", port, true));
+    }
+    ws.send_pdu("pc0", "pc3").unwrap();
+
+    let event = ws.events.last().unwrap();
+    let expected = vec!["pc0", "switch0", "router0", "switch1", "pc3"];
+    assert_eq!(event.path, expected);
+    let hop_ids = event.hops.iter().map(|hop| hop.id.as_str()).collect::<Vec<_>>();
+    assert_eq!(hop_ids, expected);
+    assert!(event.hops.windows(2).all(|pair| pair[0].t < pair[1].t));
+}
+
+#[test]
 fn switch_learns_source_macs_and_then_hits() {
     use crate::net::packet::Mac;
     let mut ws = Workspace::new();
