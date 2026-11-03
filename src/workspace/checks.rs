@@ -8,10 +8,19 @@ impl Workspace {
         checks.iter().map(|check| self.run_check(check)).collect()
     }
 
+    fn send_addressed_pdu(&mut self, from: &str, to: &str) -> Result<(), String> {
+        let addressed = |id: &str| self.devices.iter().find(|device| device.id == id)
+            .is_some_and(|device| device.ip.is_some() || device.ports.iter().any(|port| port.ip.is_some()));
+        if !addressed(from) || !addressed(to) {
+            return Err("source and destination must have IPv4 addresses".into());
+        }
+        self.send_pdu(from, to)
+    }
+
     fn run_check(&mut self, check: &Check) -> CheckResult {
         let (passed, actual, hint) = match check.kind.as_str() {
             "ping" => {
-                let delivered = self.send_pdu(&check.from, &check.to);
+                let delivered = self.send_addressed_pdu(&check.from, &check.to);
                 let passed = match (check.expect.as_str(), &delivered) {
                     ("ok", Ok(())) | ("fail", Err(_)) => true,
                     _ => false,
@@ -24,7 +33,7 @@ impl Workspace {
             }
             "ttl" => {
                 let expected = check.expect.parse::<u8>().unwrap_or(0);
-                match self.send_pdu(&check.from, &check.to) {
+                match self.send_addressed_pdu(&check.from, &check.to) {
                     Ok(()) => {
                         let ttl = self.events.last().and_then(|event| event.hops.last()).map_or(128, |hop| hop.ttl);
                         (ttl == expected, format!("delivered TTL {ttl}"), format!("Run ping {} in the terminal and compare its delivered TTL.", self.name_of(&check.to)))

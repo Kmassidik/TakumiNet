@@ -1,0 +1,10 @@
+<takuminet version="1">
+  <device id="pc0" kind="pc" model="PC-PT" x="180" y="240" name="PC0" ip="" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC-PT" x="500" y="240" name="PC1" ip="" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="pc1" b_port="Fa0" kind="eCross"/>
+  <lesson id="t1" title="Connect two computers" level="1" minutes="5" goal="PC0 can ping PC1"/>
+  <step n="1" text="Open PC0, choose Desktop and IP Configuration, then set 192.168.1.10 with mask 255.255.255.0."/>
+  <step n="2" text="Set PC1 to 192.168.1.11 with mask 255.255.255.0. The cross cable is already connected."/>
+  <step n="3" text="Open PC0's terminal and ping 192.168.1.11."/>
+  <check id="c1" kind="ping" from="pc0" to="pc1" url="" expect="ok" label="PC0 reaches PC1"/>
+</takuminet>
