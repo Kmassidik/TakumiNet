@@ -469,6 +469,7 @@ html, body {
 
 .dw-physical { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .dw-physical img { max-width: 340px; max-height: 260px; }
+.dw-physical img.off { filter: grayscale(1) brightness(.6); }
 .dw-slots { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 6px; }
 .dw-slots .slot {
   border: 1px dashed #b6bfcb; border-radius: 4px; padding: 6px 8px;

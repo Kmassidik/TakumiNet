@@ -57,13 +57,9 @@ function tabPhysical(pane, d) {
   box.className = 'dw-physical';
   const off = d.powered === false;
   const img = document.createElement('img');
-  const phys = off
-    ? (d.kind === 'server' ? 'PowerOffISRG2.png'
-      : d.kind === 'laptop' ? 'PowerOffLaptop.png' : 'PowerOffPC.png')
-    : (d.kind === 'server' ? 'PowerOnServer.png' : 'PowerOnPC.png');
-  img.src = asset('art/PhysicalView/Devices/' + phys);
+  img.src = d.icon;
   img.alt = d.name;
-  img.onerror = () => { img.src = d.icon; };
+  img.classList.toggle('off', off);
 
   const cap = document.createElement('div');
   cap.className = 'meta';

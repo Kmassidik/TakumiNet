@@ -13,7 +13,6 @@ use std::path::{Path, PathBuf};
 
 /// (file, references today). Lower these as art is replaced; never raise them.
 const BASELINE: &[(&str, usize)] = &[
-    ("web/js/device_tabs.js", 1),
     ("web/js/palette.js", 2),
     ("web/js/state.js", 1),
 ];
