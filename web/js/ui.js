@@ -532,6 +532,22 @@
     return button;
   }
 
+  // web/ts/ui/device_list.ts
+  function deviceLabel(device) {
+    return device.ip ? `${device.name}, ${device.model}, ${device.ip}/${device.prefix}` : `${device.name}, ${device.model}`;
+  }
+  function renderDeviceList(doc, list, devices, onSelect) {
+    list.replaceChildren();
+    for (const device of devices) {
+      const item = doc.createElement("li");
+      const label = deviceLabel(device);
+      const button = createButton(doc, { label: device.name, title: label, onClick: () => onSelect(device.id) });
+      button.setAttribute("aria-label", label);
+      item.appendChild(button);
+      list.appendChild(item);
+    }
+  }
+
   // web/ts/ui/toolbar.ts
   function renderToolbar(doc, bar, items, iconSrc) {
     bar.replaceChildren();
@@ -666,6 +682,7 @@
   globalThis.askConfirm = async (message, okText = "OK") => await openModal(doc, stack, { message, okText }) === true;
   globalThis.askText = async (message, value = "") => await openModal(doc, stack, { message, input: value });
   globalThis.bringToFront = bringToFront;
+  globalThis.renderDeviceList = (list, devices, onSelect) => renderDeviceList(doc, list, devices, onSelect);
   globalThis.WorkspaceCanvas = WorkspaceCanvas;
   globalThis.buildRunLog = buildRunLog;
   globalThis.formatLogLine = formatLogLine;

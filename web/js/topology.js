@@ -7,6 +7,10 @@ function initWorkspaceCanvas() {
 
 function renderTopology() {
   if (!data || !workspaceCanvas) return;
+  renderDeviceList(document.getElementById('device-list'), data.devices, (id) => {
+    setSelection([id]);
+    renderTopology();
+  });
   workspaceCanvas.setState({
     workspace: data,
     selected: selection,
