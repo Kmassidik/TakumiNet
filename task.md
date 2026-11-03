@@ -217,3 +217,13 @@ the start except generating the pilot sheet with Codex.
 8. Remaining UI placeholders and art (art steps 1-4 first, because broken icons hurt now).
 
 **Not now:** BGP, HSRP, IPv6 routing protocols, wireless controller depth: after the CCNA path passes.
+
+## Component audit result (Chrome, 2026-11-03)
+
+Ran the real server on `:3111` with no asset tree. Exercised all four device
+tabs, all 14 Desktop apps, menu/toolbar actions, PDU creation, playback controls,
+and Show All/Hide All. No visible broken images, console errors, disabled
+placeholders, or "not implemented" buttons remained. Hide All showed zero
+events; device windows exposed only Physical, Config, Desktop, and Services.
+The earlier TTL, Dialup, empty-toolbar, Programming, and Attributes defects are
+covered by the lab and JS conformance suites.
