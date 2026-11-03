@@ -12,6 +12,7 @@ pub(super) fn sanitize(name: &str) -> String {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub(super) fn respond(stream: &mut TcpStream, status: &str, ctype: &str, body: &[u8]) -> io::Result<()> {
     write!(
         stream,
@@ -23,6 +24,7 @@ pub(super) fn respond(stream: &mut TcpStream, status: &str, ctype: &str, body: &
     stream.flush()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub(super) fn file_bytes(root: &str, name: &str) -> Vec<u8> {
     std::fs::read(format!("{root}/{name}"))
         .unwrap_or_else(|e| format!("cannot read {name}: {e}").into_bytes())
@@ -114,6 +116,7 @@ pub(super) fn _read_all(mut r: impl Read) -> io::Result<Vec<u8>> {
 
 /// Maps `group/name.png` to `art/3d/group/name.png`. Both parts must be lowercase
 /// letters and digits, so nothing can climb out of the art folder.
+#[cfg(not(target_arch = "wasm32"))]
 pub(super) fn art3d_file(request: &str) -> Option<String> {
     let (group, file) = request.split_once('/')?;
     let name = file.strip_suffix(".png")?;

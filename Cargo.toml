@@ -3,6 +3,11 @@ name = "pt-web"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "pt_web"
+path = "src/lib.rs"
+crate-type = ["rlib", "cdylib"]
+
 [[bin]]
 name = "pt-web"
 path = "src/main.rs"
@@ -10,5 +15,6 @@ path = "src/main.rs"
 [profile.release]
 opt-level = "z"
 lto = true
+panic = "abort"
 
 [dependencies]

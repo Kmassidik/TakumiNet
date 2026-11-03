@@ -4,15 +4,20 @@ use crate::model::{demo, to_json, Topology};
 use crate::net::sim::ping;
 use crate::cli::{self, Session as CliSession};
 use crate::workspace::Workspace;
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, Read};
+#[cfg(not(target_arch = "wasm32"))]
+use std::io::{BufRead, BufReader, Write};
+#[cfg(not(target_arch = "wasm32"))]
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
+#[cfg(not(target_arch = "wasm32"))]
 use std::thread;
 
 mod device_routes;
 mod file_routes;
 mod radio_routes;
 mod service_routes;
+#[cfg(not(target_arch = "wasm32"))]
 mod static_routes;
 mod terminal_routes;
 mod util;
@@ -26,27 +31,38 @@ struct History {
 }
 
 #[derive(Clone)]
-struct Ctx {
+pub struct Ctx {
     topo: Topology,
+    #[cfg(not(target_arch = "wasm32"))]
     web_root: String,
     ws: Arc<Mutex<Workspace>>,
     hist: Arc<Mutex<History>>,
     cli: Arc<Mutex<std::collections::HashMap<String, CliSession>>>,
 }
 
+impl Ctx {
+    pub fn new(web_root: &str) -> Self {
+        #[cfg(target_arch = "wasm32")]
+        let _ = web_root;
+        Self {
+            topo: demo(),
+            #[cfg(not(target_arch = "wasm32"))]
+            web_root: web_root.to_string(),
+            ws: Arc::new(Mutex::new(Workspace::new())),
+            hist: Arc::new(Mutex::new(History::default())),
+            cli: Arc::new(Mutex::new(std::collections::HashMap::new())),
+        }
+    }
+}
+
 const SAVE_DIR: &str = "topologies";
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn serve(addr: &str, web_root: &str) -> io::Result<()> {
     let listener = TcpListener::bind(addr)?;
     println!("pt-web listening on http://{addr}");
 
-    let ctx = Ctx {
-        topo: demo(),
-        web_root: web_root.to_string(),
-        ws: Arc::new(Mutex::new(Workspace::new())),
-        hist: Arc::new(Mutex::new(History::default())),
-        cli: Arc::new(Mutex::new(std::collections::HashMap::new())),
-    };
+    let ctx = Ctx::new(web_root);
 
     for stream in listener.incoming() {
         let Ok(stream) = stream else { continue };
@@ -117,6 +133,7 @@ where
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
     let mut reader = BufReader::new(stream.try_clone()?);
     let mut request_line = String::new();
@@ -144,23 +161,29 @@ fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
     let mut request_body = vec![0; content_length];
     reader.read_exact(&mut request_body)?;
 
-    let (path, query) = match target.split_once('?') {
-        Some((p, q)) => (p, q),
-        None => (target, ""),
-    };
+    let (status, ctype, body) = dispatch(ctx, method, target, &request_body);
+    respond(&mut stream, if status == 404 { "404 Not Found" } else { "200 OK" }, ctype, &body)
+}
 
-    let routed = static_routes::route(ctx, method, path, query)
-        .or_else(|| device_routes::route(ctx, method, path, query))
+/// Dispatch the same method, target (path plus query), and body for native HTTP
+/// and browser WASM. Static files remain a native-server concern.
+pub fn dispatch(ctx: &Ctx, method: &str, target: &str, body: &[u8]) -> (u16, &'static str, Vec<u8>) {
+    let (path, query) = target.split_once('?').unwrap_or((target, ""));
+    let api = || device_routes::route(ctx, method, path, query)
         .or_else(|| service_routes::route(ctx, method, path, query))
         .or_else(|| radio_routes::route(ctx, method, path, query))
         .or_else(|| terminal_routes::route(ctx, method, path, query))
-        .or_else(|| file_routes::route(ctx, method, path, query, &request_body));
+        .or_else(|| file_routes::route(ctx, method, path, query, body));
 
-    let Some((ctype, body)) = routed else {
-        return respond(&mut stream, "404 Not Found", "text/plain; charset=utf-8", b"not found\n");
-    };
+    #[cfg(not(target_arch = "wasm32"))]
+    let routed = static_routes::route(ctx, method, path, query).or_else(api);
+    #[cfg(target_arch = "wasm32")]
+    let routed = api();
 
-    respond(&mut stream, "200 OK", ctype, &body)
+    match routed {
+        Some((ctype, body)) => (200, ctype, body),
+        None => (404, "text/plain; charset=utf-8", b"not found\n".to_vec()),
+    }
 }
 
 #[cfg(test)]
@@ -168,13 +191,7 @@ mod tests {
     use super::*;
 
     fn context() -> Ctx {
-        Ctx {
-            topo: demo(),
-            web_root: String::new(),
-            ws: Arc::new(Mutex::new(Workspace::new())),
-            hist: Arc::new(Mutex::new(History::default())),
-            cli: Arc::new(Mutex::new(std::collections::HashMap::new())),
-        }
+        Ctx::new("")
     }
 
     #[test]

@@ -2,6 +2,8 @@
 
 Checked on 2026-11-03. No proof tool has been run: Bend is not installed.
 
+P5 raw-engine and loader tests failed before implementation. Final real Chrome evidence: L25 passed 20/20 native fixture labs with 1,218/1,218 byte-identical WASM responses; L34 offline reload showed the full Ready app, five templates and solved-T4 TTL 127/all checks green with zero console/page errors; L35 kept independent one-PC and one-router workspaces across named-save/load in two tabs. The final engine was 1,709,275 bytes, offline cold start was 13.3 ms, and worst solved-T4 ping was 5.7 ms. `cargo test` passed 229 and `node --test tests/js/*.test.js` passed 63.
+
 P4 Chrome found a hidden device-window icon with no initial source. `every static image has a real source before its window opens` failed before the fix; `cargo test` passed 218 tests and `node --test tests/js/*.test.js` passed 35 after it.
 
 P4 Chrome had no link LEDs. `link_json_exposes_green_amber_and_red_endpoint_states` and `link endpoints render LEDs directly from green amber and red port states` failed before the fix. Chrome then showed twelve green LEDs on the demo and red/amber endpoints after shutting down Router0 GigabitEthernet0/0, with zero console errors or broken images.

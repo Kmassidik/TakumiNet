@@ -28,6 +28,17 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
             }
         }
         ("GET", "/workspace.css") => ("text/css; charset=utf-8", file_bytes(&ctx.web_root, "workspace.css")),
+        ("GET", "/engine.wasm") => ("application/wasm", file_bytes(&ctx.web_root, "engine.wasm")),
+        ("GET", "/sw.js") => ("text/javascript; charset=utf-8", file_bytes(&ctx.web_root, "sw.js")),
+        ("GET", p) if p.starts_with("/templates/") => {
+            let name = &p["/templates/".len()..];
+            let safe = name.ends_with(".tnet") && !name.contains('/') && !name.contains("..");
+            if safe {
+                ("application/xml; charset=utf-8", file_bytes(&ctx.web_root, &format!("templates/{name}")))
+            } else {
+                (html, b"not found".to_vec())
+            }
+        }
         ("GET", p) if p.starts_with("/art/") => {
             let name = &p["/art/".len()..];
             let safe = !name.is_empty()

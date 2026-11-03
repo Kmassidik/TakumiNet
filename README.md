@@ -14,6 +14,23 @@ Open `http://127.0.0.1:3000`. `HOST`, `PORT` and `WEB_ROOT` may override the
 server defaults. No external asset tree or runtime package installation is
 needed.
 
+### Browser engine and offline use
+
+Build the committed browser engine reproducibly with the already-installed
+`wasm32-unknown-unknown` target:
+
+```bash
+./scripts/build-wasm.sh
+```
+
+This uses only Cargo, with release size optimization, LTO and aborting panics;
+no npm, wasm-pack or bindings generator is involved. `web/js/engine.js` sends
+`/api` requests to the raw WASM instance in each tab and falls back to the
+native server only if WASM cannot load. Templates are embedded in the engine;
+named saves and recovery snapshots use browser storage. The service worker
+precaches the complete application and `engine.wasm`, so a previously loaded
+app reloads and runs without a network.
+
 ### Docker
 
 ```bash
@@ -92,7 +109,9 @@ are always `.tnet`.
 ## Layout
 
 ```text
-src/main.rs           server entry point
+src/lib.rs            reusable simulation engine crate
+src/main.rs           optional static/development server entry point
+src/engine.rs         transport-independent raw WASM ABI
 src/model.rs          topology JSON and demo network
 src/workspace/        live devices, links, protocols and persistence
 src/workspace/tnet.rs native XML record conversion
@@ -109,9 +128,17 @@ provness/pt-web/      executable laws and their latest results
 ## Verification
 
 ```bash
+./scripts/build-wasm.sh
 cargo test
 cargo test --test e2e
 node --test tests/js/*.test.js
+```
+
+Regenerate the 20 native golden lab transcripts after an intentional engine
+contract change, then replay them in real Chrome with `tests/browser/labs.html`:
+
+```bash
+LAB_FIXTURE_DIR=tests/fixtures/labs cargo test --test labs -- --test-threads=1
 ```
 
 The persistence tests cover edited-field round trips, byte idempotence, 2,000

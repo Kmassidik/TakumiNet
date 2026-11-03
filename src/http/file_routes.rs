@@ -174,34 +174,70 @@ fn handle_checks(ctx: &Ctx) -> (&'static str, Vec<u8>) {
     ("application/json", format!("{{\"allPassed\":{all_passed},\"results\":[{results}]}}").into_bytes())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn template_dir(ctx: &Ctx) -> std::path::PathBuf {
     std::path::Path::new(&ctx.web_root).join("templates")
 }
 
+#[cfg(target_arch = "wasm32")]
+const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
+    ("t1", include_str!("../../web/templates/t1.tnet")),
+    ("t2", include_str!("../../web/templates/t2.tnet")),
+    ("t3", include_str!("../../web/templates/t3.tnet")),
+    ("t4", include_str!("../../web/templates/t4.tnet")),
+    ("t5", include_str!("../../web/templates/t5.tnet")),
+];
+
+fn template_text(ctx: &Ctx, id: &str) -> Result<String, ()> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::fs::read_to_string(template_dir(ctx).join(format!("{id}.tnet"))).map_err(|_| ())
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = ctx;
+        EMBEDDED_TEMPLATES.iter().find(|(template, _)| *template == id)
+            .map(|(_, text)| (*text).to_string()).ok_or(())
+    }
+}
+
 fn handle_templates(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    #[cfg(target_arch = "wasm32")]
+    let _ = ctx;
     let json = "application/json";
-    let entries = match std::fs::read_dir(template_dir(ctx)) {
-        Ok(entries) => entries,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return (json, b"{\"templates\":[]}".to_vec());
-        }
-        Err(error) => return (json, json_error(&format!("cannot read templates: {error}")).into_bytes()),
-    };
-    let mut paths: Vec<std::path::PathBuf> = entries.flatten().map(|entry| entry.path())
-        .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("tnet"))
-        .collect();
-    paths.sort();
-    let mut lessons = Vec::new();
-    for path in paths {
-        let text = match std::fs::read_to_string(&path) {
-            Ok(text) => text,
-            Err(error) => return (json, json_error(&format!("cannot read {}: {error}", path.display())).into_bytes()),
+    #[cfg(not(target_arch = "wasm32"))]
+    let sources = {
+        let entries = match std::fs::read_dir(template_dir(ctx)) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                return (json, b"{\"templates\":[]}".to_vec());
+            }
+            Err(error) => return (json, json_error(&format!("cannot read templates: {error}")).into_bytes()),
         };
+        let mut paths: Vec<std::path::PathBuf> = entries.flatten().map(|entry| entry.path())
+            .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("tnet"))
+            .collect();
+        paths.sort();
+        let mut sources = Vec::new();
+        for path in paths {
+            match std::fs::read_to_string(&path) {
+                Ok(text) => sources.push((path.display().to_string(), text)),
+                Err(error) => return (json, json_error(&format!("cannot read {}: {error}", path.display())).into_bytes()),
+            }
+        }
+        sources
+    };
+    #[cfg(target_arch = "wasm32")]
+    let sources = EMBEDDED_TEMPLATES.iter()
+        .map(|(id, text)| ((*id).to_string(), (*text).to_string())).collect::<Vec<_>>();
+
+    let mut lessons = Vec::new();
+    for (name, text) in sources {
         let workspace = match Workspace::from_tnet(&text) {
             Ok(workspace) => workspace,
             Err(problems) => {
                 let summary = problems.first().map(ToString::to_string).unwrap_or_else(|| "invalid template".into());
-                return (json, json_error(&format!("{}: {summary}", path.display())).into_bytes());
+                return (json, json_error(&format!("{name}: {summary}")).into_bytes());
             }
         };
         if let Some(lesson) = workspace.lesson {
@@ -227,9 +263,9 @@ fn handle_template_open(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     if !valid_template_id(&id) {
         return (json, json_error("invalid template id").into_bytes());
     }
-    let text = match std::fs::read_to_string(template_dir(ctx).join(format!("{id}.tnet"))) {
+    let text = match template_text(ctx, &id) {
         Ok(text) => text,
-        Err(_) => return (json, json_error("no such template").into_bytes()),
+        Err(()) => return (json, json_error("no such template").into_bytes()),
     };
     match Workspace::from_tnet(&text) {
         Ok(loaded) => {

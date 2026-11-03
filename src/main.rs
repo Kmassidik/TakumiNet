@@ -1,11 +1,4 @@
-mod cli;
-mod cmd;
-mod http;
-mod model;
-mod net;
-mod storage;
-mod webapp;
-mod workspace;
+use pt_web::http;
 
 fn main() {
     let host = std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());

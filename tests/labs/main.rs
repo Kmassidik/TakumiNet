@@ -1,5 +1,6 @@
 //! Canonical CCNA labs driven through the same HTTP API as the workspace UI.
 
+use std::fs::File;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::path::PathBuf;
@@ -9,6 +10,7 @@ use std::time::{Duration, Instant};
 struct Lab {
     child: Child,
     port: u16,
+    fixture: Option<File>,
 }
 
 impl Lab {
@@ -21,7 +23,15 @@ impl Lab {
             .stderr(Stdio::null())
             .spawn()
             .expect("spawn lab server");
-        let lab = Self { child, port };
+        let lab = Self {
+            child,
+            port,
+            fixture: std::env::var_os("LAB_FIXTURE_DIR").map(|directory| {
+                let directory = PathBuf::from(directory);
+                std::fs::create_dir_all(&directory).expect("create lab fixture directory");
+                File::create(directory.join(format!("{port}.jsonl"))).expect("create lab fixture")
+            }),
+        };
         let deadline = Instant::now() + Duration::from_secs(15);
         while Instant::now() < deadline {
             if TcpStream::connect(("127.0.0.1", port)).is_ok() {
@@ -33,31 +43,57 @@ impl Lab {
     }
 
     fn post(&self, path: &str) -> String {
-        let mut stream = TcpStream::connect(("127.0.0.1", self.port)).expect("connect");
-        stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
-        let request = format!(
-            "POST {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
-        );
-        stream.write_all(request.as_bytes()).expect("write");
-        let mut raw = Vec::new();
-        stream.read_to_end(&mut raw).expect("read");
-        let response = String::from_utf8_lossy(&raw);
-        assert!(response.starts_with("HTTP/1.1 200"), "{path}: {response}");
-        response.split_once("\r\n\r\n").unwrap().1.to_string()
+        self.request("POST", path)
     }
 
     fn get(&self, path: &str) -> String {
+        self.request("GET", path)
+    }
+
+    fn request(&self, method: &str, path: &str) -> String {
         let mut stream = TcpStream::connect(("127.0.0.1", self.port)).expect("connect");
         stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
         let request = format!(
-            "GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+            "{method} {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
         );
         stream.write_all(request.as_bytes()).expect("write");
         let mut raw = Vec::new();
         stream.read_to_end(&mut raw).expect("read");
         let response = String::from_utf8_lossy(&raw);
+        let (headers, body) = response.split_once("\r\n\r\n").unwrap();
+        if let Some(fixture) = &self.fixture {
+            let status = headers
+                .split_whitespace()
+                .nth(1)
+                .and_then(|status| status.parse::<u16>().ok())
+                .expect("HTTP response status");
+            let content_type = headers
+                .lines()
+                .find_map(|line| {
+                    let (name, value) = line.split_once(':')?;
+                    name.eq_ignore_ascii_case("content-type")
+                        .then(|| value.trim())
+                })
+                .unwrap_or("");
+            let offset = raw
+                .windows(4)
+                .position(|window| window == b"\r\n\r\n")
+                .map(|position| position + 4)
+                .expect("HTTP response body");
+            let record = format!(
+                "{{\"method\":{},\"target\":{},\"body\":\"{}\",\"status\":{},\"contentType\":{},\"response\":\"{}\"}}\n",
+                json_string(method),
+                json_string(path),
+                base64(&[]),
+                status,
+                json_string(content_type),
+                base64(&raw[offset..]),
+            );
+            let mut fixture = fixture;
+            fixture.write_all(record.as_bytes()).expect("write lab fixture");
+        }
         assert!(response.starts_with("HTTP/1.1 200"), "{path}: {response}");
-        response.split_once("\r\n\r\n").unwrap().1.to_string()
+        body.to_string()
     }
 
     fn cli(&self, device: &str, line: &str) -> String {
@@ -163,6 +199,51 @@ impl Lab {
         let loaded = self.post(&format!("/api/load?name={name}"));
         assert!(!loaded.contains("\"error\""), "load {name}: {loaded}");
     }
+}
+
+fn json_string(value: &str) -> String {
+    let mut encoded = String::with_capacity(value.len() + 2);
+    encoded.push('"');
+    for character in value.chars() {
+        match character {
+            '"' => encoded.push_str("\\\""),
+            '\\' => encoded.push_str("\\\\"),
+            '\n' => encoded.push_str("\\n"),
+            '\r' => encoded.push_str("\\r"),
+            '\t' => encoded.push_str("\\t"),
+            character if character <= '\u{1f}' => {
+                encoded.push_str(&format!("\\u{:04x}", character as u32));
+            }
+            character => encoded.push(character),
+        }
+    }
+    encoded.push('"');
+    encoded
+}
+
+fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] =
+        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut encoded = String::with_capacity((bytes.len() + 2) / 3 * 4);
+    for chunk in bytes.chunks(3) {
+        encoded.push(ALPHABET[(chunk[0] >> 2) as usize] as char);
+        encoded.push(
+            ALPHABET[((chunk[0] & 0x03) << 4 | chunk.get(1).copied().unwrap_or(0) >> 4) as usize]
+                as char,
+        );
+        encoded.push(if chunk.len() > 1 {
+            ALPHABET[((chunk[1] & 0x0f) << 2 | chunk.get(2).copied().unwrap_or(0) >> 6) as usize]
+                as char
+        } else {
+            '='
+        });
+        encoded.push(if chunk.len() > 2 {
+            ALPHABET[(chunk[2] & 0x3f) as usize] as char
+        } else {
+            '='
+        });
+    }
+    encoded
 }
 
 fn encode(line: &str) -> String {

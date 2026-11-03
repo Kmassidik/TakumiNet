@@ -159,9 +159,26 @@
     const filter = document.getElementById('display-filter');
     if (filter) filter.addEventListener('input', renderCapture);
     const save = document.getElementById('save-capture');
-    if (save) save.addEventListener('click', () => {
-      save.href = '/api/capture/export';
+    if (save) save.addEventListener('click', async (event) => {
       save.download = `${String(typeof currentName === 'string' ? currentName : 'capture').replace(/[^a-z0-9_-]+/gi, '_')}.pcap`;
+      if (typeof TakumiEngine === 'undefined' || TakumiEngine.mode !== 'wasm') {
+        save.href = '/api/capture/export';
+        return;
+      }
+      event.preventDefault();
+      try {
+        const response = await fetch('/api/capture/export');
+        if (!response.ok) throw new Error('capture export failed');
+        const url = URL.createObjectURL(await response.blob());
+        save.href = url;
+        const download = document.createElement('a');
+        download.href = url;
+        download.download = save.download;
+        download.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (_) {
+        status('Capture export failed', true);
+      }
     });
   }
 
