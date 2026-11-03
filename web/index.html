@@ -101,7 +101,87 @@
         <div id="physical-view" class="physical-view" hidden></div>
       </div>
 
-      <section class="capture-dock" id="capture-dock" aria-label="Network engineer view">
+      <div class="modebar">
+        <span class="clock" id="clock">00:00:00.0</span>
+        <span class="playgroup">
+          <button title="Reset simulation" data-sfx="movieControlButton" data-sim="reset"><img src="/art3d/sim/reset.webp" alt="reset"></button>
+          <button title="Play" id="play-btn" data-sfx="movieControlButton" data-sim="play"><img src="/art3d/sim/play.webp" alt="play"></button>
+          <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/art3d/sim/stepa.webp" alt="step"></button>
+        </span>
+        <label class="playback-speed" title="Playback speed (Space play/pause, Left back, Right step)">
+          <span>Speed</span>
+          <input id="playback-speed" type="range" min="0" max="3" step="1" value="2" aria-label="Playback speed">
+          <output id="playback-speed-value" for="playback-speed">1×</output>
+        </label>
+        <div class="modes">
+          <button class="mode active" data-sfx="topologyTab">Realtime</button>
+          <button class="mode" data-sfx="simulationTab">Simulation</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="splitter" id="sidebar-splitter" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
+    <aside class="sim" id="sidebar" aria-label="Sidebar">
+      <nav class="sidebar-tabs" role="tablist">
+        <button class="active" data-side-tab="events" role="tab">Events</button>
+        <button data-side-tab="lesson" role="tab">Lesson</button>
+        <button data-side-tab="capture" role="tab">Capture</button>
+        <button data-side-tab="log" role="tab">Log</button>
+      </nav>
+      <div class="sidebar-body">
+      <div data-panel="lesson" hidden><section class="lesson-panel" id="lesson-panel" hidden>
+        <div class="lesson-heading">
+          <img id="lesson-mascot" src="/art3d/mascot/wave.webp" alt="TakumiNet mascot" width="52" height="52">
+          <div><span class="lesson-kicker">Guided lab</span><h2 id="lesson-title"></h2><span class="lesson-meta" id="lesson-meta"></span></div>
+        </div>
+        <p class="lesson-goal" id="lesson-goal"></p>
+        <ol class="lesson-steps" id="lesson-steps"></ol>
+        <div class="lesson-checks" id="lesson-checks"></div>
+        <p class="lesson-hint" id="lesson-hint" role="status"></p>
+        <div class="lesson-actions">
+          <button class="btn lesson-check-button" id="check-work" data-action="check-work">Check my work</button>
+          <button class="btn" data-action="reset-lesson">Reset lesson</button>
+        </div>
+      </section>
+      </div>
+      <div data-panel="events"><div class="sim-head">Simulation Panel</div>
+
+      <table class="events">
+        <thead>
+          <tr><th>Vis.</th><th>Timestamps</th><th>Last Device</th><th>At Device</th><th>Type</th></tr>
+        </thead>
+        <tbody id="events"></tbody>
+      </table>
+
+      <div class="sim-row">
+        <button class="btn" data-action="reset-sim">Reset Simulation</button>
+        <label class="check"><input type="checkbox" id="const-delay"> Constant Delay</label>
+        <span class="capture" id="captured">Captured: 0/0</span>
+      </div>
+      </div>
+      <div data-panel="log" hidden><div class="run-log-head">Run log <input id="run-log-filter" type="search" placeholder="filter device or text" spellcheck="false"></div>
+      <ol id="run-log" class="run-log"></ol>
+
+      </div>
+      <div data-panel="events"><div class="playbar">
+        <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/art3d/sim/back.webp" alt="back"></button>
+        <button title="Play" data-sfx="movieControlButton" data-sim="play2"><img src="/art3d/sim/play.webp" alt="play"></button>
+        <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.webp" alt="forward"></button>
+        <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.webp" alt="ffw"></button>
+      </div>
+
+      <div class="filter-head">
+        <span>Event List Filters</span>
+        <span class="right">
+          <button class="mini" id="show-all">Show All</button>
+          <button class="mini" id="show-none">Hide All</button>
+        </span>
+      </div>
+
+      <div class="filters" id="filters"></div>
+    </div>
+      <div data-panel="capture" hidden>
+<section class="capture-dock" id="capture-dock" aria-label="Network engineer view">
         <div class="capture-toolbar">
           <div class="capture-tabs" role="tablist">
             <button class="active" data-engineer-tab="capture" role="tab">Capture</button>
@@ -133,73 +213,9 @@
         </div>
       </section>
 
-      <div class="modebar">
-        <span class="clock" id="clock">00:00:00.0</span>
-        <span class="playgroup">
-          <button title="Reset simulation" data-sfx="movieControlButton" data-sim="reset"><img src="/art3d/sim/reset.webp" alt="reset"></button>
-          <button title="Play" id="play-btn" data-sfx="movieControlButton" data-sim="play"><img src="/art3d/sim/play.webp" alt="play"></button>
-          <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/art3d/sim/stepa.webp" alt="step"></button>
-        </span>
-        <label class="playback-speed" title="Playback speed (Space play/pause, Left back, Right step)">
-          <span>Speed</span>
-          <input id="playback-speed" type="range" min="0" max="3" step="1" value="2" aria-label="Playback speed">
-          <output id="playback-speed-value" for="playback-speed">1×</output>
-        </label>
-        <div class="modes">
-          <button class="mode active" data-sfx="topologyTab">Realtime</button>
-          <button class="mode" data-sfx="simulationTab">Simulation</button>
-        </div>
+      
       </div>
-    </section>
-
-    <aside class="sim">
-      <section class="lesson-panel" id="lesson-panel" hidden>
-        <div class="lesson-heading">
-          <img id="lesson-mascot" src="/art3d/mascot/wave.webp" alt="TakumiNet mascot" width="52" height="52">
-          <div><span class="lesson-kicker">Guided lab</span><h2 id="lesson-title"></h2><span class="lesson-meta" id="lesson-meta"></span></div>
-        </div>
-        <p class="lesson-goal" id="lesson-goal"></p>
-        <ol class="lesson-steps" id="lesson-steps"></ol>
-        <div class="lesson-checks" id="lesson-checks"></div>
-        <p class="lesson-hint" id="lesson-hint" role="status"></p>
-        <div class="lesson-actions">
-          <button class="btn lesson-check-button" id="check-work" data-action="check-work">Check my work</button>
-          <button class="btn" data-action="reset-lesson">Reset lesson</button>
-        </div>
-      </section>
-      <div class="sim-head">Simulation Panel</div>
-
-      <table class="events">
-        <thead>
-          <tr><th>Vis.</th><th>Timestamps</th><th>Last Device</th><th>At Device</th><th>Type</th></tr>
-        </thead>
-        <tbody id="events"></tbody>
-      </table>
-
-      <div class="sim-row">
-        <button class="btn" data-action="reset-sim">Reset Simulation</button>
-        <label class="check"><input type="checkbox" id="const-delay"> Constant Delay</label>
-        <span class="capture" id="captured">Captured: 0/0</span>
       </div>
-      <div class="run-log-head">Run log <input id="run-log-filter" type="search" placeholder="filter device or text" spellcheck="false"></div>
-      <ol id="run-log" class="run-log"></ol>
-
-      <div class="playbar">
-        <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/art3d/sim/back.webp" alt="back"></button>
-        <button title="Play" data-sfx="movieControlButton" data-sim="play2"><img src="/art3d/sim/play.webp" alt="play"></button>
-        <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.webp" alt="forward"></button>
-        <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.webp" alt="ffw"></button>
-      </div>
-
-      <div class="filter-head">
-        <span>Event List Filters</span>
-        <span class="right">
-          <button class="mini" id="show-all">Show All</button>
-          <button class="mini" id="show-none">Hide All</button>
-        </span>
-      </div>
-
-      <div class="filters" id="filters"></div>
     </aside>
   </div>
 
@@ -211,6 +227,7 @@
   <div class="statusbar">
     <span><img id="status-icon" src="/art3d/mascot/error.webp" alt="" width="18" height="18" hidden> <span id="status-msg">Ready</span></span>
     <span id="status-mode">Realtime</span>
+    <button class="sidebar-toggle" id="sidebar-toggle" title="Show or hide the sidebar (\)">Hide sidebar</button>
   </div>
 
 </div>

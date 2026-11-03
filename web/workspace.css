@@ -888,3 +888,26 @@ html, body {
 .run-log { margin: 0; padding: 0 8px 8px 28px; max-height: 160px; overflow: auto; font: 11px ui-monospace, monospace; }
 .run-log li { white-space: pre; cursor: pointer; }
 .run-log li:hover { background: #eef3fb; }
+
+/* ---------- sidebar: tabs, splitter, hide (PRD-UI section 5) ---------- */
+.main {
+  grid-template-columns: minmax(0, 1fr) 6px var(--sidebar-width, 330px);
+}
+.main.sidebar-hidden { grid-template-columns: minmax(0, 1fr) 0 0; }
+.main.sidebar-hidden .sim, .main.sidebar-hidden .splitter { display: none; }
+.splitter { cursor: col-resize; background: var(--line-soft); touch-action: none; }
+.splitter:hover { background: var(--accent); }
+.sim { min-width: 0; min-height: 0; overflow: hidden; }
+.sidebar-tabs {
+  display: flex; gap: 2px; padding: 4px 4px 0; background: var(--chrome);
+  border-bottom: 1px solid var(--line-soft);
+}
+.sidebar-tabs button {
+  font: inherit; font-size: 11px; padding: 4px 10px; border: 1px solid transparent;
+  border-bottom: none; border-radius: 3px 3px 0 0; background: none; cursor: pointer; color: var(--muted);
+}
+.sidebar-tabs button.active { background: var(--panel); border-color: var(--line-soft); color: var(--text); font-weight: 600; }
+.sidebar-body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+.sidebar-body > [data-panel][hidden] { display: none; }
+.sim .capture-dock { flex: 1 1 auto; min-height: 0; border-top: none; }
+.sidebar-toggle { font: inherit; font-size: 11px; padding: 0 8px; border: 1px solid var(--line-soft); background: var(--panel); border-radius: 3px; cursor: pointer; }

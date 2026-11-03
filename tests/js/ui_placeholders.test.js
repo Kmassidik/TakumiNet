@@ -47,6 +47,7 @@ test('toolbars contain only implemented actions and tidy separators', () => {
     document: {
       createElement: (tag) => new Element(tag),
       readyState: 'complete',
+      querySelector: () => null,
       querySelectorAll: () => [],
       addEventListener() {},
     },

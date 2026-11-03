@@ -1,6 +1,7 @@
 import { bringToFront, makeWindowMovable, watchOverlays } from "./ui/dialogs";
 import type { DocLike, ElementLike } from "./ui/dom";
 import { WorkspaceCanvas } from "./canvas/workspace_canvas";
+import { wireSidebar } from "./ui/sidebar";
 import { renderToolbar, type ToolbarItem } from "./ui/toolbar";
 import { buildRunLog, formatLogLine, type CommandRecord, type LogEntry, type RunEvent } from "./ui/run_log";
 import { openModal } from "./ui/modal";
@@ -25,6 +26,11 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
 } else {
   watchOverlays(stack);
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", wireSidebar);
+} else {
+  wireSidebar();
 }
 
 declare global {

@@ -432,6 +432,80 @@
     }
   }
 
+  // web/ts/ui/sidebar.ts
+  var SIDEBAR_DEFAULT_WIDTH = 330;
+  var MIN_WIDTH = 240;
+  var MAX_SHARE = 0.6;
+  var WIDTH_KEY = "pt-web:sidebar-width";
+  function clampSidebarWidth(width, viewport) {
+    const max = Math.max(MIN_WIDTH, viewport * MAX_SHARE);
+    return Math.min(max, Math.max(MIN_WIDTH, width));
+  }
+  function readSavedWidth() {
+    try {
+      const saved = Number(localStorage.getItem(WIDTH_KEY));
+      return Number.isFinite(saved) && saved > 0 ? saved : SIDEBAR_DEFAULT_WIDTH;
+    } catch {
+      return SIDEBAR_DEFAULT_WIDTH;
+    }
+  }
+  function saveWidth(width) {
+    try {
+      localStorage.setItem(WIDTH_KEY, String(Math.round(width)));
+    } catch {}
+  }
+  function wireSidebar() {
+    const main = document.querySelector(".main");
+    if (!main)
+      return;
+    const sidebar = document.getElementById("sidebar");
+    const splitter = document.getElementById("sidebar-splitter");
+    const toggle = document.getElementById("sidebar-toggle");
+    if (!sidebar || !splitter || !toggle)
+      return;
+    const setWidth = (px) => main.style.setProperty("--sidebar-width", `${px}px`);
+    setWidth(clampSidebarWidth(readSavedWidth(), window.innerWidth));
+    const setHidden = (hidden) => {
+      main.classList.toggle("sidebar-hidden", hidden);
+      toggle.textContent = hidden ? "Show sidebar" : "Hide sidebar";
+      toggle.setAttribute("aria-expanded", String(!hidden));
+    };
+    toggle.addEventListener("click", () => setHidden(!main.classList.contains("sidebar-hidden")));
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key !== "\\" || ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement)
+        return;
+      setHidden(!main.classList.contains("sidebar-hidden"));
+    });
+    splitter.addEventListener("pointerdown", (down) => {
+      down.preventDefault();
+      splitter.setPointerCapture(down.pointerId);
+      const move = (ev) => {
+        const width = clampSidebarWidth(window.innerWidth - ev.clientX, window.innerWidth);
+        setWidth(width);
+      };
+      const up = () => {
+        splitter.removeEventListener("pointermove", move);
+        const width = parseFloat(main.style.getPropertyValue("--sidebar-width")) || SIDEBAR_DEFAULT_WIDTH;
+        saveWidth(width);
+      };
+      splitter.addEventListener("pointermove", move);
+      splitter.addEventListener("pointerup", up, { once: true });
+    });
+    splitter.addEventListener("dblclick", () => {
+      setWidth(SIDEBAR_DEFAULT_WIDTH);
+      saveWidth(SIDEBAR_DEFAULT_WIDTH);
+    });
+    const tabs = sidebar.querySelectorAll("[data-side-tab]");
+    const selectTab = (name) => {
+      tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.sideTab === name));
+      sidebar.querySelectorAll("[data-panel]").forEach((panel) => {
+        panel.hidden = panel.dataset.panel !== name;
+      });
+    };
+    tabs.forEach((tab) => tab.addEventListener("click", () => selectTab(tab.dataset.sideTab ?? "events")));
+    globalThis.selectSidebarTab = selectTab;
+  }
+
   // web/ts/ui/button.ts
   function createButton(doc, options) {
     const button = doc.createElement("button");
@@ -601,5 +675,10 @@
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
   } else {
     watchOverlays(stack);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", wireSidebar);
+  } else {
+    wireSidebar();
   }
 })();

@@ -98,6 +98,7 @@ function renderLessonResults(results) {
 
 function renderLesson() {
   const panel = document.getElementById('lesson-panel');
+  if (typeof selectSidebarTab === 'function') selectSidebarTab('lesson');
   if (!panel) return;
   const lesson = data && data.lesson;
   panel.hidden = !lesson;
