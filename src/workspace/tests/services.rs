@@ -110,6 +110,10 @@ fn nat_overload_translates_and_persists() {
         .collect::<Vec<_>>()
         .join("|");
     assert!(note.contains("NAT"), "{note}");
+    let hops = &ws.events.last().unwrap().hops;
+    assert_eq!(hops.first().unwrap().src_ip, parse_ipv4("192.168.1.10").unwrap());
+    assert_eq!(hops.last().unwrap().src_ip, parse_ipv4("192.168.2.1").unwrap());
+    assert_eq!(hops.last().unwrap().dst_ip, parse_ipv4("192.168.2.20").unwrap());
 
     let back = Workspace::from_ptw(&ws.to_ptw()).unwrap();
     assert_eq!(back.nat_binding_lines("router0").len(), 1);

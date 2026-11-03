@@ -98,13 +98,10 @@ fn ipconfig(ws: &Workspace, id: &str) -> String {
 
 /// `ipconfig /release` — drop the lease and the address it configured.
 fn ipconfig_release(ws: &mut Workspace, id: &str) -> String {
-    let Some(d) = ws.devices.iter_mut().find(|d| d.id == id) else {
+    if !ws.devices.iter().any(|d| d.id == id) {
         return String::new();
-    };
-    d.ip = None;
-    d.gateway = None;
-    d.dns = None;
-    ws.dhcp_clients.remove(id);
+    }
+    ws.release_dhcp(id);
     String::from(
         "Windows IP Configuration\n\nIP address successfully released for adapter \"FastEthernet0\"\n\n",
     )
@@ -142,7 +139,7 @@ fn ping(ws: &mut Workspace, id: &str, args: &[&str]) -> String {
 }
 
 fn ping_host(ws: &mut Workspace, id: &str, target: &str, count: usize) -> String {
-    let Some(ip) = crate::model::parse_ipv4(target) else {
+    let Some(ip) = crate::model::parse_ipv4(target).or_else(|| ws.resolve_name(id, target)) else {
         return format!("Ping request could not find host {target}. Please check the name and try again.\n\n");
     };
     let Some(dst) = ws
@@ -345,9 +342,13 @@ fn nslookup(ws: &Workspace, id: &str, name: &str) -> String {
     if name.is_empty() {
         return "Default Server:  UnKnown\nAddress:  0.0.0.0\n\n".to_string();
     }
+    let server = dev(ws, id)
+        .and_then(|d| d.dns)
+        .map(ipv4_string)
+        .unwrap_or_else(|| "0.0.0.0".into());
     match ws.resolve_name(id, name) {
         Some(ip) => format!(
-            "\nServer:  dns\nAddress:  0.0.0.0\n\nNon-authoritative answer:\nName:    {name}\nAddress:  {}\n\n",
+            "\nServer:  dns\nAddress:  {server}\n\nNon-authoritative answer:\nName:    {name}\nAddress:  {}\n\n",
             ipv4_string(ip)
         ),
         None => String::from(
@@ -483,9 +484,17 @@ mod tests {
     #[test]
     fn nslookup_uses_the_dns_records() {
         let mut ws = Workspace::new();
+        ws.set_config(
+            "pc2",
+            "192.168.2.10",
+            "255.255.255.0",
+            "192.168.2.1",
+            "192.168.2.20",
+        )
+        .unwrap();
         ws.set_dns_record("server0", "web.lab", "192.168.2.20").unwrap();
         let hit = run(&mut ws, "pc2", "nslookup web.lab");
-        assert!(hit.contains("192.168.2.20"), "{hit}");
+        assert!(hit.contains("Address:  192.168.2.20"), "{hit}");
         let miss = run(&mut ws, "pc2", "nslookup nothing.lab");
         assert!(miss.contains("timed out"), "{miss}");
     }

@@ -52,5 +52,5 @@ for `/api/webfetch`.
 
 ## Not covered yet
 
-- No DNS names (only addresses), no auth, no per-server pages, no path routing.
-- HTTPS, TFTP, FTP, Email, NTP, AAA and Syslog are still on the list.
+- DNS names resolve through the client's configured server; no auth or path routing.
+- HTTPS is still on the list.

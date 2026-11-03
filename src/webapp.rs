@@ -3,7 +3,6 @@
 //! A fetch is a real delivery: the client's request is forwarded hop by hop
 //! (so the capture buffer records it), and only a `server` device answers.
 
-use crate::model::ipv4_string;
 use crate::workspace::Workspace;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -32,15 +31,13 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
         return Err("Invalid URL".into());
     }
 
+    let Some(ip) = crate::model::parse_ipv4(host).or_else(|| ws.resolve_name(client, host)) else {
+        return Err(format!("Request timed out: no host answers for {host}"));
+    };
     let Some(server) = ws
         .devices
         .iter()
-        .find(|d| {
-            d.ip.map(|ip| ipv4_string(ip)) == Some(host.to_string())
-                || d.ports
-                    .iter()
-                    .any(|p| p.ip.map(|ip| ipv4_string(ip)) == Some(host.to_string()))
-        })
+        .find(|d| d.ip == Some(ip) || d.ports.iter().any(|p| p.ip == Some(ip)))
         .map(|d| (d.id.clone(), d.name.clone(), d.kind.clone()))
     else {
         return Err(format!("Request timed out: no host answers for {host}"));

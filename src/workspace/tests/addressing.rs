@@ -34,6 +34,31 @@ fn dhcp_hands_out_sequential_leases_on_the_segment() {
 }
 
 #[test]
+fn dhcp_renewal_release_and_static_override_do_not_leak_leases() {
+    let mut ws = Workspace::new();
+    ws.set_dhcp_pool("server0", "192.168.2.0", 24, "192.168.2.1", "192.168.2.20")
+        .unwrap();
+    let first = ws.acquire_dhcp("pc2").unwrap();
+    let renewed = ws.acquire_dhcp("pc2").unwrap();
+    assert_eq!(renewed.ip, first.ip);
+    assert_eq!(ws.dhcp_leases["server0"], vec![first.ip]);
+
+    assert!(ws.release_dhcp("pc2"));
+    assert!(ws.dhcp_leases["server0"].is_empty());
+    assert_eq!(ws.devices.iter().find(|d| d.id == "pc2").unwrap().ip, None);
+    let reused = ws.acquire_dhcp("pc2").unwrap();
+    assert_eq!(reused.ip, first.ip);
+    assert_eq!(ws.dhcp_leases["server0"], vec![first.ip]);
+
+    ws.set_config("pc2", "192.168.2.50", "255.255.255.0", "", "")
+        .unwrap();
+    assert!(ws.dhcp_leases["server0"].is_empty());
+    assert!(!ws.release_dhcp("pc2"));
+    let dynamic = ws.acquire_dhcp("pc2").unwrap();
+    assert_eq!(dynamic.ip, first.ip, "released address is reusable");
+}
+
+#[test]
 fn dhcp_needs_a_server_on_the_same_segment() {
     let mut ws = Workspace::new();
     // pc0 sits behind router0, so the server pool is not on its segment.
@@ -166,6 +191,9 @@ fn dhcp_relay_reaches_a_server_on_another_subnet() {
     let lease = ws.acquire_dhcp("pc0").unwrap();
     assert_eq!(crate::model::ipv4_string(lease.ip), "192.168.1.100");
     assert_eq!(lease.server, "server0");
+    assert!(ws.release_dhcp("pc0"));
+    let renewed = ws.acquire_dhcp("pc0").unwrap();
+    assert_eq!(renewed.ip, lease.ip, "relay remains discoverable after release");
 
     let out = run_show_helper(&ws);
     assert!(out.contains("192.168.2.20"), "{out}");
@@ -269,12 +297,23 @@ fn ospfv3_stores_ipv6_prefixes_and_shows_them() {
 }
 
 #[test]
-fn dns_resolves_names_on_the_local_segment() {
+fn dns_resolves_only_through_the_configured_server() {
     let mut ws = Workspace::new();
     ws.set_dns_record("server0", "Web.LAB", "192.168.2.20").unwrap();
     let ip = crate::model::parse_ipv4("192.168.2.20").unwrap();
-    assert_eq!(ws.resolve_name("pc2", "web.lab"), Some(ip));
-    assert_eq!(ws.resolve_name("pc0", "web.lab"), None, "routers stop the query");
+    assert_eq!(ws.resolve_name("pc2", "web.lab"), None, "DNS is not configured");
+    for client in ["pc0", "pc2"] {
+        let current = ws.devices.iter().find(|d| d.id == client).unwrap().clone();
+        ws.set_config(
+            client,
+            &crate::model::ipv4_string(current.ip.unwrap()),
+            "255.255.255.0",
+            &crate::model::ipv4_string(current.gateway.unwrap()),
+            "192.168.2.20",
+        )
+        .unwrap();
+        assert_eq!(ws.resolve_name(client, "web.lab"), Some(ip));
+    }
     assert!(ws.remove_dns_record("server0", "web.lab"));
     assert!(!ws.remove_dns_record("server0", "web.lab"));
     assert!(ws.set_dns_record("server0", "bad name", "1.1.1.1").is_err());

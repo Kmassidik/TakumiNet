@@ -26,6 +26,9 @@ pub struct Hop {
     pub ttl: u8,
     pub src_mac: Mac,
     pub dst_mac: Mac,
+    /// IPv4 header after this device's forwarding decisions (including NAT).
+    pub src_ip: u32,
+    pub dst_ip: u32,
     /// Human-readable reason: learning, flooding, routing, ARP.
     pub note: String,
 }
@@ -261,6 +264,8 @@ pub fn deliver(ws: &mut Workspace, src: &str, dst: &str) -> Result<Delivery, Str
             ttl: packet.ttl,
             src_mac,
             dst_mac,
+            src_ip: packet.src,
+            dst_ip: packet.dst,
             note,
         });
     }

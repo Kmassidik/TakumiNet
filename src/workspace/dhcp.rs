@@ -29,14 +29,22 @@ impl Workspace {
     }
 
     pub fn remove_dhcp_reservation(&mut self, server: &str, client: &str) -> bool {
-        match self.dhcp_reservations.get_mut(server) {
-            Some(list) => {
-                let before = list.len();
-                list.retain(|(c, _)| c != client);
-                list.len() != before
-            }
-            None => false,
+        let removed = self.dhcp_reservations.get_mut(server).and_then(|list| {
+            let index = list.iter().position(|(c, _)| c == client)?;
+            Some(list.remove(index).1)
+        });
+        let Some(reserved) = removed else {
+            return false;
+        };
+        let active = self
+            .devices
+            .iter()
+            .find(|d| d.id == client)
+            .and_then(|d| d.ip);
+        if self.dhcp_clients.contains(client) && active == Some(reserved) {
+            self.release_dhcp(client);
         }
+        true
     }
 
     /// `ip helper-address` on a router interface.
@@ -168,31 +176,93 @@ impl Workspace {
     /// request to that server.
     pub(super) fn relayed_server_for(&self, client: &str) -> Option<String> {
         let dev = self.devices.iter().find(|d| d.id == client)?;
-        let ip = dev.ip?;
-        let prefix = dev.prefix;
+        let server_with_pool = |helper: u32| {
+            self.devices
+                .iter()
+                .find(|d| {
+                    (d.ip == Some(helper) || d.ports.iter().any(|p| p.ip == Some(helper)))
+                        && self.dhcp_pools.contains_key(&d.id)
+                })
+                .map(|d| d.id.clone())
+        };
         for (router, list) in &self.dhcp_helpers {
             let Some(rdev) = self.devices.iter().find(|d| d.id == *router) else {
                 continue;
             };
+            let port_names = rdev.ports.iter().map(|p| p.name.clone()).collect::<Vec<_>>();
             for (iface, helper) in list {
-                let Some(port) = rdev.ports.iter().find(|p| &p.name == iface) else {
-                    continue;
-                };
-                let Some(pip) = port.ip else { continue };
-                if !crate::model::contains(ip, pip, prefix) {
-                    continue;
-                }
-                let server = self.devices.iter().find(|d| {
-                    d.ip == Some(*helper) || d.ports.iter().any(|p| p.ip == Some(*helper))
+                let matches_subnet = dev.ip.is_some_and(|ip| {
+                    rdev.ports
+                        .iter()
+                        .find(|p| &p.name == iface)
+                        .and_then(|p| p.ip)
+                        .is_some_and(|router_ip| {
+                            crate::model::contains(ip, router_ip, dev.prefix)
+                        })
                 });
-                if let Some(server) = server {
-                    if self.dhcp_pools.contains_key(&server.id) {
-                        return Some(server.id.clone());
+                let matches_segment = if dev.ip.is_none() {
+                    let Some(path) = self.path(client, router) else {
+                        continue;
+                    };
+                    if path.len() < 2 {
+                        continue;
+                    }
+                    if path[..path.len() - 1].iter().any(|id| {
+                        self.devices
+                            .iter()
+                            .find(|d| &d.id == id)
+                            .is_some_and(|d| d.kind == "router")
+                    }) {
+                        continue;
+                    }
+                    let previous = &path[path.len() - 2];
+                    self.links.iter().any(|link| {
+                        let router_port = if link.a == *router && link.b == *previous {
+                            Some(&link.a_port)
+                        } else if link.b == *router && link.a == *previous {
+                            Some(&link.b_port)
+                        } else {
+                            None
+                        };
+                        router_port.is_some_and(|port| {
+                            crate::cli::expand_iface(port, &port_names).as_ref() == Some(iface)
+                        })
+                    })
+                } else {
+                    false
+                };
+                if matches_subnet || matches_segment {
+                    if let Some(server) = server_with_pool(*helper) {
+                        return Some(server);
                     }
                 }
             }
         }
         None
+    }
+
+    pub(super) fn remove_dhcp_lease(&mut self, id: &str, ip: Option<u32>) {
+        self.dhcp_clients.remove(id);
+        if let Some(ip) = ip {
+            for leases in self.dhcp_leases.values_mut() {
+                leases.retain(|leased| *leased != ip);
+            }
+        }
+    }
+
+    /// Release both the client's configuration and the server's lease state.
+    pub fn release_dhcp(&mut self, id: &str) -> bool {
+        if !self.dhcp_clients.contains(id) {
+            return false;
+        }
+        let ip = self.devices.iter().find(|d| d.id == id).and_then(|d| d.ip);
+        self.remove_dhcp_lease(id, ip);
+        if let Some(device) = self.devices.iter_mut().find(|d| d.id == id) {
+            device.ip = None;
+            device.gateway = None;
+            device.dns = None;
+        }
+        true
     }
 
     /// DHCP DISCOVER/OFFER/REQUEST/ACK, condensed into the lease it produces.
@@ -210,6 +280,12 @@ impl Workspace {
         let mask = crate::model::mask_of(pool.prefix);
         let base = pool.network & mask;
         let last = base | !mask;
+
+        let previous = if self.dhcp_clients.contains(id) {
+            self.devices.iter().find(|d| d.id == id).and_then(|d| d.ip)
+        } else {
+            None
+        };
 
         let mut used: Vec<u32> = Vec::new();
         for d in &self.devices {
@@ -235,24 +311,37 @@ impl Workspace {
                 addr
             }
             None => {
-                let mut chosen = None;
-                for offset in 100.. {
-                    let Some(cand) = base.checked_add(offset) else {
-                        break;
-                    };
-                    if cand >= last {
+                if let Some(addr) = previous.filter(|addr| {
+                    crate::model::contains(*addr, base, pool.prefix)
+                        && *addr != last
+                        && pool.gateway != Some(*addr)
+                }) {
+                    addr
+                } else {
+                    let mut chosen = None;
+                    for offset in 100.. {
+                        let Some(cand) = base.checked_add(offset) else {
+                            break;
+                        };
+                        if cand >= last {
+                            break;
+                        }
+                        if pool.gateway == Some(cand) || used.contains(&cand) {
+                            continue;
+                        }
+                        chosen = Some(cand);
                         break;
                     }
-                    if pool.gateway == Some(cand) || used.contains(&cand) {
-                        continue;
-                    }
-                    chosen = Some(cand);
-                    break;
+                    chosen.ok_or_else(|| "DHCP pool exhausted".to_string())?
                 }
-                chosen.ok_or_else(|| "DHCP pool exhausted".to_string())?
             }
         };
 
+        if let Some(old) = previous {
+            for leases in self.dhcp_leases.values_mut() {
+                leases.retain(|leased| *leased != old);
+            }
+        }
         if let Some(d) = self.devices.iter_mut().find(|d| d.id == id) {
             d.ip = Some(ip);
             d.prefix = pool.prefix;
@@ -260,7 +349,10 @@ impl Workspace {
             d.dns = pool.dns;
         }
         self.dhcp_clients.insert(id.to_string());
-        self.dhcp_leases.entry(server.clone()).or_default().push(ip);
+        let leases = self.dhcp_leases.entry(server.clone()).or_default();
+        if !leases.contains(&ip) {
+            leases.push(ip);
+        }
 
         // Capture the exchange so the simulation panel shows it.
         let path = self

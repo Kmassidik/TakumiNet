@@ -396,10 +396,18 @@ pub(super) fn acl_config(ws: &mut Workspace, id: &str, rest: &str) -> String {
     let extended = first.eq_ignore_ascii_case("ip") || number >= 100;
     let src = if first.eq_ignore_ascii_case("ip") {
         let ip = words.next();
-        let wc = if ip == Some("any") || ip == Some("host") { None } else { words.next() };
+        let wc = if ip == Some("host") {
+            words.next()
+        } else if ip == Some("any") {
+            None
+        } else {
+            words.next()
+        };
         addr(ip, wc)
     } else {
-        let wc = if first.eq_ignore_ascii_case("any") || first.eq_ignore_ascii_case("host") {
+        let wc = if first.eq_ignore_ascii_case("host") {
+            words.next()
+        } else if first.eq_ignore_ascii_case("any") {
             None
         } else {
             words.next()
@@ -411,7 +419,13 @@ pub(super) fn acl_config(ws: &mut Workspace, id: &str, rest: &str) -> String {
     };
     let dst = if extended {
         let ip = words.next();
-        let wc = if ip == Some("any") || ip == Some("host") { None } else { words.next() };
+        let wc = if ip == Some("host") {
+            words.next()
+        } else if ip == Some("any") {
+            None
+        } else {
+            words.next()
+        };
         match addr(ip, wc) {
             Some(d) => Some(d),
             None => return "% Invalid destination address\n".into(),

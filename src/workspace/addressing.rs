@@ -8,6 +8,11 @@ impl Workspace {
         if prefix > 32 {
             return Err("prefix must be between 0 and 32".into());
         }
+        let leased_ip = if self.dhcp_clients.contains(id) {
+            self.devices.iter().find(|d| d.id == id).and_then(|d| d.ip)
+        } else {
+            None
+        };
         let res = match self.devices.iter_mut().find(|d| d.id == id) {
             Some(d) => {
                 d.ip = Some(parsed);
@@ -17,7 +22,7 @@ impl Workspace {
             None => Err("no such device".into()),
         };
         if res.is_ok() {
-            self.dhcp_clients.remove(id);
+            self.remove_dhcp_lease(id, leased_ip);
         }
         res
     }
@@ -52,6 +57,11 @@ impl Workspace {
                     .ok_or_else(|| format!("invalid DNS server: {dns}"))?,
             )
         };
+        let leased_ip = if self.dhcp_clients.contains(id) {
+            self.devices.iter().find(|d| d.id == id).and_then(|d| d.ip)
+        } else {
+            None
+        };
         let res = match self.devices.iter_mut().find(|d| d.id == id) {
             Some(d) => {
                 d.ip = Some(addr);
@@ -63,7 +73,7 @@ impl Workspace {
             None => Err("no such device".into()),
         };
         if res.is_ok() {
-            self.dhcp_clients.remove(id);
+            self.remove_dhcp_lease(id, leased_ip);
         }
         res
     }

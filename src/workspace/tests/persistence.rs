@@ -76,7 +76,7 @@ fn ptw_round_trip_covers_every_edited_field() {
         .unwrap();
     ws.set_routing_protocol("router0", "ospf", 42).unwrap();
     ws.add_routing_network("router0", crate::model::parse_ipv4("192.168.2.0").unwrap(), 24, 7).unwrap();
-    ws.set_dhcp_pool("server0", "192.168.2.0", 24, "192.168.2.1", "8.8.8.8")
+    ws.set_dhcp_pool("server0", "192.168.2.0", 24, "192.168.2.1", "192.168.2.20")
         .unwrap();
     ws.acquire_dhcp("pc2").unwrap();
     ws.banners

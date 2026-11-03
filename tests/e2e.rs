@@ -584,7 +584,9 @@ fn e2e_dns_record_and_custom_http_page() {
     let s = spawn(38_210);
     s.post("/api/reset");
 
-    // A record on the LAN's server answers lookups from its segment.
+    // A configured server answers unicast lookups, including across routers.
+    let (status, _, body) = s.post("/api/devices/ip?id=pc2&ip=192.168.2.10&mask=255.255.255.0&gateway=192.168.2.1&dns=192.168.2.20");
+    assert_eq!(status, 200, "{body}");
     let (status, _, body) = s.post("/api/devices/dns?id=server0&name=web.lab&ip=192.168.2.20");
     assert_eq!(status, 200, "{body}");
     assert!(body.contains("web.lab"), "{body}");

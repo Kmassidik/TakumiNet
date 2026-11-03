@@ -110,8 +110,9 @@ simulation is ours and runs server-side in Rust.
 - **DHCP is served, not faked** (`Workspace::set_dhcp_pool` / `acquire_dhcp`):
   a server's pool is found over the same L2 segment (never across a router),
   leases start at .100 and skip addresses already in use, the client gets
-  address/mask/gateway/DNS, a `DHCP` event is captured, and static config
-  takes a host back off DHCP. Dialog: server → IP Configuration → **DHCP Pool**;
+  address/mask/gateway/DNS, and a `DHCP` event is captured. Renewal keeps the
+  same lease without duplicates; release and static config free it for reuse.
+  Dialog: server → IP Configuration → **DHCP Pool**;
   client → **DHCP** → Apply. Reservations pin a client to a fixed address, and
   `ip helper-address` on a router interface relays a segment's requests to a
   server on another subnet (verified: PC0 leases `192.168.1.100` through
@@ -146,10 +147,10 @@ simulation is ours and runs server-side in Rust.
   `FastEthernet0/0-1`), click a filled slot to remove it (refused while a port
   is cabled). Both states ride in `.ptw` saves.
 - **Server services**: a server's **Services** tab edits DNS records (name →
-  address, added/removed live) and its HTTP page; clients resolve with
-  `nslookup web.lab` (BFS stops at routers, so only same-segment servers
-  answer) and the Desktop browser serves the configured page instead of the
-  default welcome text.
+  address, added/removed live) and its HTTP page. `nslookup`, `ping`, and the
+  Desktop browser resolve names through the client's configured DNS server,
+  including across routers; the browser serves the configured page instead of
+  the default welcome text.
 - **Template catalogue in the palette**: `/api/catalog` now feeds a muted
   **Templates** section (grouped, 56 entries, tooltips carry the description)
   and annotates matching device tiles with their shipped description; palette

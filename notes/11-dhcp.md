@@ -40,8 +40,13 @@ stores the pool. `acquire_dhcp(id)`:
    client, records the lease, and pushes a `DHCP` event into the capture buffer.
 4. Errors with `no DHCP server on this segment` or `DHCP pool exhausted`.
 
-Static configuration (`set_ip`, `set_config`) removes the host from
-`dhcp_clients`, so the radio in the dialog reflects reality.
+Renewal reuses the client's current address and never appends a duplicate
+lease. `ipconfig /release` clears both the host configuration and the server
+lease, so the next acquisition can reuse the address. Static configuration
+(`set_ip`, `set_config`) also releases the old lease and removes the host from
+`dhcp_clients`, so the radio in the dialog reflects reality. Relay discovery
+uses the client's L2-connected router interface after release, when no old IP
+address remains to identify the subnet.
 
 ## UI
 

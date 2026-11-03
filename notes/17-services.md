@@ -8,15 +8,16 @@ State is per server: `Workspace::dns_records: HashMap<server_id, Vec<(name, ip)>
 (lower-case names, sorted so saves are deterministic).
 
 `set_dns_record(id, name, ip)` validates the address and name (no whitespace),
-replaces an existing record and re-sorts. `resolve_name(client, name)` does a
-BFS that **stops at routers**, exactly like a broadcast-based query: a client
-only reaches DNS servers in its own L2 segment.
+replaces an existing record and re-sorts. `resolve_name(client, name)` finds
+the server configured in the client's DNS field and queries its record table,
+so resolution works across routers. `nslookup`, `ping`, and `webapp::fetch`
+share this resolver for non-literal targets.
 
 `nslookup NAME` in the Command Prompt now prints:
 
 ```
 Server:  dns
-Address:  0.0.0.0
+Address:  192.168.2.20
 
 Non-authoritative answer:
 Name:    web.lab

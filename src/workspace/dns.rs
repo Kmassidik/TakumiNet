@@ -33,46 +33,20 @@ impl Workspace {
         }
     }
 
-    /// Resolve `name` through a DNS server on the client's L2 segment.
+    /// Resolve `name` through the DNS server configured on the client.
     pub fn resolve_name(&self, client: &str, name: &str) -> Option<u32> {
-        use std::collections::VecDeque;
         let name = name.trim().to_ascii_lowercase();
         if name.is_empty() {
             return None;
         }
-        let mut seen = vec![client.to_string()];
-        let mut q: VecDeque<String> = VecDeque::new();
-        q.push_back(client.to_string());
-        while let Some(cur) = q.pop_front() {
-            for l in &self.links {
-                if !l.carries_data() {
-                    continue;
-                }
-                let next = if l.a == cur {
-                    &l.b
-                } else if l.b == cur {
-                    &l.a
-                } else {
-                    continue;
-                };
-                if seen.iter().any(|s| s == next) {
-                    continue;
-                }
-                let Some(dev) = self.devices.iter().find(|d| d.id == *next) else {
-                    continue;
-                };
-                if dev.kind == "router" {
-                    continue;
-                }
-                if let Some(list) = self.dns_records.get(&dev.id) {
-                    if let Some((_, ip)) = list.iter().find(|(n, _)| *n == name) {
-                        return Some(*ip);
-                    }
-                }
-                seen.push(dev.id.clone());
-                q.push_back(dev.id.clone());
-            }
-        }
-        None
+        let server_ip = self.devices.iter().find(|d| d.id == client)?.dns?;
+        let server = self.devices.iter().find(|d| {
+            d.ip == Some(server_ip) || d.ports.iter().any(|p| p.ip == Some(server_ip))
+        })?;
+        self.dns_records
+            .get(&server.id)?
+            .iter()
+            .find(|(record, _)| *record == name)
+            .map(|(_, ip)| *ip)
     }
 }

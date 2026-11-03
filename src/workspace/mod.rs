@@ -515,7 +515,7 @@ impl Workspace {
                     o.push(',');
                 }
                 o.push_str(&format!(
-                    "{{\"id\":{},\"name\":{},\"in\":{},\"out\":{},\"t\":{},\"ttl\":{},\"srcMac\":{},\"dstMac\":{},\"note\":{}}}",
+                    "{{\"id\":{},\"name\":{},\"in\":{},\"out\":{},\"t\":{},\"ttl\":{},\"srcMac\":{},\"dstMac\":{},\"srcIp\":{},\"dstIp\":{},\"note\":{}}}",
                     s(&h.id),
                     s(&h.name),
                     opt_str(h.ingress.as_deref()),
@@ -524,6 +524,8 @@ impl Workspace {
                     h.ttl,
                     s(&h.src_mac.to_string()),
                     s(&h.dst_mac.to_string()),
+                    s(&crate::model::ipv4_string(h.src_ip)),
+                    s(&crate::model::ipv4_string(h.dst_ip)),
                     s(&h.note)
                 ));
             }
