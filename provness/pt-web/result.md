@@ -67,3 +67,12 @@ C0 UI verification, 2026-11-03 (Bun 1.4.4, Node, cargo):
 - `cargo test`: all suites pass, 0 failures (includes L46 404 check).
 - Real browser: NOT RUN. The Claude in Chrome extension was not connected, so the modal, toolbar and dialog stacking have no browser evidence yet.
 - Laws L41, L42, L45, L46 recorded in LAWS.md. Laws L36 to L40, L43 and L44 remain open.
+
+Builds 2026-11-04 (templates, step lock, notes, canvas laws):
+
+- Template/lesson split: `e2e_lesson_templates_blank_new_and_checks`, `l16_every_native_template_loads_without_unresolved_devices_or_ports`; `tpl-*` templates pass their lesson checks when imported with the lesson steps added (checked against `/api/checks`).
+- Step lock: `tests/js/lessons.test.js` (stepStates); Chrome run of lesson t1 with real checks: all steps done and "Lesson complete" shown.
+- Notes: `src/workspace/tests/notes.rs` (4 tests), `e2e_notes_add_edit_move_and_delete_over_http`, `tests/ts/notes_canvas.test.ts`, Chrome run for add, edit, move, delete (state checked against the server).
+- L44 redraw cost, logic only: `tests/ts/canvas_perf.test.ts`, 0.19 ms average for 200 devices and 300 links with a no-op 2D context. Chrome paint time is NOT measured.
+- L43 (one layout rule): no automated check written; the rule is not precise enough to test without a design decision.
+- Bend: never installed or run.
