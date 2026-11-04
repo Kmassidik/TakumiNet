@@ -189,7 +189,7 @@ For every reference (rows in section 3) and every component (section 4), define 
 
 This turns the catalogue in section 3 into the project's backlog and its test suite at the same time.
 
-## 7. Decisions needed from you
+## 7. Decisions needed from you (see also section 10)
 
 1. **Tier 1 as the base feature?** In particular item 1 (the home router story) and item 4 (fault injection).
 2. **MikroTik**: add it to Tier 1 given the Indonesian audience, or keep it in Tier 2?
@@ -269,7 +269,7 @@ The first report had three tiers. With the GitHub references there are seven. Ea
 
 **One finding that should change the plan.** The project that is closest to us in method (TopoSmith) deliberately does **not** simulate packets one by one and has no command line. We do both. That is the strongest point of difference: **a real command line and real packets, in a browser, with no install.** The tiers above protect and build on that, so each new feature should keep both working.
 
-## 8. Method and limits
+## 11. Method and limits
 
 Searched the web for the published exam topic lists, the support-exam objectives, Indonesian vocational training reports, simulator comparisons, common lab lists, and home router settings; read `tests/labs` (what the engine proves); sent about 170 probe commands to the engine; searched the UI for every API route.
 
