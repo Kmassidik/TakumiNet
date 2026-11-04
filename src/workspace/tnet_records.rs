@@ -45,6 +45,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("cell", &["client", "tower"]),
     ("wlan", &["wlc", "ssid", "psk", "security"]),
     ("guestnet", &["wlc", "ssid"]),
+    ("tunnel", &["dev", "peer", "key"]),
     ("portfwd", &["router", "outside", "target", "inside"]),
     ("capwap", &["ap", "wlc"]),
     ("wifi", &["client", "ssid", "wlc"]),

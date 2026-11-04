@@ -39,12 +39,13 @@ impl Workspace {
         }
         let address = |value: Option<u32>| value.map(ipv4_string).unwrap_or_else(|| "none".into());
         let actual = match check.to.as_str() {
+            "tunnel" => self.tunnel_state(&check.from).to_string(),
             "name" => device.name.clone(),
             "ip" => address(device.ip),
             "prefix" => device.prefix.to_string(),
             "gateway" => address(device.gateway),
             "dns" => address(device.dns),
-            other => return (false, format!("unknown setting '{other}'"), "Use name, ip, prefix, gateway or dns.".into()),
+            other => return (false, format!("unknown setting '{other}'"), "Use name, ip, prefix, gateway, dns or tunnel.".into()),
         };
         (actual == check.expect, format!("{} is {actual}", check.to), hint)
     }

@@ -39,7 +39,8 @@ T = {
             ("Two rooms", "A second access point carries the signal to the far room"),
             ("Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
             ("Office with three VLANs", "Staff, servers and a printer on three VLANs, joined by one router cable"),
-            ("Campus with OSPF", "Four routers in a diamond learn each other's networks and survive one cut")],
+            ("Campus with OSPF", "Four routers in a diamond learn each other's networks and survive one cut"),
+            ("Office with a home tunnel", "OwnerLaptop reaches the office file server through a tunnel over the internet")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("A star network with a switch", "Three PCs talk and Switch0 learns their MAC addresses"),
@@ -58,6 +59,7 @@ T = {
             ("Fence the printer off from the servers", "The printer VLAN cannot reach the servers, and everyone else still can"),
             ("Join the campus with OSPF", "PC0 reaches Server0, and still does after one uplink is cut"),
             ("Lock a desk port to one computer", "The port for Desk0 accepts only one address"),
+            ("Reach the office from home", "OwnerLaptop reaches FileServer through a tunnel over the internet"),
             ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
@@ -124,7 +126,8 @@ T = {
             ("Dua ruangan", "Access point kedua membawa sinyal ke ruangan yang jauh"),
             ("Jaringan rumah yang rusak", "Laptop tidak bisa menjangkau ponsel. Cari gateway yang salah"),
             ("Kantor dengan tiga VLAN", "Staf, server, dan printer di tiga VLAN, dihubungkan satu kabel router"),
-            ("Kampus dengan OSPF", "Empat router berbentuk berlian saling belajar jaringan dan tetap hidup saat satu kabel putus")],
+            ("Kampus dengan OSPF", "Empat router berbentuk berlian saling belajar jaringan dan tetap hidup saat satu kabel putus"),
+            ("Kantor dengan terowongan dari rumah", "OwnerLaptop menjangkau file server kantor lewat terowongan di internet")],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
@@ -143,6 +146,7 @@ T = {
             ("Pagari printer dari server", "VLAN printer tidak bisa menjangkau server, yang lain tetap bisa"),
             ("Hubungkan kampus dengan OSPF", "PC0 menjangkau Server0, dan tetap bisa setelah satu kabel putus"),
             ("Kunci port meja ke satu komputer", "Port untuk Desk0 hanya menerima satu alamat"),
+            ("Jangkau kantor dari rumah", "OwnerLaptop menjangkau FileServer lewat terowongan di internet"),
             ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [

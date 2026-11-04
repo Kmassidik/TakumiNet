@@ -1,0 +1,28 @@
+<takumi version="1">
+  <device id="laptop0" kind="laptop" model="Laptop" x="60" y="340" name="OwnerLaptop" ip="192.168.99.20" prefix="24"/>
+  <device id="router1" kind="router" model="2911" x="200" y="200" name="HomeEnd" ip="" prefix="24"/>
+  <device id="cloud0" kind="cloud" model="Cloud" x="360" y="80" name="Internet" ip="" prefix="24"/>
+  <device id="router0" kind="router" model="2911" x="520" y="200" name="OfficeEnd" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="660" y="340" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="800" y="460" name="FileServer" ip="192.168.20.2" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="560" y="460" name="Desk0" ip="192.168.20.10" prefix="24"/>
+  <link a="router1" a_port="Gig0/0" b="laptop0" b_port="Fa0" kind="eCross"/>
+  <link a="router1" a_port="Gig0/1" b="cloud0" b_port="Fa0" kind="eCopper"/>
+  <link a="cloud0" a_port="Fa1" b="router0" b_port="Gig0/0" kind="eCopper"/>
+  <link a="router0" a_port="Gig0/1" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <port id="router1" name="GigabitEthernet0/0" up="1" ip="192.168.99.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router1" name="GigabitEthernet0/1" up="1" ip="203.0.113.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="203.0.113.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/1" up="1" ip="192.168.20.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <route id="router1" net="192.168.20.0" prefix="24" via="203.0.113.2" admin_distance="1"/>
+  <route id="router0" net="192.168.99.0" prefix="24" via="203.0.113.1" admin_distance="1"/>
+  <net id="laptop0" gw="192.168.99.1" dns=""/>
+  <net id="server0" gw="192.168.20.1" dns=""/>
+  <net id="pc0" gw="192.168.20.1" dns=""/>
+  <page id="server0" body="Office files"/>
+  <tunnel dev="router1" peer="203.0.113.2" key="office-key-1"/>
+  <tunnel dev="router0" peer="203.0.113.1" key="office-key-1"/>
+  <demo kind="ping" from="laptop0" to="server0" url=""/>
+</takumi>

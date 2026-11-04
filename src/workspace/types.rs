@@ -395,6 +395,8 @@ pub struct Workspace {
     pub wifi: HashMap<String, (String, String)>,
     /// VPN client config: device -> (server address, user).
     pub vpn: HashMap<String, (String, String)>,
+    /// Site-to-site tunnels: device -> (peer address, shared key).
+    pub tunnels: HashMap<String, (u32, String)>,
     /// PPPoE client config: device -> (server address, user).
     pub pppoe: HashMap<String, (String, String)>,
     /// AP -> controller registrations (CAPWAP join).

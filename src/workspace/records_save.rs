@@ -419,6 +419,11 @@ impl Workspace {
                 out.push_str(&format!("portfwd\t{}\t{}\t{}\t{}\n", router, outside, target, inside));
             }
         }
+        let mut tunnels: Vec<_> = self.tunnels.iter().collect();
+        tunnels.sort_by_key(|(id, _)| id.as_str());
+        for (device, (peer, key)) in tunnels {
+            out.push_str(&format!("tunnel\t{}\t{}\t{}\n", device, crate::model::ipv4_string(*peer), escape_field(key)));
+        }
         let mut vpn: Vec<_> = self.vpn.iter().collect();
         vpn.sort_by_key(|(id, _)| id.as_str());
         for (client, (server, user)) in vpn {

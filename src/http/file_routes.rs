@@ -203,6 +203,8 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("les-l1-04-reserve-address", include_str!("../../web/templates/les-l1-04-reserve-address.xml")),
     ("les-l1-05-port-forward", include_str!("../../web/templates/les-l1-05-port-forward.xml")),
     ("les-l1-06-far-room", include_str!("../../web/templates/les-l1-06-far-room.xml")),
+    ("tpl-l3-office-vpn", include_str!("../../web/templates/tpl-l3-office-vpn.xml")),
+    ("les-l3-06-remote-owner", include_str!("../../web/templates/les-l3-06-remote-owner.xml")),
     ("les-l1-07-find-the-fault", include_str!("../../web/templates/les-l1-07-find-the-fault.xml")),
     ("tpl-l3-office-vlans", include_str!("../../web/templates/tpl-l3-office-vlans.xml")),
     ("les-l3-01-three-vlans", include_str!("../../web/templates/les-l3-01-three-vlans.xml")),
@@ -224,6 +226,7 @@ const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
     ("tpl-l1-wifi-home", "Family home", "A modem, a router and five devices, ready to share one page"),
     ("tpl-l1-two-rooms", "Two rooms", "A second access point carries the signal to the far room"),
     ("tpl-l1-broken-wifi", "Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
+    ("tpl-l3-office-vpn", "Office with a home tunnel", "OwnerLaptop reaches the office file server through a tunnel over the internet"),
     ("tpl-l3-office-vlans", "Office with three VLANs", "Staff, servers and a printer on three VLANs, joined by one router cable"),
     ("tpl-l4-campus-ospf", "Campus with OSPF", "Four routers in a diamond learn each other's networks and survive one cut"),
 ];

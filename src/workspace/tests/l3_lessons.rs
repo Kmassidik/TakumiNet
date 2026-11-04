@@ -113,3 +113,34 @@ fn extra_pools_survive_save_and_open_and_replace_a_same_network_pool() {
     assert_eq!(back.dhcp_pool_list("server0").len(), 2);
     assert!(ws.add_dhcp_pool("server0", "bad", 24, "", "").is_err());
 }
+
+#[test]
+fn remote_owner_lesson_needs_matching_tunnel_ends() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l3-06-remote-owner.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false]);
+    let refusal = ws.send_pdu("laptop0", "server0").unwrap_err();
+    assert!(refusal.contains("tunnel"), "{refusal}");
+    ws.tunnel_config("router1", "203.0.113.2", "office-key-1").unwrap();
+    assert_eq!(ws.tunnel_state("router1"), "down", "one end alone is down");
+    ws.tunnel_config("router0", "203.0.113.1", "wrong-key").unwrap();
+    assert_eq!(ws.tunnel_state("router1"), "down", "a wrong key never comes up");
+    assert_eq!(passes(&mut ws), vec![false, false]);
+    ws.tunnel_config("router0", "203.0.113.1", "office-key-1").unwrap();
+    assert_eq!(ws.tunnel_state("router0"), "up");
+    assert_eq!(passes(&mut ws), vec![true, true]);
+    assert!(ws.send_pdu("server0", "laptop0").is_ok(), "the tunnel carries both directions");
+    let mut back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert!(back.send_pdu("laptop0", "server0").is_ok(), "the tunnel survives save and open");
+    assert!(back.tunnel_clear("router0"));
+    assert!(back.send_pdu("laptop0", "server0").is_err());
+}
+
+#[test]
+fn tunnel_input_is_validated_and_office_traffic_ignores_the_gate() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l3-06-remote-owner.xml")).unwrap();
+    assert!(ws.tunnel_config("laptop0", "203.0.113.2", "office-key-1").is_err(), "not a router");
+    assert!(ws.tunnel_config("router1", "not-an-address", "office-key-1").is_err());
+    assert!(ws.tunnel_config("router1", "203.0.113.2", "abc").is_err(), "key too short");
+    assert!(!ws.tunnel_clear("router1"));
+    assert!(ws.send_pdu("pc0", "server0").is_ok(), "traffic that never crosses the cloud is untouched");
+}

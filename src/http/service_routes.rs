@@ -21,6 +21,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/router/login") => Some(handle_router_login(ctx, query)),
         ("POST", "/api/devices/routeradmin") => Some(handle_router_admin(ctx, query)),
         ("POST", "/api/devices/portforward") => Some(handle_port_forward(ctx, query)),
+        ("POST", "/api/devices/tunnel") => Some(handle_tunnel(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -282,6 +283,21 @@ fn handle_port_forward(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         }
         let Some(inside) = port("inside") else { return Err("inside port must be a number from 1 to 65535".to_string()) };
         ws.add_port_forward(&id, outside, &target, inside)
+    });
+    (json, out.into_bytes())
+}
+
+fn handle_tunnel(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let peer = query_value(query, "peer").unwrap_or_default();
+    let key = query_value(query, "key").unwrap_or_default();
+    let remove = matches!(query_value(query, "remove").as_deref(), Some("1") | Some("true"));
+    let (out, _) = apply(ctx, |ws| {
+        if remove {
+            return if ws.tunnel_clear(&id) { Ok(()) } else { Err("no tunnel on this router".to_string()) };
+        }
+        ws.tunnel_config(&id, &peer, &key)
     });
     (json, out.into_bytes())
 }

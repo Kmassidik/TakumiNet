@@ -69,7 +69,10 @@ impl Workspace {
         if src == dst {
             return Err("source and destination are the same".into());
         }
-        match self.guest_blocked(src, dst) {
+        if let Some(reason) = self.guest_blocked(src, dst) {
+            return Err(reason);
+        }
+        match self.tunnel_blocked(src, dst) {
             Some(reason) => Err(reason),
             None => Ok(()),
         }

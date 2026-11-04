@@ -444,6 +444,9 @@ impl Workspace {
                     let _ = self.add_port_forward(router, o, target, i);
                 }
             }
+            ["tunnel", device, peer, key] => {
+                let _ = self.tunnel_config(device, peer, &unescape_field(key));
+            }
             ["guestnet", wlc, ssid] => {
                 let _ = self.wlan_set_guest(wlc, &unescape_field(ssid), true);
             }
