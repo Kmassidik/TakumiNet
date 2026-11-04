@@ -43,6 +43,17 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
         return Err(format!("Request timed out: no host answers for {host}"));
     };
 
+    if server.2 == "homerouter" {
+        ws.send_http(client, &server.0, host)
+            .map_err(|_| format!("Request timed out while reaching {host}"))?;
+        return Ok(Page {
+            status: 200,
+            reason: "OK",
+            host: host.to_string(),
+            title: server.1.clone(),
+            text: format!("Sign in to manage {}.\nThe user name and password are on the sticker.", server.1),
+        });
+    }
     if server.2 != "server" {
         return Err(format!("Connection refused by {host} (no HTTP service)"));
     }

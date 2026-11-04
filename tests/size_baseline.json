@@ -7,7 +7,6 @@
   "src/workspace/records_load.rs": 561,
   "src/workspace/tests/routing.rs": 866,
   "src/workspace/tnet.rs": 649,
-  "src/workspace/mod.rs": 592,
   "src/workspace/routing.rs": 1066,
   "src/workspace/records_save.rs": 540,
   "src/cli/show.rs": 654,

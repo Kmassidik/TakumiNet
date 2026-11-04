@@ -11,6 +11,7 @@ impl Workspace {
             "pool" => self.check_pool(check),
             "vlan" => self.check_vlan(check),
             "count" => self.check_count(check),
+            "login" => self.check_login(check),
             _ => return None,
         })
     }
@@ -67,6 +68,19 @@ impl Workspace {
         match check.expect.parse::<u16>() {
             Ok(vlan) => (!port.trunk && port.vlan == vlan, format!("access VLAN {}", port.vlan), hint),
             Err(_) => (false, format!("invalid VLAN '{}'", check.expect), "Use a VLAN number or the word trunk.".into()),
+        }
+    }
+
+    fn check_login(&mut self, check: &Check) -> Verdict {
+        let hint = "Use the user name and password from the sticker, or the ones you set.".to_string();
+        let (user, pass) = check.url.split_once(':').unwrap_or((check.url.as_str(), ""));
+        let outcome = self.router_login(&check.from, &check.to, user, pass);
+        let want_ok = check.expect != "refused";
+        match (&outcome, want_ok) {
+            (Ok(()), true) => (true, "login accepted".into(), hint),
+            (Err(e), false) if e.starts_with("401") => (true, "login refused".into(), hint),
+            (Ok(()), false) => (false, "login accepted, but it should be refused".into(), hint),
+            (Err(e), _) => (false, e.clone(), hint),
         }
     }
 

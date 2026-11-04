@@ -18,6 +18,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/aaa/list") => Some(handle_aaa_list(ctx, query)),
         ("POST", "/api/devices/dns") => Some(handle_devices_dns(ctx, query)),
         ("POST", "/api/devices/http") => Some(handle_devices_http(ctx, query)),
+        ("POST", "/api/router/login") => Some(handle_router_login(ctx, query)),
+        ("POST", "/api/devices/routeradmin") => Some(handle_router_admin(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -245,4 +247,23 @@ fn handle_webfetch(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         ),
         Err(e) => (json, json_error(&e).into_bytes()),
     }
+}
+
+fn handle_router_login(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let from = query_value(query, "from").unwrap_or_default();
+    let to = query_value(query, "to").unwrap_or_default();
+    let user = query_value(query, "user").unwrap_or_default();
+    let pass = query_value(query, "pass").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| ws.router_login(&from, &to, &user, &pass));
+    (json, out.into_bytes())
+}
+
+fn handle_router_admin(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let user = query_value(query, "user").unwrap_or_default();
+    let pass = query_value(query, "pass").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| ws.set_router_admin(&id, &user, &pass));
+    (json, out.into_bytes())
 }
