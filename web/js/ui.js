@@ -336,6 +336,27 @@
     }
   }
 
+  // web/ts/canvas/print_view.ts
+  function boundsOf(rects) {
+    if (!rects.length)
+      return null;
+    const x = Math.min(...rects.map((r) => r.x));
+    const y = Math.min(...rects.map((r) => r.y));
+    const right = Math.max(...rects.map((r) => r.x + r.w));
+    const bottom = Math.max(...rects.map((r) => r.y + r.h));
+    return { x, y, w: right - x, h: bottom - y };
+  }
+  function fitCamera(bounds, width, height, margin = 40, maxZoom = 2) {
+    const w = Math.max(1, bounds.w + margin * 2);
+    const h = Math.max(1, bounds.h + margin * 2);
+    const zoom = Math.max(0.01, Math.min(width / w, height / h, maxZoom));
+    return {
+      zoom,
+      x: bounds.x - margin - (width / zoom - w) / 2,
+      y: bounds.y - margin - (height / zoom - h) / 2
+    };
+  }
+
   // web/ts/canvas/rack_layout.ts
   var KIND_ORDER = [
     "router",
@@ -489,6 +510,36 @@
       this.camera.zoom = Math.max(0.1, Math.min(1, this.cssWidth / (right + 32), this.cssHeight / (bottom + 32)));
       this.camera.x = -16;
       this.camera.y = -16;
+    }
+    renderForPrint(width, height) {
+      const state = this.state;
+      const physical = !!state?.physical;
+      const rects = physical ? this.racks.racks.map((r) => r.rect) : [...this.scene.devices.map((d) => d.box), ...(state?.notes ?? []).map((n) => noteBox(n))];
+      const bounds = boundsOf(rects);
+      if (!bounds)
+        return null;
+      const page = document.createElement("canvas");
+      page.width = width;
+      page.height = height;
+      const ctx = page.getContext("2d");
+      if (!ctx)
+        return null;
+      const camera = Object.assign(new Camera({ x: 0, y: 0, zoom: 1 }), fitCamera(bounds, width, height));
+      if (physical) {
+        drawRacks(ctx, this.racks, camera, { selected: new Set });
+      } else {
+        drawScene(ctx, this.scene, camera, {
+          width,
+          height,
+          grid: false,
+          image: (src) => this.image(src),
+          notes: state?.notes
+        });
+      }
+      ctx.globalCompositeOperation = "destination-over";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      return page;
     }
     worldCenter() {
       return this.camera.toWorld({ x: this.cssWidth / 2, y: this.cssHeight / 2 });

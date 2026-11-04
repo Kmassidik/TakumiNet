@@ -3,7 +3,8 @@ import { hitDevice, hitLink } from "./hit";
 import { drawScene, type Canvas2D, type Packet } from "./draw";
 import { packetAt } from "./packets";
 import { drawRacks } from "./rack_draw";
-import { hitNote, type NoteInput } from "./notes";
+import { hitNote, noteBox, type NoteInput } from "./notes";
+import { boundsOf, fitCamera, type Rect } from "./print_view";
 import { hitRackBox, layoutRacks, type RackLayout } from "./rack_layout";
 import { buildScene, type Scene, type SceneDevice, type SceneLink, type WorkspaceInput } from "./scene";
 
@@ -72,6 +73,42 @@ export class WorkspaceCanvas {
     this.camera.zoom = Math.max(0.1, Math.min(1, this.cssWidth / (right + 32), this.cssHeight / (bottom + 32)));
     this.camera.x = -16;
     this.camera.y = -16;
+  }
+
+  /* A page-sized picture of the whole workspace (or the racks in Physical view),
+     independent of what is on screen: panel sizes, zoom, selection and playing
+     packets do not matter. Returns null when there is nothing to print. */
+  renderForPrint(width: number, height: number): HTMLCanvasElement | null {
+    const state = this.state;
+    const physical = !!state?.physical;
+    const rects: Rect[] = physical
+      ? this.racks.racks.map((r) => r.rect)
+      : [...this.scene.devices.map((d) => d.box), ...(state?.notes ?? []).map((n) => noteBox(n))];
+    const bounds = boundsOf(rects);
+    if (!bounds) return null;
+    const page = document.createElement("canvas");
+    page.width = width;
+    page.height = height;
+    const ctx = page.getContext("2d");
+    if (!ctx) return null;
+    // Not clamped like the on-screen camera: a very large network must still fit the page.
+    const camera = Object.assign(new Camera({ x: 0, y: 0, zoom: 1 }), fitCamera(bounds, width, height));
+    if (physical) {
+      drawRacks(ctx as unknown as Canvas2D, this.racks, camera, { selected: new Set() });
+    } else {
+      drawScene(ctx as unknown as Canvas2D, this.scene, camera, {
+        width,
+        height,
+        grid: false,
+        image: (src) => this.image(src),
+        notes: state?.notes,
+      });
+    }
+    // drawScene clears its canvas first, so paper white goes behind what was drawn.
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    return page;
   }
 
   worldCenter(): Point {

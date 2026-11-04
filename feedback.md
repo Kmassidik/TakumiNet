@@ -108,7 +108,7 @@ The file content is already XML (`<takuminet version="1">`, `web/templates/t1.tn
 
 ---
 
-## F4. Print should print only the workspace, not the whole screen (open)
+## F4. Print should print only the workspace, not the whole screen (done)
 
 ### Research
 - `print()` in `web/js/actions.js:136` is `status('Printing…'); window.print();`. It prints the whole page.

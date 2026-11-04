@@ -134,7 +134,25 @@ const ACTIONS = {
       sfx('errorMsg');
     }
   },
-  print() { status('Printing…'); window.print(); },
+  /* Prints only the workspace: a page-sized picture of the diagram, built apart
+     from the screen, so menus, panels and zoom never reach the paper. */
+  async print() {
+    const page = workspaceCanvas.renderForPrint(1754, 1240); // A4 landscape at about 150 dpi
+    if (!page) {
+      status('Nothing to print yet. Add a device first.', true);
+      sfx('errorMsg');
+      return;
+    }
+    const image = document.createElement('img');
+    image.alt = 'Network diagram';
+    image.src = page.toDataURL('image/png');
+    const caption = document.createElement('figcaption');
+    caption.textContent = `${currentName || 'Untitled'} · ${new Date().toLocaleDateString()}`;
+    document.getElementById('print-sheet').replaceChildren(image, caption);
+    try { await image.decode(); } catch { /* print anyway; the browser shows what it has */ }
+    status('Printing…');
+    window.print();
+  },
 
   async undo() { const r = await api('/api/undo'); if (!r.error) status('Undo'); },
   async redo() { const r = await api('/api/redo'); if (!r.error) status('Redo'); },

@@ -105,3 +105,11 @@ test("templates: every example template carries built-in traffic, lessons carry 
     else expect(text, name).not.toContain("<demo");
   }
 });
+
+test("print: the stylesheet prints the workspace sheet only", () => {
+  const css = readFileSync(join(web, "workspace.css"), "utf8");
+  expect(css).toContain("@media print");
+  expect(css).toMatch(/body > \*:not\(\.print-sheet\)/);
+  const actions = sources.find((s) => s.name === "actions.js")!.text;
+  expect(actions).not.toMatch(/print\(\) \{ status\('Printing…'\); window\.print\(\); \}/);
+});
