@@ -236,10 +236,11 @@ const ACTIONS = {
   },
   pdu() {
     pduMode = !pduMode;
-    cableMode = false;
+    leaveCableMode();
     pduFrom = null;
     document.querySelector('.canvas-wrap').classList.toggle('crosshair', pduMode);
     status(pduMode ? 'PDU: click source, then destination' : 'Selection mode');
+    renderPalette();
     renderTopology();
   },
   /* Create a full mesh. The menu item meshes the current selection, falling back

@@ -64,18 +64,22 @@ async function cableClick(d) {
     cableFrom = d.id;
     setSelection([d.id]);
     status(`Cable from ${d.name} — pick the far end`);
+    updateCableChip();
     renderTopology();
     return;
   }
   if (cableFrom === d.id) {
     cableFrom = null;
+    updateCableChip();
     renderTopology();
     return;
   }
   const a = cableFrom;
   cableFrom = null;
+  updateCableChip();
   const r = await api('/api/links', { a, b: d.id, kind: cableKind });
-  if (!r.error) sfx('connect1');
+  if (r.error) showLinkToast(r.error);
+  else sfx('connect1');
 }
 
 async function pduClick(d) {

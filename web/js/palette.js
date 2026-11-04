@@ -6,6 +6,7 @@ function leaveCableMode() {
   cableMode = false;
   cableFrom = null;
   document.querySelector('.canvas-wrap').classList.remove('cable-mode', 'crosshair');
+  updateCableChip();
 }
 
 function renderPalette() {
@@ -43,6 +44,7 @@ function renderPalette() {
     const cable = document.createElement('button');
     const active = cableMode && cableKind === kind;
     cable.className = 'dev-tile cable-tool' + (active ? ' active' : '');
+    cable.setAttribute('aria-pressed', String(active));
     cable.title = tip + ' — click two devices';
     cable.dataset.kind = kind;
     const cimg = document.createElement('img');
@@ -57,6 +59,7 @@ function renderPalette() {
       pduMode = false;
       cableFrom = null;
       document.querySelector('.canvas-wrap').classList.toggle('cable-mode', cableMode);
+      updateCableChip();
       status(cableMode ? `${tip}: click two devices` : 'Selection mode');
       renderPalette();
       renderTopology();
