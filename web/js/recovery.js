@@ -249,17 +249,10 @@ function installBrowserRecovery() {
   };
 
   boot = async function () {
+    // The server workspace is loaded. A broken browser copy falls back to an
+    // older browser snapshot silently. The page never asks to restore.
     const recovered = snapshots.recover();
-    let restore = recovered.workspace;
-    if (recovered.source === 'current') {
-      const server = await originalGetJson('/api/workspace');
-      if (JSON.stringify(restore) === JSON.stringify(server)) {
-        restore = null;
-      } else if (typeof askConfirm === 'function' &&
-          !(await askConfirm('Restore last session? Your latest browser workspace can replace the server workspace.', 'Restore'))) {
-        restore = null;
-      }
-    }
+    const restore = recovered.source === 'current' ? null : recovered.workspace;
     recoveredWorkspace = restore;
     booting = true;
     try { await originalBoot(); } finally { booting = false; recoveredWorkspace = null; }

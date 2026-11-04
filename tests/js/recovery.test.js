@@ -271,29 +271,6 @@ test('workspace edits autosave only the latest snapshot after a one-second debou
   assert.equal(JSON.parse(app.localStorage.getItem(keys.previous)).devices[0].id, 'pc0');
 });
 
-test('boot offers Restore last session and a decline keeps the server workspace', async () => {
-  const app = applicationHarness(workspace(9));
-  const keys = vm.runInContext('RECOVERY_KEYS', app.context);
-  app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
-  const prompts = [];
-  vm.runInContext('askConfirm = async (message) => { prompts.push(message); return false; }', Object.assign(app.context, { prompts }));
-
-  await vm.runInContext('boot()', app.context);
-  assert.equal(prompts.length, 1);
-  assert.match(prompts[0], /Restore last session/);
-  assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc9');
-});
-
-test('accepting Restore last session loads the browser snapshot', async () => {
-  const app = applicationHarness(workspace(9));
-  const keys = vm.runInContext('RECOVERY_KEYS', app.context);
-  app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
-  vm.runInContext('askConfirm = async () => true', app.context);
-
-  await vm.runInContext('boot()', app.context);
-  assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc3');
-});
-
 test('boot does not offer Restore when the browser snapshot equals the server workspace', async () => {
   const app = applicationHarness(workspace(3));
   const keys = vm.runInContext('RECOVERY_KEYS', app.context);
@@ -304,4 +281,16 @@ test('boot does not offer Restore when the browser snapshot equals the server wo
   await vm.runInContext('boot()', app.context);
   assert.equal(vm.runInContext('asked', app.context), 0);
   assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc3');
+});
+
+test('boot never asks about the browser copy and always loads the server workspace', async () => {
+  const app = applicationHarness(workspace(9));
+  const keys = vm.runInContext('RECOVERY_KEYS', app.context);
+  app.localStorage.setItem(keys.current, JSON.stringify(workspace(3)));
+  Object.assign(app.context, { asked: 0 });
+  vm.runInContext('askConfirm = async () => { asked++; return true; }', app.context);
+
+  await vm.runInContext('boot()', app.context);
+  assert.equal(vm.runInContext('asked', app.context), 0);
+  assert.equal(vm.runInContext('data.devices[0].id', app.context), 'pc9');
 });
