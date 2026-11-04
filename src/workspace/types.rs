@@ -331,6 +331,8 @@ pub struct Workspace {
     pub queue_parent: HashMap<String, u32>,
     /// Hotspot vouchers per gateway.
     pub vouchers: HashMap<String, Vec<Voucher>>,
+    /// Shared gateway addresses: address -> (member device, priority).
+    pub shared_gateways: HashMap<u32, Vec<(String, u8)>>,
     /// Further pools on the same server, one per extra network.
     pub dhcp_more: HashMap<String, Vec<Pool>>,
     /// Addresses already handed out, by server id.

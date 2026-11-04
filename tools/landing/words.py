@@ -75,6 +75,8 @@ T = {
             ("One controller for the whole campus", "Every access point joins the controller and a guest cannot reach the file server"),
             ("A safe shelf for the public server", "Outside opens the public page and the DMZ cannot reach the inside"),
             ("Three layers for one campus", "A floor computer reaches the campus server through access, distribution and core"),
+            ("Put the root where it belongs", "CoreLeft is the spanning tree root and the two core cables act as one bundle"),
+            ("A gateway that survives", "The floor keeps its gateway when the preferred switch goes down"),
             ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
@@ -177,6 +179,8 @@ T = {
             ("Satu pengendali untuk seluruh kampus", "Setiap access point bergabung ke pengendali dan tamu tidak bisa menjangkau file server"),
             ("Rak aman untuk server publik", "Luar membuka halaman publik dan DMZ tidak bisa menjangkau bagian dalam"),
             ("Tiga lapis untuk satu kampus", "Komputer lantai menjangkau server kampus lewat akses, distribusi, dan inti"),
+            ("Taruh root di tempatnya", "CoreLeft menjadi root spanning tree dan dua kabel inti bekerja sebagai satu bundel"),
+            ("Gateway yang bertahan", "Lantai tetap punya gateway saat switch utama mati"),
             ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [

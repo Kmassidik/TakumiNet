@@ -3,6 +3,13 @@ use super::*;
 impl Workspace {
     /// Routing protocols, NAT, ACL bindings, DNS, HTTP pages and DHCP reservations.
     pub(super) fn write_routing_and_names(&self, out: &mut String) {
+        let mut shared: Vec<_> = self.shared_gateways.iter().collect();
+        shared.sort();
+        for (vip, members) in shared {
+            for (device, priority) in members {
+                out.push_str(&format!("sharedgw\t{}\t{}\t{}\n", device, crate::model::ipv4_string(*vip), priority));
+            }
+        }
         let mut routing: Vec<_> = self.routing.iter().collect();
         routing.sort_by_key(|(id, _)| id.as_str());
         for (dev, config) in routing {

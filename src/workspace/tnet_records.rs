@@ -50,6 +50,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("queue", &["dev", "user", "mbit"]),
     ("qparent", &["dev", "mbit"]),
     ("voucher", &["dev", "code", "minutes", "used"]),
+    ("sharedgw", &["dev", "vip", "priority"]),
     ("portfwd", &["router", "outside", "target", "inside"]),
     ("capwap", &["ap", "wlc"]),
     ("wifi", &["client", "ssid", "wlc"]),

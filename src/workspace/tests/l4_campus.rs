@@ -73,3 +73,45 @@ fn the_three_layer_lesson_needs_gateways_and_ospf() {
     }
     assert_eq!(passes(&mut ws), vec![true; 4]);
 }
+
+#[test]
+fn root_and_bundles_lesson_moves_the_root_and_bundles_the_cores() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l4-02-root-and-bundles.xml")).unwrap();
+    assert_eq!(ws.stp_root_of("c1").as_deref(), Some("a2"), "the mishap: a floor switch is the root");
+    assert_eq!(passes(&mut ws), vec![false, false, true]);
+    ws.set_stp_priority("c1", 1, 0).unwrap();
+    assert_eq!(ws.stp_root_of("a1").as_deref(), Some("c1"));
+    for (dev, port) in [("c1", "Fa0/23"), ("c1", "Fa0/24"), ("c2", "Fa0/23"), ("c2", "Fa0/24")] {
+        ws.set_channel_group(dev, port, 1).unwrap();
+    }
+    assert_eq!(passes(&mut ws), vec![true, true, true]);
+}
+
+#[test]
+fn spare_gateway_lesson_fails_over_to_the_second_switch() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l4-04-spare-gateway.xml")).unwrap();
+    let refusal = ws.send_pdu("pc0", "server0").unwrap_err();
+    assert!(refusal.contains("not a configured router interface"), "{refusal}");
+    assert_eq!(passes(&mut ws), vec![false, false]);
+    ws.set_shared_gateway("d1", "172.20.0.1", 110).unwrap();
+    ws.set_shared_gateway("d2", "172.20.0.1", 100).unwrap();
+    assert_eq!(ws.shared_gateway_owner(ip("172.20.0.1").unwrap()).as_deref(), Some("d1"));
+    assert_eq!(passes(&mut ws), vec![true, true]);
+    ws.set_port_up("d1", "GigabitEthernet0/2", false);
+    assert_eq!(ws.shared_gateway_owner(ip("172.20.0.1").unwrap()).as_deref(), Some("d2"), "failover");
+    assert!(ws.send_pdu("pc0", "server0").is_ok());
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.shared_gateway_rows("d1").len(), 1, "membership survives save and open");
+}
+
+#[test]
+fn shared_gateway_input_is_validated() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l4-04-spare-gateway.xml")).unwrap();
+    assert!(ws.set_shared_gateway("pc0", "172.20.0.1", 10).is_err(), "not a router");
+    assert!(ws.set_shared_gateway("d1", "nonsense", 10).is_err());
+    assert!(ws.set_shared_gateway("d1", "9.9.9.9", 10).is_err(), "outside every network");
+    assert!(ws.set_shared_gateway("d1", "172.20.0.2", 10).is_err(), "a port's own address");
+    assert!(!ws.remove_shared_gateway("d1", "172.20.0.1"));
+    ws.set_shared_gateway("d1", "172.20.0.1", 10).unwrap();
+    assert!(ws.remove_shared_gateway("d1", "172.20.0.1"));
+}

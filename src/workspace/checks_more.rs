@@ -36,6 +36,16 @@ impl Workspace {
         let Some(device) = self.devices.iter().find(|d| d.id == check.from) else {
             return (false, format!("unknown device {}", check.from), "Fix the lesson device reference.".into());
         };
+        if let Some(group) = check.to.strip_prefix("channel:") {
+            let active = group.parse::<u16>().is_ok_and(|g| self.channel_group_active(&check.from, g));
+            let actual = if active { "up" } else { "down" };
+            return (actual == check.expect, format!("bundle {group} is {actual}"), "Both cables of the bundle must carry the same group number on both switches.".into());
+        }
+        if check.to == "stp-root" {
+            let actual = self.stp_root_of(&check.from)
+                .map_or_else(|| "no spanning tree here".to_string(), |id| self.name_of(&id));
+            return (actual == check.expect, format!("the root is {actual}"), "Lower the priority on the switch that should win.".into());
+        }
         if let Some(iface) = check.to.strip_prefix("portsec:") {
             let max = self.port_security_rows(&check.from).into_iter().find(|(name, _, _)| name == iface).map(|(_, max, _)| max);
             let actual = max.map_or_else(|| "off".to_string(), |m| m.to_string());

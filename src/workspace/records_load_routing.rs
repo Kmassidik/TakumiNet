@@ -27,6 +27,11 @@ impl Workspace {
                     area.parse::<u32>().unwrap_or(0),
                 );
             }
+            ["sharedgw", dev, vip, priority] => {
+                if let Ok(p) = priority.parse() {
+                    let _ = self.set_shared_gateway(dev, vip, p);
+                }
+            }
             ["natrole", dev, iface, dir] => {
                 self.nat_roles
                     .entry(dev.to_string())

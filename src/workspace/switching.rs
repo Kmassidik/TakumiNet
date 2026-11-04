@@ -5,8 +5,8 @@ use std::collections::{BTreeSet, HashMap, VecDeque};
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct BridgeId {
     // Extended system id: configured priority plus the VLAN number.
-    priority: u32,
-    mac: Mac,
+    pub(super) priority: u32,
+    pub(super) mac: Mac,
 }
 
 #[derive(Clone, Debug)]
@@ -22,10 +22,10 @@ struct LogicalEdge {
 
 #[derive(Default)]
 struct StpTopology {
-    roots: HashMap<String, BridgeId>,
-    root_ports: Vec<(String, String)>,
-    blocked: Vec<(String, String)>,
-    edges: Vec<LogicalEdge>,
+    pub(super) roots: HashMap<String, BridgeId>,
+    pub(super) root_ports: Vec<(String, String)>,
+    pub(super) blocked: Vec<(String, String)>,
+    pub(super) edges: Vec<LogicalEdge>,
 }
 
 impl Workspace {
@@ -315,7 +315,7 @@ impl Workspace {
         crate::cli::expand_iface(raw, &names).unwrap_or_else(|| raw.to_string())
     }
 
-    fn bridge_id(&self, id: &str, vlan: u16) -> BridgeId {
+    pub(super) fn bridge_id(&self, id: &str, vlan: u16) -> BridgeId {
         BridgeId {
             priority: self.stp_priority(id, vlan) as u32 + vlan as u32,
             mac: Mac::for_device(id),
@@ -419,7 +419,7 @@ impl Workspace {
         edges
     }
 
-    fn stp_topology(&self) -> StpTopology {
+    pub(super) fn stp_topology(&self) -> StpTopology {
         let mut result = StpTopology {
             edges: self.logical_edges(),
             ..Default::default()
@@ -545,27 +545,6 @@ impl Workspace {
         result
     }
 
-    /// Ports the spanning tree blocks, as (device id, full port name).
-    pub fn stp_blocked_ports(&self) -> Vec<(String, String)> {
-        self.stp_topology().blocked
-    }
-
-    /// Root id plus this switch's root and blocked ports from one STP pass.
-    pub fn stp_device_state(&self, device: &str) -> (u32, Mac, Vec<String>, Vec<String>) {
-        let topology = self.stp_topology();
-        let id = topology.roots.get(device).copied().unwrap_or_else(|| self.bridge_id(device, 1));
-        let root_ports = topology
-            .root_ports
-            .into_iter()
-            .filter_map(|(id, port)| (id == device).then_some(port))
-            .collect();
-        let blocked = topology
-            .blocked
-            .into_iter()
-            .filter_map(|(id, port)| (id == device).then_some(port))
-            .collect();
-        (id.priority, id.mac, root_ports, blocked)
-    }
 
     pub fn set_stp_mode(&mut self, device: &str, mode: &str) -> Result<(), String> {
         if !self.devices.iter().any(|d| d.id == device && d.kind == "switch") {

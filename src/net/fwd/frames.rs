@@ -349,3 +349,59 @@ pub(super) fn tagged_port(dev: &crate::workspace::Device, physical: &str, vlan: 
         .find(|p| p.dot1q == Some(tag) && p.name.strip_suffix(&format!(".{tag}")) == Some(physical))
         .map_or_else(|| physical.to_string(), |p| p.name.clone())
 }
+
+/// Why no path exists, naming the first down interface on the link-only path.
+pub(super) fn blocked_reason(ws: &Workspace, src: &str, dst: &str) -> String {
+    let Some(path) = any_path(ws, src, dst) else {
+        return "no path: devices are not connected".into();
+    };
+    for (idx, _) in path.devices.windows(2).enumerate() {
+        let link = &ws.links[path.links[idx]];
+        for (id, name) in [(&link.a, &link.a_port), (&link.b, &link.b_port)] {
+            let Some(dev) = ws.devices.iter().find(|d| d.id == *id) else {
+                continue;
+            };
+            if !port_is_up(dev, name) {
+                return format!(
+                    "{} {} is administratively down — bring it up with `no shutdown`",
+                    dev.name,
+                    port_on(dev, name)
+                );
+            }
+        }
+    }
+    let mut vlan = None;
+    for (i, id) in path.devices.iter().enumerate() {
+        let Some(dev) = ws.devices.iter().find(|d| &d.id == id) else {
+            continue;
+        };
+        if dev.kind != "switch" {
+            continue;
+        }
+        let ingress = (i > 0).then(|| &ws.links[path.links[i - 1]]);
+        let egress = (i + 1 < path.devices.len()).then(|| &ws.links[path.links[i]]);
+        for raw in [
+            ingress.map(|l| if l.a == *id { &l.a_port } else { &l.b_port }),
+            egress.map(|l| if l.a == *id { &l.a_port } else { &l.b_port }),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            if !switch_port_vlan(dev, raw, &mut vlan) {
+                let name = port_on(dev, raw);
+                let access = dev.ports.iter().find(|p| p.name == name).map(|p| p.vlan).unwrap_or(1);
+                return format!("VLAN mismatch: {} {name} is VLAN {access}", dev.name);
+            }
+        }
+    }
+    if let Some((dev_id, port)) = ws.stp_blocked_ports().first() {
+        let name = ws
+            .devices
+            .iter()
+            .find(|d| d.id == *dev_id)
+            .map(|d| d.name.clone())
+            .unwrap_or_else(|| dev_id.clone());
+        return format!("spanning tree is blocking {name} {port} — remove the redundant link");
+    }
+    "no path: devices are not connected".into()
+}

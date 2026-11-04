@@ -1,0 +1,24 @@
+<takumi version="1">
+  <device id="c1" kind="switch" model="Switch 24" x="300" y="100" name="CoreLeft" ip="" prefix="24"/>
+  <device id="c2" kind="switch" model="Switch 24" x="620" y="100" name="CoreRight" ip="" prefix="24"/>
+  <device id="a1" kind="switch" model="Switch 24" x="300" y="300" name="AccessLeft" ip="" prefix="24"/>
+  <device id="a2" kind="switch" model="Switch 24" x="620" y="300" name="AccessRight" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="300" y="460" name="PC0" ip="192.168.50.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="620" y="460" name="PC1" ip="192.168.50.11" prefix="24"/>
+  <link a="c1" a_port="Fa0/23" b="c2" b_port="Fa0/23" kind="eCopper"/>
+  <link a="c1" a_port="Fa0/24" b="c2" b_port="Fa0/24" kind="eCopper"/>
+  <link a="c1" a_port="Fa0/1" b="a1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="c2" a_port="Fa0/1" b="a2" b_port="Fa0/1" kind="eCopper"/>
+  <link a="a1" a_port="Fa0/24" b="a2" b_port="Fa0/24" kind="eCopper"/>
+  <link a="a1" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="a2" a_port="Fa0/2" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <stppriority dev="a2" vlan="1" priority="4096"/>
+  <lesson id="les-l4-02-root-and-bundles" title="Put the root where it belongs" level="4" minutes="15" goal="CoreLeft is the spanning tree root and the two core cables act as one bundle"/>
+  <step n="1" text="Look at the spanning tree: today the root is AccessRight, a floor switch. Traffic between the cores takes a detour."/>
+  <step n="2" text="Give CoreLeft spanning tree priority 0. It must win the election." check="c1"/>
+  <step n="3" text="Bundle the two cables between CoreLeft and CoreRight: channel group 1 on Fa0/23 and Fa0/24 of both." check="c2"/>
+  <step n="4" text="Think about one core cable breaking. The pings must keep working." check="c3"/>
+  <check id="c1" kind="config" from="c1" to="stp-root" url="" expect="CoreLeft" label="CoreLeft is the root"/>
+  <check id="c2" kind="config" from="c1" to="channel:1" url="" expect="up" label="The core bundle is up"/>
+  <check id="c3" kind="outage" from="pc0" to="pc1" url="c1:FastEthernet0/23" expect="ok" label="A broken core cable does not stop the floor"/>
+</takumi>

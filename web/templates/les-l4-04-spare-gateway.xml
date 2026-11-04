@@ -1,0 +1,32 @@
+<takumi version="1">
+  <device id="core0" kind="switch-l3" model="Switch L3" x="460" y="60" name="Core" ip="" prefix="24"/>
+  <device id="d1" kind="switch-l3" model="Switch L3" x="280" y="220" name="DistA" ip="" prefix="24"/>
+  <device id="d2" kind="switch-l3" model="Switch L3" x="640" y="220" name="DistB" ip="" prefix="24"/>
+  <device id="a1" kind="switch" model="Switch 24" x="460" y="360" name="FloorSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="460" y="500" name="FloorPC" ip="172.20.0.20" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="640" y="60" name="CampusServer" ip="172.16.0.2" prefix="24"/>
+  <link a="core0" a_port="Gig0/1" b="d1" b_port="Gig0/1" kind="eCopper"/>
+  <link a="core0" a_port="Gig0/2" b="d2" b_port="Gig0/1" kind="eCopper"/>
+  <link a="core0" a_port="Gig0/3" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="d1" a_port="Gig0/2" b="a1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="d2" a_port="Gig0/2" b="a1" b_port="Fa0/2" kind="eCopper"/>
+  <link a="a1" a_port="Fa0/3" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <port id="core0" name="GigabitEthernet0/1" up="1" ip="10.0.14.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="core0" name="GigabitEthernet0/2" up="1" ip="10.0.15.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="core0" name="GigabitEthernet0/3" up="1" ip="172.16.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="d1" name="GigabitEthernet0/1" up="1" ip="10.0.14.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="d1" name="GigabitEthernet0/2" up="1" ip="172.20.0.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="d2" name="GigabitEthernet0/1" up="1" ip="10.0.15.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="d2" name="GigabitEthernet0/2" up="1" ip="172.20.0.3" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <route id="d1" net="0.0.0.0" prefix="0" via="10.0.14.1" admin_distance="1"/>
+  <route id="d2" net="0.0.0.0" prefix="0" via="10.0.15.1" admin_distance="1"/>
+  <route id="core0" net="172.20.0.0" prefix="24" via="10.0.14.2" admin_distance="1"/>
+  <net id="pc0" gw="172.20.0.1" dns=""/>
+  <net id="server0" gw="172.16.0.1" dns=""/>
+  <lesson id="les-l4-04-spare-gateway" title="A gateway that survives" level="4" minutes="15" goal="The floor keeps its gateway when the preferred switch goes down"/>
+  <step n="1" text="FloorPC points at 172.20.0.1, but no switch answers for that address yet. Ping CampusServer and read the failure."/>
+  <step n="2" text="On DistA share the address 172.20.0.1 with priority 110. On DistB share the same address with priority 100." check="c1"/>
+  <step n="3" text="DistA answers while it is healthy. Think about DistA's floor port breaking: DistB must take over." check="c2"/>
+  <check id="c1" kind="ping" from="pc0" to="server0" url="" expect="ok" label="FloorPC reaches CampusServer through the shared gateway"/>
+  <check id="c2" kind="outage" from="pc0" to="server0" url="d1:GigabitEthernet0/2" expect="ok" label="The ping survives the loss of the preferred switch"/>
+</takumi>

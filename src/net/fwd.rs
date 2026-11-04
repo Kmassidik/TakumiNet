@@ -533,61 +533,6 @@ fn switch_port_vlan(dev: &Device, raw: &str, vlan: &mut Option<u16>) -> bool {
     }
 }
 
-/// Why no path exists, naming the first down interface on the link-only path.
-fn blocked_reason(ws: &Workspace, src: &str, dst: &str) -> String {
-    let Some(path) = any_path(ws, src, dst) else {
-        return "no path: devices are not connected".into();
-    };
-    for (idx, _) in path.devices.windows(2).enumerate() {
-        let link = &ws.links[path.links[idx]];
-        for (id, name) in [(&link.a, &link.a_port), (&link.b, &link.b_port)] {
-            let Some(dev) = ws.devices.iter().find(|d| d.id == *id) else {
-                continue;
-            };
-            if !port_is_up(dev, name) {
-                return format!(
-                    "{} {} is administratively down — bring it up with `no shutdown`",
-                    dev.name,
-                    port_on(dev, name)
-                );
-            }
-        }
-    }
-    let mut vlan = None;
-    for (i, id) in path.devices.iter().enumerate() {
-        let Some(dev) = ws.devices.iter().find(|d| &d.id == id) else {
-            continue;
-        };
-        if dev.kind != "switch" {
-            continue;
-        }
-        let ingress = (i > 0).then(|| &ws.links[path.links[i - 1]]);
-        let egress = (i + 1 < path.devices.len()).then(|| &ws.links[path.links[i]]);
-        for raw in [
-            ingress.map(|l| if l.a == *id { &l.a_port } else { &l.b_port }),
-            egress.map(|l| if l.a == *id { &l.a_port } else { &l.b_port }),
-        ]
-        .into_iter()
-        .flatten()
-        {
-            if !switch_port_vlan(dev, raw, &mut vlan) {
-                let name = port_on(dev, raw);
-                let access = dev.ports.iter().find(|p| p.name == name).map(|p| p.vlan).unwrap_or(1);
-                return format!("VLAN mismatch: {} {name} is VLAN {access}", dev.name);
-            }
-        }
-    }
-    if let Some((dev_id, port)) = ws.stp_blocked_ports().first() {
-        let name = ws
-            .devices
-            .iter()
-            .find(|d| d.id == *dev_id)
-            .map(|d| d.name.clone())
-            .unwrap_or_else(|| dev_id.clone());
-        return format!("spanning tree is blocking {name} {port} — remove the redundant link");
-    }
-    "no path: devices are not connected".into()
-}
 
 fn port_on(dev: &Device, raw: &str) -> String {
     let names: Vec<String> = dev.ports.iter().map(|p| p.name.clone()).collect();
@@ -693,11 +638,13 @@ fn routed_path(
             NextHop::NoRoute(msg) => return Err(msg),
         };
 
+        let shared = ws.shared_gateway_owner(next);
         let peer = ws
             .devices
             .iter()
-            .find(|d| {
-                d.ports.iter().any(|p| p.ip == Some(next)) || d.ip == Some(next)
+            .find(|d| match &shared {
+                Some(owner) => d.id == *owner,
+                None => d.ports.iter().any(|p| p.ip == Some(next)) || d.ip == Some(next),
             })
             .cloned()
             .ok_or_else(|| {
@@ -713,7 +660,7 @@ fn routed_path(
         let peer_tag = peer
             .ports
             .iter()
-            .find(|p| p.ip == Some(next))
+            .find(|p| p.ip == Some(next) || p.ip.is_some_and(|ip| shared.is_some() && crate::model::contains(next, ip, p.prefix)))
             .and_then(|p| p.dot1q);
         let vlan = next_vlan.or(peer_tag);
         let from = chain.last().cloned().unwrap_or_default();

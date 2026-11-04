@@ -410,3 +410,20 @@ fn handle_mesh(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let (out, _) = apply(ctx, |ws| ws.mesh(&ids).map(|_| ()));
     (json, out.into_bytes())
 }
+
+fn handle_shared_gateway(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let vip = query_value(query, "vip").unwrap_or_default();
+    let remove = matches!(query_value(query, "remove").as_deref(), Some("1") | Some("true"));
+    let (out, _) = apply(ctx, |ws| {
+        if remove {
+            return if ws.remove_shared_gateway(&id, &vip) { Ok(()) } else { Err("this device is not a member".to_string()) };
+        }
+        let Some(priority) = query_value(query, "priority").and_then(|v| v.parse().ok()) else {
+            return Err("priority must be a number from 0 to 255".to_string());
+        };
+        ws.set_shared_gateway(&id, &vip, priority)
+    });
+    (json, out.into_bytes())
+}
