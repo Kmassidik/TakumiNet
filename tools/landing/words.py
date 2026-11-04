@@ -56,7 +56,9 @@ T = {
             ("Regency over the air", "Two village POPs reach the regency hub, one over microwave radios and one over a satellite terminal"),
             ("Provincial backbone ring", "Five POPs circle the province and the far one still reaches the content server after any single cut"),
             ("Two provinces and the sea", "Two provinces meet at a national gateway, and a submarine cable carries them to an overseas page"),
-            ("Three countries, three cables", "Three national gateways in a submarine triangle keep the world's name server reachable")],
+            ("Three countries, three cables", "Three national gateways in a submarine triangle keep the world's name server reachable"),
+            ("Factory floor", "A controller, a sensor and an IoT board answer the operator station over one switch"),
+            ("Cellular backup", "Two field units joined to one cell tower keep two sites talking while the fibre is gone")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("Give the Wi-Fi your own name", "Phone0 joins a WPA2 network named FamilyNet with your own password"),
@@ -113,7 +115,9 @@ T = {
             ("A cache saves the cables", "The popular page is served from inside the country far faster than the overseas copy"),
             ("Two carriers to the exchange", "PopCity reaches IXNational through either carrier, so either carrier may die"),
             ("Caches near the users", "Both countries read the page from a cache in their own country, far faster than the origin across the sea"),
-            ("The name service of the world", "A laptop in country B finds www.world.lab through the root name server in country A and opens the page in country C")],
+            ("The name service of the world", "A laptop in country B finds www.world.lab through the root name server in country A and opens the page in country C"),
+            ("Read the sensor, drive the valve", "The operator reads the tank temperature on the sensor and drives the valve registers on the controller"),
+            ("When the fibre dies, the tower carries it", "Both field units join the cell tower and a message crosses between the sites without a cable")],
         "more_in_workspace": "All {examples} example networks and {lessons} lessons are waiting inside the workspace.",
         "faq_h": "Questions people ask",
         "faq": [
@@ -197,7 +201,9 @@ T = {
             ("Tiga negara, tiga kabel", "Tiga gerbang nasional dalam segitiga kabel laut menjaga server nama tetap terjangkau"),
             ("Dua penyewa, satu fabric", "Server biru dan hijau berbagi leaf-spine dan tidak pernah saling melihat"),
             ("Cincin serat kota", "Empat hub kecamatan di satu cincin serat membawa setiap kecamatan ke sentral kota"),
-            ("Kabupaten lewat udara", "Dua POP desa menjangkau hub kabupaten, satu lewat radio gelombang mikro dan satu lewat terminal satelit")],
+            ("Kabupaten lewat udara", "Dua POP desa menjangkau hub kabupaten, satu lewat radio gelombang mikro dan satu lewat terminal satelit"),
+            ("Lantai pabrik", "Sebuah pengendali, sebuah sensor, dan papan IoT menjawab stasiun operator lewat satu switch"),
+            ("Cadangan seluler", "Dua unit lapangan yang bergabung ke satu menara seluler menjaga dua lokasi tetap bicara saat serat putus")],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
@@ -254,7 +260,9 @@ T = {
             ("Cache menyelamatkan kabel", "Halaman populer dilayani dari dalam negeri, jauh lebih cepat daripada salinan luar negeri"),
             ("Dua operator ke exchange", "PopCity menjangkau IXNational lewat operator mana pun, jadi salah satu boleh mati"),
             ("Cache dekat pengguna", "Kedua negara membaca halaman dari cache di negerinya sendiri, jauh lebih cepat daripada asal di seberang laut"),
-            ("Layanan nama dunia", "Laptop di negara B menemukan www.world.lab lewat server nama akar di negara A dan membuka halaman di negara C")],
+            ("Layanan nama dunia", "Laptop di negara B menemukan www.world.lab lewat server nama akar di negara A dan membuka halaman di negara C"),
+            ("Baca sensornya, gerakkan katupnya", "Operator membaca suhu tangki di sensor dan menulis register katup di pengendali"),
+            ("Saat serat putus, menara yang membawanya", "Kedua unit lapangan bergabung ke menara seluler dan pesan menyeberang antar lokasi tanpa kabel")],
         "more_in_workspace": "Semua {examples} contoh jaringan dan {lessons} pelajaran menunggu di dalam workspace.",
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [

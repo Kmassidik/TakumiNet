@@ -1,0 +1,20 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="420" y="260" name="FloorSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="180" y="120" name="Operator" ip="10.60.0.10" prefix="24"/>
+  <device id="plc0" kind="plc" model="PLC" x="180" y="400" name="ValvePLC" ip="10.60.0.11" prefix="24"/>
+  <device id="thing0" kind="thing" model="Thing" x="420" y="460" name="TankSensor" ip="10.60.0.12" prefix="24"/>
+  <device id="ioe0" kind="ioe" model="IoE" x="660" y="400" name="LineBoard" ip="10.60.0.13" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="plc0" a_port="IoT0" b="switch0" b_port="Fa0/2" kind="eIoT"/>
+  <link a="thing0" a_port="IoT0" b="switch0" b_port="Fa0/3" kind="eIoT"/>
+  <link a="ioe0" a_port="IoT0" b="switch0" b_port="Fa0/4" kind="eIoT"/>
+  <iot dev="thing0" addr="2" value="73"/>
+  <lesson id="les-l3-07-read-the-sensor" title="Read the sensor, drive the valve" level="3" minutes="10" goal="The operator reads the tank temperature on the sensor and drives the valve registers on the controller"/>
+  <step n="1" text="Ping ValvePLC from Operator to prove the floor network carries traffic." check="c1"/>
+  <step n="2" text="Double-click TankSensor and read register 2 in its Registers panel. That number is the tank temperature."/>
+  <step n="3" text="Double-click ValvePLC and write the temperature you read into its register 2." check="c2"/>
+  <step n="4" text="Still on ValvePLC, write 1 into register 1. That opens the valve." check="c3"/>
+  <check id="c1" kind="ping" from="pc0" to="plc0" url="" expect="ok" label="Operator reaches ValvePLC"/>
+  <check id="c2" kind="iot" from="plc0" to="2" url="" expect="73" label="ValvePLC register 2 holds the tank temperature"/>
+  <check id="c3" kind="iot" from="plc0" to="1" url="" expect="1" label="ValvePLC register 1 is 1, so the valve is open"/>
+</takumi>

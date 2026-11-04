@@ -1,6 +1,6 @@
 use super::super::*;
 
-const TEMPLATES: [(&str, &str); 27] = [
+const TEMPLATES: [(&str, &str); 29] = [
     ("tpl-connect", include_str!("../../../web/templates/tpl-connect.xml")),
     ("tpl-star", include_str!("../../../web/templates/tpl-star.xml")),
     ("tpl-home", include_str!("../../../web/templates/tpl-home.xml")),
@@ -21,6 +21,8 @@ const TEMPLATES: [(&str, &str); 27] = [
     ("tpl-l5-leaf-spine", include_str!("../../../web/templates/tpl-l5-leaf-spine.xml")),
     ("tpl-l5-load-balanced-web", include_str!("../../../web/templates/tpl-l5-load-balanced-web.xml")),
     ("tpl-l5-overlay", include_str!("../../../web/templates/tpl-l5-overlay.xml")),
+    ("tpl-factory-floor", include_str!("../../../web/templates/tpl-factory-floor.xml")),
+    ("tpl-cell-backup", include_str!("../../../web/templates/tpl-cell-backup.xml")),
     ("tpl-l6-isp-pop", include_str!("../../../web/templates/tpl-l6-isp-pop.xml")),
     ("tpl-l6-isp-two-upstreams", include_str!("../../../web/templates/tpl-l6-isp-two-upstreams.xml")),
     ("tpl-l7-city-ring", include_str!("../../../web/templates/tpl-l7-city-ring.xml")),

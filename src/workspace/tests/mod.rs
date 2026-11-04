@@ -12,6 +12,7 @@ mod l4_campus;
 mod l5_lessons;
 mod l6_lessons;
 mod collapse;
+mod iot_cell;
 mod l7_l8;
 mod l9_l11;
 mod l9_l11_more;

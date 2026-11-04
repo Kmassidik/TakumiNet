@@ -22,6 +22,8 @@ impl Workspace {
             "nat" => self.check_forward(check),
             "bgp" => self.check_bgp(check),
             "capture" => self.check_capture(check),
+            "iot" => self.check_iot(check),
+            "cell" => self.check_cell(check),
             _ => return None,
         })
     }
@@ -311,6 +313,31 @@ impl Workspace {
             (false, false) => format!("{} frames touching {}", check.to, check.url),
         };
         (found >= least, format!("{found} {what} captured, {least} needed"), hint)
+    }
+
+    /// `to` is the register number; `expect` the value it must hold.
+    fn check_iot(&mut self, check: &Check) -> Verdict {
+        let hint = "Open the device's Registers panel and write the value into the register named in the check.".to_string();
+        let Ok(addr) = check.to.parse::<u16>() else {
+            return (false, format!("invalid register '{}'", check.to), "Use a register number from 0 to 255.".into());
+        };
+        let Ok(wanted) = check.expect.parse::<u16>() else {
+            return (false, format!("invalid value '{}'", check.expect), "Use a whole number from 0 to 65535.".into());
+        };
+        match self.iot_read(&check.from, addr) {
+            Ok(value) => (value == wanted, format!("register {addr} holds {value}"), hint),
+            Err(error) => (false, error, hint),
+        }
+    }
+
+    /// `to` is the cell tower the client named in `from` must have joined.
+    fn check_cell(&self, check: &Check) -> Verdict {
+        let hint = "Open the device window and join it to the tower named in the check.".to_string();
+        match self.cell_status(&check.from) {
+            Some(tower) if tower == check.to => (true, format!("joined to {}", self.name_of(&tower)), hint),
+            Some(tower) => (false, format!("joined to {}, not {}", self.name_of(&tower), self.name_of(&check.to)), hint),
+            None => (false, "not joined to any tower".into(), hint),
+        }
     }
 
     fn check_count(&self, check: &Check) -> Verdict {

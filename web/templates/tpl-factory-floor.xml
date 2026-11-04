@@ -1,0 +1,16 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="420" y="260" name="FloorSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="180" y="120" name="Operator" ip="10.60.0.10" prefix="24"/>
+  <device id="plc0" kind="plc" model="PLC" x="180" y="400" name="ValvePLC" ip="10.60.0.11" prefix="24"/>
+  <device id="thing0" kind="thing" model="Thing" x="420" y="460" name="TankSensor" ip="10.60.0.12" prefix="24"/>
+  <device id="ioe0" kind="ioe" model="IoE" x="660" y="400" name="LineBoard" ip="10.60.0.13" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="plc0" a_port="IoT0" b="switch0" b_port="Fa0/2" kind="eIoT"/>
+  <link a="thing0" a_port="IoT0" b="switch0" b_port="Fa0/3" kind="eIoT"/>
+  <link a="ioe0" a_port="IoT0" b="switch0" b_port="Fa0/4" kind="eIoT"/>
+  <iot dev="thing0" addr="2" value="73"/>
+  <iot dev="ioe0" addr="0" value="5"/>
+  <demo kind="ping" from="pc0" to="plc0" url=""/>
+  <demo kind="ping" from="pc0" to="thing0" url=""/>
+  <demo kind="ping" from="ioe0" to="pc0" url=""/>
+</takumi>
