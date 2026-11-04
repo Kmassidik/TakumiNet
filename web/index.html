@@ -83,13 +83,15 @@
     </nav>
   </div>
 
-  <div class="preview prefs" id="prefs-dialog" hidden>
-    <div class="devwin-title">Preferences<button class="winbtn" id="prefs-close" title="Close">×</button></div>
-    <div class="prefs-body">
-      <label><input type="checkbox" id="pref-grid"> Show canvas grid</label>
-      <label><input type="checkbox" id="pref-sound"> Sound effects</label>
-      <label><input type="checkbox" id="pref-confirm"> Confirm before deleting a device</label>
-      <p class="meta" id="prefs-note">Stored in this browser.</p>
+  <div id="prefs-dialog" class="overlay" hidden>
+    <div class="preview prefs">
+      <div class="devwin-title"><span>Preferences</span><span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span></div>
+      <div class="prefs-body">
+        <label><input type="checkbox" id="pref-grid"> Show canvas grid</label>
+        <label><input type="checkbox" id="pref-sound"> Sound effects</label>
+        <label><input type="checkbox" id="pref-confirm"> Confirm before deleting a device</label>
+        <p class="meta" id="prefs-note">Stored in this browser.</p>
+      </div>
     </div>
   </div>
   <div class="toolbar primary" id="toolbar-primary"></div>
@@ -240,6 +242,7 @@
 
 <div id="lesson-gallery" class="overlay gallery-overlay" hidden>
   <main class="preview gallery" aria-labelledby="gallery-title">
+    <button class="dlg-close dlg-close-float" data-dialog-close title="Close" aria-label="Close">×</button>
     <header class="gallery-hero">
       <img class="gallery-network" src="/art3d/misc/network.webp" alt="" width="88" height="88">
       <div><span class="gallery-kicker">TakumiNet learning lab</span><h1 id="gallery-title">Build a network. See it work.</h1><p>Hands-on lessons use the same packets, commands, and network state as your own labs.</p></div>
@@ -257,8 +260,8 @@
 
 <div id="ip-dialog" class="overlay" hidden>
   <div class="preview ip-dialog">
-    <div class="ip-titlebar"><span id="ip-title">IP Configuration</span>
-      <button id="ip-close" class="close" aria-label="close">×</button>
+    <div class="devwin-title"><span id="ip-title">IP Configuration</span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
 
     <div class="ip-body">
@@ -331,7 +334,7 @@
       <span class="dw-btns">
         <button id="dw-min" title="minimize">—</button>
         <button id="dw-max" title="maximize">□</button>
-        <button id="dw-close" title="close">×</button>
+        <button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button>
       </span>
     </div>
     <div class="devwin-tabs" id="dw-tabs">
@@ -351,7 +354,7 @@
   <div class="preview cmdwin">
     <div class="devwin-title">
       <span id="cmd-title">Command Prompt</span>
-      <span class="dw-btns"><button id="cmd-close" title="close">×</button></span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <pre id="cmd-out" class="cmd-out"></pre>
     <div class="cmd-line"><span id="cmd-prompt">C:\&gt;</span><input id="cmd-in" autocomplete="off" spellcheck="false"></div>
@@ -362,7 +365,7 @@
   <div class="preview cmdwin termwin">
     <div class="devwin-title">
       <span id="term-title">Terminal</span>
-      <span class="dw-btns"><button id="term-close" title="close">×</button></span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <pre id="term-out" class="cmd-out"></pre>
     <div class="cmd-line"><span id="term-prompt">&gt;</span><input id="term-in" autocomplete="off" spellcheck="false"></div>
@@ -373,7 +376,7 @@
   <div class="preview webwin">
     <div class="devwin-title">
       <span id="web-title">Web Browser</span>
-      <span class="dw-btns"><button id="web-close" title="close">×</button></span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <div class="web-bar">
       <span>http://</span>
@@ -389,7 +392,7 @@
   <div class="preview editorwin">
     <div class="devwin-title">
       <span id="editor-title">Text Editor</span>
-      <span class="dw-btns"><button id="editor-close" title="close">×</button></span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <div class="editor-bar">
       <button class="btn" id="editor-save">Save</button>
@@ -405,7 +408,7 @@
   <div class="preview pduwin">
     <div class="devwin-title">
       <span id="pdu-title">PDU Detail</span>
-      <span class="dw-btns"><button id="pdu-close" title="close">×</button></span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <div id="pdu-meta" class="pdu-meta"></div>
     <div class="pdu-scroll"><table id="pdu-table" class="pdu-table"></table></div>
@@ -416,7 +419,7 @@
   <div class="preview firewallwin">
     <div class="devwin-title">
       <span id="firewall-title">Firewall</span>
-      <span class="dw-btns"><button id="firewall-close" title="close">×</button></span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <div class="firewall-body">
       <div class="meta" id="firewall-note"></div>

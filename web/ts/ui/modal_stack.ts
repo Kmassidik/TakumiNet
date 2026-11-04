@@ -34,6 +34,16 @@ export class ModalStack {
     return this.close();
   }
 
+  /* Close one named dialog, wherever it sits in the stack. */
+  closeById(id: string): boolean {
+    const index = this.entries.findIndex((entry) => entry.id === id);
+    if (index < 0) return false;
+    const [entry] = this.entries.splice(index, 1);
+    entry!.onClose();
+    entry!.opener?.focus();
+    return true;
+  }
+
   close(): boolean {
     const top = this.entries.pop();
     if (!top) return false;

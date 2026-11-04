@@ -13,8 +13,6 @@ function openFirewall(d) {
   out.textContent = 'Reading access lists…';
   win.hidden = false;
   bringToFront(win);
-  $('firewall-close').onclick = () => { win.hidden = true; };
-  win.onclick = (e) => { if (e.target === win) win.hidden = true; };
 
   (async () => {
     try {

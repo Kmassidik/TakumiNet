@@ -53,6 +53,7 @@ export function watchOverlays(stack: ModalStack): void {
       const el = record.target as HTMLElement;
       if (el.hidden) {
         stack.forget(el.id);
+        el.dispatchEvent(new Event("dialog-closed"));
       } else if (!stack.has(el.id)) {
         const opener = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
         stack.push({ id: el.id, opener, onClose: () => { el.hidden = true; } });

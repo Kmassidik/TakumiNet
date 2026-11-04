@@ -18,8 +18,6 @@ function openBrowser(d) {
   url.value = '';
   body.replaceChildren();
   statusEl.textContent = `${d.name} — type a server address`;
-  document.getElementById('web-close').onclick = () => { win.hidden = true; };
-  win.onclick = (e) => { if (e.target === win) win.hidden = true; };
 
   const renderError = (text) => {
     const p = document.createElement('p');
@@ -81,8 +79,6 @@ function openEditor(d) {
       note.textContent = 'Local storage is unavailable — the text was not saved';
     }
   };
-  document.getElementById('editor-close').onclick = () => { win.hidden = true; };
-  win.onclick = (e) => { if (e.target === win) win.hidden = true; };
 
   win.hidden = false;
   bringToFront(win);

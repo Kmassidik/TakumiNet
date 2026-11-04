@@ -19,13 +19,11 @@ function openDeviceWindow(d) {
   win.hidden = false;
   bringToFront(win);
   selectTab('desktop');
-  document.getElementById('dw-close').onclick = () => { win.hidden = true; };
   document.getElementById('dw-min').onclick = () => { win.hidden = true; };
   document.getElementById('dw-max').onclick = () => {
     const box = win.querySelector('.preview');
     if (box) box.classList.toggle('maxed');
   };
-  win.onclick = (e) => { if (e.target === win) win.hidden = true; };
   document.querySelectorAll('#dw-tabs button').forEach((b) => {
     b.onclick = () => selectTab(b.dataset.tab);
   });

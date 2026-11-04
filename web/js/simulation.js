@@ -132,8 +132,6 @@ function openPduDetail(e) {
 
   win.hidden = false;
   bringToFront(win);
-  document.getElementById('pdu-close').onclick = () => { win.hidden = true; };
-  win.onclick = (ev) => { if (ev.target === win) win.hidden = true; };
   sfx('addPacketButton');
 }
 

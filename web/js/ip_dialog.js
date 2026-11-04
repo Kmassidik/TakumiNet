@@ -67,8 +67,6 @@ function openIpDialog(d) {
   $('ip-v6auto').onchange = () => setV6Mode(true);
   $('ip-v6static').onchange = () => setV6Mode(false);
 
-  $('ip-close').onclick = () => { dialog.hidden = true; };
-  dialog.onclick = (e) => { if (e.target === dialog) dialog.hidden = true; };
 
   $('ip-save').onclick = async () => {
     const note = $('ip-note');

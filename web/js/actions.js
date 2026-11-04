@@ -257,7 +257,6 @@ const ACTIONS = {
     document.getElementById('pref-confirm').onchange = (e) => {
       prefs.confirm = e.target.checked; savePrefs();
     };
-    document.getElementById('prefs-close').onclick = () => { dlg.hidden = true; };
   },
 };
 

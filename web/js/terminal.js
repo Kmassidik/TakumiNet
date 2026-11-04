@@ -5,7 +5,6 @@ let termDevice = null;
 /* Router/switch id the session is bound to; differs from termDevice when the
    window was opened from a PC's Desktop across a console cable. */
 let termTarget = null;
-let termEsc = null;
 
 /* `/api/cli` answers with `{output, prompt}` only, so it must bypass `api()`
    (which treats every response as a workspace snapshot). */
@@ -30,16 +29,7 @@ async function openTerm(d) {
   win.hidden = false;
   bringToFront(win);
   titleEl.textContent = 'Terminal';
-  document.getElementById('term-close').onclick = close;
-  win.onclick = (e) => { if (e.target === win) close(); };
-  if (termEsc) document.removeEventListener('keydown', termEsc, true);
-  termEsc = (e) => {
-    if (e.key !== 'Escape' || win.hidden) return;
-    e.preventDefault();
-    e.stopPropagation();
-    close();
-  };
-  document.addEventListener('keydown', termEsc, true);
+  win.addEventListener('dialog-closed', close, { once: true });
 
   /* A router or switch is its own console; anything else needs a console cable
      to one, exactly like the real Desktop → Terminal icon. */
@@ -126,7 +116,6 @@ function closeTerm() {
   input.onkeydown = null;
   termDevice = null;
   termTarget = null;
-  if (termEsc) { document.removeEventListener('keydown', termEsc, true); termEsc = null; }
   if (!target) return;
   cliRequest('/api/cli/reset', { id: target.id }).catch(() => {});
 }

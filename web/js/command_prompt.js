@@ -24,8 +24,6 @@ function openCmd(d) {
   win.hidden = false;
   bringToFront(win);
   input.focus();
-  document.getElementById('cmd-close').onclick = () => { win.hidden = true; };
-  win.onclick = (e) => { if (e.target === win) win.hidden = true; };
 
   input.onkeydown = async (e) => {
     if (e.key !== 'Enter') return;

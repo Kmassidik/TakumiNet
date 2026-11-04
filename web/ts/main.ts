@@ -9,6 +9,7 @@ import { renderToolbar, type ToolbarItem } from "./ui/toolbar";
 import { buildRunLog, formatLogLine, type CommandRecord, type LogEntry, type RunEvent } from "./ui/run_log";
 import { openModal } from "./ui/modal";
 import { ModalStack } from "./ui/modal_stack";
+import { wireDialogClose, type EventSource } from "./ui/dialog_close";
 
 const doc = document as unknown as DocLike;
 const stack = new ModalStack();
@@ -33,6 +34,7 @@ if (document.readyState === "loading") {
 } else {
   watchOverlays(stack);
 }
+wireDialogClose(document as unknown as EventSource, stack);
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", wireSidebar);
 } else {

@@ -47,6 +47,7 @@
         const el = record.target;
         if (el.hidden) {
           stack.forget(el.id);
+          el.dispatchEvent(new Event("dialog-closed"));
         } else if (!stack.has(el.id)) {
           const opener = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
           stack.push({ id: el.id, opener, onClose: () => {
@@ -917,6 +918,15 @@
     escape() {
       return this.close();
     }
+    closeById(id) {
+      const index = this.entries.findIndex((entry) => entry.id === id);
+      if (index < 0)
+        return false;
+      const [entry] = this.entries.splice(index, 1);
+      entry.onClose();
+      entry.opener?.focus();
+      return true;
+    }
     close() {
       const top = this.entries.pop();
       if (!top)
@@ -925,6 +935,42 @@
       top.opener?.focus();
       return true;
     }
+  }
+
+  // web/ts/ui/dialog_close.ts
+  function overlayToClose(target) {
+    if (!target)
+      return null;
+    if (target.classList.contains("overlay"))
+      return target;
+    if (target.closest("[data-dialog-close]"))
+      return target.closest(".overlay");
+    return null;
+  }
+  function closeOverlay(overlay, stack) {
+    if (!stack.closeById(overlay.id))
+      overlay.hidden = true;
+  }
+  function wireDialogClose(source, stack) {
+    let pressed = null;
+    source.addEventListener("mousedown", (event) => {
+      pressed = event.target;
+    });
+    source.addEventListener("click", (event) => {
+      const overlay = overlayToClose(event.target);
+      if (!overlay)
+        return;
+      const fromBackdrop = event.target.classList.contains("overlay");
+      if (fromBackdrop && pressed !== event.target)
+        return;
+      closeOverlay(overlay, stack);
+    });
+    source.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || event.defaultPrevented)
+        return;
+      if (stack.escape())
+        event.preventDefault();
+    });
   }
 
   // web/ts/main.ts
@@ -946,6 +992,7 @@
   } else {
     watchOverlays(stack);
   }
+  wireDialogClose(document, stack);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", wireSidebar);
   } else {

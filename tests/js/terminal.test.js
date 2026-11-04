@@ -18,10 +18,11 @@ class Element {
     this.scrollHeight = 100;
   }
   focus() {}
+  addEventListener() {}
 }
 
 test('terminal output returns immediately while live port state refreshes behind it', async () => {
-  const ids = ['term-window', 'term-out', 'term-in', 'term-prompt', 'term-title', 'term-close'];
+  const ids = ['term-window', 'term-out', 'term-in', 'term-prompt', 'term-title'];
   const elements = Object.fromEntries(ids.map((id) => [id, new Element()]));
   const refreshes = [];
   const snapshots = [];
