@@ -32,11 +32,15 @@ mod security;
 mod startup;
 mod switching;
 mod traffic;
+mod route_types;
+mod records_load_routing;
+mod records_save_routing;
 mod types;
 mod util;
 mod wan;
 mod wireless;
 
+pub use route_types::*;
 pub use types::*;
 use palette::*;
 use util::*;
@@ -57,6 +61,7 @@ impl Workspace {
                 sim_time: 0.0,
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
+                dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
                 startup: None,
@@ -258,6 +263,7 @@ impl Workspace {
                 sim_time: 0.0,
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
+                dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
                 startup: None,

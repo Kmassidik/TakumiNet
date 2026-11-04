@@ -134,6 +134,59 @@ impl Workspace {
         Ok(())
     }
 
+    /// Add a pool for another network on the same server. A pool for a network the
+    /// server already serves replaces the old one.
+    pub fn add_dhcp_pool(
+        &mut self,
+        id: &str,
+        network: &str,
+        prefix: u8,
+        gateway: &str,
+        dns: &str,
+    ) -> Result<(), String> {
+        let Some(primary) = self.dhcp_pools.get(id).copied() else {
+            return self.set_dhcp_pool(id, network, prefix, gateway, dns);
+        };
+        let mut scratch = self.clone();
+        scratch.set_dhcp_pool(id, network, prefix, gateway, dns)?;
+        let added = scratch.dhcp_pools[id];
+        if added.network == primary.network && added.prefix == primary.prefix {
+            self.dhcp_pools.insert(id.to_string(), added);
+            return Ok(());
+        }
+        let extra = self.dhcp_more.entry(id.to_string()).or_default();
+        extra.retain(|p| !(p.network == added.network && p.prefix == added.prefix));
+        extra.push(added);
+        Ok(())
+    }
+
+    /// The VLAN of the switch access port a device is cabled to; `None` when it hangs
+    /// on a trunk, a router or no switch at all.
+    fn access_vlan_of(&self, id: &str) -> Option<u16> {
+        self.links.iter().find_map(|l| {
+            let (peer, peer_port) = if l.a == id { (&l.b, &l.b_port) } else if l.b == id { (&l.a, &l.a_port) } else { return None };
+            let switch = self.devices.iter().find(|d| d.id == *peer && d.kind == "switch")?;
+            let name = self.canonical_iface(&switch.id, peer_port).ok()?;
+            let port = switch.ports.iter().find(|p| p.name == name)?;
+            (!port.trunk).then_some(port.vlan)
+        })
+    }
+
+    /// Every pool a server owns, the first configured one first.
+    pub fn dhcp_pool_list(&self, server: &str) -> Vec<Pool> {
+        let mut all: Vec<Pool> = self.dhcp_pools.get(server).copied().into_iter().collect();
+        all.extend(self.dhcp_more.get(server).into_iter().flatten().copied());
+        all
+    }
+
+    /// A relayed request is answered from the pool that holds the relay's address.
+    fn pool_for(&self, server: &str, relay_address: Option<u32>) -> Pool {
+        let pools = self.dhcp_pool_list(server);
+        relay_address
+            .and_then(|giaddr| pools.iter().find(|p| crate::model::contains(giaddr, p.network, p.prefix)).copied())
+            .unwrap_or(pools[0])
+    }
+
     /// The server that answers this client's broadcast: same L2 segment, never
     /// across a router.
     pub(super) fn dhcp_server_for(&self, id: &str) -> Option<String> {
@@ -162,7 +215,7 @@ impl Workspace {
                 if dev.kind == "router" {
                     continue;
                 }
-                if self.dhcp_pools.contains_key(&dev.id) {
+                if self.dhcp_pools.contains_key(&dev.id) && self.access_vlan_of(id) == self.access_vlan_of(&dev.id) {
                     return Some(dev.id.clone());
                 }
                 seen.push(dev.id.clone());
@@ -174,7 +227,7 @@ impl Workspace {
 
     /// A router with `ip helper-address` on the client's subnet forwards the
     /// request to that server.
-    pub(super) fn relayed_server_for(&self, client: &str) -> Option<String> {
+    pub(super) fn relayed_server_for(&self, client: &str) -> Option<(String, u32)> {
         let dev = self.devices.iter().find(|d| d.id == client)?;
         let server_with_pool = |helper: u32| {
             self.devices
@@ -225,15 +278,24 @@ impl Workspace {
                             None
                         };
                         router_port.is_some_and(|port| {
-                            crate::cli::expand_iface(port, &port_names).as_ref() == Some(iface)
+                            let physical = crate::cli::expand_iface(port, &port_names);
+                            let sub = rdev.ports.iter().find(|p| &p.name == iface);
+                            match sub.and_then(|p| p.dot1q) {
+                                Some(tag) => {
+                                    physical.as_deref() == iface.split('.').next()
+                                        && self.access_vlan_of(client) == Some(tag)
+                                }
+                                None => physical.as_ref() == Some(iface),
+                            }
                         })
                     })
                 } else {
                     false
                 };
                 if matches_subnet || matches_segment {
-                    if let Some(server) = server_with_pool(*helper) {
-                        return Some(server);
+                    let relay_address = rdev.ports.iter().find(|p| &p.name == iface).and_then(|p| p.ip);
+                    if let (Some(server), Some(giaddr)) = (server_with_pool(*helper), relay_address) {
+                        return Some((server, giaddr));
                     }
                 }
             }
@@ -270,13 +332,16 @@ impl Workspace {
         if !self.devices.iter().any(|d| d.id == id) {
             return Err("no such device".into());
         }
-        let server = match self.dhcp_server_for(id) {
-            Some(s) => s,
-            None => self
-                .relayed_server_for(id)
-                .ok_or_else(|| "no DHCP server on this segment".to_string())?,
+        let (server, relay_address) = match self.dhcp_server_for(id) {
+            Some(s) => (s, None),
+            None => {
+                let (s, giaddr) = self
+                    .relayed_server_for(id)
+                    .ok_or_else(|| "no DHCP server on this segment".to_string())?;
+                (s, Some(giaddr))
+            }
         };
-        let pool = self.dhcp_pools[&server];
+        let pool = self.pool_for(&server, relay_address);
         let mask = crate::model::mask_of(pool.prefix);
         let base = pool.network & mask;
         let last = base | !mask;

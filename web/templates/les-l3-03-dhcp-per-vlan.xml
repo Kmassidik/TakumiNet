@@ -1,0 +1,40 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="2911" x="340" y="60" name="OfficeRouter" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="340" y="200" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="60" y="360" name="Desk0" ip="" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC-PT" x="230" y="360" name="Desk1" ip="" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC-PT" x="400" y="360" name="Desk2" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="570" y="360" name="FileServer" ip="192.168.20.2" prefix="24"/>
+  <device id="printer0" kind="printer" model="Printer" x="740" y="360" name="Printer0" ip="192.168.30.10" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/4" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/5" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/6" b="printer0" b_port="Fa0" kind="eCopper"/>
+  <vlan id="switch0" vlan="10" name="staff"/>
+  <vlan id="switch0" vlan="20" name="servers"/>
+  <vlan id="switch0" vlan="30" name="devices"/>
+  <port id="switch0" name="FastEthernet0/1" up="1" ip="" prefix="24" vlan="1" trunk="1" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/2" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/3" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/4" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/5" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/6" up="1" ip="" prefix="24" vlan="30" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="router0" name="GigabitEthernet0/0.10" up="1" ip="192.168.10.1" prefix="24" vlan="1" trunk="0" dot1q="10" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/0.20" up="1" ip="192.168.20.1" prefix="24" vlan="1" trunk="0" dot1q="20" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/0.30" up="1" ip="192.168.30.1" prefix="24" vlan="1" trunk="0" dot1q="30" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="server0" gw="192.168.20.1" dns=""/>
+  <net id="printer0" gw="192.168.30.1" dns=""/>
+  <page id="server0" body="Shared files"/>
+  <lesson id="les-l3-03-dhcp-per-vlan" title="One address server for every VLAN" level="3" minutes="15" goal="Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network"/>
+  <step n="1" text="On FileServer create a DHCP pool for 192.168.20.0/24 with gateway 192.168.20.1, and a second pool for 192.168.10.0/24 with gateway 192.168.10.1." check="c1"/>
+  <step n="2" text="Desk0 and Desk1 are in another VLAN, so their broadcast stops at the router. On OfficeRouter subinterface GigabitEthernet0/0.10 set the helper address 192.168.20.2."/>
+  <step n="3" text="Switch Desk0, Desk1 and Desk2 to automatic addresses and renew." check="c3"/>
+  <step n="4" text="Ping FileServer from Desk0." check="c5"/>
+  <check id="c1" kind="pool" from="server0" to="" url="" expect="192.168.20.0/24" label="FileServer has a pool for the servers network"/>
+  <check id="c2" kind="pool" from="server0" to="" url="" expect="192.168.10.0/24" label="FileServer has a pool for the staff network"/>
+  <check id="c3" kind="lease" from="pc0" to="" url="" expect="" label="Desk0 has a leased address"/>
+  <check id="c4" kind="lease" from="pc2" to="" url="" expect="" label="Desk2 has a leased address"/>
+  <check id="c5" kind="ping" from="pc0" to="server0" url="" expect="ok" label="Desk0 reaches FileServer"/>
+</takumi>

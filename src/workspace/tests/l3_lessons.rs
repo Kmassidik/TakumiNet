@@ -84,3 +84,32 @@ fn port_security_lesson_needs_the_setting_and_keeps_the_known_pc_working() {
     ws.set_port_security("switch0", "FastEthernet0/2", 2).unwrap();
     assert_eq!(passes(&mut ws), vec![false, true]);
 }
+
+#[test]
+fn dhcp_per_vlan_lesson_serves_each_vlan_from_its_own_pool() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l3-03-dhcp-per-vlan.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false; 5]);
+    assert!(ws.acquire_dhcp("pc0").is_err(), "VLAN 10 cannot hear the server without a relay");
+    ws.add_dhcp_pool("server0", "192.168.20.0", 24, "192.168.20.1", "").unwrap();
+    ws.add_dhcp_pool("server0", "192.168.10.0", 24, "192.168.10.1", "").unwrap();
+    ws.set_dhcp_helper("router0", "GigabitEthernet0/0.10", "192.168.20.2").unwrap();
+    for pc in ["pc0", "pc1", "pc2"] {
+        ws.acquire_dhcp(pc).unwrap();
+    }
+    assert_eq!(passes(&mut ws), vec![true; 5]);
+    let addr = |ws: &Workspace, id: &str| ws.devices.iter().find(|d| d.id == id).and_then(|d| d.ip).unwrap();
+    assert!(crate::model::contains(addr(&ws, "pc0"), crate::model::parse_ipv4("192.168.10.0").unwrap(), 24));
+    assert!(crate::model::contains(addr(&ws, "pc2"), crate::model::parse_ipv4("192.168.20.0").unwrap(), 24));
+}
+
+#[test]
+fn extra_pools_survive_save_and_open_and_replace_a_same_network_pool() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l3-03-dhcp-per-vlan.xml")).unwrap();
+    ws.add_dhcp_pool("server0", "192.168.20.0", 24, "192.168.20.1", "").unwrap();
+    ws.add_dhcp_pool("server0", "192.168.10.0", 24, "192.168.10.1", "").unwrap();
+    ws.add_dhcp_pool("server0", "192.168.10.0", 24, "192.168.10.254", "").unwrap();
+    assert_eq!(ws.dhcp_pool_list("server0").len(), 2);
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.dhcp_pool_list("server0").len(), 2);
+    assert!(ws.add_dhcp_pool("server0", "bad", 24, "", "").is_err());
+}

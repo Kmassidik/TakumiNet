@@ -264,7 +264,12 @@ fn handle_devices_dhcp(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         .unwrap_or(24);
     let gateway = query_value(query, "gateway").unwrap_or_default();
     let dns = query_value(query, "dns").unwrap_or_default();
-    let (out, _) = apply(ctx, |ws| ws.set_dhcp_pool(&id, &network, prefix, &gateway, &dns));
+    let more = matches!(query_value(query, "more").as_deref(), Some("1") | Some("true"));
+    let (out, _) = apply(ctx, |ws| if more {
+        ws.add_dhcp_pool(&id, &network, prefix, &gateway, &dns)
+    } else {
+        ws.set_dhcp_pool(&id, &network, prefix, &gateway, &dns)
+    });
     (json, out.into_bytes())
 }
 

@@ -92,7 +92,7 @@ test("files: .xml is the file type; .tnet appears only where old files are read"
     }
   }
   const templates = readdirSync(join(web, "templates"));
-  expect(templates.length).toBe(22);
+  expect(templates.length).toBe(23);
   expect(templates.every((n) => n.endsWith(".xml"))).toBe(true);
   expect(readFileSync(join(web, "sw.js"), "utf8")).not.toContain(".tnet");
 });

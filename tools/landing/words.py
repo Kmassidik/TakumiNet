@@ -52,7 +52,8 @@ T = {
             ("Let the VLANs talk through the router", "Desk0 reaches the server and printer through one router cable"),
             ("Fence the printer off from the servers", "The printer VLAN cannot reach the servers, and everyone else still can"),
             ("Join the campus with OSPF", "PC0 reaches Server0, and still does after one uplink is cut"),
-            ("Lock a desk port to one computer", "The port for Desk0 accepts only one address")],
+            ("Lock a desk port to one computer", "The port for Desk0 accepts only one address"),
+            ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
             ("Is Takumi free?", "Yes. It is free to use and open source under the MIT licence."),
@@ -131,7 +132,8 @@ T = {
             ("Biarkan VLAN berbicara lewat router", "Desk0 menjangkau server dan printer lewat satu kabel router"),
             ("Pagari printer dari server", "VLAN printer tidak bisa menjangkau server, yang lain tetap bisa"),
             ("Hubungkan kampus dengan OSPF", "PC0 menjangkau Server0, dan tetap bisa setelah satu kabel putus"),
-            ("Kunci port meja ke satu komputer", "Port untuk Desk0 hanya menerima satu alamat")],
+            ("Kunci port meja ke satu komputer", "Port untuk Desk0 hanya menerima satu alamat"),
+            ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
             ("Apakah Takumi gratis?", "Ya. Takumi gratis dipakai dan open source dengan lisensi MIT."),

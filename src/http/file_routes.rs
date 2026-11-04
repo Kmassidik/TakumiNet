@@ -206,6 +206,7 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("tpl-l4-campus-ospf", include_str!("../../web/templates/tpl-l4-campus-ospf.xml")),
     ("les-l4-03-ospf-campus", include_str!("../../web/templates/les-l4-03-ospf-campus.xml")),
     ("les-l3-05-port-security", include_str!("../../web/templates/les-l3-05-port-security.xml")),
+    ("les-l3-03-dhcp-per-vlan", include_str!("../../web/templates/les-l3-03-dhcp-per-vlan.xml")),
 ];
 
 /// Ready-to-run networks: no steps, nothing to set. Titles and goals for the gallery.

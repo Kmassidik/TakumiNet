@@ -52,13 +52,16 @@ impl Workspace {
         let Some((network, prefix)) = check.expect.split_once('/').and_then(|(n, p)| Some((parse_ipv4(n)?, parse_mask(p)?))) else {
             return (false, format!("invalid pool expectation '{}'", check.expect), "Use network/prefix, for example 192.168.1.0/24.".into());
         };
-        match self.dhcp_pools.get(&check.from) {
-            Some(pool) if pool.network == network & mask_of(prefix) && pool.prefix == prefix => {
-                (true, format!("pool {}/{}", ipv4_string(pool.network), pool.prefix), hint)
-            }
-            Some(pool) => (false, format!("pool is {}/{}", ipv4_string(pool.network), pool.prefix), hint),
-            None => (false, "no DHCP pool on this device".into(), hint),
+        let pools = self.dhcp_pool_list(&check.from);
+        if pools.is_empty() {
+            return (false, "no DHCP pool on this device".into(), hint);
         }
+        let wanted = network & mask_of(prefix);
+        if pools.iter().any(|p| p.network == wanted && p.prefix == prefix) {
+            return (true, format!("pool {}/{}", ipv4_string(wanted), prefix), hint);
+        }
+        let seen: Vec<String> = pools.iter().map(|p| format!("{}/{}", ipv4_string(p.network), p.prefix)).collect();
+        (false, format!("pools are {}", seen.join(", ")), hint)
     }
 
     fn check_vlan(&self, check: &Check) -> Verdict {
