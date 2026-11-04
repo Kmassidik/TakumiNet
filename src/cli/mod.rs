@@ -13,8 +13,10 @@ mod interface;
 mod line;
 mod router;
 mod show;
+mod show_tables;
 use help::*;
 use show::*;
+use show_tables::*;
 pub use help::complete;
 pub(crate) use show::config_for;
 
