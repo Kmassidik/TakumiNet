@@ -33,7 +33,13 @@
         "client-radio",
         "hotspot-ap",
         "printer",
-        "phone"
+        "phone",
+        "district-hub",
+        "city-exchange",
+        "regency-hub",
+        "village-pop",
+        "microwave-link",
+        "satellite-terminal"
       ],
       "grid": "3x2"
     },

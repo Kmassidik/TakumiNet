@@ -366,5 +366,9 @@ mod tests {
 
 /// Device kinds that route packets with a routing table and NAT.
 pub fn routes_packets(kind: &str) -> bool {
-    matches!(kind, "router" | "asa" | "rtrw-gateway" | "switch-l3")
+    matches!(
+        kind,
+        "router" | "asa" | "rtrw-gateway" | "switch-l3"
+            | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
+    )
 }

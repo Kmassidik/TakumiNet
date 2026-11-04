@@ -35,6 +35,12 @@ pub(super) const CATALOG: &[(&str, &str, &str)] = &[
     ("Thing", "-", "thing"),
     ("IoE", "-", "ioe"),
     ("Load Balancer", "-", "load-balancer"),
+    ("District Hub", "-", "district-hub"),
+    ("City Exchange", "-", "city-exchange"),
+    ("Regency Hub", "-", "regency-hub"),
+    ("Village POP", "-", "village-pop"),
+    ("Microwave Link", "-", "microwave-link"),
+    ("Satellite Terminal", "-", "satellite-terminal"),
 ];
 
 /// Vendor-flavoured labels from older files, mapped to the tiered own names.
@@ -113,6 +119,13 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         "hotspot-ap" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         "asa" => (1..=3).map(|i| format!("GigabitEthernet1/{i}")).collect(),
         "switch-l3" => (1..=12).map(|i| format!("GigabitEthernet0/{i}")).collect(),
+        "district-hub" | "city-exchange" | "regency-hub" => {
+            (0..8).map(|i| format!("GigabitEthernet0/{i}")).collect()
+        }
+        "village-pop" => (0..4).map(|i| format!("GigabitEthernet0/{i}")).collect(),
+        "microwave-link" | "satellite-terminal" => {
+            (0..2).map(|i| format!("FastEthernet{i}")).collect()
+        }
         "load-balancer" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         _ => vec!["FastEthernet0".to_string()],
     };
@@ -195,6 +208,12 @@ pub(super) fn name_prefix(kind: &str) -> &'static str {
         "hotspot-ap" => "HotspotAP",
         "switch-l3" => "L3Switch",
         "load-balancer" => "Balancer",
+        "district-hub" => "DistrictHub",
+        "city-exchange" => "CityExchange",
+        "regency-hub" => "RegencyHub",
+        "village-pop" => "VillagePop",
+        "microwave-link" => "Microwave",
+        "satellite-terminal" => "Satellite",
         _ => "Device",
     }
 }
