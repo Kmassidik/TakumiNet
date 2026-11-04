@@ -171,19 +171,24 @@ const ACTIONS = {
     if (!r.error) { status('Pasted'); sfx('devicePlacement'); }
   },
   async delete() {
-    if (selectedLink) {
-      const { a, b } = selectedLink;
+    const ids = [...selection];
+    const link = selectedLink;
+    if (!ids.length && !link) { status('Nothing selected'); return; }
+    if (link) {
       selectedLink = null;
-      if (!(await api('/api/links/delete', { a, b })).error) sfx('removeLink');
-      return;
+      if (!(await api('/api/links/delete', { a: link.a, b: link.b })).error) sfx('removeLink');
     }
-    if (selected) {
-      const id = selected;
-      setSelection([...selection].filter((x) => x !== id));
-      if (!(await api('/api/devices/delete', { id })).error) sfx('removeDevice');
-      return;
+    if (ids.length) {
+      setSelection([]);
+      let removed = 0;
+      for (const id of ids) {
+        if (!(await api('/api/devices/delete', { id })).error) removed += 1;
+      }
+      if (removed) {
+        sfx('removeDevice');
+        if (removed > 1) status(`Deleted ${removed} devices`);
+      }
     }
-    status('Nothing selected');
   },
 
   'add-note'() {

@@ -23,13 +23,19 @@ function startDrag(ev, d) {
     return;
   }
 
-  setSelection([d.id]);
+  /* Pressing a device already in a multi-selection keeps it: the drag then
+     moves the whole selection. A press outside the selection replaces it. */
+  if (!selection.has(d.id)) setSelection([d.id]);
   status(`${d.name} · ${d.model}`);
   syncSelectionClasses();
   renderEvents();
 
   const start = toSvg(ev);
-  drag = { id: d.id, start, ox: d.x, oy: d.y, moved: false };
+  const origins = [...selection]
+    .map((id) => data.devices.find((x) => x.id === id))
+    .filter(Boolean)
+    .map((dev) => ({ id: dev.id, x: dev.x, y: dev.y }));
+  drag = { id: d.id, start, origins, moved: false };
   hideTip();
 
   const onMove = (e) => {
@@ -37,20 +43,26 @@ function startDrag(ev, d) {
     const dx = p.x - start.x;
     const dy = p.y - start.y;
     if (Math.abs(dx) + Math.abs(dy) > 2) drag.moved = true;
-    const dev = data.devices.find((x) => x.id === drag.id);
-    dev.x = drag.ox + dx;
-    dev.y = drag.oy + dy;
+    for (const o of drag.origins) {
+      const dev = data.devices.find((x) => x.id === o.id);
+      if (dev) { dev.x = o.x + dx; dev.y = o.y + dy; }
+    }
     renderTopology();
   };
 
   const onUp = async () => {
     window.removeEventListener('pointermove', onMove);
-    const dev = data.devices.find((x) => x.id === drag.id);
-    const id = drag.id;
     const moved = drag.moved;
-    const { x, y } = dev;
+    /* Each api() call replaces `data` with the server snapshot, so read every
+       final position before the first call. */
+    const targets = drag.origins
+      .map((o) => data.devices.find((x) => x.id === o.id))
+      .filter(Boolean)
+      .map((dev) => ({ id: dev.id, x: dev.x, y: dev.y }));
     drag = null;
-    if (moved) await api('/api/devices/move', { id, x, y });
+    if (moved) {
+      for (const t of targets) await api('/api/devices/move', { id: t.id, x: t.x, y: t.y });
+    }
     // No re-render on a plain click: replacing the node would swallow the
     // second half of a double-click (IP configuration).
   };

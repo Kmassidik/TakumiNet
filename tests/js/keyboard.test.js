@@ -98,6 +98,67 @@ test('Escape clears the selected cable and cancels note placing', () => {
   assert.equal(vm.runInContext('pduFrom', context), null);
 });
 
+test('Ctrl/Cmd+A selects every device', () => {
+  const selections = [];
+  const { press } = keyboardContext({
+    data: { devices: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] },
+    setSelection: (ids) => selections.push(ids),
+    status() {},
+  });
+  press('a', { metaKey: true });
+  press('A', { ctrlKey: true });
+  assert.deepEqual(selections, [['a', 'b', 'c'], ['a', 'b', 'c']]);
+});
+
+function nudgeContext(selectedIds) {
+  const sel = new Set(selectedIds);
+  const apiCalls = [];
+  let flush = null;
+  const base = keyboardContext({
+    data: { devices: [{ id: 'a', x: 10, y: 20 }, { id: 'b', x: 100, y: 200 }] },
+    selection: sel,
+    selectionCount: () => sel.size,
+    api: async (p, params) => { apiCalls.push({ p, params }); return {}; },
+    setTimeout: (fn) => { flush = fn; return 1; },
+    clearTimeout: () => {},
+    status() {},
+  });
+  return { ...base, apiCalls, flush: () => flush && flush() };
+}
+
+test('arrows nudge the selection by 10px, Shift+arrow by 1px, saved once', async () => {
+  const ctx = nudgeContext(['a', 'b']);
+  ctx.press('ArrowRight');
+  ctx.press('ArrowDown');
+  ctx.press('ArrowLeft', { shiftKey: true });
+  const [a, b] = vm.runInContext('data.devices', ctx.context);
+  assert.deepEqual([a.x, a.y], [19, 30]);
+  assert.deepEqual([b.x, b.y], [109, 210]);
+  assert.deepEqual(ctx.calls, []);
+  assert.deepEqual(ctx.apiCalls, []);
+  await ctx.flush();
+  /* Objects born inside the vm carry another realm's prototypes. */
+  assert.deepEqual(JSON.parse(JSON.stringify(ctx.apiCalls)), [
+    { p: '/api/devices/move', params: { id: 'a', x: 19, y: 30 } },
+    { p: '/api/devices/move', params: { id: 'b', x: 109, y: 210 } },
+  ]);
+});
+
+test('a held arrow keeps nudging: auto-repeat is allowed for the nudge', () => {
+  const ctx = nudgeContext(['a']);
+  ctx.press('ArrowRight');
+  ctx.press('ArrowRight', { repeat: true });
+  assert.equal(vm.runInContext('data.devices[0].x', ctx.context), 30);
+});
+
+test('with nothing selected the arrows still step the simulation', () => {
+  const ctx = nudgeContext([]);
+  ctx.press('ArrowRight');
+  ctx.press('ArrowLeft');
+  assert.deepEqual(ctx.calls, ['step 1', 'step -1']);
+  assert.deepEqual(ctx.apiCalls, []);
+});
+
 test('the fit and reset actions both fit the whole network into view', () => {
   const fits = [];
   const statuses = [];

@@ -264,6 +264,30 @@
       drawPacket(ctx, packet, camera);
     for (const note of options.notes ?? [])
       drawNote(ctx, note, camera, options.selectedNote ?? null);
+    if (options.pending)
+      drawPendingCable(ctx, options.pending, camera);
+    if (options.marquee)
+      drawMarquee(ctx, options.marquee, camera);
+  }
+  function drawPendingCable(ctx, pending, camera) {
+    const a = camera.toScreen(pending.from);
+    const b = camera.toScreen(pending.to);
+    ctx.strokeStyle = SELECT;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  function drawMarquee(ctx, rect, camera) {
+    const at = camera.toScreen({ x: rect.x, y: rect.y });
+    ctx.strokeStyle = SELECT;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 4]);
+    ctx.strokeRect(at.x, at.y, rect.w * camera.zoom, rect.h * camera.zoom);
+    ctx.setLineDash([]);
   }
   function drawNote(ctx, note, camera, selected) {
     const box = noteBox(note);
@@ -624,6 +648,22 @@
     return { devices, links, groups };
   }
 
+  // web/ts/canvas/marquee.ts
+  function normalizedRect(a, b) {
+    return {
+      x: Math.min(a.x, b.x),
+      y: Math.min(a.y, b.y),
+      w: Math.abs(a.x - b.x),
+      h: Math.abs(a.y - b.y)
+    };
+  }
+  function rectsIntersect(a, b) {
+    return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  }
+  function idsInRect(items, rect) {
+    return items.filter((item) => rectsIntersect(item.box, rect)).map((item) => item.id);
+  }
+
   // web/ts/canvas/workspace_canvas.ts
   var LINK_TOLERANCE_PX = 6;
 
@@ -640,6 +680,8 @@
     packets = [];
     frame = 0;
     panFrom = null;
+    marquee = null;
+    pointerWorld = null;
     spaceDown = false;
     wasPhysical = false;
     constructor(canvas) {
@@ -654,10 +696,7 @@
         new ResizeObserver(() => this.resize()).observe(canvas);
       canvas.addEventListener("pointerdown", (ev) => this.onPointerDown(ev));
       canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
-      canvas.addEventListener("pointerup", () => {
-        this.panFrom = null;
-        this.canvas.style.cursor = cursorFor(null, this.mode(), false);
-      });
+      canvas.addEventListener("pointerup", (ev) => this.onPointerUp(ev));
       canvas.addEventListener("wheel", (ev) => this.onWheel(ev), { passive: false });
       window.addEventListener("keydown", (ev) => {
         if (ev.code === "Space")
@@ -809,7 +848,9 @@
         packets,
         empty: state?.empty,
         notes: state?.notes,
-        selectedNote: state?.selectedNote
+        selectedNote: state?.selectedNote,
+        marquee: this.marquee ? normalizedRect(this.marquee.from, this.marquee.to) : null,
+        pending: state?.pending && this.pointerWorld ? { from: state.pending, to: this.pointerWorld } : null
       });
       if (this.packets.length)
         this.requestDraw();
@@ -876,16 +917,43 @@
       const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
       if (link)
         return this.handlers.onLinkDown?.(link, ev);
+      if (ev.button === 0 && this.mode() === "select") {
+        this.marquee = { from: world, to: world, additive: ev.shiftKey, down: ev };
+        this.canvas.setPointerCapture(ev.pointerId);
+        return;
+      }
       this.startPan(ev);
       this.handlers.onBackgroundDown?.(ev);
     }
+    onPointerUp(ev) {
+      if (this.marquee) {
+        const { from, to, additive, down } = this.marquee;
+        this.marquee = null;
+        const rect = normalizedRect(from, to);
+        if ((rect.w + rect.h) * this.camera.zoom < 4)
+          this.handlers.onBackgroundDown?.(down);
+        else
+          this.handlers.onMarquee?.(idsInRect(this.scene.devices, rect), additive);
+        this.requestDraw();
+      }
+      this.panFrom = null;
+      this.canvas.style.cursor = cursorFor(null, this.mode(), false);
+    }
     onPointerMove(ev) {
+      if (this.marquee) {
+        this.marquee.to = this.worldAt(ev);
+        this.requestDraw();
+        return;
+      }
       if (!this.panFrom) {
         if (this.state?.physical) {
           this.canvas.style.cursor = cursorFor(null, this.mode(), false);
           return;
         }
         const world = this.worldAt(ev);
+        this.pointerWorld = world;
+        if (this.state?.pending)
+          this.requestDraw();
         const group = hitGroup(this.scene, world);
         const device = group ? null : hitDevice(this.scene, world);
         const link = group || device ? null : hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
