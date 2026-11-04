@@ -24,6 +24,7 @@ const PRECACHE_URLS = Object.freeze([
   '/js/ip_dialog.js',
   '/js/lessons.js',
   '/js/main.js',
+  '/js/phone.js',
   '/js/ui.js',
   '/js/packet_details.js',
   '/js/palette.js',

@@ -501,3 +501,14 @@ Checked in Chrome after each fix: buffer matches box after every panel change (F
 ## Build order proposed for Round 2
 
 F14 (it affects every screen), F15, F16, F18 with F17, F19, then F20 if the owner decides.
+
+## F21. Phones are blocked: one "not supported" page (done, 2026-11-04)
+
+Owner: "block the phone view ... render one view that says this app is not supported on the phone".
+
+- A screen counts as a phone when it is under 600 px wide, or short (500 px or less) with a finger as the pointer (a phone turned sideways). Tablets (768 px and wider) and computers are not blocked.
+- On a phone the page shows one message and nothing starts: no engine download, no offline cache registration, no app. If the window grows past a phone (a tablet turned, a desktop window widened) the page reloads and starts normally.
+- Where: `web/js/phone.js` (the rule), `web/js/main.js` (does not start), `web/js/engine.js` (does not download), the `#phone-block` section in `web/index.html`, the phone media query at the end of `web/workspace.css`. The CSS query and the script query are the same text, and a test keeps them equal.
+- Tests: `tests/js/phone.test.js`, `tests/js/engine.test.js` (two new cases), `tests/bend/phone_block.bend`.
+- Checked in Chrome at 390 x 844: only the message was visible, `engine.wasm` was not requested, the app did not start; at 1512 x 855 it reloaded and started.
+- Not blocked on purpose: the About page (`/about`) still works on a phone, so the link in the message opens.

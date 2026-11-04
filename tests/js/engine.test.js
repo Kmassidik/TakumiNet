@@ -85,3 +85,22 @@ test('loader falls back only when WASM initialization fails', async () => {
   assert.equal(engine.mode, 'server');
   assert.deepEqual(calls, ['/engine.wasm', '/api/workspace']);
 });
+
+test('on a phone the engine is never downloaded', async () => {
+  const fetched = [];
+  const context = vm.createContext({ WebAssembly, Response, TextEncoder, TextDecoder, Uint8Array, DataView, ArrayBuffer, URL, performance, console, isPhoneScreen: () => true });
+  vm.runInContext(source, context);
+  const engine = context.TakumiEngine.create({ nativeFetch: async (url) => { fetched.push(url); return new Response(''); }, storage: {}, wasmUrl: '/engine.wasm' });
+  assert.equal(await engine.ready, false);
+  assert.deepEqual(fetched, []);
+  assert.equal(engine.mode, 'server');
+});
+
+test('on a normal screen the engine still downloads', async () => {
+  const fetched = [];
+  const context = vm.createContext({ WebAssembly, Response, TextEncoder, TextDecoder, Uint8Array, DataView, ArrayBuffer, URL, performance, console, isPhoneScreen: () => false });
+  vm.runInContext(source, context);
+  const engine = context.TakumiEngine.create({ nativeFetch: async (url) => { fetched.push(url); return new Response('', { status: 404 }); }, storage: {}, wasmUrl: '/engine.wasm' });
+  await engine.ready;
+  assert.deepEqual(fetched, ['/engine.wasm']);
+});

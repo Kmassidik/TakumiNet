@@ -36,8 +36,14 @@
       return out.buffer;
     }
 
+    // A phone shows only the "not supported" message, so the engine is never downloaded.
+    const blocked = typeof root.isPhoneScreen === 'function' && root.isPhoneScreen();
     const ready = (async () => {
       const started = performance.now();
+      if (blocked) {
+        mode = 'server';
+        return false;
+      }
       try {
         const response = await nativeFetch(wasmUrl);
         if (!response.ok) throw new Error('engine unavailable');

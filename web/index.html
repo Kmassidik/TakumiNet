@@ -10,6 +10,12 @@
 <link rel="stylesheet" href="/workspace.css">
 </head>
 <body>
+<section id="phone-block" class="phone-block" role="alert">
+  <img src="/art3d/mascot/sleep.webp" alt="" width="96" height="96">
+  <h1>TakumiNet is not supported on phones</h1>
+  <p>Building and tracing networks needs a bigger screen and a mouse or keyboard. Please open this page on a computer or a tablet.</p>
+  <p><a href="/about">About TakumiNet</a></p>
+</section>
 <div id="engine-loading" class="engine-loading" role="status" aria-live="polite">
   <img src="/art3d/mascot/think.webp" alt="" width="72" height="72">
   <p id="engine-loading-text">Loading the TakumiNet engine…</p>
@@ -446,6 +452,7 @@
 <figure id="print-sheet" class="print-sheet" aria-hidden="true"></figure>
 
 <div id="tip" class="tip" hidden></div>
+<script src="/js/phone.js"></script>
 <script src="/js/engine.js"></script>
 <script src="/js/state.js"></script>
 <script src="/js/capture_filter.js"></script>
