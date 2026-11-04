@@ -1,0 +1,63 @@
+<takumi version="1">
+<device id="kota" kind="backbone-pop" model="Backbone POP" x="120" y="260" name="PopKota" ip="" prefix="24"/>
+<port id="kota" name="GigabitEthernet0/0" up="1" ip="10.50.1.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<port id="kota" name="GigabitEthernet0/1" up="0" ip="10.50.2.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<port id="kota" name="GigabitEthernet0/2" up="1" ip="10.50.9.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="pc0" kind="pc" model="PC" x="60" y="440" name="WargaKota" ip="10.50.9.20" prefix="24"/>
+<net id="pc0" gw="10.50.9.1" dns=""/>
+<device id="cara" kind="national-gateway" model="National Gateway" x="380" y="120" name="OperatorSatu" ip="" prefix="24"/>
+<port id="cara" name="GigabitEthernet0/0" up="1" ip="10.50.1.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<port id="cara" name="GigabitEthernet0/1" up="1" ip="10.50.3.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<device id="carb" kind="national-gateway" model="National Gateway" x="380" y="400" name="OperatorDua" ip="" prefix="24"/>
+<port id="carb" name="GigabitEthernet0/0" up="0" ip="10.50.2.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<port id="carb" name="GigabitEthernet0/1" up="1" ip="10.50.4.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<device id="ix0" kind="internet-exchange" model="Internet Exchange" x="640" y="260" name="IXNasional" ip="" prefix="24"/>
+<port id="ix0" name="GigabitEthernet0/0" up="1" ip="10.50.3.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="ix0" name="GigabitEthernet0/1" up="1" ip="10.50.4.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="ix0" name="GigabitEthernet0/2" up="1" ip="10.50.100.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="server0" kind="server" model="Server" x="840" y="140" name="LayananNasional" ip="10.50.100.10" prefix="24"/>
+<net id="server0" gw="10.50.100.1" dns=""/>
+<link a="pc0" a_port="Fa0" b="kota" b_port="Gig0/2" kind="eCross"/>
+<link a="kota" a_port="Gig0/0" b="cara" b_port="Gig0/0" kind="eCopper"/>
+<link a="kota" a_port="Gig0/1" b="carb" b_port="Gig0/0" kind="eCopper"/>
+<link a="cara" a_port="Gig0/1" b="ix0" b_port="Gig0/0" kind="eCopper"/>
+<link a="carb" a_port="Gig0/1" b="ix0" b_port="Gig0/1" kind="eCopper"/>
+<link a="ix0" a_port="Gig0/2" b="server0" b_port="Fa0" kind="eCross"/>
+<routing dev="kota" proto="ospf" process_id="1"/>
+<routenet dev="kota" net="10.50.1.0" prefix="30" area="0"/>
+<routenet dev="kota" net="10.50.2.0" prefix="30" area="0"/>
+<routenet dev="kota" net="10.50.3.0" prefix="30" area="0"/>
+<routenet dev="kota" net="10.50.4.0" prefix="30" area="0"/>
+<routenet dev="kota" net="10.50.9.0" prefix="24" area="0"/>
+<routenet dev="kota" net="10.50.100.0" prefix="24" area="0"/>
+<routing dev="cara" proto="ospf" process_id="1"/>
+<routenet dev="cara" net="10.50.1.0" prefix="30" area="0"/>
+<routenet dev="cara" net="10.50.2.0" prefix="30" area="0"/>
+<routenet dev="cara" net="10.50.3.0" prefix="30" area="0"/>
+<routenet dev="cara" net="10.50.4.0" prefix="30" area="0"/>
+<routenet dev="cara" net="10.50.9.0" prefix="24" area="0"/>
+<routenet dev="cara" net="10.50.100.0" prefix="24" area="0"/>
+<routing dev="carb" proto="ospf" process_id="1"/>
+<routenet dev="carb" net="10.50.1.0" prefix="30" area="0"/>
+<routenet dev="carb" net="10.50.2.0" prefix="30" area="0"/>
+<routenet dev="carb" net="10.50.3.0" prefix="30" area="0"/>
+<routenet dev="carb" net="10.50.4.0" prefix="30" area="0"/>
+<routenet dev="carb" net="10.50.9.0" prefix="24" area="0"/>
+<routenet dev="carb" net="10.50.100.0" prefix="24" area="0"/>
+<routing dev="ix0" proto="ospf" process_id="1"/>
+<routenet dev="ix0" net="10.50.1.0" prefix="30" area="0"/>
+<routenet dev="ix0" net="10.50.2.0" prefix="30" area="0"/>
+<routenet dev="ix0" net="10.50.3.0" prefix="30" area="0"/>
+<routenet dev="ix0" net="10.50.4.0" prefix="30" area="0"/>
+<routenet dev="ix0" net="10.50.9.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.50.100.0" prefix="24" area="0"/>
+<lesson id="les-l10-04-two-carriers" title="Two carriers to the exchange" level="10" minutes="12" goal="PopKota reaches IXNasional through either carrier, so either carrier may die"/>
+<step n="1" text="The city buys lines from two national carriers, but only OperatorSatu is lit. The line to OperatorDua is plugged in with both ports turned off: one carrier outage and the city goes dark."/>
+<step n="2" text="On PopKota, turn port GigabitEthernet0/1 on. Do the same for GigabitEthernet0/0 on OperatorDua. OSPF now knows both roads to the exchange."/>
+<step n="3" text="Let OperatorSatu die in your head: the city must still reach LayananNasional through OperatorDua." check="c1"/>
+<step n="4" text="And the other way around: OperatorDua may die too." check="c2"/>
+<step n="5" text="With both carriers up, the city reads the national service as always." check="c3"/>
+<check id="c1" kind="outage" from="pc0" to="server0" url="kota:GigabitEthernet0/0" expect="ok" label="WargaKota still reaches LayananNasional with the OperatorSatu line cut"/>
+<check id="c2" kind="outage" from="pc0" to="server0" url="kota:GigabitEthernet0/1" expect="ok" label="WargaKota still reaches LayananNasional with the OperatorDua line cut"/>
+<check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="WargaKota reaches LayananNasional"/>
+</takumi>

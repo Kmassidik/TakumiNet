@@ -303,7 +303,10 @@ impl Workspace {
             "capwap" => self.capwap.values().filter(|wlc| **wlc == check.to).count(),
             "pool-members" => self.lb_rows(&check.to).len(),
             "served" => self.lb_served_count(&check.to),
-            other => return (false, format!("unknown count scope '{other}'"), "Use devices, leases, routes, reservations, queues, capwap, pool-members or served.".into()),
+            scope => match scope.strip_prefix("bgp:") {
+                Some(device) => self.bgp_sessions(device).iter().filter(|(_, _, state)| state == "established").count(),
+                None => return (false, format!("unknown count scope '{scope}'"), "Use devices, leases, routes, reservations, queues, capwap, pool-members, served or bgp:<device>.".into()),
+            },
         };
         (found >= least, format!("{found} found, {least} needed"), hint)
     }

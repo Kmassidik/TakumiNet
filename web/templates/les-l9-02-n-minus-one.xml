@@ -1,0 +1,79 @@
+<takumi version="1">
+<device id="pop1" kind="backbone-pop" model="Backbone POP" x="200" y="120" name="PopMakassar" ip="" prefix="24"/>
+<port id="pop1" name="GigabitEthernet0/0" up="1" ip="10.9.12.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<port id="pop1" name="GigabitEthernet0/1" up="1" ip="10.9.51.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<port id="pop1" name="GigabitEthernet0/2" up="1" ip="10.9.100.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="10000000" delay_us="1000"/>
+<device id="pop2" kind="backbone-pop" model="Backbone POP" x="440" y="60" name="PopParepare" ip="" prefix="24"/>
+<port id="pop2" name="GigabitEthernet0/0" up="1" ip="10.9.12.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<port id="pop2" name="GigabitEthernet0/1" up="1" ip="10.9.23.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<device id="pop3" kind="backbone-pop" model="Backbone POP" x="680" y="120" name="PopPalu" ip="" prefix="24"/>
+<port id="pop3" name="GigabitEthernet0/0" up="1" ip="10.9.23.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<port id="pop3" name="GigabitEthernet0/1" up="1" ip="10.9.34.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<device id="pop4" kind="backbone-pop" model="Backbone POP" x="680" y="320" name="PopGorontalo" ip="" prefix="24"/>
+<port id="pop4" name="GigabitEthernet0/0" up="1" ip="10.9.34.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<port id="pop4" name="GigabitEthernet0/1" up="1" ip="10.9.45.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<device id="pop5" kind="backbone-pop" model="Backbone POP" x="440" y="380" name="PopManado" ip="" prefix="24"/>
+<port id="pop5" name="GigabitEthernet0/0" up="1" ip="10.9.45.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<port id="pop5" name="GigabitEthernet0/1" up="1" ip="10.9.51.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="3000"/>
+<device id="ix0" kind="internet-exchange" model="Internet Exchange" x="60" y="280" name="IXMakassar" ip="" prefix="24"/>
+<port id="ix0" name="GigabitEthernet0/0" up="1" ip="10.9.100.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="10000000" delay_us="1000"/>
+<link a="pop1" a_port="Gig0/0" b="pop2" b_port="Gig0/0" kind="eCopper"/>
+<link a="pop2" a_port="Gig0/1" b="pop3" b_port="Gig0/0" kind="eCopper"/>
+<link a="pop3" a_port="Gig0/1" b="pop4" b_port="Gig0/0" kind="eCopper"/>
+<link a="pop4" a_port="Gig0/1" b="pop5" b_port="Gig0/0" kind="eCopper"/>
+<link a="pop5" a_port="Gig0/1" b="pop1" b_port="Gig0/1" kind="eCopper"/>
+<link a="pop1" a_port="Gig0/2" b="ix0" b_port="Gig0/0" kind="eCopper"/>
+<routing dev="pop1" proto="ospf" process_id="1"/>
+<routenet dev="pop1" net="10.9.12.0" prefix="24" area="0"/>
+<routenet dev="pop1" net="10.9.23.0" prefix="24" area="0"/>
+<routenet dev="pop1" net="10.9.34.0" prefix="24" area="0"/>
+<routenet dev="pop1" net="10.9.45.0" prefix="24" area="0"/>
+<routenet dev="pop1" net="10.9.51.0" prefix="24" area="0"/>
+<routenet dev="pop1" net="10.9.100.0" prefix="24" area="0"/>
+<routing dev="pop2" proto="ospf" process_id="1"/>
+<routenet dev="pop2" net="10.9.12.0" prefix="24" area="0"/>
+<routenet dev="pop2" net="10.9.23.0" prefix="24" area="0"/>
+<routenet dev="pop2" net="10.9.34.0" prefix="24" area="0"/>
+<routenet dev="pop2" net="10.9.45.0" prefix="24" area="0"/>
+<routenet dev="pop2" net="10.9.51.0" prefix="24" area="0"/>
+<routenet dev="pop2" net="10.9.100.0" prefix="24" area="0"/>
+<routing dev="pop3" proto="ospf" process_id="1"/>
+<routenet dev="pop3" net="10.9.12.0" prefix="24" area="0"/>
+<routenet dev="pop3" net="10.9.23.0" prefix="24" area="0"/>
+<routenet dev="pop3" net="10.9.34.0" prefix="24" area="0"/>
+<routenet dev="pop3" net="10.9.45.0" prefix="24" area="0"/>
+<routenet dev="pop3" net="10.9.51.0" prefix="24" area="0"/>
+<routenet dev="pop3" net="10.9.100.0" prefix="24" area="0"/>
+<routing dev="pop4" proto="ospf" process_id="1"/>
+<routenet dev="pop4" net="10.9.12.0" prefix="24" area="0"/>
+<routenet dev="pop4" net="10.9.23.0" prefix="24" area="0"/>
+<routenet dev="pop4" net="10.9.34.0" prefix="24" area="0"/>
+<routenet dev="pop4" net="10.9.45.0" prefix="24" area="0"/>
+<routenet dev="pop4" net="10.9.51.0" prefix="24" area="0"/>
+<routenet dev="pop4" net="10.9.100.0" prefix="24" area="0"/>
+<routing dev="pop5" proto="ospf" process_id="1"/>
+<routenet dev="pop5" net="10.9.12.0" prefix="24" area="0"/>
+<routenet dev="pop5" net="10.9.23.0" prefix="24" area="0"/>
+<routenet dev="pop5" net="10.9.34.0" prefix="24" area="0"/>
+<routenet dev="pop5" net="10.9.45.0" prefix="24" area="0"/>
+<routenet dev="pop5" net="10.9.51.0" prefix="24" area="0"/>
+<routenet dev="pop5" net="10.9.100.0" prefix="24" area="0"/>
+<routing dev="ix0" proto="ospf" process_id="1"/>
+<routenet dev="ix0" net="10.9.12.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.9.23.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.9.34.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.9.45.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.9.51.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.9.100.0" prefix="24" area="0"/>
+<flow dev="pop2" to="ix0" mbit="500"/>
+<flow dev="pop3" to="ix0" mbit="500"/>
+<lesson id="les-l9-02-n-minus-one" title="One cable may always die" level="9" minutes="20" goal="No ring cable carries more than 70 percent and any single cut still reaches the exchange"/>
+<step n="1" text="Two cities push 500 Mbit/s each toward IXMakassar. Open the flow view and read every cable's load: both flows ride the western arc of the ring."/>
+<step n="2" text="The cable between PopMakassar and PopParepare carries both flows at once. That is 1000 Mbit/s on a 1000 Mbit/s cable: the day one city holds a football final, the ring chokes."/>
+<step n="3" text="Turn on flow spreading, so every flow splits over both arcs of the ring and no cable runs hot." check="c1"/>
+<step n="4" text="Hot is not the only danger. If the loaded western cable breaks, PopParepare must still reach the exchange the long way around." check="c2"/>
+<step n="5" text="And PopPalu must survive losing its eastern cable too." check="c3"/>
+<check id="c1" kind="load" from="pop1" to="links" url="" expect="70" label="No cable is above 70 percent"/>
+<check id="c2" kind="outage" from="pop2" to="ix0" url="pop1:GigabitEthernet0/0" expect="ok" label="PopParepare still reaches IXMakassar with the western cable cut"/>
+<check id="c3" kind="outage" from="pop3" to="ix0" url="pop3:GigabitEthernet0/1" expect="ok" label="PopPalu still reaches IXMakassar with its eastern cable cut"/>
+</takumi>

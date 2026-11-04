@@ -134,6 +134,7 @@ impl Workspace {
                     | "sector-radio" | "client-radio" | "hotspot-ap" | "switch-l3" | "load-balancer"
                     | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
                     | "microwave-link" | "satellite-terminal"
+                    | "backbone-pop" | "internet-exchange" | "national-gateway" | "submarine-cable"
             )
         };
         let network = |k: &str| {
@@ -244,8 +245,9 @@ impl Workspace {
             .map(|d| d.kind.as_str())
             .unwrap_or("pc");
         match kind {
-            "router" => format!("Gig0/{used}"),
+            "router" | "backbone-pop" | "internet-exchange" | "national-gateway" => format!("Gig0/{used}"),
             "switch" => format!("Fa0/{}", used + 1),
+            "submarine-cable" => format!("Fa{used}"),
             _ => "Fa0".to_string(),
         }
     }

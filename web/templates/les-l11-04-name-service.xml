@@ -1,0 +1,70 @@
+<takumi version="1">
+<device id="gwa" kind="national-gateway" model="National Gateway" x="440" y="100" name="GerbangNegaraA" ip="" prefix="24"/>
+<port id="gwa" name="GigabitEthernet0/0" up="1" ip="172.20.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwa" name="GigabitEthernet0/1" up="1" ip="172.20.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwa" name="GigabitEthernet0/2" up="1" ip="203.0.115.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="gwb" kind="national-gateway" model="National Gateway" x="180" y="420" name="GerbangNegaraB" ip="" prefix="24"/>
+<port id="gwb" name="GigabitEthernet0/0" up="1" ip="172.20.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwb" name="GigabitEthernet0/1" up="1" ip="172.20.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwb" name="GigabitEthernet0/2" up="1" ip="10.30.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="gwc" kind="national-gateway" model="National Gateway" x="700" y="420" name="GerbangNegaraC" ip="" prefix="24"/>
+<port id="gwc" name="GigabitEthernet0/0" up="1" ip="172.20.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwc" name="GigabitEthernet0/1" up="1" ip="172.20.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwc" name="GigabitEthernet0/3" up="1" ip="10.30.13.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="cab" kind="submarine-cable" model="Submarine Cable" x="280" y="240" name="KabelAB" ip="" prefix="24"/>
+<port id="cab" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cab" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="cbc" kind="submarine-cable" model="Submarine Cable" x="440" y="500" name="KabelBC" ip="" prefix="24"/>
+<port id="cbc" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cbc" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="cca" kind="submarine-cable" model="Submarine Cable" x="600" y="240" name="KabelCA" ip="" prefix="24"/>
+<port id="cca" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cca" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="root0" kind="server" model="Server" x="660" y="40" name="AkarNamaDunia" ip="203.0.115.10" prefix="24"/>
+<net id="root0" gw="203.0.115.1" dns=""/>
+<device id="situs0" kind="server" model="Server" x="860" y="300" name="SitusDunia" ip="10.30.13.10" prefix="24"/>
+<net id="situs0" gw="10.30.13.1" dns=""/>
+<device id="laptopb" kind="laptop" model="Laptop" x="40" y="560" name="WargaNegaraB" ip="10.30.2.20" prefix="24"/>
+<net id="laptopb" gw="10.30.2.1" dns="203.0.115.10"/>
+<link a="gwa" a_port="Gig0/0" b="cab" b_port="Fa0" kind="eCopper"/>
+<link a="cab" a_port="Fa1" b="gwb" b_port="Gig0/0" kind="eCopper"/>
+<link a="gwb" a_port="Gig0/1" b="cbc" b_port="Fa0" kind="eCopper"/>
+<link a="cbc" a_port="Fa1" b="gwc" b_port="Gig0/0" kind="eCopper"/>
+<link a="gwc" a_port="Gig0/1" b="cca" b_port="Fa0" kind="eCopper"/>
+<link a="cca" a_port="Fa1" b="gwa" b_port="Gig0/1" kind="eCopper"/>
+<link a="gwa" a_port="Gig0/2" b="root0" b_port="Fa0" kind="eCross"/>
+<link a="gwb" a_port="Gig0/2" b="laptopb" b_port="Fa0" kind="eCross"/>
+<link a="gwc" a_port="Gig0/3" b="situs0" b_port="Fa0" kind="eCross"/>
+<routing dev="gwa" proto="ospf" process_id="1"/>
+<routenet dev="gwa" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.13.0" prefix="24" area="0"/>
+<routing dev="gwb" proto="ospf" process_id="1"/>
+<routenet dev="gwb" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.13.0" prefix="24" area="0"/>
+<routing dev="gwc" proto="ospf" process_id="1"/>
+<routenet dev="gwc" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.13.0" prefix="24" area="0"/>
+<dns id="root0" name="akar.dunia.lab" ip="203.0.115.10"/>
+<page id="situs0" body="A page with a name the whole world shares"/>
+<lesson id="les-l11-04-name-service" title="The name service of the world" level="11" minutes="12" goal="A laptop in country B finds www.dunia.lab through the root name server in country A and opens the page in country C"/>
+<step n="1" text="Three countries, one name book. WargaNegaraB asks AkarNamaDunia in country A for every name it meets. Run nslookup www.dunia.lab on the laptop: the root knows akar.dunia.lab, but not the site."/>
+<step n="2" text="On AkarNamaDunia, open the DNS service and add the A record: www.dunia.lab leads to 10.30.13.10, the server SitusDunia in country C."/>
+<step n="3" text="Ask again from the laptop. The question crosses one sea, the answer names a server across another." check="c1"/>
+<step n="4" text="Now open http://www.dunia.lab/ from the laptop: name from country A, page from country C." check="c2"/>
+<step n="5" text="The page was reachable all along; only its name was missing." check="c3"/>
+<check id="c1" kind="nslookup" from="laptopb" to="www.dunia.lab" url="" expect="10.30.13.10" label="The root resolves www.dunia.lab to SitusDunia"/>
+<check id="c2" kind="http" from="laptopb" to="" url="http://www.dunia.lab/" expect="SitusDunia" label="The page opens by its world name"/>
+<check id="c3" kind="ping" from="laptopb" to="situs0" url="" expect="ok" label="WargaNegaraB reaches SitusDunia by address"/>
+</takumi>

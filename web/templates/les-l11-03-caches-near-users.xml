@@ -1,0 +1,88 @@
+<takumi version="1">
+<device id="gwa" kind="national-gateway" model="National Gateway" x="440" y="100" name="GerbangNegaraA" ip="" prefix="24"/>
+<port id="gwa" name="GigabitEthernet0/0" up="1" ip="172.20.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwa" name="GigabitEthernet0/1" up="1" ip="172.20.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwa" name="GigabitEthernet0/2" up="1" ip="203.0.115.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="gwb" kind="national-gateway" model="National Gateway" x="180" y="420" name="GerbangNegaraB" ip="" prefix="24"/>
+<port id="gwb" name="GigabitEthernet0/0" up="1" ip="172.20.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwb" name="GigabitEthernet0/1" up="1" ip="172.20.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwb" name="GigabitEthernet0/2" up="1" ip="10.30.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwb" name="GigabitEthernet0/3" up="1" ip="10.30.12.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="gwc" kind="national-gateway" model="National Gateway" x="700" y="420" name="GerbangNegaraC" ip="" prefix="24"/>
+<port id="gwc" name="GigabitEthernet0/0" up="1" ip="172.20.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwc" name="GigabitEthernet0/1" up="1" ip="172.20.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwc" name="GigabitEthernet0/2" up="1" ip="10.30.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwc" name="GigabitEthernet0/3" up="1" ip="10.30.13.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="cab" kind="submarine-cable" model="Submarine Cable" x="280" y="240" name="KabelAB" ip="" prefix="24"/>
+<port id="cab" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cab" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="cbc" kind="submarine-cable" model="Submarine Cable" x="440" y="500" name="KabelBC" ip="" prefix="24"/>
+<port id="cbc" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cbc" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="cca" kind="submarine-cable" model="Submarine Cable" x="600" y="240" name="KabelCA" ip="" prefix="24"/>
+<port id="cca" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cca" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="server0" kind="server" model="Server" x="660" y="40" name="AsalKonten" ip="203.0.115.10" prefix="24"/>
+<net id="server0" gw="203.0.115.1" dns=""/>
+<device id="laptopb" kind="laptop" model="Laptop" x="40" y="560" name="WargaNegaraB" ip="10.30.2.20" prefix="24"/>
+<net id="laptopb" gw="10.30.2.1" dns="203.0.115.10"/>
+<device id="laptopc" kind="laptop" model="Laptop" x="860" y="560" name="WargaNegaraC" ip="10.30.3.20" prefix="24"/>
+<net id="laptopc" gw="10.30.3.1" dns="203.0.115.10"/>
+<device id="cacheb" kind="server" model="Server" x="40" y="300" name="CacheNegaraB" ip="10.30.12.10" prefix="24"/>
+<net id="cacheb" gw="10.30.12.1" dns=""/>
+<device id="cachec" kind="server" model="Server" x="860" y="300" name="CacheNegaraC" ip="10.30.13.10" prefix="24"/>
+<net id="cachec" gw="10.30.13.1" dns=""/>
+<link a="gwa" a_port="Gig0/0" b="cab" b_port="Fa0" kind="eCopper"/>
+<link a="cab" a_port="Fa1" b="gwb" b_port="Gig0/0" kind="eCopper"/>
+<link a="gwb" a_port="Gig0/1" b="cbc" b_port="Fa0" kind="eCopper"/>
+<link a="cbc" a_port="Fa1" b="gwc" b_port="Gig0/0" kind="eCopper"/>
+<link a="gwc" a_port="Gig0/1" b="cca" b_port="Fa0" kind="eCopper"/>
+<link a="cca" a_port="Fa1" b="gwa" b_port="Gig0/1" kind="eCopper"/>
+<link a="gwa" a_port="Gig0/2" b="server0" b_port="Fa0" kind="eCross"/>
+<link a="gwb" a_port="Gig0/2" b="laptopb" b_port="Fa0" kind="eCross"/>
+<link a="gwc" a_port="Gig0/2" b="laptopc" b_port="Fa0" kind="eCross"/>
+<routing dev="gwa" proto="ospf" process_id="1"/>
+<routenet dev="gwa" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.3.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.12.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.13.0" prefix="24" area="0"/>
+<routing dev="gwb" proto="ospf" process_id="1"/>
+<routenet dev="gwb" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.3.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.12.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.13.0" prefix="24" area="0"/>
+<routing dev="gwc" proto="ospf" process_id="1"/>
+<routenet dev="gwc" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.3.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.12.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.13.0" prefix="24" area="0"/>
+<dns id="server0" name="www.konten.lab" ip="203.0.115.10"/>
+<dns id="server0" name="b.konten.lab" ip="10.30.12.10"/>
+<dns id="server0" name="c.konten.lab" ip="10.30.13.10"/>
+<page id="server0" body="The page, served from the origin country"/>
+<page id="cacheb" body="The same page, kept inside country B"/>
+<page id="cachec" body="The same page, kept inside country C"/>
+<lesson id="les-l11-03-caches-near-users" title="Caches near the users" level="11" minutes="15" goal="Both countries read the page from a cache in their own country, far faster than the origin across the sea"/>
+<step n="1" text="The origin AsalKonten lives in country A, a submarine crossing away from everyone else. Each other country already owns a cache with the same page, but neither cache is cabled in."/>
+<step n="2" text="Run a crossover cable from GigabitEthernet0/3 on GerbangNegaraB to CacheNegaraB, and one from GigabitEthernet0/3 on GerbangNegaraC to CacheNegaraC. The names b.konten.lab and c.konten.lab now lead somewhere."/>
+<step n="3" text="Open http://b.konten.lab/ from WargaNegaraB: the page comes from inside the country." check="c1"/>
+<step n="4" text="Read the delay to the local cache in each country: no sea crossing, no waiting." check="c2"/>
+<step n="5" text="Country C reads its own cache just as close." check="c3"/>
+<step n="6" text="The origin still answers, but only after the light has crossed the sea: more than two times sixty milliseconds, every single time." check="c4"/>
+<check id="c1" kind="http" from="laptopb" to="" url="http://b.konten.lab/" expect="CacheNegaraB" label="Country B reads the page from its own cache"/>
+<check id="c2" kind="latency" from="laptopb" to="cacheb" url="" expect="50" label="The cache in country B answers in under 50 milliseconds"/>
+<check id="c3" kind="latency" from="laptopc" to="cachec" url="" expect="50" label="The cache in country C answers in under 50 milliseconds"/>
+<check id="c4" kind="latency" from="laptopb" to="server0" url="" expect="200" label="The origin across the sea stays within 200 milliseconds"/>
+</takumi>
