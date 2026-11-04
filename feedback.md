@@ -699,3 +699,11 @@ Headline findings:
 - 28 of the engine's 85 API routes have no screen (Wi-Fi, phones, VPN, PPPoE, IoT, cellular, mail, PTP, PRP), and eight Desktop app icons exist as art but are not wired.
 - Command line: only routers and switches have one; 39 of 73 common router commands are accepted.
 - Recommended first step: a device kind registry (one table for tabs, apps, command line, services and engine features per kind), then router and switch windows, then printer and hub, then wireless and phone.
+
+## F29. Audit of the references people build from (2026-11-04)
+
+Owner: "audit the references people want to build their idea from, not only the apps; our job is to make sure every component replicates that".
+
+Report: **`AUDIT-references.md`** (research only, nothing changed). It lists 48 real-world ideas people bring (from published exam topic lists, a support-exam objective list, Indonesian vocational lab reports, simulator comparisons, common lab lists and home router guides), checks each against the engine and tests, defines what each component is judged by, ranks the gaps, and proposes a way to decide "replicated enough" (script the reference, run it, break it on purpose, keep it as a template with checks).
+
+Headline: 15 of 48 work and are proven by tests; 10 exist in the engine with no screen; 7 are partial; 15 are missing. The biggest absent references are the home router story, a router configured the usual way (DHCP pool, static NAT, SSH), layer 3 switching, fault injection for troubleshooting, Linux and Windows-style hosts, and MikroTik-style labs for the Indonesian audience.

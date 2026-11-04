@@ -1,6 +1,7 @@
 # Plan and audit: devices that feel like the real thing
 
 Report v2, 2026-11-04. Research and plan only. Nothing was changed.
+See also `AUDIT-references.md`, the main audit of what people come to build and how each component measures up.
 This replaces the first version, which only counted missing features. The first version is kept at the end as Appendix A, because its measurements still hold.
 
 ## 1. The idea
