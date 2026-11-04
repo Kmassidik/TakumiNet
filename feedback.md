@@ -274,7 +274,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 
 ---
 
-## F10. "Lesson gallery" is in the wrong place and has the wrong shape (open)
+## F10. "Lesson gallery" is in the wrong place and has the wrong shape (done)
 
 ### Research
 - Menu: File > "Lesson gallery…" (`web/index.html:29`, `data-action="show-gallery"`). Menus are File, Edit, Options, View, Tools, Help.

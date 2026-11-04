@@ -102,6 +102,46 @@ async function showGallery() {
   renderGallery(await getJson('/api/templates'));
 }
 
+/* ---------------- Examples menu: lessons and ready-to-use templates ---------------- */
+function exampleItem(item, meta) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.template = item.id;
+  button.title = item.goal || item.title;
+  const name = document.createElement('span');
+  name.textContent = item.title;
+  button.appendChild(name);
+  if (meta) {
+    const small = document.createElement('small');
+    small.textContent = meta;
+    button.appendChild(small);
+  }
+  button.onclick = () => openTemplate(item.id);
+  return button;
+}
+
+function renderExamplesMenu(payload = {}) {
+  const lessons = document.getElementById('examples-lessons');
+  const templates = document.getElementById('examples-templates');
+  const note = document.getElementById('examples-note');
+  if (!lessons || !templates) return;
+  const lessonItems = [...(payload.lessons || [])].sort((a, b) => a.id.localeCompare(b.id));
+  const templateItems = [...(payload.templates || [])];
+  lessons.replaceChildren(...lessonItems.map((item) => exampleItem(item, `Level ${item.level} · ${item.minutes} min`)));
+  templates.replaceChildren(...templateItems.map((item) => exampleItem(item, '')));
+  if (note) {
+    note.hidden = !payload.error && (lessonItems.length > 0 || templateItems.length > 0);
+    note.textContent = payload.error || (note.hidden ? '' : 'No examples are available yet.');
+  }
+}
+
+async function loadExamples() {
+  const payload = await getJson('/api/templates');
+  renderExamplesMenu(payload && (payload.lessons || payload.templates)
+    ? payload
+    : { error: 'Examples could not be loaded. Reload the page to try again.' });
+}
+
 function resetLessonState() {
   lessonResults = [];
   lessonRunning = false;
@@ -272,4 +312,3 @@ async function resetLesson() {
 
 ACTIONS['check-work'] = checkWork;
 ACTIONS['reset-lesson'] = resetLesson;
-ACTIONS['show-gallery'] = showGallery;

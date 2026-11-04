@@ -50,6 +50,7 @@ async function boot() {
     makeWindowMovable(document.getElementById(id));
   }
   status('Ready');
+  if (typeof loadExamples === 'function') loadExamples().catch(() => {});
   if (shouldAutoShowGallery()) await showGallery();
 }
 

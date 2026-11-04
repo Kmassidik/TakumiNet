@@ -352,6 +352,12 @@ html, body {
 .menu .drop a:hover { background: #e8f0fd; }
 .menu .drop button:disabled { color: #a0a8b0; cursor: default; }
 .menu .drop .sep { height: 1px; background: var(--line-soft); margin: 3px 4px; }
+.menu .drop .drop-heading { padding: 4px 10px 2px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.menu .drop-note { margin: 0; padding: 6px 10px; color: var(--muted); font-size: 11px; }
+.menu .drop-note[hidden] { display: none; }
+.examples-drop { min-width: 250px; }
+.examples-drop button { display: flex; justify-content: space-between; gap: 14px; align-items: baseline; }
+.examples-drop button small { color: var(--muted); font-size: 10px; white-space: nowrap; }
 
 /* ---------- status bar ---------- */
 .statusbar {

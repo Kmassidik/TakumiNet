@@ -60,3 +60,12 @@ test("palette: tiles come only from the chosen category", () => {
   expect(palette).toMatch(/paletteTiles\(paletteGroup, data\.palette\)/);
   expect(palette).not.toMatch(/for \(const p of data\.palette\)/);
 });
+
+test("menus: File holds only file actions, and Examples has its two sections", () => {
+  const file = index.slice(index.indexOf("<button>File</button>"), index.indexOf("<button>Edit</button>"));
+  expect(file).not.toMatch(/gallery/i);
+  expect(file).not.toMatch(/Lesson/);
+  const examples = index.slice(index.indexOf("<button>Examples</button>"), index.indexOf("<button>Tools</button>"));
+  expect(examples).toMatch(/Lessons<\/div>/);
+  expect(examples).toMatch(/Example templates<\/div>/);
+});
