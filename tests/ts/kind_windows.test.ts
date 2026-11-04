@@ -5,7 +5,7 @@ import { renderHotspotWindow } from "../../web/ts/ui/hotspot_window";
 import { renderFirewallWindow } from "../../web/ts/ui/firewall_window";
 import { renderL3SwitchWindow } from "../../web/ts/ui/l3switch_window";
 import { FakeDocument, FakeElement } from "./fake_dom";
-import { allText, button, find, flush } from "./kind_test_helpers";
+import { allText, button, find, flush, inputUnder } from "./kind_test_helpers";
 
 const workspace = {
   devices: [
@@ -218,4 +218,52 @@ test("a switch with no routes yet says so instead of an empty block", async () =
   const post = async (): Promise<Record<string, unknown>> => ({ output: "" });
   await renderL3SwitchWindow(doc, body, l3, getText, post);
   expect(allText(body)).toContain("No routes yet.");
+});
+
+test("the layer 3 switch shares a gateway address and leaves it", async () => {
+  const doc = new FakeDocument();
+  const body = new FakeElement("div");
+  const getText = async (path: string): Promise<string> =>
+    path.startsWith("/api/devices/ports") ? l3Ports : "<takumi/>";
+  const calls: string[] = [];
+  const post = async (path: string): Promise<Record<string, unknown>> => {
+    calls.push(path);
+    if (path.startsWith("/api/devices/sharedgw")) {
+      return { devices: [{ id: "sw1", sharedGws: [{ vip: "172.20.0.1", priority: 110, owner: true }] }] };
+    }
+    return { output: "" };
+  };
+  const member = { ...l3, sharedGws: [{ vip: "172.20.0.1", priority: 100, owner: false }] };
+  await renderL3SwitchWindow(doc, body, member, getText, post);
+  expect(allText(body)).toContain("172.20.0.1 · priority 100");
+
+  inputUnder(body, "Shared address").value = "172.20.0.1";
+  inputUnder(body, "Priority").value = "110";
+  button(body, "Share").click();
+  await flush();
+  expect(calls).toContain("/api/devices/sharedgw?id=sw1&vip=172.20.0.1&priority=110");
+  expect(allText(body)).toContain("172.20.0.1 · priority 110 · answering now");
+
+  button(body, "Leave").click();
+  await flush();
+  expect(calls).toContain("/api/devices/sharedgw?id=sw1&vip=172.20.0.1&remove=1");
+});
+
+test("a switch sharing nothing says so, and a refusal shows verbatim", async () => {
+  const doc = new FakeDocument();
+  const body = new FakeElement("div");
+  const getText = async (path: string): Promise<string> =>
+    path.startsWith("/api/devices/ports") ? l3Ports : "<takumi/>";
+  const post = async (path: string): Promise<Record<string, unknown>> =>
+    path.startsWith("/api/devices/sharedgw")
+      ? { error: "the shared address must sit in one of this device's networks, and not on a port" }
+      : { output: "" };
+  await renderL3SwitchWindow(doc, body, l3, getText, post);
+  expect(allText(body)).toContain("Not sharing any address.");
+
+  inputUnder(body, "Shared address").value = "10.9.9.1";
+  inputUnder(body, "Priority").value = "110";
+  button(body, "Share").click();
+  await flush();
+  expect(allText(body)).toContain("the shared address must sit in one of this device's networks");
 });

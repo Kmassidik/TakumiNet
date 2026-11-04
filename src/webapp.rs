@@ -12,6 +12,12 @@ pub struct Page {
     pub host: String,
     pub title: String,
     pub text: String,
+    /// Which interactive page the browser renders: `""` for a plain page,
+    /// `"router"` for a home router's sign-in page, `"portal"` for a hotspot
+    /// voucher portal.
+    pub app: &'static str,
+    /// The id of the device that served the page.
+    pub device: String,
 }
 
 /// Strip the scheme and path so both `http://host/` and `host` work.
@@ -61,6 +67,21 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
             host: host.to_string(),
             title: server.1.clone(),
             text: format!("Sign in to manage {}.\nThe user name and password are on the sticker.", server.1),
+            app: "router",
+            device: server.0.clone(),
+        });
+    }
+    if server.2 == "rtrw-gateway" {
+        ws.send_http(client, &server.0, host)
+            .map_err(|_| format!("Request timed out while reaching {host}"))?;
+        return Ok(Page {
+            status: 200,
+            reason: "OK",
+            host: host.to_string(),
+            title: server.1.clone(),
+            text: format!("Welcome to the {} hotspot.\nType a voucher code to get online.", server.1),
+            app: "portal",
+            device: server.0.clone(),
         });
     }
     if server.2 == "load-balancer" {
@@ -75,6 +96,8 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
             host: host.to_string(),
             title: server.1.clone(),
             text: custom.unwrap_or_else(|| format!("Welcome to {}.", server.1)) + &format!("\n\nServed by {served}."),
+            app: "",
+            device: member,
         });
     }
     if server.2 != "server" {
@@ -96,6 +119,8 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
                 name = server.1,
             )
         }),
+        app: "",
+        device: server.0.clone(),
     })
 }
 
@@ -117,6 +142,8 @@ fn fetch_forwarded(ws: &mut Workspace, client: &str, router: &str, host: &str, p
         host: host.to_string(),
         title: device.0.clone(),
         text: custom.unwrap_or_else(|| format!("Welcome to {}.", device.0)),
+        app: "",
+        device: target,
     })
 }
 

@@ -117,18 +117,31 @@ impl Workspace {
         let target_kind = crate::model::parse_ipv4(&check.to)
             .and_then(|addr| self.devices.iter().find(|d| d.ip == Some(addr) || d.ports.iter().any(|p| p.ip == Some(addr))))
             .map(|d| d.kind.clone());
-        let outcome = if target_kind.as_deref() == Some("rtrw-gateway") {
-            let probe = self.clone().pppoe_connect(&check.from, &check.to, user, pass);
-            probe.map_err(|e| format!("401 {e}"))
-        } else {
-            self.router_login(&check.from, &check.to, user, pass)
-        };
         let want_ok = check.expect != "refused";
-        match (&outcome, want_ok) {
-            (Ok(()), true) => (true, "login accepted".into(), hint),
-            (Err(e), false) if e.starts_with("401") => (true, "login refused".into(), hint),
-            (Ok(()), false) => (false, "login accepted, but it should be refused".into(), hint),
-            (Err(e), _) => (false, e.clone(), hint),
+        if target_kind.as_deref() == Some("rtrw-gateway") {
+            let outcome = self.clone().pppoe_connect(&check.from, &check.to, user, pass)
+                .map_err(|e| format!("401 {e}"));
+            return match (&outcome, want_ok) {
+                (Ok(()), true) => (true, "login accepted".into(), hint),
+                (Err(e), false) if e.starts_with("401") => (true, "login refused".into(), hint),
+                (Ok(()), false) => (false, "login accepted, but it should be refused".into(), hint),
+                (Err(e), _) => (false, e.clone(), hint),
+            };
+        }
+        // A home router page: the grader never signs in by itself. It asks for a
+        // real sign-in (or a real refusal) recorded from the device browser.
+        if let Err(e) = self.home_router_id(&check.to) {
+            return (false, e, "Point the check at the home router's address.".into());
+        }
+        let seen = self.router_login_seen(&check.from, &check.to, want_ok);
+        let from = self.name_of(&check.from);
+        match (want_ok, seen) {
+            (true, true) => (true, "signed in from the device browser".into(), hint),
+            (true, false) => (false, format!("{from} has not signed in yet"),
+                format!("Open http://{} in the browser on {from} and sign in.", check.to)),
+            (false, true) => (true, "a wrong password was refused".into(), hint),
+            (false, false) => (false, format!("{from} has not been refused yet"),
+                format!("Try a wrong password once in the router page on {from}.")),
         }
     }
 

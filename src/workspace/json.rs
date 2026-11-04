@@ -95,8 +95,47 @@ impl Workspace {
                 ),
                 None => "[]".to_string(),
             };
+            let forwards = format!(
+                "[{}]",
+                self.port_forwards.get(&d.id).into_iter().flatten()
+                    .map(|(outside, target, inside)| format!(
+                        "{{\"outside\":{outside},\"target\":{},\"inside\":{inside}}}",
+                        s(target)
+                    ))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            );
+            let pools = format!(
+                "[{}]",
+                self.dhcp_pool_list(&d.id).iter()
+                    .map(|p| format!(
+                        "{{\"network\":{},\"prefix\":{},\"gateway\":{},\"dns\":{}}}",
+                        s(&crate::model::ipv4_string(p.network)), p.prefix, opt_ip(p.gateway), opt_ip(p.dns)
+                    ))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            );
+            let tunnel = self.tunnels.get(&d.id).map_or("null".to_string(), |(peer, _)| format!(
+                "{{\"peer\":{},\"state\":{}}}",
+                s(&crate::model::ipv4_string(*peer)),
+                s(self.tunnel_state(&d.id))
+            ));
+            let vnet = self.vnets.get(&d.id).map_or("null".to_string(), u32::to_string);
+            let shared_gws = format!(
+                "[{}]",
+                self.shared_gateway_rows(&d.id).iter()
+                    .map(|(vip, priority, owner)| format!(
+                        "{{\"vip\":{},\"priority\":{priority},\"owner\":{owner}}}",
+                        s(vip)
+                    ))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            );
+            let pppoe = self.pppoe_status(&d.id).map_or("null".to_string(), |(server, user)| {
+                format!("{{\"server\":{},\"user\":{}}}", s(&server), s(&user))
+            });
             o.push_str(&format!(
-                "{{\"id\":{},\"name\":{},\"model\":{},\"icon\":{},\"kind\":{},\"x\":{},\"y\":{},\"ip\":{},\"prefix\":{},\"gateway\":{},\"dns\":{},\"ipv6\":{},\"ipv6Prefix\":{},\"ipv6Gateway\":{},\"ipv6Dns\":{},\"ipv6Auto\":{},\"dot1x\":{},\"dot1xUser\":{},\"dhcp\":{},\"pool\":{},\"powered\":{},\"slots\":{},\"dnsRecords\":{},\"httpPage\":{},\"reservations\":{},\"helpers\":{}}}",
+                "{{\"id\":{},\"name\":{},\"model\":{},\"icon\":{},\"kind\":{},\"x\":{},\"y\":{},\"ip\":{},\"prefix\":{},\"gateway\":{},\"dns\":{},\"ipv6\":{},\"ipv6Prefix\":{},\"ipv6Gateway\":{},\"ipv6Dns\":{},\"ipv6Auto\":{},\"dot1x\":{},\"dot1xUser\":{},\"dhcp\":{},\"pool\":{},\"powered\":{},\"slots\":{},\"dnsRecords\":{},\"httpPage\":{},\"reservations\":{},\"helpers\":{}",
                 s(&d.id),
                 s(&d.name),
                 s(&d.model),
@@ -123,6 +162,9 @@ impl Workspace {
                 http_page,
                 reservations,
                 helpers
+            ));
+            o.push_str(&format!(
+                ",\"forwards\":{forwards},\"pools\":{pools},\"tunnel\":{tunnel},\"vnet\":{vnet},\"sharedGws\":{shared_gws},\"pppoe\":{pppoe}}}"
             ));
         }
     }

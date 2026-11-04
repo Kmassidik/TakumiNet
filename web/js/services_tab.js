@@ -379,6 +379,7 @@ function tabServices(pane, d) {
   tftpBox.appendChild(tftpForm);
 
   box.appendChild(resBox);
+  box.appendChild(dhcpPoolsSection(d, 'services'));
   box.appendChild(dnsBox);
   box.appendChild(httpBox);
   box.appendChild(mailBox);

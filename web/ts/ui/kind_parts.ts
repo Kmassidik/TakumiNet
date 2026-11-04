@@ -9,6 +9,30 @@ export interface KindDevice {
   name: string;
   kind: string;
   model?: string;
+  /* Every DHCP pool this device serves, from the workspace snapshot. */
+  pools?: PoolEntry[];
+  /* Shared gateway memberships, from the workspace snapshot. */
+  sharedGws?: SharedGwEntry[];
+}
+
+export interface PoolEntry {
+  network: string;
+  prefix: number;
+  gateway?: string | null;
+  dns?: string | null;
+}
+
+export interface SharedGwEntry {
+  vip: string;
+  priority: number;
+  owner: boolean;
+}
+
+/* One field of a device inside a workspace reply, for refreshing a list
+   after a change without a second request. */
+export function deviceField(res: Record<string, unknown>, id: string, key: string): unknown {
+  const devices = Array.isArray(res["devices"]) ? (res["devices"] as Record<string, unknown>[]) : [];
+  return devices.find((d) => d["id"] === id)?.[key];
 }
 
 export interface PaletteEntry {

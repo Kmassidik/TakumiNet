@@ -129,6 +129,37 @@ impl Workspace {
         Ok(())
     }
 
+    /// What a home router's status page says about its WAN side: the PPPoE
+    /// session when one is up, otherwise the state of the provider-side cable.
+    pub fn wan_summary(&self, router: &str) -> String {
+        const UPLINK_KINDS: &[&str] = &[
+            "cablemodem", "cloud", "provider-link", "client-radio", "sector-radio",
+            "celltower", "satellite-terminal", "microwave-link", "rtrw-gateway",
+        ];
+        if let Some((server, user)) = self.pppoe_status(router) {
+            return format!("PPPoE session to {server} as {user}");
+        }
+        let kind_of = |id: &str| self.devices.iter().find(|d| d.id == id).map(|d| d.kind.clone()).unwrap_or_default();
+        for l in &self.links {
+            let (port, peer) = if l.a == router && UPLINK_KINDS.contains(&kind_of(&l.b).as_str()) {
+                (l.a_port.clone(), l.b.clone())
+            } else if l.b == router && UPLINK_KINDS.contains(&kind_of(&l.a).as_str()) {
+                (l.b_port.clone(), l.a.clone())
+            } else {
+                continue;
+            };
+            let canonical = self.canonical_iface(router, &port).unwrap_or(port);
+            let up = self.port_state(router, &canonical).line_up;
+            return format!("{} via {}", if up { "connected" } else { "down" }, self.name_of(&peer));
+        }
+        "no uplink cable".to_string()
+    }
+
+    /// Drop the customer session this client holds.
+    pub fn pppoe_disconnect(&mut self, client: &str) -> bool {
+        self.pppoe.remove(client).is_some()
+    }
+
     /// The customer sessions a gateway holds, as (client, login name).
     pub fn pppoe_sessions(&self, gateway: &str) -> Vec<(String, String)> {
         let owns = |addr: Option<u32>| self.devices.iter()

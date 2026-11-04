@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 mod device_routes;
+mod lab_routes;
 mod note_routes;
 mod file_routes;
 mod radio_routes;
@@ -200,6 +201,7 @@ pub fn dispatch(ctx: &Ctx, method: &str, target: &str, body: &[u8]) -> (u16, &'s
         .or_else(|| note_routes::route(ctx, method, path, query))
         .or_else(|| service_routes::route(ctx, method, path, query))
         .or_else(|| radio_routes::route(ctx, method, path, query))
+        .or_else(|| lab_routes::route(ctx, method, path, query))
         .or_else(|| terminal_routes::route(ctx, method, path, query))
         .or_else(|| file_routes::route(ctx, method, path, query, body));
 

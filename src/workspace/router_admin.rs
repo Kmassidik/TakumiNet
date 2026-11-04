@@ -4,7 +4,7 @@ const DEFAULT_ADMIN: (&str, &str) = ("admin", "admin");
 const MIN_PASSWORD: usize = 6;
 
 impl Workspace {
-    fn home_router_id(&self, target: &str) -> Result<String, String> {
+    pub(crate) fn home_router_id(&self, target: &str) -> Result<String, String> {
         let ip = crate::model::parse_ipv4(target);
         let found = self.devices.iter().find(|d| {
             d.id == target || (ip.is_some() && (d.ip == ip || d.ports.iter().any(|p| p.ip == ip)))
@@ -28,11 +28,22 @@ impl Workspace {
         self.send_http(client, &router, target)
             .map_err(|_| format!("Request timed out while reaching {target}"))?;
         let (want_user, want_pass) = self.admin_pair(&router);
-        if user == want_user && pass == want_pass {
+        let accepted = user == want_user && pass == want_pass;
+        self.router_logins.push((client.to_string(), router, user.to_string(), accepted));
+        if accepted {
             Ok(())
         } else {
             Err("401 Unauthorized: wrong user name or password".into())
         }
+    }
+
+    /// Whether `client` has really signed in against `target`'s page (`accepted`),
+    /// or really been refused there (`!accepted`). The grader reads this instead
+    /// of logging in by itself.
+    pub fn router_login_seen(&self, client: &str, target: &str, accepted: bool) -> bool {
+        let Ok(router) = self.home_router_id(target) else { return false };
+        self.router_logins.iter()
+            .any(|(c, r, _, ok)| c == client && *r == router && *ok == accepted)
     }
 
     pub fn set_router_admin(&mut self, router: &str, user: &str, pass: &str) -> Result<(), String> {
