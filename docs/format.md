@@ -129,6 +129,9 @@ device ports.
 | `phone` | `phone cm ext` | Phone, call-manager, and extension assignment |
 | `routing` | `dev proto process_id` | Dynamic routing protocol and process ID |
 | `routenet` | `dev net prefix area` | Dynamic-routing network statement and area |
+| `bgprouter` | `dev as` | BGP local autonomous system |
+| `bgpneighbor` | `dev peer as` | BGP neighbor address and its autonomous system |
+| `bgpnet` | `dev net prefix` | Prefix the router announces to established peers |
 | `natrole` | `dev iface dir` | NAT inside/outside interface role |
 | `natrule` | `dev num iface` | NAT rule and translated interface |
 

@@ -237,12 +237,14 @@
           <li><a href="/workspace?open=tpl-l4-campus-three-layer"><strong>Kampus tiga lapis</strong><span>Akses, distribusi, dan inti membawa dua gedung ke satu server</span></a></li>
           <li><a href="/workspace?open=tpl-l5-leaf-spine"><strong>Leaf dan spine</strong><span>Dua rak, dua spine, dan setiap server dua lompatan dari yang lain</span></a></li>
           <li><a href="/workspace?open=tpl-l5-load-balanced-web"><strong>Toko dengan penyeimbang beban</strong><span>Satu alamat di depan, tiga server web bergiliran di belakangnya</span></a></li>
-          <li><a href="/workspace?open=tpl-l9-backbone-ring"><strong>Cincin backbone provinsi</strong><span>Lima POP mengelilingi provinsi dan bertahan saat satu kabel putus</span></a></li>
-          <li><a href="/workspace?open=tpl-l10-national"><strong>Dua provinsi dan laut</strong><span>Gerbang nasional menghubungkan dua provinsi, dan kabel laut membawa mereka ke halaman luar negeri</span></a></li>
-          <li><a href="/workspace?open=tpl-l11-world"><strong>Tiga negara, tiga kabel</strong><span>Tiga gerbang nasional dalam segitiga kabel laut menjaga server nama tetap terjangkau</span></a></li>
           <li><a href="/workspace?open=tpl-l5-overlay"><strong>Dua penyewa, satu fabric</strong><span>Server biru dan hijau berbagi leaf-spine dan tidak pernah saling melihat</span></a></li>
-          <li><a href="/workspace?open=tpl-l7-city-ring"><strong>Cincin serat kota</strong><span>Empat hub kecamatan di satu cincin serat membawa setiap kecamatan ke sentral kota</span></a></li>
-          <li><a href="/workspace?open=tpl-l8-regency-radio"><strong>Kabupaten lewat udara</strong><span>Dua POP desa menjangkau hub kabupaten, satu lewat radio gelombang mikro dan satu lewat terminal satelit</span></a></li>
+          <li><a href="/workspace?open=tpl-l6-isp-two-upstreams"><strong>ISP dengan dua upstream</strong><span>Router perbatasan menjalin sesi dengan dua penyedia dan pelanggan tetap tersambung saat salah satu jalur putus</span></a></li>
+          <li><a href="/workspace?open=tpl-l6-isp-pop"><strong>Titik kehadiran ISP</strong><span>Router perbatasan, gateway pelanggan, server login, dan resolver yang melayaninya</span></a></li>
+          <li><a href="/workspace?open=tpl-l7-city-ring"><strong>Dua provinsi dan laut</strong><span>Gerbang nasional menghubungkan dua provinsi, dan kabel laut membawa mereka ke halaman luar negeri</span></a></li>
+          <li><a href="/workspace?open=tpl-l8-regency-radio"><strong>Tiga negara, tiga kabel</strong><span>Tiga gerbang nasional dalam segitiga kabel laut menjaga server nama tetap terjangkau</span></a></li>
+          <li><a href="/workspace?open=tpl-l9-backbone-ring"><strong>Dua penyewa, satu fabric</strong><span>Server biru dan hijau berbagi leaf-spine dan tidak pernah saling melihat</span></a></li>
+          <li><a href="/workspace?open=tpl-l10-national"><strong>Cincin serat kota</strong><span>Empat hub kecamatan di satu cincin serat membawa setiap kecamatan ke sentral kota</span></a></li>
+          <li><a href="/workspace?open=tpl-l11-world"><strong>Kabupaten lewat udara</strong><span>Dua POP desa menjangkau hub kabupaten, satu lewat radio gelombang mikro dan satu lewat terminal satelit</span></a></li>
         </ul>
       </div>
       <div class="card hard">
@@ -281,7 +283,10 @@
           <li><a href="/workspace?open=les-l5-01-leaf-spine"><strong>Kehilangan spine dan tetap jalan</strong><span>Lalu lintas antar-rak bertahan saat salah satu spine mati</span></a></li>
           <li><a href="/workspace?open=les-l5-02-lose-a-spine"><strong>Tiga server di balik satu nama</strong><span>Halaman terbuka lewat WebFront dan setiap server mendapat giliran</span></a></li>
           <li><a href="/workspace?open=les-l5-03-load-balancer"><strong>Dua penyewa di satu fabric</strong><span>Server biru saling melihat antar-rak dan tidak pernah melihat hijau</span></a></li>
-          <li><a href="/workspace?open=les-l5-04-overlay-network"><strong>Cari kabel yang panas</strong><span>Tidak ada kabel yang membawa lebih dari 70 persen setelah aliran disebar</span></a></li>
+          <li><a href="/workspace?open=les-l5-04-overlay-network"><strong>Satu server alamat untuk semua VLAN</strong><span>Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya</span></a></li>
+          <li><a href="/workspace?open=les-l6-01-address-plan"><strong>Rencana alamat untuk pelanggan</strong><span>LaptopPelanggan meminjam alamat dari PelangganNet lalu membuka www.berita.lab</span></a></li>
+          <li><a href="/workspace?open=les-l6-02-first-bgp"><strong>Sesi BGP pertamamu</strong><span>GerbangISP menjalin sesi dengan kedua penyedia dan PCPelanggan menjangkau ServerJauh</span></a></li>
+          <li><a href="/workspace?open=les-l6-03-two-upstreams"><strong>Bertahan kehilangan satu upstream</strong><span>PCPelanggan tetap menjangkau ServerJauh saat salah satu jalur penyedia putus</span></a></li>
           <li><a href="/workspace?open=les-l5-05-find-the-hot-link"><strong>Satu server alamat untuk semua VLAN</strong><span>Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya</span></a></li>
           <li><a href="/workspace?open=les-l7-01-ring-heals"><strong>Tutup cincin kota</strong><span>Satu potongan cincin mana pun tetap membuat semua kecamatan terjangkau</span></a></li>
           <li><a href="/workspace?open=les-l7-02-city-services"><strong>Layanan kota di cincin</strong><span>Rumah sakit menjangkau layanan kota dan kecamatan umum tidak bisa menjangkau kamera</span></a></li>

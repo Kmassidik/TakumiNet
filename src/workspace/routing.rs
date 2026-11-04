@@ -401,7 +401,7 @@ impl Workspace {
         })
     }
 
-    fn install_route(&mut self, id: &str, route: InstalledRoute) {
+    pub(super) fn install_route(&mut self, id: &str, route: InstalledRoute) {
         if route.next_hop == 0 || self.is_connected(id, route.network, route.prefix) {
             return;
         }
@@ -439,6 +439,7 @@ impl Workspace {
         self.recompute_rip();
         self.recompute_ospf();
         self.recompute_eigrp();
+        self.recompute_bgp();
         for routes in self.dyn_routes.values_mut() {
             routes.sort_by_key(|route| (route.network, route.prefix, route.metric, route.next_hop));
         }
@@ -500,11 +501,10 @@ impl Workspace {
                         }
                     }
                 }
-                let changed = next != labels;
-                labels = next;
-                if !changed {
+                if next == labels {
                     break;
                 }
+                labels = next;
             }
             for (destination, label) in labels.into_iter().enumerate() {
                 let Some(label) = label.filter(|label| label.metric > 0 && label.metric <= 15) else {
@@ -1030,7 +1030,7 @@ impl Workspace {
             return "% Unknown device\n".to_string();
         }
         let mut out = String::from(
-            "Codes: C - connected, S - static, R - RIP, O - OSPF, O IA - OSPF inter area, D - EIGRP\n",
+            "Codes: C - connected, S - static, R - RIP, O - OSPF, O IA - OSPF inter area, D - EIGRP, B - BGP\n",
         );
         for route in self.selected_routes(id) {
             let prefix = format!(

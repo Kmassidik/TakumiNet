@@ -19,6 +19,7 @@ mod vouchers;
 mod shared_gateway;
 mod stp_state;
 mod balancer;
+mod bgp;
 mod collapse;
 mod flow;
 mod dhcp;
@@ -51,6 +52,7 @@ mod util;
 mod wan;
 mod wireless;
 
+pub use bgp::*;
 pub use route_types::*;
 pub use types::*;
 use palette::*;
@@ -118,6 +120,7 @@ impl Workspace {
                 nat_translations: HashMap::new(),
                 routing: HashMap::new(),
                 dyn_routes: HashMap::new(),
+                bgp: HashMap::new(),
                 stp_modes: HashMap::new(),
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),
@@ -269,6 +272,7 @@ impl Workspace {
         self.links.retain(|l| l.a != id && l.b != id);
         self.tables.forget(id);
         self.routing.remove(id);
+        self.bgp.remove(id);
         self.recompute_routing();
         true
     }
@@ -337,6 +341,7 @@ impl Workspace {
                 nat_translations: HashMap::new(),
                 routing: HashMap::new(),
                 dyn_routes: HashMap::new(),
+                bgp: HashMap::new(),
                 stp_modes: HashMap::new(),
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),

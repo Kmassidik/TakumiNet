@@ -41,6 +41,27 @@ impl Workspace {
                 ));
             }
         }
+        let mut bgp: Vec<_> = self.bgp.iter().collect();
+        bgp.sort_by_key(|(id, _)| id.as_str());
+        for (dev, config) in bgp {
+            out.push_str(&format!("bgprouter\t{}\t{}\n", dev, config.local_as));
+            for neighbor in &config.neighbors {
+                out.push_str(&format!(
+                    "bgpneighbor\t{}\t{}\t{}\n",
+                    dev,
+                    crate::model::ipv4_string(neighbor.peer_ip),
+                    neighbor.peer_as
+                ));
+            }
+            for (network, prefix) in &config.networks {
+                out.push_str(&format!(
+                    "bgpnet\t{}\t{}\t{}\n",
+                    dev,
+                    crate::model::ipv4_string(*network),
+                    prefix
+                ));
+            }
+        }
         let mut roles: Vec<_> = self.nat_roles.iter().collect();
         roles.sort_by_key(|(id, _)| id.as_str());
         for (dev, table) in roles {

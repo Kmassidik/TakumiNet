@@ -9,6 +9,7 @@ mod l3_lessons;
 mod l4_lessons;
 mod l4_campus;
 mod l5_lessons;
+mod l6_lessons;
 mod collapse;
 mod l7_l8;
 mod l9_l11;

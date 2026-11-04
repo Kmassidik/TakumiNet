@@ -41,6 +41,7 @@ pub enum RouteSource {
     Ospf,
     OspfInterArea,
     Eigrp,
+    Bgp,
 }
 
 impl RouteSource {
@@ -48,6 +49,7 @@ impl RouteSource {
         match self {
             Self::Connected => 0,
             Self::Static => 1,
+            Self::Bgp => 20,
             Self::Eigrp => 90,
             Self::Ospf | Self::OspfInterArea => 110,
             Self::Rip => 120,
@@ -62,6 +64,7 @@ impl RouteSource {
             Self::Ospf => "O",
             Self::OspfInterArea => "O IA",
             Self::Eigrp => "D",
+            Self::Bgp => "B",
         }
     }
 }

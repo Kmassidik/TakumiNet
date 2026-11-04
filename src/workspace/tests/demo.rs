@@ -1,6 +1,6 @@
 use super::super::*;
 
-const TEMPLATES: [(&str, &str); 25] = [
+const TEMPLATES: [(&str, &str); 28] = [
     ("tpl-connect", include_str!("../../../web/templates/tpl-connect.xml")),
     ("tpl-star", include_str!("../../../web/templates/tpl-star.xml")),
     ("tpl-home", include_str!("../../../web/templates/tpl-home.xml")),
@@ -18,12 +18,15 @@ const TEMPLATES: [(&str, &str); 25] = [
     ("tpl-l4-campus-dmz", include_str!("../../../web/templates/tpl-l4-campus-dmz.xml")),
     ("tpl-l5-leaf-spine", include_str!("../../../web/templates/tpl-l5-leaf-spine.xml")),
     ("tpl-l5-load-balanced-web", include_str!("../../../web/templates/tpl-l5-load-balanced-web.xml")),
-    ("tpl-l9-backbone-ring", include_str!("../../../web/templates/tpl-l9-backbone-ring.xml")),
-    ("tpl-l10-national", include_str!("../../../web/templates/tpl-l10-national.xml")),
-    ("tpl-l11-world", include_str!("../../../web/templates/tpl-l11-world.xml")),
+    ("tpl-l5-overlay", include_str!("../../../web/templates/tpl-l5-overlay.xml")),
+    ("tpl-l6-isp-two-upstreams", include_str!("../../../web/templates/tpl-l6-isp-two-upstreams.xml")),
+    ("tpl-l6-isp-pop", include_str!("../../../web/templates/tpl-l6-isp-pop.xml")),
     ("tpl-l5-overlay", include_str!("../../../web/templates/tpl-l5-overlay.xml")),
     ("tpl-l7-city-ring", include_str!("../../../web/templates/tpl-l7-city-ring.xml")),
     ("tpl-l8-regency-radio", include_str!("../../../web/templates/tpl-l8-regency-radio.xml")),
+    ("tpl-l9-backbone-ring", include_str!("../../../web/templates/tpl-l9-backbone-ring.xml")),
+    ("tpl-l10-national", include_str!("../../../web/templates/tpl-l10-national.xml")),
+    ("tpl-l11-world", include_str!("../../../web/templates/tpl-l11-world.xml")),
     ("tpl-l3-office-vpn", include_str!("../../../web/templates/tpl-l3-office-vpn.xml")),
     ("tpl-l3-office-vlans", include_str!("../../../web/templates/tpl-l3-office-vlans.xml")),
 ];

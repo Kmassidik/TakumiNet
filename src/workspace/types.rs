@@ -405,6 +405,8 @@ pub struct Workspace {
     pub routing: HashMap<String, RoutingConfig>,
     /// Recomputed protocol routes. Derived LSDB/path state is never persisted.
     pub dyn_routes: HashMap<String, Vec<InstalledRoute>>,
+    /// BGP: local AS, neighbors and announced prefixes per router.
+    pub bgp: HashMap<String, BgpConfig>,
     /// Spanning-tree mode and configured priority per switch/VLAN.
     pub stp_modes: HashMap<String, String>,
     pub stp_priorities: HashMap<String, HashMap<u16, u16>>,
