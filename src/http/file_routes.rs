@@ -202,6 +202,7 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("tpl-l3-office-vlans", include_str!("../../web/templates/tpl-l3-office-vlans.xml")),
     ("les-l3-01-three-vlans", include_str!("../../web/templates/les-l3-01-three-vlans.xml")),
     ("les-l3-02-inter-vlan", include_str!("../../web/templates/les-l3-02-inter-vlan.xml")),
+    ("les-l3-04-acl-fence", include_str!("../../web/templates/les-l3-04-acl-fence.xml")),
 ];
 
 /// Ready-to-run networks: no steps, nothing to set. Titles and goals for the gallery.

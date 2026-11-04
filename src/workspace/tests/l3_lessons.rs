@@ -46,3 +46,31 @@ fn inter_vlan_lesson_needs_the_subinterfaces() {
     }
     assert_eq!(passes(&mut ws), vec![true; 4]);
 }
+
+#[test]
+fn an_acl_keeps_the_printer_vlan_away_from_the_servers() {
+    use crate::model::parse_ipv4 as ip;
+    let mut ws = Workspace::from_tnet(OFFICE).unwrap();
+    assert!(ws.send_pdu("printer0", "server0").is_ok());
+    let none = ip("0.0.0.0").unwrap();
+    let all = ip("255.255.255.255").unwrap();
+    let wild = ip("0.0.0.255").unwrap();
+    ws.acl_add("router0", 100, false, ip("192.168.30.0").unwrap(), wild, Some((ip("192.168.20.0").unwrap(), wild))).unwrap();
+    ws.acl_add("router0", 100, true, none, all, Some((none, all))).unwrap();
+    ws.acl_bind("router0", "GigabitEthernet0/0.30", 100, true).unwrap();
+    assert!(ws.send_pdu("printer0", "server0").unwrap_err().contains("ACL denied"));
+    assert!(ws.send_pdu("pc0", "server0").is_ok(), "staff still reach the servers");
+    assert!(ws.send_pdu("printer0", "pc0").is_ok(), "the printer is only fenced off from the servers");
+}
+
+#[test]
+fn acl_lesson_fails_before_the_list_and_passes_after() {
+    use crate::model::parse_ipv4 as ip;
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l3-04-acl-fence.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, true, true]);
+    let (none, all, wild) = (ip("0.0.0.0").unwrap(), ip("255.255.255.255").unwrap(), ip("0.0.0.255").unwrap());
+    ws.acl_add("router0", 100, false, ip("192.168.30.0").unwrap(), wild, Some((ip("192.168.20.0").unwrap(), wild))).unwrap();
+    ws.acl_add("router0", 100, true, none, all, Some((none, all))).unwrap();
+    ws.acl_bind("router0", "GigabitEthernet0/0.30", 100, true).unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true, true]);
+}

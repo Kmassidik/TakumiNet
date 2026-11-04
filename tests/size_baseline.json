@@ -1,5 +1,5 @@
 {
-  "src/net/fwd.rs": 1084,
+  "src/net/fwd.rs": 749,
   "src/net/packet.rs": 651,
   "src/cmd.rs": 651,
   "src/workspace/switching.rs": 619,

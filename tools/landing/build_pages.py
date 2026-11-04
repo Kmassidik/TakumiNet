@@ -16,7 +16,7 @@ X = "https://x.com/KMassidik"
 EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed", 3), ("tpl-web", 4),
             ("tpl-l1-wifi-home", 5), ("tpl-l1-two-rooms", 6), ("tpl-l1-broken-wifi", 7),
             ("tpl-l3-office-vlans", 8)]
-LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan"]
+LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence"]
 
 T = {
     "en": {
@@ -66,7 +66,8 @@ T = {
             ("Sign in to the home router", "Laptop0 signs in with the sticker, and a wrong password is refused"),
             ("Find the fault at home", "Laptop0 reaches Phone0 after you fix its address"),
             ("Split the office into three VLANs", "Staff, servers and devices each get their own VLAN"),
-            ("Let the VLANs talk through the router", "Desk0 reaches the server and printer through one router cable")],
+            ("Let the VLANs talk through the router", "Desk0 reaches the server and printer through one router cable"),
+            ("Fence the printer off from the servers", "The printer VLAN cannot reach the servers, and everyone else still can")],
         "faq_h": "Questions people ask",
         "faq": [
             ("Is Takumi free?", "Yes. It is free to use and open source under the MIT licence."),
@@ -141,7 +142,8 @@ T = {
             ("Masuk ke router rumah", "Laptop0 masuk dengan stiker, dan kata sandi yang salah ditolak"),
             ("Cari kesalahan di rumah", "Laptop0 menjangkau Phone0 setelah alamatnya kamu perbaiki"),
             ("Bagi kantor menjadi tiga VLAN", "Staf, server, dan perangkat masing-masing punya VLAN"),
-            ("Biarkan VLAN berbicara lewat router", "Desk0 menjangkau server dan printer lewat satu kabel router")],
+            ("Biarkan VLAN berbicara lewat router", "Desk0 menjangkau server dan printer lewat satu kabel router"),
+            ("Pagari printer dari server", "VLAN printer tidak bisa menjangkau server, yang lain tetap bisa")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
             ("Apakah Takumi gratis?", "Ya. Takumi gratis dipakai dan open source dengan lisensi MIT."),
