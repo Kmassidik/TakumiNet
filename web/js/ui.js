@@ -656,6 +656,19 @@
     globalThis.selectSidebarTab = selectTab;
   }
 
+  // web/ts/ui/gallery_once.ts
+  var SEEN_KEY = "pt-web:gallery-seen";
+  function shouldAutoShowGallery(store) {
+    try {
+      if (store.getItem(SEEN_KEY))
+        return false;
+      store.setItem(SEEN_KEY, "1");
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
   // web/ts/ui/button.ts
   function createButton(doc, options) {
     const button = doc.createElement("button");
@@ -832,6 +845,7 @@
   globalThis.askConfirm = async (message, okText = "OK") => await openModal(doc, stack, { message, okText }) === true;
   globalThis.askText = async (message, value = "") => await openModal(doc, stack, { message, input: value });
   globalThis.bringToFront = bringToFront;
+  globalThis.shouldAutoShowGallery = () => shouldAutoShowGallery(localStorage);
   globalThis.renderDeviceList = (list, devices, onSelect) => renderDeviceList(doc, list, devices, onSelect);
   globalThis.WorkspaceCanvas = WorkspaceCanvas;
   globalThis.buildRunLog = buildRunLog;
