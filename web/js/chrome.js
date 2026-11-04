@@ -55,19 +55,25 @@ function wireActions() {
 function wireKeyboard() {
   document.addEventListener('keydown', async (e) => {
     if (e.defaultPrevented) return; // the menu bar already used this key
+    if (e.repeat) return; // holding a key must not replay its action
     const active = document.activeElement;
     if (active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable)) return;
-    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === ' ') {
+    const plain = !e.ctrlKey && !e.metaKey && !e.altKey;
+    // Space is the canvas pan modifier, so playback lives on P.
+    if (plain && e.key.toLowerCase() === 'p') {
       e.preventDefault(); togglePlay(); return;
     }
-    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowRight') {
+    if (plain && e.key.toLowerCase() === 'f') {
+      e.preventDefault(); ACTIONS['zoom-fit'](); return;
+    }
+    if (plain && e.key === 'ArrowRight') {
       e.preventDefault(); stepSim(1); return;
     }
-    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowLeft') {
+    if (plain && e.key === 'ArrowLeft') {
       e.preventDefault(); stepSim(-1); return;
     }
     const meta = e.ctrlKey || e.metaKey;
-    if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); ACTIONS.undo(); }
+    if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); (e.shiftKey ? ACTIONS.redo : ACTIONS.undo)(); }
     else if (meta && e.key.toLowerCase() === 'y') { e.preventDefault(); ACTIONS.redo(); }
     else if (meta && e.key.toLowerCase() === 'c') { e.preventDefault(); ACTIONS.copy(); }
     else if (meta && e.key.toLowerCase() === 'v') { e.preventDefault(); ACTIONS.paste(); }
@@ -76,6 +82,8 @@ function wireKeyboard() {
     else if (e.key === 'Escape') {
       if (document.querySelector('.overlay:not([hidden])')) return;
       pduMode = false; pduFrom = null;
+      noteMode = false;
+      selectedLink = null;
       leaveCableMode();
       setSelection([]);
       renderPalette();

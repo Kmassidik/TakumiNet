@@ -104,7 +104,6 @@ html, body {
 .link.selected { stroke: var(--accent); stroke-width: 2.6; }
 /* A console cable is out of band: dashed and cool-coloured, like PT's. */
 .link.console { stroke: var(--accent-light); stroke-width: 1.6; stroke-dasharray: 7 5; }
-.link-hit { stroke: transparent; stroke-width: 14; cursor: pointer; pointer-events: stroke; }
 .link-led { stroke: var(--white); stroke-width: 1.5; }
 .link-led[data-state="green"] { fill: var(--ok-bright); }
 .link-led[data-state="amber"] { fill: var(--warn); }
@@ -139,7 +138,6 @@ html, body {
 }
 .dev-name { font-size: 11px; fill: var(--ink); text-anchor: middle; }
 .dev-model { font-size: 9px; fill: var(--muted); text-anchor: middle; }
-.dev { cursor: pointer; }
 .dev.selected image { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 60%, transparent)); }
 .dev.selected rect.sel { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 3; }
 .dev.selected .dev-name { fill: var(--accent); font-weight: 600; }

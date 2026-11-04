@@ -94,6 +94,32 @@
     }
   }
 
+  // web/ts/canvas/pointer_rules.ts
+  var STEP = 1.1;
+  var PINCH_SCALE = 0.01;
+  function wheelAction(ev) {
+    if (ev.ctrlKey)
+      return { kind: "zoom", factor: Math.exp(-ev.deltaY * PINCH_SCALE) };
+    const stepped = ev.deltaY < 0 ? STEP : 1 / STEP;
+    if (ev.deltaMode !== 0)
+      return { kind: "zoom", factor: stepped };
+    const notch = ev.deltaX === 0 && Math.abs(ev.deltaY) >= 100 && Number.isInteger(ev.deltaY);
+    if (notch)
+      return { kind: "zoom", factor: stepped };
+    return { kind: "pan", dx: ev.deltaX, dy: ev.deltaY };
+  }
+  function cursorFor(hit, mode, held) {
+    if (mode === "crosshair")
+      return "crosshair";
+    if (held)
+      return hit === "link" ? "pointer" : "grabbing";
+    if (hit === "link")
+      return "pointer";
+    if (hit)
+      return "grab";
+    return "default";
+  }
+
   // web/ts/canvas/hit.ts
   function hitDevice(scene, p) {
     for (let i = scene.devices.length - 1;i >= 0; i--) {
@@ -630,6 +656,7 @@
       canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
       canvas.addEventListener("pointerup", () => {
         this.panFrom = null;
+        this.canvas.style.cursor = cursorFor(null, this.mode(), false);
       });
       canvas.addEventListener("wheel", (ev) => this.onWheel(ev), { passive: false });
       window.addEventListener("keydown", (ev) => {
@@ -814,10 +841,19 @@
       this.images.set(src, img);
       return;
     }
+    mode() {
+      const wrap = this.canvas.parentElement;
+      const crosshair = !!wrap && (wrap.classList.contains("cable-mode") || wrap.classList.contains("crosshair"));
+      return crosshair ? "crosshair" : "select";
+    }
+    startPan(ev) {
+      this.panFrom = this.screenAt(ev);
+      this.canvas.setPointerCapture(ev.pointerId);
+      this.canvas.style.cursor = cursorFor(null, this.mode(), true);
+    }
     onPointerDown(ev) {
       if (ev.button === 1 || this.spaceDown) {
-        this.panFrom = this.screenAt(ev);
-        this.canvas.setPointerCapture(ev.pointerId);
+        this.startPan(ev);
         ev.preventDefault();
         return;
       }
@@ -840,17 +876,24 @@
       const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
       if (link)
         return this.handlers.onLinkDown?.(link, ev);
-      this.panFrom = this.screenAt(ev);
-      this.canvas.setPointerCapture(ev.pointerId);
+      this.startPan(ev);
       this.handlers.onBackgroundDown?.(ev);
     }
     onPointerMove(ev) {
       if (!this.panFrom) {
-        if (this.state?.physical)
+        if (this.state?.physical) {
+          this.canvas.style.cursor = cursorFor(null, this.mode(), false);
           return;
+        }
         const world = this.worldAt(ev);
         const group = hitGroup(this.scene, world);
-        const over = group ? { name: group.name, model: `${group.devices} device${group.devices === 1 ? "" : "s"}` } : hitDevice(this.scene, world);
+        const device = group ? null : hitDevice(this.scene, world);
+        const link = group || device ? null : hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
+        const note = group || device || link ? null : hitNote(this.state?.notes ?? [], world);
+        const hit = group ? "group" : device ? "device" : link ? "link" : note ? "note" : null;
+        const dragging = (ev.buttons & 1) !== 0 && hit !== null;
+        this.canvas.style.cursor = cursorFor(hit, this.mode(), dragging);
+        const over = group ? { name: group.name, model: `${group.devices} device${group.devices === 1 ? "" : "s"}` } : device;
         this.handlers.onHover?.(over, ev);
         return;
       }
@@ -861,7 +904,11 @@
     }
     onWheel(ev) {
       ev.preventDefault();
-      this.camera.zoomAt(this.screenAt(ev), ev.deltaY < 0 ? 1.1 : 1 / 1.1);
+      const action = wheelAction(ev);
+      if (action.kind === "zoom")
+        this.camera.zoomAt(this.screenAt(ev), action.factor);
+      else
+        this.camera.pan(-action.dx, -action.dy);
       this.requestDraw();
     }
   }
@@ -1265,8 +1312,9 @@
     copy: "Ctrl+C",
     paste: "Ctrl+V",
     delete: "Del",
-    play: "Space",
-    play2: "Space",
+    "zoom-fit": "F",
+    play: "P",
+    play2: "P",
     step: "→",
     forward: "→",
     back: "←"

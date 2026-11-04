@@ -29,7 +29,8 @@ test("it never leaves the window, at any corner", () => {
 test("shortcuts come from the action, and unknown actions show none", () => {
   expect(shortcutFor({ action: "save" })).toBe("Ctrl+S");
   expect(shortcutFor({ action: "undo" })).toBe("Ctrl+Z");
-  expect(shortcutFor({ sim: "play" })).toBe("Space");
+  expect(shortcutFor({ sim: "play" })).toBe("P");
+  expect(shortcutFor({ action: "zoom-fit" })).toBe("F");
   expect(shortcutFor({ collapseFor: "sidebar" })).toBe("\\");
   expect(shortcutFor({ action: "nothing" })).toBe("");
   expect(shortcutFor({})).toBe("");

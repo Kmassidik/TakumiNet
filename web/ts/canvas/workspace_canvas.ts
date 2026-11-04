@@ -1,4 +1,5 @@
 import { Camera, type Point } from "./camera";
+import { cursorFor, wheelAction, type CanvasMode, type HoverHit } from "./pointer_rules";
 import { hitDevice, hitGroup, hitLink } from "./hit";
 import { drawScene, type Canvas2D, type Packet } from "./draw";
 import { packetAt } from "./packets";
@@ -64,7 +65,10 @@ export class WorkspaceCanvas {
     if (typeof ResizeObserver !== "undefined") new ResizeObserver(() => this.resize()).observe(canvas);
     canvas.addEventListener("pointerdown", (ev) => this.onPointerDown(ev));
     canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
-    canvas.addEventListener("pointerup", () => { this.panFrom = null; });
+    canvas.addEventListener("pointerup", () => {
+      this.panFrom = null;
+      this.canvas.style.cursor = cursorFor(null, this.mode(), false);
+    });
     canvas.addEventListener("wheel", (ev) => this.onWheel(ev), { passive: false });
     window.addEventListener("keydown", (ev) => { if (ev.code === "Space") this.spaceDown = true; });
     window.addEventListener("keyup", (ev) => { if (ev.code === "Space") this.spaceDown = false; });
@@ -257,10 +261,21 @@ export class WorkspaceCanvas {
     return undefined;
   }
 
+  private mode(): CanvasMode {
+    const wrap = this.canvas.parentElement;
+    const crosshair = !!wrap && (wrap.classList.contains("cable-mode") || wrap.classList.contains("crosshair"));
+    return crosshair ? "crosshair" : "select";
+  }
+
+  private startPan(ev: PointerEvent): void {
+    this.panFrom = this.screenAt(ev);
+    this.canvas.setPointerCapture(ev.pointerId);
+    this.canvas.style.cursor = cursorFor(null, this.mode(), true);
+  }
+
   private onPointerDown(ev: PointerEvent): void {
     if (ev.button === 1 || this.spaceDown) {
-      this.panFrom = this.screenAt(ev);
-      this.canvas.setPointerCapture(ev.pointerId);
+      this.startPan(ev);
       ev.preventDefault();
       return;
     }
@@ -278,19 +293,27 @@ export class WorkspaceCanvas {
     if (device) return this.handlers.onDeviceDown?.(device, ev);
     const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
     if (link) return this.handlers.onLinkDown?.(link, ev);
-    this.panFrom = this.screenAt(ev);
-    this.canvas.setPointerCapture(ev.pointerId);
+    this.startPan(ev);
     this.handlers.onBackgroundDown?.(ev);
   }
 
   private onPointerMove(ev: PointerEvent): void {
     if (!this.panFrom) {
-      if (this.state?.physical) return;
+      if (this.state?.physical) {
+        this.canvas.style.cursor = cursorFor(null, this.mode(), false);
+        return;
+      }
       const world = this.worldAt(ev);
       const group = hitGroup(this.scene, world);
+      const device = group ? null : hitDevice(this.scene, world);
+      const link = group || device ? null : hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
+      const note = group || device || link ? null : hitNote(this.state?.notes ?? [], world);
+      const hit: HoverHit = group ? "group" : device ? "device" : link ? "link" : note ? "note" : null;
+      const dragging = (ev.buttons & 1) !== 0 && hit !== null;
+      this.canvas.style.cursor = cursorFor(hit, this.mode(), dragging);
       const over = group
         ? { name: group.name, model: `${group.devices} device${group.devices === 1 ? "" : "s"}` }
-        : hitDevice(this.scene, world);
+        : device;
       this.handlers.onHover?.(over, ev);
       return;
     }
@@ -302,7 +325,9 @@ export class WorkspaceCanvas {
 
   private onWheel(ev: WheelEvent): void {
     ev.preventDefault();
-    this.camera.zoomAt(this.screenAt(ev), ev.deltaY < 0 ? 1.1 : 1 / 1.1);
+    const action = wheelAction(ev);
+    if (action.kind === "zoom") this.camera.zoomAt(this.screenAt(ev), action.factor);
+    else this.camera.pan(-action.dx, -action.dy);
     this.requestDraw();
   }
 }

@@ -192,9 +192,12 @@ const ACTIONS = {
   },
   'zoom-in'() { zoom(1.25); },
   'zoom-out'() { zoom(0.8); },
+  'zoom-fit'() {
+    workspaceCanvas.fit();
+    status('Zoomed to fit');
+  },
   'zoom-reset'() {
-    workspaceCanvas.camera.zoom = 1;
-    workspaceCanvas.requestDraw();
+    workspaceCanvas.fit();
     status('Zoom reset');
   },
   'toggle-palette'() {

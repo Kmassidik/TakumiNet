@@ -7,7 +7,7 @@ const PRIMARY = [
   ['toolbar/copy', 'Copy', 'copy'], ['toolbar/paste', 'Paste', 'paste'],
   ['toolbar/delete', 'Delete', 'delete'], null,
   ['toolbar/zoomin', 'Zoom in', 'zoom-in'], ['toolbar/zoomout', 'Zoom out', 'zoom-out'],
-  ['toolbar/zoomreset', 'Reset zoom', 'zoom-reset'], null,
+  ['toolbar/zoomreset', 'Zoom to fit', 'zoom-fit'], null,
   ['toolbar/templates', 'Palette', 'toggle-palette'],
   ['toolbar/toolbox', 'Custom device', 'custom-device'], null,
   ['toolbar/help', 'Help', 'help'],
