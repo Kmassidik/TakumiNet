@@ -85,3 +85,27 @@ fn the_sign_in_lesson_passes_with_the_sticker_and_not_before_a_cable_fault() {
     ws.set_router_admin("homerouter0", "admin", "family-secret").unwrap();
     assert_eq!(results(&mut ws), vec![false, true], "the sticker no longer works once the password changes");
 }
+
+const WIFI: &str = include_str!("../../../web/templates/les-l1-02-wifi-name.xml");
+
+#[test]
+fn wifi_name_lesson_needs_the_new_network_and_a_correct_join() {
+    let mut ws = Workspace::from_tnet(WIFI).unwrap();
+    assert_eq!(results(&mut ws), vec![false]);
+    assert_eq!(ws.wifi_join("phone0", "HomeWifi4821", "welcome123").unwrap(), "homerouter0");
+    assert_eq!(results(&mut ws), vec![false], "the old network is the wrong one");
+    ws.wlan_remove("homerouter0", "HomeWifi4821").unwrap();
+    assert!(ws.wifi_status("phone0").is_none(), "removing a network disconnects its clients");
+    assert!(ws.wlan_add("homerouter0", "KeluargaSantoso", "short").is_err());
+    ws.wlan_add("homerouter0", "KeluargaSantoso", "santoso-2024").unwrap();
+    assert!(ws.wifi_join("phone0", "KeluargaSantoso", "wrong-pass1").is_err());
+    ws.wifi_join("phone0", "KeluargaSantoso", "santoso-2024").unwrap();
+    assert_eq!(results(&mut ws), vec![true]);
+}
+
+#[test]
+fn removing_a_missing_network_is_an_error() {
+    let mut ws = Workspace::from_tnet(WIFI).unwrap();
+    assert!(ws.wlan_remove("homerouter0", "Nope").is_err());
+    assert!(ws.wlan_remove("laptop0", "HomeWifi4821").is_err());
+}

@@ -42,6 +42,18 @@ impl Workspace {
         Ok(())
     }
 
+    /// Remove a network and disconnect every client that was joined to it.
+    pub fn wlan_remove(&mut self, wlc: &str, ssid: &str) -> Result<(), String> {
+        let list = self.wlans.get_mut(wlc).ok_or_else(|| format!("{wlc} has no wireless networks"))?;
+        let before = list.len();
+        list.retain(|w| w.ssid != ssid);
+        if list.len() == before {
+            return Err(format!("WLAN {ssid} not found"));
+        }
+        self.wifi.retain(|_, (joined, on)| !(joined == ssid && on == wlc));
+        Ok(())
+    }
+
     pub fn wlan_list(&self, wlc: &str) -> Vec<(String, String)> {
         self.wlans
             .get(wlc)

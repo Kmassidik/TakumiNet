@@ -13,6 +13,7 @@ impl Workspace {
             "count" => self.check_count(check),
             "login" => self.check_login(check),
             "outage" => self.check_outage(check),
+            "wifi" => self.check_wifi(check),
             _ => return None,
         })
     }
@@ -108,6 +109,23 @@ impl Workspace {
             Ok(()) => (true, format!("still reachable with {port} on {device} cut"), hint),
             Err(error) => (false, format!("unreachable with {port} on {device} cut: {error}"), hint),
         }
+    }
+
+    /// `to` is the network name the client must be joined to; `expect` the security
+    /// it must use (empty means any).
+    fn check_wifi(&self, check: &Check) -> Verdict {
+        let hint = "Join the network from the device, with the password saved on the router.".to_string();
+        let Some((ssid, wlc)) = self.wifi_status(&check.from) else {
+            return (false, "not joined to any wireless network".into(), hint);
+        };
+        if ssid != check.to {
+            return (false, format!("joined to {ssid}, not {}", check.to), hint);
+        }
+        let security = self.wlans.get(&wlc).and_then(|l| l.iter().find(|w| w.ssid == ssid)).map(|w| w.security.clone()).unwrap_or_default();
+        if !check.expect.is_empty() && security != check.expect {
+            return (false, format!("{ssid} uses {security}, not {}", check.expect), "Change the security setting of the network.".into());
+        }
+        (true, format!("joined to {ssid} ({security})"), hint)
     }
 
     fn check_count(&self, check: &Check) -> Verdict {

@@ -22,6 +22,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/iot/send") => Some(handle_iot_send(ctx, query)),
         ("POST", "/api/ptp/sync") => Some(handle_ptp_sync(ctx, query)),
         ("POST", "/api/prp/enable") => Some(handle_prp_enable(ctx, query)),
+        ("POST", "/api/wifi/remove") => Some(handle_wifi_remove(ctx, query)),
         ("POST", "/api/cell/join") => Some(handle_cell_join(ctx, query)),
         ("POST", "/api/cell/status") => Some(handle_cell_status(ctx, query)),
         _ => None,
@@ -320,4 +321,12 @@ fn handle_cell_status(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         ),
         None => (json, b"{\"associated\":false,\"tower\":\"\"}".to_vec()),
     }
+}
+
+fn handle_wifi_remove(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let ssid = query_value(query, "ssid").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| ws.wlan_remove(&id, &ssid));
+    (json, out.into_bytes())
 }
