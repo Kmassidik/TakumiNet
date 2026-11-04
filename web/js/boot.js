@@ -53,7 +53,8 @@ async function boot() {
   workspaceCanvas.fit();
   for (const id of ['device-window', 'cmd-window', 'term-window', 'web-dialog',
     'editor-dialog', 'pdu-dialog', 'firewall-dialog',
-    'gateway-window', 'radio-window', 'provider-window', 'hotspot-window']) {
+    'gateway-window', 'radio-window', 'provider-window', 'hotspot-window',
+    'firewall-window', 'balancer-window', 'l3switch-window']) {
     makeWindowMovable(document.getElementById(id));
   }
   status('Ready');

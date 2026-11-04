@@ -824,6 +824,14 @@ html, body {
 .kindwin .ui-button:focus-visible, .kw-input:focus-visible { outline: 2px solid var(--brand-strong); outline-offset: 1px; }
 .kw-outcome { flex-basis: 100%; }
 .kw-outcome .kw-note { font-size: 11px; }
+.kw-permit { color: var(--ok); }
+.kw-deny { color: var(--danger-ink); }
+.kw-row .kw-remove { margin-left: 8px; padding: 1px 7px; font-size: 11px; }
+.kw-mono {
+  margin: 0; padding: 6px 8px; max-height: 180px; overflow: auto; white-space: pre-wrap;
+  font: 11px/1.5 var(--font-mono); color: var(--screen-text);
+  background: var(--screen-bg); border: 1px solid var(--screen-edge); border-radius: var(--r-s);
+}
 .stat-line.ok { color: var(--ok); font-weight: 600; }
 .stat-line.off { color: var(--muted); }
 .wifi-list {

@@ -1684,8 +1684,162 @@
     return ends;
   }
 
-  // web/ts/ui/gateway_window.ts
+  // web/ts/ui/balancer_window.ts
   var enc = encodeURIComponent;
+  function deviceName(workspace, id) {
+    return workspace.devices?.find((d) => d.id === id)?.name ?? id;
+  }
+  function memberId(workspace, typed) {
+    return workspace.devices?.find((d) => d.name === typed)?.id ?? typed;
+  }
+  async function fillPool(doc, box, device, workspace, post, outcome) {
+    const res = await post(`/api/lb/list?id=${enc(device.id)}`);
+    const err = errorOf(res);
+    if (err)
+      throw new Error(err);
+    const rows = records(res, "pool");
+    box.replaceChildren();
+    if (rows.length === 0) {
+      box.appendChild(note(doc, "empty", "The pool is empty: add servers."));
+      return;
+    }
+    const list = el(doc, "ul", "kw-list");
+    for (const row of rows) {
+      const member = asText(row["member"]);
+      const served = Number(row["served"]) || 0;
+      const item = el(doc, "li", "kw-row", `${deviceName(workspace, member)}: ${served} served`);
+      item.appendChild(createButton(doc, {
+        label: "Remove",
+        className: "kw-remove",
+        onClick: () => void (async () => {
+          try {
+            const out = await post(`/api/devices/lbpool?id=${enc(device.id)}&member=${enc(member)}&remove=1`);
+            const removeErr = errorOf(out);
+            if (removeErr)
+              showOutcome(doc, outcome, "error", removeErr);
+            else {
+              showOutcome(doc, outcome, "ok", `${deviceName(workspace, member)} removed from the pool.`);
+              await fillPool(doc, box, device, workspace, post, outcome).catch(() => {
+                return;
+              });
+            }
+          } catch {
+            showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+          }
+        })()
+      }));
+      list.appendChild(item);
+    }
+    box.appendChild(list);
+  }
+  function renderBalancerWindow(doc, body, device, workspace, post) {
+    body.replaceChildren();
+    const outcome = el(doc, "div", "kw-outcome");
+    let listBox = null;
+    const done = asyncSection(doc, body, "Server pool", "Could not load the pool.", (box) => {
+      listBox = box;
+      return fillPool(doc, box, device, workspace, post, outcome);
+    });
+    const form = el(doc, "div", "kw-form");
+    const server = field(doc, form, "Server");
+    const submit = () => void add();
+    const add = async () => {
+      const typed = server.value.trim();
+      if (!typed) {
+        showOutcome(doc, outcome, "error", "Type a server name.");
+        return;
+      }
+      try {
+        const res = await post(`/api/devices/lbpool?id=${enc(device.id)}&member=${enc(memberId(workspace, typed))}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `${typed} added to the pool.`);
+          server.value = "";
+          if (listBox)
+            await fillPool(doc, listBox, device, workspace, post, outcome).catch(() => {
+              return;
+            });
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(server, submit);
+    form.appendChild(createButton(doc, { label: "Add server", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    body.appendChild(form);
+    return done;
+  }
+
+  // web/ts/ui/firewall_window.ts
+  function parsePortRows(text) {
+    const parsed = JSON.parse(text);
+    if (typeof parsed["error"] === "string" && parsed["error"])
+      throw new Error(parsed["error"]);
+    const raw = Array.isArray(parsed["ports"]) ? parsed["ports"] : [];
+    return raw.map((p) => ({
+      name: asText(p["name"]),
+      ip: typeof p["ip"] === "string" ? p["ip"] : null,
+      prefix: Number(p["prefix"]) || 0
+    }));
+  }
+  function portText(port) {
+    return port.ip ? `${port.name} — ${port.ip}/${port.prefix}` : `${port.name} — no address yet`;
+  }
+  function aclRules(saved, deviceId) {
+    const pattern = /<acl dev="([^"]*)" num="([^"]*)" action="([^"]*)" src="([^"]*)" swc="([^"]*)" dip="([^"]*)" dwc="([^"]*)"/g;
+    const rules = [];
+    for (const m of saved.matchAll(pattern)) {
+      if (m[1] !== deviceId)
+        continue;
+      const target = m[6] === "-" ? "any" : `${m[6]} ${m[7]}`;
+      rules.push({
+        num: m[2] ?? "",
+        permit: m[3] === "permit",
+        text: `${m[2]} ${m[3]} ${m[4]} ${m[5]} to ${target}`
+      });
+    }
+    return rules;
+  }
+  function zonesSection(doc, root, device, getText) {
+    return asyncSection(doc, root, "Zones", "Could not load the ports.", async (box) => {
+      const ports = parsePortRows(await getText(`/api/devices/ports?id=${encodeURIComponent(device.id)}`));
+      box.replaceChildren();
+      if (ports.length === 0)
+        box.appendChild(note(doc, "empty", "This firewall has no ports."));
+      else
+        box.appendChild(rowList(doc, ports.map(portText)));
+    });
+  }
+  function rulesSection(doc, root, device, getText) {
+    return asyncSection(doc, root, "Rules", "Could not load the rules.", async (box) => {
+      const rules = aclRules(await getText("/api/export"), device.id);
+      box.replaceChildren();
+      if (rules.length === 0) {
+        box.appendChild(note(doc, "empty", "No rules yet. Everything passes."));
+        return;
+      }
+      const list = el(doc, "ul", "kw-list");
+      for (const rule of rules) {
+        list.appendChild(el(doc, "li", rule.permit ? "kw-row kw-permit" : "kw-row kw-deny", rule.text));
+      }
+      box.appendChild(list);
+    });
+  }
+  function renderFirewallWindow(doc, body, device, getText) {
+    body.replaceChildren();
+    return Promise.all([
+      zonesSection(doc, body, device, getText),
+      rulesSection(doc, body, device, getText)
+    ]).then(() => {
+      return;
+    });
+  }
+
+  // web/ts/ui/gateway_window.ts
+  var enc2 = encodeURIComponent;
   function wholeNumber(value) {
     const n = Number(value);
     return Number.isInteger(n) && n > 0 ? n : null;
@@ -1696,7 +1850,7 @@
   }
   function sessionsSection(doc, root, device, post) {
     return asyncSection(doc, root, "Customer sessions", "Could not load the sessions.", async (box) => {
-      const res = await post(`/api/pppoe/sessions?id=${enc(device.id)}`);
+      const res = await post(`/api/pppoe/sessions?id=${enc2(device.id)}`);
       const err = errorOf(res);
       if (err)
         throw new Error(err);
@@ -1710,7 +1864,7 @@
   }
   function fillQueues(doc, box, device, post) {
     return (async () => {
-      const res = await post(`/api/queues/list?id=${enc(device.id)}&port=Ether1`);
+      const res = await post(`/api/queues/list?id=${enc2(device.id)}&port=Ether1`);
       const err = errorOf(res);
       if (err)
         throw new Error(err);
@@ -1755,7 +1909,7 @@
         return;
       }
       try {
-        const res = await post(`/api/devices/queue?id=${enc(device.id)}&user=${enc(name)}&mbit=${limit}`);
+        const res = await post(`/api/devices/queue?id=${enc2(device.id)}&user=${enc2(name)}&mbit=${limit}`);
         const err = errorOf(res);
         if (err)
           showOutcome(doc, outcome, "error", err);
@@ -1785,7 +1939,7 @@
         return;
       }
       try {
-        const res = await post(`/api/devices/queue?id=${enc(device.id)}&mbit=${limit}&parent=1`);
+        const res = await post(`/api/devices/queue?id=${enc2(device.id)}&mbit=${limit}&parent=1`);
         const err = errorOf(res);
         if (err)
           showOutcome(doc, outcome, "error", err);
@@ -1817,7 +1971,7 @@
         return;
       }
       try {
-        const res = await post(`/api/voucher?id=${enc(device.id)}&code=${enc(codeText)}&minutes=${time}`);
+        const res = await post(`/api/voucher?id=${enc2(device.id)}&code=${enc2(codeText)}&minutes=${time}`);
         const err = errorOf(res);
         if (err)
           showOutcome(doc, outcome, "error", err);
@@ -1837,7 +1991,7 @@
     let listBox = null;
     const fill = async (box) => {
       listBox = box;
-      const res = await post(`/api/aaa/list?id=${enc(device.id)}`);
+      const res = await post(`/api/aaa/list?id=${enc2(device.id)}`);
       const err = errorOf(res);
       if (err)
         throw new Error(err);
@@ -1861,7 +2015,7 @@
         return;
       }
       try {
-        const res = await post(`/api/devices/aaa?id=${enc(device.id)}&user=${enc(name)}&pass=${enc(pass.value)}`);
+        const res = await post(`/api/devices/aaa?id=${enc2(device.id)}&user=${enc2(name)}&pass=${enc2(pass.value)}`);
         const err = errorOf(res);
         if (err)
           showOutcome(doc, outcome, "error", err);
@@ -1892,6 +2046,65 @@
     vouchersSection(doc, body, device, post);
     loads.push(accountsSection(doc, body, device, post));
     return Promise.all(loads).then(() => {
+      return;
+    });
+  }
+
+  // web/ts/ui/l3switch_window.ts
+  var enc3 = encodeURIComponent;
+  function vlanTags(saved, deviceId) {
+    const pattern = /<port id="([^"]*)" name="([^"]*)" up="[^"]*" ip="[^"]*" prefix="[^"]*" vlan="([^"]*)" trunk="([^"]*)"/g;
+    const tags = new Map;
+    for (const m of saved.matchAll(pattern)) {
+      if (m[1] === deviceId)
+        tags.set(m[2] ?? "", { vlan: m[3] ?? "1", trunk: m[4] === "1" });
+    }
+    return tags;
+  }
+  function portLine(text, tag) {
+    if (tag?.trunk)
+      return `${text} · trunk`;
+    return `${text} · VLAN ${tag?.vlan ?? "1"}`;
+  }
+  function portsSection(doc, root, device, getText) {
+    return asyncSection(doc, root, "Ports", "Could not load the ports.", async (box) => {
+      const [portsText, saved] = await Promise.all([
+        getText(`/api/devices/ports?id=${enc3(device.id)}`),
+        getText("/api/export")
+      ]);
+      const ports = parsePortRows(portsText);
+      const tags = vlanTags(saved, device.id);
+      box.replaceChildren();
+      if (ports.length === 0)
+        box.appendChild(note(doc, "empty", "This switch has no ports."));
+      else
+        box.appendChild(rowList(doc, ports.map((p) => portLine(portText(p), tags.get(p.name)))));
+    });
+  }
+  function routesSection(doc, root, device, post) {
+    return asyncSection(doc, root, "Routes", "Could not load the routes.", async (box) => {
+      const en = await post(`/api/cli?id=${enc3(device.id)}&line=en`);
+      const enErr = errorOf(en);
+      if (enErr)
+        throw new Error(enErr);
+      const res = await post(`/api/cli?id=${enc3(device.id)}&line=${enc3("show ip route")}`);
+      const err = errorOf(res);
+      if (err)
+        throw new Error(err);
+      const output = asText(res["output"]).trim();
+      box.replaceChildren();
+      if (!output)
+        box.appendChild(note(doc, "empty", "No routes yet."));
+      else
+        box.appendChild(el(doc, "pre", "kw-mono", output));
+    });
+  }
+  function renderL3SwitchWindow(doc, body, device, getText, post) {
+    body.replaceChildren();
+    return Promise.all([
+      portsSection(doc, body, device, getText),
+      routesSection(doc, body, device, post)
+    ]).then(() => {
       return;
     });
   }
@@ -1964,7 +2177,10 @@
     "client-radio": "radio-window",
     "sector-radio": "radio-window",
     "provider-link": "provider-window",
-    "hotspot-ap": "hotspot-window"
+    "hotspot-ap": "hotspot-window",
+    asa: "firewall-window",
+    "load-balancer": "balancer-window",
+    "switch-l3": "l3switch-window"
   };
   function windowIdForKind(kind) {
     return WINDOW_IDS[kind] ?? null;
@@ -1981,6 +2197,12 @@
         return Promise.resolve();
       case "hotspot-ap":
         return renderHotspotWindow(doc, body, device, deps.post);
+      case "asa":
+        return renderFirewallWindow(doc, body, device, deps.getText);
+      case "load-balancer":
+        return renderBalancerWindow(doc, body, device, workspace, deps.post);
+      case "switch-l3":
+        return renderL3SwitchWindow(doc, body, device, deps.getText, deps.post);
       default:
         return Promise.resolve();
     }
