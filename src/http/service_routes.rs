@@ -24,6 +24,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/tunnel") => Some(handle_tunnel(ctx, query)),
         ("POST", "/api/devices/queue") => Some(handle_queue(ctx, query)),
         ("POST", "/api/queues/list") => Some(handle_queue_list(ctx, query)),
+        ("POST", "/api/voucher") => Some(handle_voucher(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -327,4 +328,22 @@ fn handle_queue_list(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         .join(",");
     let load = ws.line_load(&id, &port).map_or("null".to_string(), |l| format!("{l:.0}"));
     (json, format!("{{\"sessions\":[{rows}],\"load\":{load}}}").into_bytes())
+}
+
+fn handle_voucher(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let code = query_value(query, "code").unwrap_or_default();
+    let client = query_value(query, "client").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| {
+        if client.is_empty() {
+            let Some(minutes) = query_value(query, "minutes").and_then(|v| v.parse().ok()) else {
+                return Err("minutes must be a whole number".to_string());
+            };
+            ws.voucher_create(&id, &code, minutes)
+        } else {
+            ws.voucher_redeem(&id, &client, &code)
+        }
+    });
+    (json, out.into_bytes())
 }

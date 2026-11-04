@@ -15,6 +15,7 @@ mod json;
 mod router_admin;
 mod port_forward;
 mod queues;
+mod vouchers;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -38,6 +39,7 @@ mod tnet_lesson;
 mod tnet_records;
 mod route_types;
 mod records_load_routing;
+mod records_load_wireless;
 mod records_save_routing;
 mod types;
 mod util;
@@ -69,6 +71,7 @@ impl Workspace {
                 demands: HashMap::new(),
                 queues: HashMap::new(),
                 queue_parent: HashMap::new(),
+                vouchers: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
@@ -277,6 +280,7 @@ impl Workspace {
                 demands: HashMap::new(),
                 queues: HashMap::new(),
                 queue_parent: HashMap::new(),
+                vouchers: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),

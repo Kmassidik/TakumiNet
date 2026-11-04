@@ -329,6 +329,8 @@ pub struct Workspace {
     pub queues: HashMap<String, Vec<(String, u32)>>,
     /// Whole-group limit per gateway.
     pub queue_parent: HashMap<String, u32>,
+    /// Hotspot vouchers per gateway.
+    pub vouchers: HashMap<String, Vec<Voucher>>,
     /// Further pools on the same server, one per extra network.
     pub dhcp_more: HashMap<String, Vec<Pool>>,
     /// Addresses already handed out, by server id.
@@ -431,6 +433,13 @@ pub struct Workspace {
     pub(super) record_extras: Vec<RecordExtras>,
     /// Warnings from a valid load, or dropped-record reports from open-anyway.
     pub load_problems: Vec<Problem>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Voucher {
+    pub code: String,
+    pub minutes: u32,
+    pub used_by: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

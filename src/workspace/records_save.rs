@@ -444,6 +444,16 @@ impl Workspace {
                 escape_field(user)
             ));
         }
+        let mut vouchers: Vec<_> = self.vouchers.iter().collect();
+        vouchers.sort_by_key(|(id, _)| id.as_str());
+        for (gateway, list) in vouchers {
+            for v in list {
+                out.push_str(&format!(
+                    "voucher\t{}\t{}\t{}\t{}\n",
+                    gateway, escape_field(&v.code), v.minutes, v.used_by.as_deref().unwrap_or("-")
+                ));
+            }
+        }
         let mut demands: Vec<_> = self.demands.iter().collect();
         demands.sort();
         for (client, mbit) in demands {

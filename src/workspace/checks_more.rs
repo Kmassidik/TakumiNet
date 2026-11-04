@@ -17,6 +17,7 @@ impl Workspace {
             "session" => self.check_session(check),
             "limit" => self.check_limit(check),
             "load" => self.check_load(check),
+            "latency" => self.check_latency(check),
             "nat" => self.check_forward(check),
             _ => return None,
         })
@@ -97,6 +98,9 @@ impl Workspace {
     fn check_login(&mut self, check: &Check) -> Verdict {
         let hint = "Use the user name and password from the sticker, or the ones you set.".to_string();
         let (user, pass) = check.url.split_once(':').unwrap_or((check.url.as_str(), ""));
+        if let Some(code) = check.url.strip_prefix("voucher:") {
+            return self.check_voucher(check, code);
+        }
         let target_kind = crate::model::parse_ipv4(&check.to)
             .and_then(|addr| self.devices.iter().find(|d| d.ip == Some(addr) || d.ports.iter().any(|p| p.ip == Some(addr))))
             .map(|d| d.kind.clone());
@@ -205,6 +209,37 @@ impl Workspace {
             Some(load) if load < most => (true, format!("load {load:.0} % of the line"), hint),
             Some(load) => (false, format!("load {load:.0} % of the line"), hint),
             None => (false, format!("no port {} on {}", check.to, check.from), "Name the upstream port.".into()),
+        }
+    }
+
+    fn check_voucher(&self, check: &Check, code: &str) -> Verdict {
+        let hint = "Type the voucher exactly as it was printed.".to_string();
+        if check.expect == "refused" {
+            let used_by_other = self.voucher_rows(&check.to).iter()
+                .any(|(c, _, used)| c == code && used.as_deref().is_some_and(|by| by != check.from));
+            let actual = if used_by_other { "the used voucher is refused" } else { "the voucher has not been used by anyone else yet" };
+            return (used_by_other, actual.into(), "One-use vouchers work only once.".into());
+        }
+        let owner = self.voucher_rows(&check.to).into_iter()
+            .find(|(c, _, _)| c == code)
+            .and_then(|(_, _, used)| used);
+        match owner {
+            Some(by) if by == check.from => (true, format!("voucher {code} accepted"), hint),
+            Some(by) => (false, format!("voucher {code} was used by {}", self.name_of(&by)), hint),
+            None => (false, format!("voucher {code} has not been used"), hint),
+        }
+    }
+
+    /// The delay from `from` to `to` must be at most `expect` milliseconds.
+    fn check_latency(&self, check: &Check) -> Verdict {
+        let hint = "Shorten the path, or use faster links; each relay adds a little delay.".to_string();
+        let Ok(most) = check.expect.parse::<f64>() else {
+            return (false, format!("invalid delay '{}'", check.expect), "Use a number of milliseconds.".into());
+        };
+        match self.path_latency_ms(&check.from, &check.to) {
+            Some(ms) if ms <= most => (true, format!("{ms:.1} ms"), hint),
+            Some(ms) => (false, format!("{ms:.1} ms, over {most} ms"), hint),
+            None => (false, "no path between the two devices".into(), "Connect them first.".into()),
         }
     }
 

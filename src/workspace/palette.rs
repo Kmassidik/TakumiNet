@@ -101,6 +101,7 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         "rtrw-gateway" => (1..=5).map(|i| format!("Ether{i}")).collect(),
         "sector-radio" => (0..6).map(|i| format!("FastEthernet{i}")).collect(),
         "provider-link" | "client-radio" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
+        "hotspot-ap" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         _ => vec!["FastEthernet0".to_string()],
     };
     names

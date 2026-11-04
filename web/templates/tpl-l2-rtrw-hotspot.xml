@@ -1,0 +1,31 @@
+<takumi version="1">
+  <device id="server0" kind="server" model="Server" x="120" y="60" name="ExampleSite" ip="203.0.113.10" prefix="24"/>
+  <device id="provider0" kind="provider-link" model="Provider Link" x="320" y="60" name="Upstream0" ip="" prefix="24"/>
+  <device id="gw0" kind="rtrw-gateway" model="Gateway RT/RW" x="520" y="140" name="GatewayRTRW" ip="" prefix="24"/>
+  <device id="hotspot0" kind="hotspot-ap" model="Hotspot AP" x="520" y="300" name="WarungHotspot" ip="" prefix="24"/>
+  <device id="phone0" kind="tablet" model="Tablet PC" x="320" y="440" name="Phone0" ip="10.20.0.21" prefix="24"/>
+  <device id="phone1" kind="tablet" model="Tablet PC" x="520" y="440" name="Phone1" ip="10.20.0.22" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="720" y="440" name="Laptop0" ip="10.20.0.23" prefix="24"/>
+  <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
+  <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>
+  <link a="gw0" a_port="Ether2" b="hotspot0" b_port="Fa0" kind="eCopper"/>
+  <link a="hotspot0" a_port="Fa1" b="phone0" b_port="Fa0" kind="eCopper"/>
+  <link a="hotspot0" a_port="Fa2" b="phone1" b_port="Fa0" kind="eCopper"/>
+  <link a="hotspot0" a_port="Fa3" b="laptop0" b_port="Fa0" kind="eCopper"/>
+  <port id="gw0" name="Ether1" up="1" ip="203.0.113.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="gw0" name="Ether2" up="1" ip="10.20.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <net id="phone0" gw="10.20.0.1" dns="203.0.113.10"/>
+  <net id="phone1" gw="10.20.0.1" dns="203.0.113.10"/>
+  <net id="laptop0" gw="10.20.0.1" dns="203.0.113.10"/>
+  <dns id="server0" name="www.example.lab" ip="203.0.113.10"/>
+  <page id="server0" body="A page on the internet"/>
+  <acl dev="gw0" num="1" action="permit" src="10.20.0.0" swc="0.0.0.255" dip="-" dwc="-"/>
+  <natrole dev="gw0" iface="Ether2" dir="inside"/>
+  <natrole dev="gw0" iface="Ether1" dir="outside"/>
+  <natrule dev="gw0" num="1" iface="Ether1"/>
+  <wlan wlc="hotspot0" ssid="WarungNet" psk="" security="Open"/>
+  <wifi client="phone0" ssid="WarungNet" wlc="hotspot0"/>
+  <wifi client="phone1" ssid="WarungNet" wlc="hotspot0"/>
+  <voucher dev="gw0" code="MAKAN-4821" minutes="60" used="-"/>
+  <demo kind="http" from="phone0" to="" url="http://www.example.lab/"/>
+</takumi>

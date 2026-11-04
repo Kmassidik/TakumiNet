@@ -124,3 +124,46 @@ fn find_the_hog_lesson_wants_every_customer_limited() {
     ws.set_queue("gw0", "rumah3", 10).unwrap();
     assert_eq!(passes(&mut ws), vec![true, true]);
 }
+
+#[test]
+fn voucher_lesson_accepts_the_first_phone_and_refuses_the_second() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-04-voucher-hotspot.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false], "an unknown voucher is refused for both");
+    ws.voucher_create("gw0", "MAKAN-4821", 60).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false], "a fresh voucher is not yet a login");
+    ws.voucher_redeem("gw0", "phone0", "MAKAN-4821").unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true]);
+    assert_eq!(ws.voucher_redeem("gw0", "phone1", "MAKAN-4821").unwrap_err(), "Voucher already used");
+    ws.voucher_redeem("gw0", "phone0", "MAKAN-4821").unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.voucher_rows("gw0")[0].2.as_deref(), Some("phone0"), "the used voucher survives save and open");
+}
+
+#[test]
+fn voucher_input_is_validated() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")).unwrap();
+    assert!(ws.voucher_create("hotspot0", "ABCD", 60).is_err(), "vouchers live on the gateway");
+    assert!(ws.voucher_create("gw0", "AB", 60).is_err());
+    assert!(ws.voucher_create("gw0", "HAS SPACE", 60).is_err());
+    assert!(ws.voucher_create("gw0", "ABCD", 0).is_err());
+    assert!(ws.voucher_create("gw0", "ABCD", 10_081).is_err());
+    assert!(ws.voucher_create("gw0", "MAKAN-4821", 60).is_err(), "no duplicate codes");
+    assert!(ws.voucher_redeem("gw0", "ghost", "MAKAN-4821").is_err());
+    assert!(ws.voucher_redeem("gw0", "phone0", "WRONG").unwrap_err().contains("unknown voucher"));
+}
+
+#[test]
+fn far_house_lesson_swaps_one_long_shot_for_two_short_hops() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-05-far-house.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, true], "reachable, but far too slow");
+    assert!(ws.path_latency_ms("home9", "gw0").unwrap() > 40.0);
+    assert!(ws.unlink("sector0", "radio9"));
+    assert_eq!(ws.path_latency_ms("home9", "gw0"), None, "no path while recabling");
+    ws.link("sector0", "relay0").unwrap();
+    ws.link("relay0", "radio9").unwrap();
+    ws.set_port_delay("relay0", "FastEthernet0", 12_000).unwrap();
+    ws.set_port_delay("radio9", "FastEthernet0", 12_000).unwrap();
+    let ms = ws.path_latency_ms("home9", "gw0").unwrap();
+    assert!(ms > 20.0 && ms <= 40.0, "{ms}");
+    assert_eq!(passes(&mut ws), vec![true, true]);
+}
