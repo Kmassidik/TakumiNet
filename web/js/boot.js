@@ -50,6 +50,7 @@ async function boot() {
   wireKeyboard();
   wireCanvasDrop();
   wireWorkspaceCanvas();
+  wireContextMenu();
   workspaceCanvas.fit();
   for (const id of ['device-window', 'cmd-window', 'term-window', 'web-dialog',
     'editor-dialog', 'pdu-dialog', 'firewall-dialog',

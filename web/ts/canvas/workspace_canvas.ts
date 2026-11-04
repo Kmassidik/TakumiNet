@@ -31,6 +31,12 @@ export interface PacketRun {
   onDone?: () => void;
 }
 
+export interface CanvasHit {
+  device?: SceneDevice;
+  group?: SceneGroup;
+  link?: SceneLink;
+}
+
 export interface PointerHandlers {
   onDeviceDown?: (device: { id: string; name: string }, ev: PointerEvent) => void;
   onGroupDown?: (group: SceneGroup, ev: PointerEvent) => void;
@@ -39,6 +45,7 @@ export interface PointerHandlers {
   onMarquee?: (ids: string[], additive: boolean) => void;
   onNoteDown?: (note: NoteInput, ev: PointerEvent) => void;
   onHover?: (device: { name: string; model: string } | null, ev: PointerEvent) => void;
+  onContextMenu?: (hit: CanvasHit, ev: MouseEvent) => void;
 }
 
 const LINK_TOLERANCE_PX = 6;
@@ -72,6 +79,7 @@ export class WorkspaceCanvas {
     canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
     canvas.addEventListener("pointerup", (ev) => this.onPointerUp(ev));
     canvas.addEventListener("wheel", (ev) => this.onWheel(ev), { passive: false });
+    canvas.addEventListener("contextmenu", (ev) => this.onContextMenu(ev));
     window.addEventListener("keydown", (ev) => { if (ev.code === "Space") this.spaceDown = true; });
     window.addEventListener("keyup", (ev) => { if (ev.code === "Space") this.spaceDown = false; });
   }
@@ -169,6 +177,12 @@ export class WorkspaceCanvas {
     this.racks = layoutRacks(state.workspace.devices.map((d) => ({ id: d.id, name: d.name, model: d.model, kind: d.kind ?? "other" })));
     if (enteringPhysical) this.fitRacks();
     this.requestDraw();
+  }
+
+  /* Device under the pointer, for a cable drag released over its far end. */
+  deviceAt(ev: { clientX: number; clientY: number }): SceneDevice | null {
+    if (this.state?.physical) return null;
+    return hitDevice(this.scene, this.worldAt(ev));
   }
 
   worldAt(ev: { clientX: number; clientY: number }): Point {
@@ -306,6 +320,21 @@ export class WorkspaceCanvas {
     }
     this.startPan(ev);
     this.handlers.onBackgroundDown?.(ev);
+  }
+
+  /* The browser menu never opens over the canvas; the app's own menu does. */
+  private onContextMenu(ev: MouseEvent): void {
+    ev.preventDefault();
+    if (!this.handlers.onContextMenu) return;
+    if (this.state?.physical) return this.handlers.onContextMenu({}, ev);
+    const world = this.worldAt(ev);
+    const group = hitGroup(this.scene, world);
+    if (group) return this.handlers.onContextMenu({ group }, ev);
+    const device = hitDevice(this.scene, world);
+    if (device) return this.handlers.onContextMenu({ device }, ev);
+    const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
+    if (link) return this.handlers.onContextMenu({ link }, ev);
+    this.handlers.onContextMenu({}, ev);
   }
 
   private onPointerUp(ev: PointerEvent): void {
