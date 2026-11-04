@@ -7,7 +7,7 @@ fn json_is_balanced_and_complete() {
     assert_eq!(j.matches('{').count(), j.matches('}').count());
     assert_eq!(j.matches("\"id\":").count(), ws.devices.len());
     assert_eq!(j.matches("\"aPort\":").count(), ws.links.len());
-    assert!(j.contains("\"label\":\"2911\""));
+    assert!(j.contains("\"label\":\"Router 300\""));
     assert!(j.contains("\"kind\":\"router\""));
 }
 
@@ -164,7 +164,7 @@ fn duplicate_copies_model_and_offsets() {
     let id = ws.duplicate("pc0").unwrap();
     assert_eq!(ws.devices.len(), n + 1);
     let d = ws.devices.iter().find(|d| d.id == id).unwrap();
-    assert_eq!(d.model, "PC-PT");
+    assert_eq!(d.model, "PC");
     assert!(d.x > 105.0);
 }
 

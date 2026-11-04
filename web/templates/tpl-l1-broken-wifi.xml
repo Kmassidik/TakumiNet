@@ -1,7 +1,7 @@
 <takumi version="1">
   <device id="homerouter0" kind="homerouter" model="Home Router" x="340" y="120" name="HomeRouter0" ip="192.168.1.1" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="160" y="330" name="Laptop0" ip="192.168.1.20" prefix="24"/>
-  <device id="phone0" kind="tablet" model="Tablet PC" x="520" y="330" name="Phone0" ip="192.168.1.21" prefix="24"/>
+  <device id="phone0" kind="tablet" model="Tablet" x="520" y="330" name="Phone0" ip="192.168.1.21" prefix="24"/>
   <link a="homerouter0" a_port="Fa0" b="laptop0" b_port="Fa0" kind="eCopper"/>
   <link a="homerouter0" a_port="Fa1" b="phone0" b_port="Fa0" kind="eCopper"/>
   <net id="laptop0" gw="192.168.9.1" dns="192.168.1.1"/>

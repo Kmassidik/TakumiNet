@@ -1,9 +1,9 @@
 <takumi version="1">
-  <device id="router0" kind="router" model="2911" x="340" y="60" name="OfficeRouter" ip="" prefix="24"/>
-  <device id="switch0" kind="switch" model="2960" x="340" y="200" name="OfficeSwitch" ip="" prefix="24"/>
-  <device id="pc0" kind="pc" model="PC-PT" x="60" y="360" name="Desk0" ip="" prefix="24"/>
-  <device id="pc1" kind="pc" model="PC-PT" x="230" y="360" name="Desk1" ip="" prefix="24"/>
-  <device id="pc2" kind="pc" model="PC-PT" x="400" y="360" name="Desk2" ip="" prefix="24"/>
+  <device id="router0" kind="router" model="Router 300" x="340" y="60" name="OfficeRouter" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="340" y="200" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="60" y="360" name="Desk0" ip="" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="230" y="360" name="Desk1" ip="" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC" x="400" y="360" name="Desk2" ip="" prefix="24"/>
   <device id="server0" kind="server" model="Server" x="570" y="360" name="FileServer" ip="192.168.20.2" prefix="24"/>
   <device id="printer0" kind="printer" model="Printer" x="740" y="360" name="Printer0" ip="192.168.30.10" prefix="24"/>
   <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>

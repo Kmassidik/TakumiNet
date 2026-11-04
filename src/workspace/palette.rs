@@ -2,59 +2,67 @@ use super::*;
 
 /// (palette label, tile icon, device kind)
 pub(super) const CATALOG: &[(&str, &str, &str)] = &[
-    ("2911", "Specific2911_40x40.png", "router"),
-    ("1941", "Specific1941_40x40.png", "router"),
-    ("2901", "Specific2901_40x40.png", "router"),
-    ("2811", "Specific2811_40x40.png", "router"),
-    ("2621XM", "Specific2621XM_40x40.png", "router"),
-    ("1841", "Specific1841_40x40.png", "router"),
-    ("4331", "Specific4331_40x40.png", "router"),
-    ("4321", "Specific4321_40x40.png", "router"),
-    ("2620XM", "Specific2620XM_40x40.png", "router"),
-    ("819", "Specific819_40x40.png", "router"),
-    ("829", "Specific829_40x40.png", "router"),
-    ("8200", "Specific8200_40x40.png", "router"),
-    ("2960", "Specific2960_40x40.png", "switch"),
-    ("2950-24", "Specific2950-24_40x40.png", "switch"),
-    ("2950T", "Specific2950T_40x40.png", "switch"),
-    ("3560", "Specific3560_24PS_40x40.png", "switch"),
-    ("3650", "Specific3650.png", "switch"),
-    ("PC-PT", "SpecificArtificialWorkstation_40x40.png", "pc"),
-    ("Laptop", "SpecificArtificialLaptop_40x40.png", "laptop"),
-    ("Server", "SpecificArtificialServer_40x40.png", "server"),
-    ("Printer", "SpecificArtificialPrinter_40x40.png", "printer"),
-    ("Cloud", "SpecificArtificialCloud_40x40.png", "cloud"),
-    ("Hub", "SpecificArtificialHub_40x40.png", "hub"),
-    ("Access Point", "AP-PT.png", "ap"),
-    ("ASA 5505", "SpecificASA5505.png", "asa"),
-    ("ASA 5506", "SpecificASA5506.png", "asa"),
-    ("IP Phone", "SpecificIPPhone_40x40.png", "phone"),
-    ("TV", "SpecificArtificialTV_40x40.png", "tv"),
-    ("PDA", "SpecificArtificialPda_40x40.png", "pda"),
-    ("Tablet PC", "SpecificArtificialTabletPC_40x40.png", "tablet"),
-    ("Sniffer", "Sniffer_Specific40x40.png", "sniffer"),
-    ("WLC", "SpecificWLC_40x40.png", "wlc"),
-    ("PLC", "SpecificPLC_40x40.png", "plc"),
-    ("Thing", "SpecificThing_40x40.png", "thing"),
-    ("IoE", "SpecificIoE_40x40.png", "ioe"),
-    ("Analog Phone", "SpecificAnalogPhone_40x40.png", "analogphone"),
-    ("Home Router", "SpecificHomeRouter_40x40.png", "homerouter"),
-    ("Linksys", "SpecificLinksys_40x40.png", "linksys"),
-    ("Cable Modem", "SpecificCable-Modem_40x40.png", "cablemodem"),
-    ("DSL Modem", "SpecificDSL-Modem_40x40.png", "dsl"),
-    ("Multiuser", "SpecificMultiuser.png", "multiuser"),
-    ("Cell Tower", "SpecificCellTower_40x40.png", "celltower"),
-    ("IE2000", "IE2000_ComponentBox.png", "ie2000"),
-    ("Network Controller", "NetworkController.png", "netcontroller"),
-    ("Meraki Server", "SpecificMerakiServer.png", "meraki"),
-    ("Data Historian", "DataHistorianComponentBox.png", "historian"),
-    ("Patch Panel", "SpecificPatchPanel_40x40.png", "patchpanel"),
-    ("Gateway RT/RW", "", "rtrw-gateway"),
-    ("Provider Link", "", "provider-link"),
-    ("Sector Radio", "", "sector-radio"),
-    ("Client Radio", "", "client-radio"),
-    ("Hotspot AP", "", "hotspot-ap"),
+    ("Router 100", "-", "router"),
+    ("Router 300", "-", "router"),
+    ("Router 500", "-", "router"),
+    ("Switch 24", "-", "switch"),
+    ("Switch L3", "-", "switch-l3"),
+    ("Hub", "-", "hub"),
+    ("Patch Panel", "-", "patchpanel"),
+    ("Access Point", "-", "ap"),
+    ("Wireless Controller", "-", "wlc"),
+    ("Hotspot AP", "-", "hotspot-ap"),
+    ("Sector Radio", "-", "sector-radio"),
+    ("Client Radio", "-", "client-radio"),
+    ("Cell Tower", "-", "celltower"),
+    ("Firewall 100", "-", "asa"),
+    ("Cloud", "-", "cloud"),
+    ("Provider Link", "-", "provider-link"),
+    ("Gateway RT/RW", "-", "rtrw-gateway"),
+    ("Home Router", "-", "homerouter"),
+    ("Cable Modem", "-", "cablemodem"),
+    ("DSL Modem", "-", "dsl"),
+    ("PC", "-", "pc"),
+    ("Laptop", "-", "laptop"),
+    ("Server", "-", "server"),
+    ("Printer", "-", "printer"),
+    ("Tablet", "-", "tablet"),
+    ("IP Phone", "-", "phone"),
+    ("Analog Phone", "-", "analogphone"),
+    ("TV", "-", "tv"),
+    ("Sniffer", "-", "sniffer"),
+    ("PLC", "-", "plc"),
+    ("Thing", "-", "thing"),
+    ("IoE", "-", "ioe"),
 ];
+
+/// Vendor-flavoured labels from older files, mapped to the tiered own names.
+pub(super) const LEGACY_MODELS: &[(&str, &str)] = &[
+    ("1941", "Router 100"), ("2811", "Router 100"), ("2621XM", "Router 100"),
+    ("1841", "Router 100"), ("2620XM", "Router 100"), ("819", "Router 100"), ("829", "Router 100"),
+    ("2911", "Router 300"), ("2901", "Router 300"),
+    ("4331", "Router 500"), ("4321", "Router 500"), ("8200", "Router 500"),
+    ("2960", "Switch 24"), ("2950-24", "Switch 24"), ("2950T", "Switch 24"),
+    ("3560", "Switch 24"), ("3650", "Switch 24"),
+    ("PC-PT", "PC"), ("Tablet PC", "Tablet"),
+    ("ASA 5505", "Firewall 100"), ("ASA 5506", "Firewall 100"),
+    ("WLC", "Wireless Controller"),
+];
+
+/// Kinds that older files may carry although the palette no longer offers them.
+pub(super) const RETIRED: &[(&str, &str)] = &[
+    ("Linksys", "linksys"), ("Meraki Server", "meraki"), ("IE2000", "ie2000"),
+    ("Network Controller", "netcontroller"), ("Data Historian", "historian"),
+    ("PDA", "pda"), ("Multiuser", "multiuser"), ("IP Phone 7960", "phone"),
+];
+
+pub(super) fn canonical_model(model: &str) -> &str {
+    LEGACY_MODELS.iter().find(|(old, _)| *old == model).map_or(model, |(_, new)| new)
+}
+
+pub(super) fn retired_kind(model: &str) -> Option<&'static str> {
+    RETIRED.iter().find(|(old, _)| *old == model).map(|(_, kind)| *kind)
+}
 
 pub(super) const GROUPS: &[(&str, &str)] = &[
     ("Routers", "/art3d/groups/routers.webp"),
@@ -103,6 +111,7 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         "provider-link" | "client-radio" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
         "hotspot-ap" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         "asa" => (1..=3).map(|i| format!("GigabitEthernet1/{i}")).collect(),
+        "switch-l3" => (1..=12).map(|i| format!("GigabitEthernet0/{i}")).collect(),
         _ => vec!["FastEthernet0".to_string()],
     };
     names
@@ -182,6 +191,7 @@ pub(super) fn name_prefix(kind: &str) -> &'static str {
         "sector-radio" => "SectorRadio",
         "client-radio" => "ClientRadio",
         "hotspot-ap" => "HotspotAP",
+        "switch-l3" => "L3Switch",
         _ => "Device",
     }
 }

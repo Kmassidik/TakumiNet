@@ -4,13 +4,13 @@ import { join } from "node:path";
 import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor, type PaletteDevice } from "../../web/ts/ui/palette_groups";
 
 const catalog = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
-const rows = [...catalog.matchAll(/\("([^"]+)", "([^"]+)", "([a-z0-9]+)"\)/g)];
-const palette: PaletteDevice[] = rows.slice(0, rows.findIndex((m) => m[1] === "Patch Panel") + 1).map((m) => ({ label: m[1]!, icon: `/art3d/${m[3]}.webp`, kind: m[3]! }));
+const rows = [...catalog.matchAll(/\("([^"]+)", "-", "([a-z0-9-]+)"\)/g)];
+const palette: PaletteDevice[] = rows.map((m) => ({ label: m[1]!, icon: `/art3d/${m[2]}.webp`, kind: m[2]! }));
 const groupsSrc = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
 const groupLabels = [...groupsSrc.slice(groupsSrc.indexOf("GROUPS")).matchAll(/\("([A-Za-z ]+)", "\/art3d/g)].map((m) => m[1]!);
 
 test("the catalog is read from the engine source (sanity)", () => {
-  expect(palette.length).toBe(47);
+  expect(palette.length).toBe(32);
 });
 
 test("every device in the palette belongs to exactly one category", () => {

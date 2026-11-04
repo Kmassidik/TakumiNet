@@ -1,8 +1,8 @@
 <takumi version="1">
-  <device id="switch0" kind="switch" model="2960" x="340" y="130" name="Switch0" ip="" prefix="24"/>
-  <device id="pc0" kind="pc" model="PC-PT" x="100" y="330" name="PC0" ip="192.168.1.10" prefix="24"/>
-  <device id="pc1" kind="pc" model="PC-PT" x="340" y="330" name="PC1" ip="192.168.1.11" prefix="24"/>
-  <device id="pc2" kind="pc" model="PC-PT" x="580" y="330" name="PC2" ip="192.168.1.12" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="340" y="130" name="Switch0" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="100" y="330" name="PC0" ip="192.168.1.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="340" y="330" name="PC1" ip="192.168.1.11" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC" x="580" y="330" name="PC2" ip="192.168.1.12" prefix="24"/>
   <link a="switch0" a_port="Fa0/1" b="pc0" b_port="Fa0" kind="eCopper"/>
   <link a="switch0" a_port="Fa0/2" b="pc1" b_port="Fa0" kind="eCopper"/>
   <link a="switch0" a_port="Fa0/3" b="pc2" b_port="Fa0" kind="eCopper"/>

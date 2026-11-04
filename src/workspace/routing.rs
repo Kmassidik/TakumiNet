@@ -1058,7 +1058,7 @@ impl Workspace {
     /// Default gateway of a host; routers and switches route instead.
     pub fn gateway_of(&self, id: &str) -> Option<u32> {
         let dev = self.devices.iter().find(|d| d.id == id)?;
-        if matches!(dev.kind.as_str(), "router" | "switch" | "rtrw-gateway") {
+        if matches!(dev.kind.as_str(), "router" | "switch" | "rtrw-gateway" | "switch-l3") {
             return None;
         }
         dev.gateway

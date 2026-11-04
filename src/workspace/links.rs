@@ -131,10 +131,10 @@ impl Workspace {
                 "pc" | "laptop" | "server" | "printer" | "tv" | "sniffer" | "tablet" | "pda"
                     | "phone" | "asa" | "wlc" | "ap" | "hub" | "switch" | "router"
                     | "homerouter" | "cloud" | "rtrw-gateway" | "provider-link"
-                    | "sector-radio" | "client-radio" | "hotspot-ap"
+                    | "sector-radio" | "client-radio" | "hotspot-ap" | "switch-l3"
             )
         };
-        let network = |k: &str| matches!(k, "switch" | "router");
+        let network = |k: &str| matches!(k, "switch" | "router" | "switch-l3");
         let iot = |k: &str| matches!(k, "thing" | "plc" | "ioe" | "mcucomponent");
         match kind {
             "eConsole" => {

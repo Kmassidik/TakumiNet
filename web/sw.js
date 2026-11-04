@@ -79,6 +79,7 @@ const PRECACHE_URLS = Object.freeze([
   '/art3d/devices/historian.webp',
   '/art3d/devices/homerouter.webp',
   '/art3d/devices/rtrw-gateway.webp',
+  '/art3d/devices/switch-l3.webp',
   '/art3d/devices/provider-link.webp',
   '/art3d/devices/sector-radio.webp',
   '/art3d/devices/client-radio.webp',

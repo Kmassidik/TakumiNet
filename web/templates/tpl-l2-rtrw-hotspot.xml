@@ -3,8 +3,8 @@
   <device id="provider0" kind="provider-link" model="Provider Link" x="320" y="60" name="Upstream0" ip="" prefix="24"/>
   <device id="gw0" kind="rtrw-gateway" model="Gateway RT/RW" x="520" y="140" name="GatewayRTRW" ip="" prefix="24"/>
   <device id="hotspot0" kind="hotspot-ap" model="Hotspot AP" x="520" y="300" name="WarungHotspot" ip="" prefix="24"/>
-  <device id="phone0" kind="tablet" model="Tablet PC" x="320" y="440" name="Phone0" ip="10.20.0.21" prefix="24"/>
-  <device id="phone1" kind="tablet" model="Tablet PC" x="520" y="440" name="Phone1" ip="10.20.0.22" prefix="24"/>
+  <device id="phone0" kind="tablet" model="Tablet" x="320" y="440" name="Phone0" ip="10.20.0.21" prefix="24"/>
+  <device id="phone1" kind="tablet" model="Tablet" x="520" y="440" name="Phone1" ip="10.20.0.22" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="720" y="440" name="Laptop0" ip="10.20.0.23" prefix="24"/>
   <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
   <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>

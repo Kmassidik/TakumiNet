@@ -1,19 +1,19 @@
 <takumi version="1">
-<device id="router0" kind="router" model="2911" x="200" y="120" name="Router0" ip="" prefix="24"/>
+<device id="router0" kind="router" model="Router 300" x="200" y="120" name="Router0" ip="" prefix="24"/>
 <port id="router0" name="GigabitEthernet0/0" up="1" ip="192.168.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="router0" name="GigabitEthernet0/1" up="1" ip="10.0.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="router0" name="GigabitEthernet0/2" up="1" ip="10.0.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="router1" kind="router" model="2911" x="440" y="120" name="Router1" ip="" prefix="24"/>
+<device id="router1" kind="router" model="Router 300" x="440" y="120" name="Router1" ip="" prefix="24"/>
 <port id="router1" name="GigabitEthernet0/0" up="1" ip="10.0.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="router1" name="GigabitEthernet0/1" up="1" ip="10.0.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="router2" kind="router" model="2911" x="200" y="280" name="Router2" ip="" prefix="24"/>
+<device id="router2" kind="router" model="Router 300" x="200" y="280" name="Router2" ip="" prefix="24"/>
 <port id="router2" name="GigabitEthernet0/0" up="1" ip="10.0.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="router2" name="GigabitEthernet0/1" up="1" ip="10.0.4.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="router3" kind="router" model="2911" x="440" y="280" name="Router3" ip="" prefix="24"/>
+<device id="router3" kind="router" model="Router 300" x="440" y="280" name="Router3" ip="" prefix="24"/>
 <port id="router3" name="GigabitEthernet0/0" up="1" ip="10.0.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="router3" name="GigabitEthernet0/1" up="1" ip="10.0.4.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="router3" name="GigabitEthernet0/2" up="1" ip="192.168.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="pc0" kind="pc" model="PC-PT" x="40" y="120" name="PC0" ip="192.168.1.10" prefix="24"/>
+<device id="pc0" kind="pc" model="PC" x="40" y="120" name="PC0" ip="192.168.1.10" prefix="24"/>
 <net id="pc0" gw="192.168.1.1" dns=""/>
 <device id="server0" kind="server" model="Server" x="700" y="280" name="Server0" ip="192.168.2.10" prefix="24"/>
 <net id="server0" gw="192.168.2.1" dns=""/>

@@ -12,15 +12,15 @@ export const CONNECTIONS = "Connections";
 export const DEFAULT_GROUP = "End devices";
 
 export const GROUP_KINDS: Readonly<Record<string, readonly string[]>> = {
-  Routers: ["router"],
-  Switches: ["switch", "ie2000"],
+  Routers: ["router", "rtrw-gateway"],
+  Switches: ["switch", "switch-l3"],
   Hubs: ["hub", "patchpanel"],
-  Wireless: ["ap", "wlc", "homerouter", "linksys", "celltower"],
+  Wireless: ["ap", "wlc", "hotspot-ap", "sector-radio", "client-radio", "celltower"],
   Security: ["asa"],
-  WAN: ["cloud", "cablemodem", "dsl"],
-  "End devices": ["pc", "laptop", "server", "printer", "phone", "analogphone", "tv", "pda", "tablet", "sniffer", "multiuser"],
+  WAN: ["cloud", "provider-link", "homerouter", "cablemodem", "dsl"],
+  "End devices": ["pc", "laptop", "server", "printer", "phone", "analogphone", "tv", "tablet", "sniffer"],
   [CONNECTIONS]: [],
-  IoE: ["ioe", "thing", "plc", "historian", "netcontroller", "meraki"],
+  IoE: ["ioe", "thing", "plc"],
 };
 
 export function groupForKind(kind: string): string | null {

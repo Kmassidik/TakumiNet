@@ -12,7 +12,7 @@
   <device id="radio3" kind="client-radio" model="Client Radio" x="1000" y="400" name="HouseRadio3" ip="" prefix="24"/>
   <device id="home3" kind="homerouter" model="Home Router" x="1000" y="500" name="Rumah3" ip="10.10.0.14" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="280" y="600" name="Laptop0" ip="10.10.0.20" prefix="24"/>
-  <device id="pc0" kind="pc" model="PC-PT" x="520" y="600" name="PC0" ip="10.10.0.21" prefix="24"/>  <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
+  <device id="pc0" kind="pc" model="PC" x="520" y="600" name="PC0" ip="10.10.0.21" prefix="24"/>  <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
   <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>
   <link a="gw0" a_port="Ether2" b="sector0" b_port="Fa0" kind="eCopper"/>
   <link a="sector0" a_port="Fa1" b="radio0" b_port="Fa0" kind="eCopper"/>

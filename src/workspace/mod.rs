@@ -133,13 +133,13 @@ impl Workspace {
         let mut ws = Workspace::empty();
 
         let demo = [
-            ("router0", "Router0", "2911", "router", 350.0, 88.0),
-            ("switch0", "Switch0", "2960-24TT", "switch", 200.0, 210.0),
-            ("switch1", "Switch1", "2960-24TT", "switch", 505.0, 210.0),
-            ("pc0", "PC0", "PC-PT", "pc", 105.0, 400.0),
-            ("pc1", "PC1", "PC-PT", "pc", 265.0, 400.0),
-            ("server0", "Server0", "Server-PT", "server", 395.0, 420.0),
-            ("pc2", "PC2", "PC-PT", "pc", 520.0, 400.0),
+            ("router0", "Router0", "Router 300", "router", 350.0, 88.0),
+            ("switch0", "Switch0", "Switch 24", "switch", 200.0, 210.0),
+            ("switch1", "Switch1", "Switch 24", "switch", 505.0, 210.0),
+            ("pc0", "PC0", "PC", "pc", 105.0, 400.0),
+            ("pc1", "PC1", "PC", "pc", 265.0, 400.0),
+            ("server0", "Server0", "Server", "server", 395.0, 420.0),
+            ("pc2", "PC2", "PC", "pc", 520.0, 400.0),
         ];
         for (id, name, model, kind, x, y) in demo {
             ws.devices.push(Device {
@@ -199,7 +199,9 @@ impl Workspace {
 
     /// Create a device from a palette label at canvas coordinates.
     pub fn add(&mut self, model: &str, x: f32, y: f32) -> Option<String> {
-        let (_, _, kind) = CATALOG.iter().find(|(label, _, _)| *label == model)?;
+        let model = palette::canonical_model(model);
+        let (_, _, kind) = CATALOG.iter().find(|(label, _, _)| *label == model)
+            .or_else(|| CATALOG.iter().find(|(_, _, kind)| palette::retired_kind(model) == Some(kind)))?;
         let n = {
             let c = self.counters.entry(kind.to_string()).or_insert(0);
             let current = *c;
@@ -346,7 +348,7 @@ impl Workspace {
         for i in 0..count {
             let t = if count == 1 { 0.5 } else { i as f32 / (count - 1) as f32 };
             let x = 120.0 + span * t;
-            let Some(pc) = self.add("PC-PT", x, 385.0) else {
+            let Some(pc) = self.add("PC", x, 385.0) else {
                 continue;
             };
             let _ = self.link(&pc, &hub);

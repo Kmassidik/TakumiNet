@@ -1,11 +1,11 @@
 <takumi version="1">
   <device id="laptop0" kind="laptop" model="Laptop" x="60" y="340" name="OwnerLaptop" ip="192.168.99.20" prefix="24"/>
-  <device id="router1" kind="router" model="2911" x="200" y="200" name="HomeEnd" ip="" prefix="24"/>
+  <device id="router1" kind="router" model="Router 300" x="200" y="200" name="HomeEnd" ip="" prefix="24"/>
   <device id="cloud0" kind="cloud" model="Cloud" x="360" y="80" name="Internet" ip="" prefix="24"/>
-  <device id="router0" kind="router" model="2911" x="520" y="200" name="OfficeEnd" ip="" prefix="24"/>
-  <device id="switch0" kind="switch" model="2960" x="660" y="340" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="router0" kind="router" model="Router 300" x="520" y="200" name="OfficeEnd" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="660" y="340" name="OfficeSwitch" ip="" prefix="24"/>
   <device id="server0" kind="server" model="Server" x="800" y="460" name="FileServer" ip="192.168.20.2" prefix="24"/>
-  <device id="pc0" kind="pc" model="PC-PT" x="560" y="460" name="Desk0" ip="192.168.20.10" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="560" y="460" name="Desk0" ip="192.168.20.10" prefix="24"/>
   <link a="router1" a_port="Gig0/0" b="laptop0" b_port="Fa0" kind="eCross"/>
   <link a="router1" a_port="Gig0/1" b="cloud0" b_port="Fa0" kind="eCopper"/>
   <link a="cloud0" a_port="Fa1" b="router0" b_port="Gig0/0" kind="eCopper"/>

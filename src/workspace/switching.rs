@@ -59,7 +59,7 @@ impl Workspace {
             .iter_mut()
             .find(|d| d.id == device)
             .ok_or_else(|| "no such device".to_string())?;
-        if !matches!(dev.kind.as_str(), "router" | "asa") {
+        if !matches!(dev.kind.as_str(), "router" | "asa" | "switch-l3") {
             return Err("subinterfaces are only available on routers".into());
         }
         let name = format!("{parent}.{vlan}");

@@ -2,8 +2,8 @@
   <device id="homerouter0" kind="homerouter" model="Home Router" x="200" y="200" name="HomeRouter0" ip="192.168.1.1" prefix="24"/>
   <device id="ap0" kind="ap" model="Access Point" x="480" y="200" name="Room2AP" ip="" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="100" y="360" name="Laptop0" ip="192.168.1.20" prefix="24"/>
-  <device id="phone0" kind="tablet" model="Tablet PC" x="560" y="360" name="Phone0" ip="192.168.1.21" prefix="24"/>
-  <device id="tablet0" kind="tablet" model="Tablet PC" x="700" y="360" name="Tablet0" ip="192.168.1.22" prefix="24"/>
+  <device id="phone0" kind="tablet" model="Tablet" x="560" y="360" name="Phone0" ip="192.168.1.21" prefix="24"/>
+  <device id="tablet0" kind="tablet" model="Tablet" x="700" y="360" name="Tablet0" ip="192.168.1.22" prefix="24"/>
   <link a="homerouter0" a_port="Fa0" b="laptop0" b_port="Fa0" kind="eCopper"/>
   <link a="homerouter0" a_port="Fa1" b="ap0" b_port="Fa0" kind="eCopper"/>
   <link a="homerouter0" a_port="Fa2" b="phone0" b_port="Fa0" kind="eCopper"/>

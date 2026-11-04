@@ -63,7 +63,7 @@ fn industrial_protocols_and_cell_tower_work() {
     let plc = ws.add("PLC", 100.0, 500.0).unwrap();
     let ioe = ws.add("IoE", 300.0, 500.0).unwrap();
     let tower = ws.add("Cell Tower", 600.0, 500.0).unwrap();
-    let phone = ws.add("PDA", 700.0, 500.0).unwrap();
+    let phone = ws.add("Tablet", 700.0, 500.0).unwrap();
     ws.link_kind(&plc, &ioe, "eIoT").unwrap();
 
     assert_eq!(ws.iot_write(&plc, 5, 42).unwrap(), 0);

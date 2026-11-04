@@ -1,9 +1,9 @@
 <takumi version="1">
   <device id="cablemodem0" kind="cablemodem" model="Cable Modem" x="340" y="40" name="Modem0" ip="" prefix="24"/>
   <device id="homerouter0" kind="homerouter" model="Home Router" x="340" y="170" name="HomeRouter0" ip="192.168.1.1" prefix="24"/>
-  <device id="switch0" kind="switch" model="2960" x="620" y="170" name="Switch0" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="620" y="170" name="Switch0" ip="" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="100" y="340" name="Laptop0" ip="192.168.1.20" prefix="24"/>
-  <device id="outside0" kind="pc" model="PC-PT" x="300" y="340" name="Outside0" ip="192.168.1.60" prefix="24"/>
+  <device id="outside0" kind="pc" model="PC" x="300" y="340" name="Outside0" ip="192.168.1.60" prefix="24"/>
   <device id="printer0" kind="printer" model="Printer" x="480" y="340" name="Printer0" ip="192.168.1.22" prefix="24"/>
   <device id="tv0" kind="tv" model="TV" x="640" y="340" name="TV0" ip="192.168.1.23" prefix="24"/>
   <device id="server0" kind="server" model="Server" x="800" y="340" name="Server0" ip="192.168.1.2" prefix="24"/>

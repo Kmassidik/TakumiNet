@@ -222,7 +222,9 @@ fn validate_device(
 }
 
 fn valid_model(model: &str, kind: &str) -> bool {
+    let model = super::palette::canonical_model(model);
     CATALOG.iter().any(|(catalog_model, _, catalog_kind)| *catalog_model == model && *catalog_kind == kind)
+        || super::palette::retired_kind(model) == Some(kind)
         || matches!((model, kind), ("2960-24TT", "switch") | ("Server-PT", "server"))
 }
 
