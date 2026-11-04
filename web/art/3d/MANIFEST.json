@@ -25,6 +25,11 @@
         "wlc",
         "asa",
         "homerouter",
+        "rtrw-gateway",
+        "provider-link",
+        "sector-radio",
+        "client-radio",
+        "hotspot-ap",
         "printer",
         "phone"
       ],

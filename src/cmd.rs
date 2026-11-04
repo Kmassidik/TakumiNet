@@ -386,7 +386,7 @@ pub fn telnet(ws: &mut Workspace, id: &str, target: &str) -> (String, Option<Str
     else {
         return fail(target);
     };
-    if !matches!(dst.1.as_str(), "router" | "switch") {
+    if !matches!(dst.1.as_str(), "router" | "switch" | "rtrw-gateway") {
         return fail(target);
     }
     match ws.send_pdu(id, &dst.0) {

@@ -235,7 +235,7 @@ where
         }
 
         match dev.kind.as_str() {
-            "router" | "asa" => {
+            k if crate::model::routes_packets(k) => {
                 if let Some(expected) = ingress.as_ref().and_then(|name| {
                     dev.ports.iter().find(|p| &p.name == name).and_then(|p| p.dot1q)
                 }) {
@@ -639,7 +639,7 @@ enum NextHop {
 fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
     use crate::model::{contains, ipv4_string};
 
-    if matches!(dev.kind.as_str(), "router" | "asa") {
+    if crate::model::routes_packets(&dev.kind) {
         return match ws.best_route(&dev.id, dst) {
             Some(route) => match route.next_hop {
                 None => NextHop::Direct(route.dot1q),

@@ -1,0 +1,42 @@
+<takumi version="1">
+  <device id="server0" kind="server" model="Server" x="120" y="60" name="ExampleSite" ip="203.0.113.10" prefix="24"/>
+  <device id="provider0" kind="provider-link" model="Provider Link" x="320" y="60" name="Upstream0" ip="" prefix="24"/>
+  <device id="gw0" kind="rtrw-gateway" model="Gateway RT/RW" x="520" y="140" name="GatewayRTRW" ip="" prefix="24"/>
+  <device id="sector0" kind="sector-radio" model="Sector Radio" x="520" y="280" name="PoleRadio" ip="" prefix="24"/>
+  <device id="radio0" kind="client-radio" model="Client Radio" x="280" y="400" name="HouseRadio0" ip="" prefix="24"/>
+  <device id="radio1" kind="client-radio" model="Client Radio" x="520" y="400" name="HouseRadio1" ip="" prefix="24"/>
+  <device id="radio2" kind="client-radio" model="Client Radio" x="760" y="400" name="HouseRadio2" ip="" prefix="24"/>
+  <device id="home0" kind="homerouter" model="Home Router" x="280" y="500" name="Rumah0" ip="10.10.0.11" prefix="24"/>
+  <device id="home1" kind="homerouter" model="Home Router" x="520" y="500" name="Rumah1" ip="10.10.0.12" prefix="24"/>
+  <device id="home2" kind="homerouter" model="Home Router" x="760" y="500" name="Rumah2" ip="10.10.0.13" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="280" y="600" name="Laptop0" ip="10.10.0.20" prefix="24"/>
+  <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
+  <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>
+  <link a="gw0" a_port="Ether2" b="sector0" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa1" b="radio0" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa2" b="radio1" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa3" b="radio2" b_port="Fa0" kind="eCopper"/>
+  <link a="radio0" a_port="Fa1" b="home0" b_port="Fa0" kind="eCopper"/>
+  <link a="radio1" a_port="Fa1" b="home1" b_port="Fa0" kind="eCopper"/>
+  <link a="radio2" a_port="Fa1" b="home2" b_port="Fa0" kind="eCopper"/>
+  <link a="home0" a_port="Fa1" b="laptop0" b_port="Fa0" kind="eCopper"/>
+  <port id="gw0" name="Ether1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="gw0" name="Ether2" up="1" ip="10.10.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <net id="laptop0" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home0" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home1" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home2" gw="10.10.0.1" dns="203.0.113.10"/>
+  <dns id="server0" name="www.example.lab" ip="203.0.113.10"/>
+  <page id="server0" body="A page on the internet"/>
+  <pppoe client="home0" server="10.10.0.1" user="rumah0"/>
+  <pppoe client="home1" server="10.10.0.1" user="rumah1"/>
+  <pppoe client="home2" server="10.10.0.1" user="rumah2"/>
+  <lesson id="les-l2-01-first-gateway" title="Bring the neighbourhood online" level="2" minutes="15" goal="A laptop in a home opens an outside page through the gateway"/>
+  <step n="1" text="The provider gave you 203.0.113.2. On GatewayRTRW give Ether1, the upstream port, that address with mask 255.255.255.0." check="c1"/>
+  <step n="2" text="The homes use 10.10.0.0/24 on Ether2. That side is already addressed; check it in the port list."/>
+  <step n="3" text="Make the homes share the public address: permit 10.10.0.0/24 in list 1, mark Ether2 inside and Ether1 outside, and add the masquerade rule on Ether1." check="c2"/>
+  <step n="4" text="Open http://www.example.lab/ from Laptop0." check="c3"/>
+  <check id="c1" kind="config" from="gw0" to="port:Ether1" url="" expect="203.0.113.2" label="The upstream port has the provider's address"/>
+  <check id="c2" kind="config" from="gw0" to="masquerade" url="" expect="Ether1" label="Customers are translated on the upstream"/>
+  <check id="c3" kind="http" from="laptop0" to="" url="http://www.example.lab/" expect="ExampleSite" label="Laptop0 opens the outside page"/>
+</takumi>

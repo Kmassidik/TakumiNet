@@ -83,7 +83,8 @@ impl Workspace {
         if !self.devices.iter().any(|d| d.id == client) {
             return Err("no such device".into());
         }
-        if !self.devices.iter().any(|d| d.ip == crate::model::parse_ipv4(server)) {
+        let addr = crate::model::parse_ipv4(server);
+        if !self.devices.iter().any(|d| d.ip == addr || d.ports.iter().any(|p| p.ip == addr)) {
             return Err(format!("no device at {server}"));
         }
         if user.trim().is_empty() {
@@ -96,5 +97,30 @@ impl Workspace {
 
     pub fn pppoe_status(&self, client: &str) -> Option<(String, String)> {
         self.pppoe.get(client).cloned()
+    }
+
+    /// The provider drops private source addresses: traffic crossing a
+    /// provider-link needs a masquerade (NAT) rule on the gateway beside it.
+    pub(super) fn provider_blocked(&self, src: &str, dst: &str) -> Option<String> {
+        let private = |ip: u32| {
+            let a = (ip >> 24) & 255;
+            let b = (ip >> 16) & 255;
+            a == 10 || (a == 192 && b == 168) || (a == 172 && (16..=31).contains(&b))
+        };
+        let src_ip = self.devices.iter().find(|d| d.id == src).and_then(|d| d.ip)?;
+        if !private(src_ip) {
+            return None;
+        }
+        let path = self.path(src, dst)?;
+        let kind = |id: &String| self.devices.iter().find(|d| &d.id == id).map(|d| d.kind.clone()).unwrap_or_default();
+        let at = path.iter().position(|id| kind(id) == "provider-link")?;
+        let gateway = path[..at].iter().rev().find(|id| crate::model::routes_packets(&kind(id)))?;
+        if self.nat_rules.get(gateway.as_str()).is_some_and(|rules| !rules.is_empty()) {
+            return None;
+        }
+        Some(format!(
+            "blocked at {}: the provider drops private addresses; add the masquerade rule on {}",
+            self.name_of(&path[at]), self.name_of(gateway)
+        ))
     }
 }

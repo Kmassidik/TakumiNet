@@ -130,7 +130,8 @@ impl Workspace {
                 k,
                 "pc" | "laptop" | "server" | "printer" | "tv" | "sniffer" | "tablet" | "pda"
                     | "phone" | "asa" | "wlc" | "ap" | "hub" | "switch" | "router"
-                    | "homerouter" | "cloud"
+                    | "homerouter" | "cloud" | "rtrw-gateway" | "provider-link"
+                    | "sector-radio" | "client-radio" | "hotspot-ap"
             )
         };
         let network = |k: &str| matches!(k, "switch" | "router");

@@ -66,6 +66,7 @@ fn iface_family(prefix: &str) -> Option<&'static str> {
         "g" | "gi" | "gig" | "giga" | "gigabitethernet" => Some("GigabitEthernet"),
         "f" | "fa" | "fast" | "fastethernet" => Some("FastEthernet"),
         "e" | "et" | "ethernet" => Some("Ethernet"),
+        "ether" => Some("Ether"),
         "s" | "se" | "serial" => Some("Serial"),
         _ => None,
     }

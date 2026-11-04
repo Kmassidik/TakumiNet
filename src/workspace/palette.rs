@@ -49,6 +49,11 @@ pub(super) const CATALOG: &[(&str, &str, &str)] = &[
     ("Meraki Server", "SpecificMerakiServer.png", "meraki"),
     ("Data Historian", "DataHistorianComponentBox.png", "historian"),
     ("Patch Panel", "SpecificPatchPanel_40x40.png", "patchpanel"),
+    ("Gateway RT/RW", "", "rtrw-gateway"),
+    ("Provider Link", "", "provider-link"),
+    ("Sector Radio", "", "sector-radio"),
+    ("Client Radio", "", "client-radio"),
+    ("Hotspot AP", "", "hotspot-ap"),
 ];
 
 pub(super) const GROUPS: &[(&str, &str)] = &[
@@ -93,6 +98,9 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         "switch" => (1..=24).map(|i| format!("FastEthernet0/{i}")).collect(),
         "homerouter" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         "cloud" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
+        "rtrw-gateway" => (1..=5).map(|i| format!("Ether{i}")).collect(),
+        "sector-radio" => (0..6).map(|i| format!("FastEthernet{i}")).collect(),
+        "provider-link" | "client-radio" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
         _ => vec!["FastEthernet0".to_string()],
     };
     names
@@ -167,6 +175,11 @@ pub(super) fn name_prefix(kind: &str) -> &'static str {
         "meraki" => "MerakiServer",
         "historian" => "DataHistorian",
         "patchpanel" => "PatchPanel",
+        "rtrw-gateway" => "Gateway",
+        "provider-link" => "Upstream",
+        "sector-radio" => "SectorRadio",
+        "client-radio" => "ClientRadio",
+        "hotspot-ap" => "HotspotAP",
         _ => "Device",
     }
 }

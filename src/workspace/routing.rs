@@ -160,7 +160,7 @@ impl Workspace {
     /// The router that answers on `ip`, if any.
     pub(crate) fn router_with_addr(&self, ip: u32) -> Option<&Device> {
         self.devices.iter().find(|d| {
-            matches!(d.kind.as_str(), "router" | "asa")
+            crate::model::routes_packets(&d.kind)
                 && (d.ip == Some(ip) || d.ports.iter().any(|p| p.ip == Some(ip)))
         })
     }
@@ -304,7 +304,7 @@ impl Workspace {
                     "switch" | "hub" => {
                         queue.push_back((peer.id.clone(), local_port));
                     }
-                    "router" | "asa" => {
+                    k if crate::model::routes_packets(k) => {
                         let local_ports = self.ports_on_physical(source, &local_port);
                         let peer_ports = self.ports_on_physical(peer, raw_peer);
                         let mut pair = local_ports
@@ -1058,7 +1058,7 @@ impl Workspace {
     /// Default gateway of a host; routers and switches route instead.
     pub fn gateway_of(&self, id: &str) -> Option<u32> {
         let dev = self.devices.iter().find(|d| d.id == id)?;
-        if matches!(dev.kind.as_str(), "router" | "switch") {
+        if matches!(dev.kind.as_str(), "router" | "switch" | "rtrw-gateway") {
             return None;
         }
         dev.gateway

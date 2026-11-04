@@ -38,8 +38,16 @@ impl Workspace {
             return (actual == check.expect, format!("port security on {iface} is {actual}"), "Turn on port security for the port and set the allowed number of addresses.".into());
         }
         let address = |value: Option<u32>| value.map(ipv4_string).unwrap_or_else(|| "none".into());
+        if let Some(port) = check.to.strip_prefix("port:") {
+            let actual = device.ports.iter().find(|p| p.name == port)
+                .map_or_else(|| format!("no port {port}"), |p| p.ip.map(ipv4_string).unwrap_or_else(|| "none".into()));
+            return (actual == check.expect, format!("{port} is {actual}"), "Open the port settings and give it the address.".into());
+        }
         let actual = match check.to.as_str() {
             "tunnel" => self.tunnel_state(&check.from).to_string(),
+            "masquerade" => self.nat_rules.get(&check.from)
+                .and_then(|rules| rules.first())
+                .map_or_else(|| "none".to_string(), |rule| rule.iface.clone()),
             "name" => device.name.clone(),
             "ip" => address(device.ip),
             "prefix" => device.prefix.to_string(),

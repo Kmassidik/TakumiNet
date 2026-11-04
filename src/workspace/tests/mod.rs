@@ -4,6 +4,7 @@ mod checks;
 mod demo;
 mod devices;
 mod l1_lessons;
+mod l2_lessons;
 mod l3_lessons;
 mod l4_lessons;
 mod notes;
