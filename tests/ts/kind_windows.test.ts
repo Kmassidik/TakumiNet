@@ -85,19 +85,19 @@ test("an uncabled provider link shows the empty state", () => {
 test("the hotspot window lists its wireless networks and the voucher note", async () => {
   const doc = new FakeDocument();
   const body = new FakeElement("div");
-  await renderHotspotWindow(doc, body, { id: "ap1", name: "WarungAP", kind: "hotspot-ap" }, async (path) => {
+  await renderHotspotWindow(doc, body, { id: "ap1", name: "CafeAP", kind: "hotspot-ap" }, async (path) => {
     expect(path).toBe("/api/wifi/wlans?id=ap1");
-    return { wlans: [{ ssid: "Warung WiFi", security: "Open" }] };
+    return { wlans: [{ ssid: "Cafe WiFi", security: "Open" }] };
   });
   const text = allText(body);
-  expect(text).toContain("Warung WiFi (Open)");
+  expect(text).toContain("Cafe WiFi (Open)");
   expect(text).toContain("Visitors sign in with a voucher on the gateway.");
 });
 
 test("a hotspot with no network set up shows the empty state", async () => {
   const doc = new FakeDocument();
   const body = new FakeElement("div");
-  await renderHotspotWindow(doc, body, { id: "ap1", name: "WarungAP", kind: "hotspot-ap" }, async () => ({ wlans: [] }));
+  await renderHotspotWindow(doc, body, { id: "ap1", name: "CafeAP", kind: "hotspot-ap" }, async () => ({ wlans: [] }));
   expect(allText(body)).toContain("No wireless network is set up yet.");
 });
 
@@ -105,15 +105,15 @@ test("a failed wlan load shows the error state with a working retry", async () =
   const doc = new FakeDocument();
   const body = new FakeElement("div");
   let healthy = false;
-  await renderHotspotWindow(doc, body, { id: "ap1", name: "WarungAP", kind: "hotspot-ap" }, async () => {
+  await renderHotspotWindow(doc, body, { id: "ap1", name: "CafeAP", kind: "hotspot-ap" }, async () => {
     if (!healthy) throw new Error("down");
-    return { wlans: [{ ssid: "Warung WiFi", security: "Open" }] };
+    return { wlans: [{ ssid: "Cafe WiFi", security: "Open" }] };
   });
   expect(allText(body)).toContain("Could not load the wireless networks.");
   healthy = true;
   button(body, "Try again").click();
   await flush();
-  expect(allText(body)).toContain("Warung WiFi (Open)");
+  expect(allText(body)).toContain("Cafe WiFi (Open)");
 });
 
 const asa = { id: "fw1", name: "Edge", kind: "asa" };

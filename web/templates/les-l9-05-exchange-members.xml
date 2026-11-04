@@ -1,10 +1,10 @@
 <takumi version="1">
-<device id="sw0" kind="switch" model="Switch 24" x="420" y="120" name="RakIXMakassar" ip="" prefix="24"/>
-<device id="ia" kind="router" model="Router 300" x="180" y="300" name="ISPSatu" ip="" prefix="24"/>
+<device id="sw0" kind="switch" model="Switch 24" x="420" y="120" name="RackIXMakassar" ip="" prefix="24"/>
+<device id="ia" kind="router" model="Router 300" x="180" y="300" name="ISPOne" ip="" prefix="24"/>
 <port id="ia" name="GigabitEthernet0/0" up="1" ip="172.19.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="ib" kind="router" model="Router 300" x="420" y="360" name="ISPDua" ip="" prefix="24"/>
+<device id="ib" kind="router" model="Router 300" x="420" y="360" name="ISPTwo" ip="" prefix="24"/>
 <port id="ib" name="GigabitEthernet0/0" up="1" ip="172.19.0.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="ic" kind="router" model="Router 300" x="660" y="300" name="ISPTiga" ip="" prefix="24"/>
+<device id="ic" kind="router" model="Router 300" x="660" y="300" name="ISPThree" ip="" prefix="24"/>
 <port id="ic" name="GigabitEthernet0/0" up="1" ip="172.19.0.3" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <link a="ia" a_port="Gig0/0" b="sw0" b_port="Fa0/1" kind="eCopper"/>
 <link a="ib" a_port="Gig0/0" b="sw0" b_port="Fa0/2" kind="eCopper"/>
@@ -18,11 +18,11 @@
 <bgprouter dev="ic" as="64713"/>
 <bgpnet dev="ic" net="10.73.0.0" prefix="24"/>
 <lesson id="les-l9-05-exchange-members" title="Members of the exchange" level="9" minutes="12" goal="Three members peer across the provincial exchange and every session is established"/>
-<step n="1" text="Three providers plugged into the exchange switch share the peering network 172.19.0.0/24. ISPSatu already runs BGP in system 64711 and names both other members. Their routers run BGP too, but name nobody: a session needs both ends."/>
-<step n="2" text="On ISPDua, name the other members: neighbor 172.19.0.1 remote-as 64711 and neighbor 172.19.0.3 remote-as 64713." check="c1"/>
-<step n="3" text="On ISPTiga, do the same: neighbor 172.19.0.1 remote-as 64711 and neighbor 172.19.0.2 remote-as 64712." check="c2"/>
-<step n="4" text="Every member now swaps routes with every other across one switch. Ping ISPDua from ISPSatu over the peering network." check="c3"/>
-<check id="c1" kind="count" from="bgp:ib" to="" url="" expect="2" label="ISPDua holds two established sessions"/>
-<check id="c2" kind="count" from="bgp:ic" to="" url="" expect="2" label="ISPTiga holds two established sessions"/>
-<check id="c3" kind="ping" from="ia" to="ib" url="" expect="ok" label="ISPSatu reaches ISPDua across the exchange"/>
+<step n="1" text="Three providers plugged into the exchange switch share the peering network 172.19.0.0/24. ISPOne already runs BGP in system 64711 and names both other members. Their routers run BGP too, but name nobody: a session needs both ends."/>
+<step n="2" text="On ISPTwo, name the other members: neighbor 172.19.0.1 remote-as 64711 and neighbor 172.19.0.3 remote-as 64713." check="c1"/>
+<step n="3" text="On ISPThree, do the same: neighbor 172.19.0.1 remote-as 64711 and neighbor 172.19.0.2 remote-as 64712." check="c2"/>
+<step n="4" text="Every member now swaps routes with every other across one switch. Ping ISPTwo from ISPOne over the peering network." check="c3"/>
+<check id="c1" kind="count" from="bgp:ib" to="" url="" expect="2" label="ISPTwo holds two established sessions"/>
+<check id="c2" kind="count" from="bgp:ic" to="" url="" expect="2" label="ISPThree holds two established sessions"/>
+<check id="c3" kind="ping" from="ia" to="ib" url="" expect="ok" label="ISPOne reaches ISPTwo across the exchange"/>
 </takumi>

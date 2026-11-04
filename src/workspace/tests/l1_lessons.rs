@@ -96,10 +96,10 @@ fn wifi_name_lesson_needs_the_new_network_and_a_correct_join() {
     assert_eq!(results(&mut ws), vec![false], "the old network is the wrong one");
     ws.wlan_remove("homerouter0", "HomeWifi4821").unwrap();
     assert!(ws.wifi_status("phone0").is_none(), "removing a network disconnects its clients");
-    assert!(ws.wlan_add("homerouter0", "KeluargaSantoso", "short").is_err());
-    ws.wlan_add("homerouter0", "KeluargaSantoso", "santoso-2024").unwrap();
-    assert!(ws.wifi_join("phone0", "KeluargaSantoso", "wrong-pass1").is_err());
-    ws.wifi_join("phone0", "KeluargaSantoso", "santoso-2024").unwrap();
+    assert!(ws.wlan_add("homerouter0", "FamilyNet", "short").is_err());
+    ws.wlan_add("homerouter0", "FamilyNet", "family-2024").unwrap();
+    assert!(ws.wifi_join("phone0", "FamilyNet", "wrong-pass1").is_err());
+    ws.wifi_join("phone0", "FamilyNet", "family-2024").unwrap();
     assert_eq!(results(&mut ws), vec![true]);
 }
 
@@ -170,7 +170,7 @@ fn far_room_lesson_needs_a_roam_to_the_closer_access_point() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l1-06-far-room.xml")).unwrap();
     assert_eq!(ws.wifi_signal("phone0"), Some(1), "the router is far from the phone");
     assert_eq!(results(&mut ws), vec![false, true]);
-    ws.wlan_add("ap0", "KeluargaSantoso", "santoso-2024").unwrap();
+    ws.wlan_add("ap0", "FamilyNet", "family-2024").unwrap();
     ws.wifi_roam("phone0", "ap0").unwrap();
     assert_eq!(ws.wifi_signal("phone0"), Some(3));
     assert_eq!(results(&mut ws), vec![true, true]);

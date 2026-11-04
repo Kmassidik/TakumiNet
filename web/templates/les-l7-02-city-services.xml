@@ -1,28 +1,28 @@
 <takumi version="1">
-<device id="utara" kind="district-hub" model="District Hub" x="240" y="140" name="KecamatanUtara" ip="" prefix="24"/>
+<device id="utara" kind="district-hub" model="District Hub" x="240" y="140" name="DistrictNorth" ip="" prefix="24"/>
 <port id="utara" name="GigabitEthernet0/1" up="1" ip="10.70.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="utara" name="GigabitEthernet0/2" up="1" ip="10.70.4.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="utara" name="GigabitEthernet0/3" up="1" ip="10.70.5.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="timur" kind="district-hub" model="District Hub" x="500" y="220" name="KecamatanTimur" ip="" prefix="24"/>
+<device id="timur" kind="district-hub" model="District Hub" x="500" y="220" name="DistrictEast" ip="" prefix="24"/>
 <port id="timur" name="GigabitEthernet0/1" up="1" ip="10.70.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="timur" name="GigabitEthernet0/2" up="1" ip="10.70.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="selatan" kind="district-hub" model="District Hub" x="360" y="380" name="KecamatanSelatan" ip="" prefix="24"/>
+<device id="selatan" kind="district-hub" model="District Hub" x="360" y="380" name="DistrictSouth" ip="" prefix="24"/>
 <port id="selatan" name="GigabitEthernet0/0" up="1" ip="192.168.73.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="selatan" name="GigabitEthernet0/1" up="1" ip="10.70.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="selatan" name="GigabitEthernet0/2" up="1" ip="10.70.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="barat" kind="district-hub" model="District Hub" x="100" y="300" name="KecamatanBarat" ip="" prefix="24"/>
+<device id="barat" kind="district-hub" model="District Hub" x="100" y="300" name="DistrictWest" ip="" prefix="24"/>
 <port id="barat" name="GigabitEthernet0/1" up="1" ip="10.70.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="barat" name="GigabitEthernet0/2" up="1" ip="10.70.4.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="cx0" kind="city-exchange" model="City Exchange" x="380" y="40" name="SentralKota" ip="" prefix="24"/>
+<device id="cx0" kind="city-exchange" model="City Exchange" x="380" y="40" name="CityCentral" ip="" prefix="24"/>
 <port id="cx0" name="GigabitEthernet0/0" up="1" ip="192.168.70.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="cx0" name="GigabitEthernet0/1" up="1" ip="10.70.5.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="server0" kind="server" model="Server" x="620" y="40" name="LayananKota" ip="192.168.70.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="620" y="40" name="CityServices" ip="192.168.70.10" prefix="24"/>
 <net id="server0" gw="192.168.70.1" dns=""/>
-<device id="pc0" kind="pc" model="PC" x="360" y="520" name="WargaSelatan" ip="192.168.73.10" prefix="24"/>
+<device id="pc0" kind="pc" model="PC" x="360" y="520" name="SouthResident" ip="192.168.73.10" prefix="24"/>
 <net id="pc0" gw="192.168.73.1" dns=""/>
-<device id="pc1" kind="pc" model="PC" x="700" y="220" name="RumahSakitKota" ip="192.168.72.10" prefix="24"/>
+<device id="pc1" kind="pc" model="PC" x="700" y="220" name="CityHospital" ip="192.168.72.10" prefix="24"/>
 <net id="pc1" gw="192.168.72.1" dns=""/>
-<device id="cam0" kind="server" model="Server" x="100" y="460" name="KameraKota" ip="192.168.74.10" prefix="24"/>
+<device id="cam0" kind="server" model="Server" x="100" y="460" name="CityCamera" ip="192.168.74.10" prefix="24"/>
 <net id="cam0" gw="192.168.74.1" dns=""/>
 <port id="timur" name="GigabitEthernet0/0" up="1" ip="192.168.72.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="barat" name="GigabitEthernet0/0" up="1" ip="192.168.74.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
@@ -86,11 +86,11 @@
 <routenet dev="cx0" net="192.168.72.0" prefix="24" area="0"/>
 <routenet dev="cx0" net="192.168.74.0" prefix="24" area="0"/>
 <lesson id="les-l7-02-city-services" title="City services on the ring" level="7" minutes="18" goal="The hospital reaches the city services and the public district cannot reach the cameras"/>
-<step n="1" text="Two services hang on the ring: the hospital in KecamatanTimur and the traffic cameras in KecamatanBarat. Ping KameraKota from WargaSelatan. It answers today, and it should not."/>
-<step n="2" text="On KecamatanBarat make access list 170: deny 192.168.73.0 to 192.168.74.0 (wildcard 0.0.0.255), then permit everything else."/>
+<step n="1" text="Two services hang on the ring: the hospital in DistrictEast and the traffic cameras in DistrictWest. Ping CityCamera from SouthResident. It answers today, and it should not."/>
+<step n="2" text="On DistrictWest make access list 170: deny 192.168.73.0 to 192.168.74.0 (wildcard 0.0.0.255), then permit everything else."/>
 <step n="3" text="Apply list 170 outbound on GigabitEthernet0/0, the port the cameras hang on." check="c1"/>
-<step n="4" text="Ping LayananKota from RumahSakitKota. The hospital must keep its line to the city." check="c2"/>
+<step n="4" text="Ping CityServices from CityHospital. The hospital must keep its line to the city." check="c2"/>
 <check id="c1" kind="noreach" from="pc0" to="cam0" url="" expect="" label="The public district cannot reach the cameras"/>
-<check id="c2" kind="ping" from="pc1" to="server0" url="" expect="ok" label="The hospital reaches LayananKota"/>
-<check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="The public district still reaches LayananKota"/>
+<check id="c2" kind="ping" from="pc1" to="server0" url="" expect="ok" label="The hospital reaches CityServices"/>
+<check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="The public district still reaches CityServices"/>
 </takumi>

@@ -73,7 +73,7 @@ fn the_long_links_land_in_their_latency_bands() {
 #[test]
 fn far_village_lesson_survives_the_radio_cut_once_the_spare_pair_is_cabled() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l8-01-far-village.xml")).unwrap();
-    assert_eq!(passes(&mut ws), vec![true, true, false], "no spare cable yet: a radio cut isolates DesaMakmur");
+    assert_eq!(passes(&mut ws), vec![true, true, false], "no spare cable yet: a radio cut isolates ProsperVillage");
     ws.link("mw2", "mw3").unwrap();
     assert_eq!(passes(&mut ws), vec![true, true, true]);
     let mut cut = ws.clone();
@@ -120,7 +120,7 @@ fn two_cuts_lesson_fails_on_the_line_and_passes_once_the_ring_is_rejoined() {
 #[test]
 fn city_exchange_lesson_passes_once_the_second_provider_peers_and_announces() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l7-04-city-exchange.xml")).unwrap();
-    assert_eq!(passes(&mut ws), vec![true, false, false, false], "only PenyediaFajar peers at the exchange");
+    assert_eq!(passes(&mut ws), vec![true, false, false, false], "only ProviderDawn peers at the exchange");
     ws.bgp_config("isp2", 64702).unwrap();
     ws.bgp_neighbor("isp2", "10.70.8.5", 64700).unwrap();
     ws.bgp_network("isp2", ip("192.168.77.0").unwrap(), 24).unwrap();

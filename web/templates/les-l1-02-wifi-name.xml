@@ -22,9 +22,9 @@
   <pool id="server0" network="192.168.1.0" prefix="24" gw="192.168.1.1" dns="192.168.1.2"/>
   <page id="server0" body="Family page"/>
   <wlan wlc="homerouter0" ssid="HomeWifi4821" psk="welcome123" security="WPA2-PSK"/>
-  <lesson id="les-l1-02-wifi-name" title="Give the Wi-Fi your own name" level="1" minutes="10" goal="Phone0 joins a WPA2 network named KeluargaSantoso with your own password"/>
+  <lesson id="les-l1-02-wifi-name" title="Give the Wi-Fi your own name" level="1" minutes="10" goal="Phone0 joins a WPA2 network named FamilyNet with your own password"/>
   <step n="1" text="The router sends out HomeWifi4821 with the password on its sticker. Open the router page and find the wireless settings."/>
-  <step n="2" text="Remove HomeWifi4821 and create a network named KeluargaSantoso with a password of at least 8 characters."/>
-  <step n="3" text="On Phone0 join KeluargaSantoso with your new password." check="c1"/>
-  <check id="c1" kind="wifi" from="phone0" to="KeluargaSantoso" url="" expect="WPA2-PSK" label="Phone0 is joined to KeluargaSantoso with WPA2"/>
+  <step n="2" text="Remove HomeWifi4821 and create a network named FamilyNet with a password of at least 8 characters."/>
+  <step n="3" text="On Phone0 join FamilyNet with your new password." check="c1"/>
+  <check id="c1" kind="wifi" from="phone0" to="FamilyNet" url="" expect="WPA2-PSK" label="Phone0 is joined to FamilyNet with WPA2"/>
 </takumi>

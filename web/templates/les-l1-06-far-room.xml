@@ -11,13 +11,13 @@
   <net id="laptop0" gw="192.168.1.1" dns="192.168.1.1"/>
   <net id="phone0" gw="192.168.1.1" dns="192.168.1.1"/>
   <net id="tablet0" gw="192.168.1.1" dns="192.168.1.1"/>
-  <wlan wlc="homerouter0" ssid="KeluargaSantoso" psk="santoso-2024" security="WPA2-PSK"/>
-  <wifi client="phone0" ssid="KeluargaSantoso" wlc="homerouter0"/>
+  <wlan wlc="homerouter0" ssid="FamilyNet" psk="family-2024" security="WPA2-PSK"/>
+  <wifi client="phone0" ssid="FamilyNet" wlc="homerouter0"/>
   <lesson id="les-l1-06-far-room" title="Carry the Wi-Fi to the far room" level="1" minutes="12" goal="Phone0 shows at least 3 of 4 bars and still reaches Laptop0"/>
   <step n="1" text="Phone0 sits in the far room, joined to the router's Wi-Fi with a weak signal. Look at its bars."/>
-  <step n="2" text="Room2AP hangs in the hallway, already cabled to the router. Give it the same network: KeluargaSantoso with the same password."/>
+  <step n="2" text="Room2AP hangs in the hallway, already cabled to the router. Give it the same network: FamilyNet with the same password."/>
   <step n="3" text="On Phone0, switch over to Room2AP (roam)." check="c1"/>
   <step n="4" text="Ping Laptop0 from Phone0." check="c2"/>
-  <check id="c1" kind="wifi" from="phone0" to="KeluargaSantoso" url="bars:3" expect="" label="Phone0 shows at least 3 of 4 bars"/>
+  <check id="c1" kind="wifi" from="phone0" to="FamilyNet" url="bars:3" expect="" label="Phone0 shows at least 3 of 4 bars"/>
   <check id="c2" kind="ping" from="phone0" to="laptop0" url="" expect="ok" label="Phone0 reaches Laptop0"/>
 </takumi>

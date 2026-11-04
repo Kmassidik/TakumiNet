@@ -1,5 +1,5 @@
 <takumi version="1">
-  <device id="border0" kind="router" model="Router 300" x="260" y="240" name="GerbangISP" ip="" prefix="24"/>
+  <device id="border0" kind="router" model="Router 300" x="260" y="240" name="BorderISP" ip="" prefix="24"/>
   <port id="border0" name="GigabitEthernet0/0" up="1" ip="192.168.50.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
   <port id="border0" name="GigabitEthernet0/1" up="1" ip="10.1.1.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
   <port id="border0" name="GigabitEthernet0/2" up="1" ip="10.1.2.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
@@ -10,9 +10,9 @@
   <device id="upb0" kind="router" model="Router 300" x="520" y="360" name="UpstreamSouth" ip="" prefix="24"/>
   <port id="upb0" name="GigabitEthernet0/0" up="1" ip="10.1.2.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
   <port id="upb0" name="GigabitEthernet0/2" up="1" ip="10.1.3.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-  <device id="pc0" kind="pc" model="PC" x="80" y="360" name="PCPelanggan" ip="192.168.50.10" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="80" y="360" name="CustomerPC" ip="192.168.50.10" prefix="24"/>
   <net id="pc0" gw="192.168.50.1" dns=""/>
-  <device id="server0" kind="server" model="Server" x="760" y="120" name="ServerJauh" ip="203.0.113.10" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="760" y="120" name="FarServer" ip="203.0.113.10" prefix="24"/>
   <net id="server0" gw="203.0.113.1" dns=""/>
   <link a="border0" a_port="Gig0/0" b="pc0" b_port="Fa0" kind="eCross"/>
   <link a="border0" a_port="Gig0/1" b="upa0" b_port="Gig0/0" kind="eCopper"/>
@@ -28,13 +28,13 @@
   <bgpneighbor dev="upb0" peer="10.1.3.1" as="64601"/>
   <bgpnet dev="upb0" net="203.0.113.0" prefix="24"/>
   <bgpnet dev="upb0" net="192.168.50.0" prefix="24"/>
-  <lesson id="les-l6-02-first-bgp" title="Your first BGP sessions" level="6" minutes="15" goal="GerbangISP peers with both upstream providers and PCPelanggan reaches ServerJauh"/>
-  <step n="1" text="Both providers already point a neighbor entry at GerbangISP, but GerbangISP says nothing back. Ping ServerJauh from PCPelanggan and read the failure."/>
-  <step n="2" text="On GerbangISP set the local autonomous system to 64500."/>
+  <lesson id="les-l6-02-first-bgp" title="Your first BGP sessions" level="6" minutes="15" goal="BorderISP peers with both upstream providers and CustomerPC reaches FarServer"/>
+  <step n="1" text="Both providers already point a neighbor entry at BorderISP, but BorderISP says nothing back. Ping FarServer from CustomerPC and read the failure."/>
+  <step n="2" text="On BorderISP set the local autonomous system to 64500."/>
   <step n="3" text="Add the neighbor 10.1.1.2 in autonomous system 64601. The session to UpstreamNorth comes up." check="c1"/>
   <step n="4" text="Add the neighbor 10.1.2.2 in autonomous system 64602. The session to UpstreamSouth comes up." check="c2"/>
-  <step n="5" text="Announce your own customer network 192.168.50.0/24, then ping ServerJauh from PCPelanggan." check="c3"/>
+  <step n="5" text="Announce your own customer network 192.168.50.0/24, then ping FarServer from CustomerPC." check="c3"/>
   <check id="c1" kind="bgp" from="border0" to="10.1.1.2" url="" expect="established" label="The session to UpstreamNorth is established"/>
   <check id="c2" kind="bgp" from="border0" to="10.1.2.2" url="" expect="established" label="The session to UpstreamSouth is established"/>
-  <check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="PCPelanggan reaches ServerJauh"/>
+  <check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="CustomerPC reaches FarServer"/>
 </takumi>

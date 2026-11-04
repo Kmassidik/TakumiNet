@@ -25,8 +25,8 @@ fn the_pop_template_serves_the_far_page_by_name() {
     assert_eq!(ws.bgp_session_state("up0", "10.0.0.1"), "established");
     assert!(ws.has_route("border0", ip("203.0.113.0").unwrap(), 24));
     assert!(ws.has_route("up0", ip("100.64.0.0").unwrap(), 24));
-    let page = crate::webapp::fetch(&mut ws, "laptop0", "http://www.berita.lab/").unwrap();
-    assert_eq!(page.title, "SitusBerita");
+    let page = crate::webapp::fetch(&mut ws, "laptop0", "http://www.news.lab/").unwrap();
+    assert_eq!(page.title, "NewsSite");
 }
 
 #[test]

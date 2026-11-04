@@ -21,7 +21,7 @@
   <net id="tv0" gw="192.168.1.1" dns="192.168.1.2"/>
   <pool id="server0" network="192.168.1.0" prefix="24" gw="192.168.1.1" dns="192.168.1.2"/>
   <page id="server0" body="Family page"/>
-  <wlan wlc="homerouter0" ssid="KeluargaSantoso" psk="santoso-2024" security="WPA2-PSK"/>
+  <wlan wlc="homerouter0" ssid="FamilyNet" psk="family-2024" security="WPA2-PSK"/>
   <lesson id="les-l1-03-guest-wifi" title="A guest network for visitors" level="1" minutes="10" goal="Laptop0 joins a guest network and cannot see the printer"/>
   <step n="1" text="On HomeRouter0 create a second network named GuestWifi with its own password of at least 8 characters."/>
   <step n="2" text="Turn on the guest setting for GuestWifi, so its visitors cannot see the home devices."/>

@@ -1,27 +1,27 @@
 <takumi version="1">
-<device id="utara" kind="district-hub" model="District Hub" x="240" y="140" name="KecamatanUtara" ip="" prefix="24"/>
+<device id="utara" kind="district-hub" model="District Hub" x="240" y="140" name="DistrictNorth" ip="" prefix="24"/>
 <port id="utara" name="GigabitEthernet0/1" up="1" ip="10.70.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="utara" name="GigabitEthernet0/2" up="1" ip="10.70.4.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="utara" name="GigabitEthernet0/3" up="1" ip="10.70.5.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="timur" kind="district-hub" model="District Hub" x="500" y="220" name="KecamatanTimur" ip="" prefix="24"/>
+<device id="timur" kind="district-hub" model="District Hub" x="500" y="220" name="DistrictEast" ip="" prefix="24"/>
 <port id="timur" name="GigabitEthernet0/1" up="1" ip="10.70.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="timur" name="GigabitEthernet0/2" up="1" ip="10.70.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="selatan" kind="district-hub" model="District Hub" x="360" y="380" name="KecamatanSelatan" ip="" prefix="24"/>
+<device id="selatan" kind="district-hub" model="District Hub" x="360" y="380" name="DistrictSouth" ip="" prefix="24"/>
 <port id="selatan" name="GigabitEthernet0/0" up="1" ip="192.168.73.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="selatan" name="GigabitEthernet0/1" up="1" ip="10.70.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="selatan" name="GigabitEthernet0/2" up="1" ip="10.70.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="barat" kind="district-hub" model="District Hub" x="100" y="300" name="KecamatanBarat" ip="" prefix="24"/>
+<device id="barat" kind="district-hub" model="District Hub" x="100" y="300" name="DistrictWest" ip="" prefix="24"/>
 <port id="barat" name="GigabitEthernet0/0" up="1" ip="192.168.74.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="barat" name="GigabitEthernet0/1" up="1" ip="10.70.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="barat" name="GigabitEthernet0/2" up="1" ip="10.70.4.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="cx0" kind="city-exchange" model="City Exchange" x="380" y="40" name="SentralKota" ip="" prefix="24"/>
+<device id="cx0" kind="city-exchange" model="City Exchange" x="380" y="40" name="CityCentral" ip="" prefix="24"/>
 <port id="cx0" name="GigabitEthernet0/0" up="1" ip="192.168.70.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="cx0" name="GigabitEthernet0/1" up="1" ip="10.70.5.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="server0" kind="server" model="Server" x="620" y="40" name="LayananKota" ip="192.168.70.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="620" y="40" name="CityServices" ip="192.168.70.10" prefix="24"/>
 <net id="server0" gw="192.168.70.1" dns=""/>
-<device id="pc0" kind="pc" model="PC" x="360" y="520" name="WargaSelatan" ip="192.168.73.10" prefix="24"/>
+<device id="pc0" kind="pc" model="PC" x="360" y="520" name="SouthResident" ip="192.168.73.10" prefix="24"/>
 <net id="pc0" gw="192.168.73.1" dns=""/>
-<device id="pc1" kind="pc" model="PC" x="100" y="460" name="WargaBarat" ip="192.168.74.10" prefix="24"/>
+<device id="pc1" kind="pc" model="PC" x="100" y="460" name="WestResident" ip="192.168.74.10" prefix="24"/>
 <net id="pc1" gw="192.168.74.1" dns=""/>
 <link a="utara" a_port="Gig0/1" b="timur" b_port="Gig0/1" kind="eFiber"/>
 <link a="timur" a_port="Gig0/2" b="selatan" b_port="Gig0/1" kind="eFiber"/>
@@ -76,12 +76,12 @@
 <routenet dev="cx0" net="192.168.73.0" prefix="24" area="0"/>
 <routenet dev="cx0" net="192.168.74.0" prefix="24" area="0"/>
 <lesson id="les-l7-02-two-cuts" title="Survive two cuts" level="7" minutes="15" goal="After the roadworks cut, no second cut strands a district"/>
-<step n="1" text="Roadworks already tore the fibre between KecamatanSelatan and KecamatanBarat, so the ring is a line: Barat, Utara, Timur, Selatan. Ping LayananKota from WargaBarat: it still works, the long way through KecamatanUtara."/>
+<step n="1" text="Roadworks already tore the fibre between DistrictSouth and DistrictWest, so the ring is a line: West, North, East, South. Ping CityServices from WestResident: it still works, the long way through DistrictNorth."/>
 <step n="2" text="Trace one more break anywhere on the line: whoever sits past it is stranded. Each check below tries such a second cut."/>
-<step n="3" text="Run a new fibre between KecamatanBarat GigabitEthernet0/1 and KecamatanSelatan GigabitEthernet0/2. Both ports already carry addresses in 10.70.3.0, so the routers pick the path up on their own." check="c1"/>
-<step n="4" text="With the ring closed again, a break on either side of KecamatanSelatan must leave everyone reachable." check="c2"/>
-<step n="5" text="And a break between KecamatanUtara and KecamatanTimur must not strand the south either." check="c3"/>
-<check id="c1" kind="outage" from="pc1" to="server0" url="barat:GigabitEthernet0/2" expect="ok" label="WargaBarat still reaches LayananKota with the Barat to Utara fibre cut"/>
-<check id="c2" kind="outage" from="pc0" to="server0" url="timur:GigabitEthernet0/2" expect="ok" label="WargaSelatan still reaches LayananKota with the Timur to Selatan fibre cut"/>
-<check id="c3" kind="outage" from="pc0" to="server0" url="utara:GigabitEthernet0/1" expect="ok" label="WargaSelatan still reaches LayananKota with the Utara to Timur fibre cut"/>
+<step n="3" text="Run a new fibre between DistrictWest GigabitEthernet0/1 and DistrictSouth GigabitEthernet0/2. Both ports already carry addresses in 10.70.3.0, so the routers pick the path up on their own." check="c1"/>
+<step n="4" text="With the ring closed again, a break on either side of DistrictSouth must leave everyone reachable." check="c2"/>
+<step n="5" text="And a break between DistrictNorth and DistrictEast must not strand the south either." check="c3"/>
+<check id="c1" kind="outage" from="pc1" to="server0" url="barat:GigabitEthernet0/2" expect="ok" label="WestResident still reaches CityServices with the West to North fibre cut"/>
+<check id="c2" kind="outage" from="pc0" to="server0" url="timur:GigabitEthernet0/2" expect="ok" label="SouthResident still reaches CityServices with the East to South fibre cut"/>
+<check id="c3" kind="outage" from="pc0" to="server0" url="utara:GigabitEthernet0/1" expect="ok" label="SouthResident still reaches CityServices with the North to East fibre cut"/>
 </takumi>

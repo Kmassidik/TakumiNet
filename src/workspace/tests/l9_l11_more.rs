@@ -51,8 +51,8 @@ fn the_cache_lesson_serves_the_page_locally_once_its_port_is_up() {
     assert_eq!(before, vec![false, false, true], "the overseas original works even with the cache dark");
     ws.link_kind("pop0", "cache0", "eCross").unwrap();
     assert_eq!(passes(&mut ws), vec![true, true, true]);
-    let page = crate::webapp::fetch(&mut ws, "laptop0", "http://cache.konten.lab/").unwrap();
-    assert_eq!(page.title, "CacheKonten");
+    let page = crate::webapp::fetch(&mut ws, "laptop0", "http://cache.content.lab/").unwrap();
+    assert_eq!(page.title, "ContentCache");
     let near = ws.path_latency_ms("laptop0", "cache0").unwrap();
     let far = ws.path_latency_ms("laptop0", "origin0").unwrap();
     assert!(near < 5.0 && far > 100.0, "{near} ms vs {far} ms: the cache must be far closer");
@@ -89,10 +89,10 @@ fn the_name_service_lesson_passes_once_the_root_knows_the_name() {
     let mut ws = Workspace::from_tnet(text).unwrap();
     let before = passes(&mut ws);
     assert_eq!(before, vec![false, false, true], "the page is reachable, only its name is missing");
-    ws.set_dns_record("root0", "www.dunia.lab", "10.30.13.10").unwrap();
+    ws.set_dns_record("root0", "www.world.lab", "10.30.13.10").unwrap();
     assert_eq!(passes(&mut ws), vec![true, true, true]);
-    let page = crate::webapp::fetch(&mut ws, "laptopb", "http://www.dunia.lab/").unwrap();
-    assert_eq!(page.title, "SitusDunia");
+    let page = crate::webapp::fetch(&mut ws, "laptopb", "http://www.world.lab/").unwrap();
+    assert_eq!(page.title, "WorldSite");
 }
 
 #[test]

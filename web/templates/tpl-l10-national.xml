@@ -1,7 +1,7 @@
 <takumi version="1">
-<device id="laptop0" kind="laptop" model="Laptop" x="40" y="160" name="WargaSulawesi" ip="10.10.1.20" prefix="24"/>
+<device id="laptop0" kind="laptop" model="Laptop" x="40" y="160" name="SulawesiResident" ip="10.10.1.20" prefix="24"/>
 <net id="laptop0" gw="10.10.1.1" dns="203.0.114.10"/>
-<device id="pcjawa" kind="pc" model="PC" x="40" y="380" name="WargaJawa" ip="10.10.2.20" prefix="24"/>
+<device id="pcjawa" kind="pc" model="PC" x="40" y="380" name="JawaResident" ip="10.10.2.20" prefix="24"/>
 <net id="pcjawa" gw="10.10.2.1" dns="203.0.114.10"/>
 <device id="popsul" kind="backbone-pop" model="Backbone POP" x="220" y="160" name="PopSulawesi" ip="" prefix="24"/>
 <port id="popsul" name="GigabitEthernet0/0" up="1" ip="10.20.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
@@ -11,17 +11,17 @@
 <port id="popjawa" name="GigabitEthernet0/1" up="1" ip="10.10.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="popjawa" name="GigabitEthernet0/0" up="1" ip="10.20.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
 <port id="popjawa" name="GigabitEthernet0/2" up="1" ip="10.20.4.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
-<device id="gw0" kind="national-gateway" model="National Gateway" x="440" y="270" name="GerbangJakarta" ip="" prefix="24"/>
+<device id="gw0" kind="national-gateway" model="National Gateway" x="440" y="270" name="JakartaGateway" ip="" prefix="24"/>
 <port id="gw0" name="GigabitEthernet0/0" up="1" ip="10.20.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
 <port id="gw0" name="GigabitEthernet0/1" up="1" ip="10.20.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
 <port id="gw0" name="GigabitEthernet0/2" up="1" ip="10.20.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <device id="ix0" kind="internet-exchange" model="Internet Exchange" x="660" y="270" name="IXJakarta" ip="" prefix="24"/>
 <port id="ix0" name="GigabitEthernet0/0" up="1" ip="10.20.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="ix0" name="GigabitEthernet0/1" up="1" ip="203.0.114.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="cable0" kind="submarine-cable" model="Submarine Cable" x="840" y="160" name="KabelLaut" ip="" prefix="24"/>
+<device id="cable0" kind="submarine-cable" model="Submarine Cable" x="840" y="160" name="SeaCable" ip="" prefix="24"/>
 <port id="cable0" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="30000"/>
 <port id="cable0" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="30000"/>
-<device id="server0" kind="server" model="Server" x="980" y="60" name="ServerLuarNegeri" ip="203.0.114.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="980" y="60" name="OverseasServer" ip="203.0.114.10" prefix="24"/>
 <net id="server0" gw="203.0.114.1" dns=""/>
 <link a="laptop0" a_port="Fa0" b="popsul" b_port="Gig0/1" kind="eCross"/>
 <link a="pcjawa" a_port="Fa0" b="popjawa" b_port="Gig0/1" kind="eCross"/>
@@ -63,9 +63,9 @@
 <routenet dev="ix0" net="10.20.3.0" prefix="24" area="0"/>
 <routenet dev="ix0" net="10.20.4.0" prefix="24" area="0"/>
 <routenet dev="ix0" net="203.0.114.0" prefix="24" area="0"/>
-<dns id="server0" name="www.dunia.lab" ip="203.0.114.10"/>
+<dns id="server0" name="www.world.lab" ip="203.0.114.10"/>
 <page id="server0" body="A page from across the sea"/>
-<demo kind="http" from="laptop0" to="" url="http://www.dunia.lab/"/>
+<demo kind="http" from="laptop0" to="" url="http://www.world.lab/"/>
 <demo kind="ping" from="pcjawa" to="server0" url=""/>
 <demo kind="ping" from="laptop0" to="pcjawa" url=""/>
 <demo kind="ping" from="server0" to="laptop0" url=""/>
