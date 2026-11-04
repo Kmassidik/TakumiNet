@@ -27,6 +27,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/voucher") => Some(handle_voucher(ctx, query)),
         ("POST", "/api/devices/lbpool") => Some(handle_lb_pool(ctx, query)),
         ("POST", "/api/lb/list") => Some(handle_lb_list(ctx, query)),
+        ("POST", "/api/devices/bgp") => Some(handle_devices_bgp(ctx, query)),
+        ("POST", "/api/bgp/sessions") => Some(handle_bgp_sessions(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -373,4 +375,51 @@ fn handle_lb_list(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         .collect::<Vec<_>>()
         .join(",");
     (json, format!("{{\"pool\":[{rows}]}}").into_bytes())
+}
+
+fn handle_devices_bgp(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let remove = matches!(query_value(query, "remove").as_deref(), Some("1") | Some("true"));
+    let neighbor = query_value(query, "neighbor").unwrap_or_default();
+    let net = query_value(query, "net").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| {
+        if !neighbor.is_empty() {
+            if remove {
+                return if ws.bgp_remove_neighbor(&id, &neighbor) { Ok(()) } else { Err(format!("{neighbor} is not a neighbor")) };
+            }
+            let Some(peer_as) = query_value(query, "peeras").and_then(|v| v.parse().ok()) else {
+                return Err("peeras must be a whole number".to_string());
+            };
+            return ws.bgp_neighbor(&id, &neighbor, peer_as);
+        }
+        if !net.is_empty() {
+            let Some(network) = crate::model::parse_ipv4(&net) else {
+                return Err(format!("invalid network: {net}"));
+            };
+            let Some(prefix) = query_value(query, "prefix").and_then(|v| v.parse().ok()) else {
+                return Err("prefix must be a whole number".to_string());
+            };
+            if remove {
+                return if ws.bgp_remove_network(&id, network, prefix) { Ok(()) } else { Err(format!("{net}/{prefix} is not announced")) };
+            }
+            return ws.bgp_network(&id, network, prefix);
+        }
+        let Some(local_as) = query_value(query, "as").and_then(|v| v.parse().ok()) else {
+            return Err("as must be a whole number".to_string());
+        };
+        ws.bgp_config(&id, local_as)
+    });
+    (json, out.into_bytes())
+}
+
+fn handle_bgp_sessions(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let rows = ws.bgp_sessions(&id).iter()
+        .map(|(peer, peer_as, state)| format!("{{\"peer\":{},\"as\":{peer_as},\"state\":{}}}", json_str(peer), json_str(state)))
+        .collect::<Vec<_>>()
+        .join(",");
+    (json, format!("{{\"sessions\":[{rows}]}}").into_bytes())
 }

@@ -27,6 +27,21 @@ impl Workspace {
                     area.parse::<u32>().unwrap_or(0),
                 );
             }
+            ["bgprouter", dev, local_as] => {
+                if let Ok(local_as) = local_as.parse::<u32>() {
+                    let _ = self.bgp_config(dev, local_as);
+                }
+            }
+            ["bgpneighbor", dev, peer, peer_as] => {
+                if let Ok(peer_as) = peer_as.parse::<u32>() {
+                    let _ = self.bgp_neighbor(dev, peer, peer_as);
+                }
+            }
+            ["bgpnet", dev, net, prefix] => {
+                if let (Some(net), Ok(prefix)) = (crate::model::parse_ipv4(net), prefix.parse::<u8>()) {
+                    let _ = self.bgp_network(dev, net, prefix);
+                }
+            }
             ["lbpool", dev, member] => {
                 let _ = self.lb_add_member(dev, member);
             }

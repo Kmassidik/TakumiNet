@@ -62,6 +62,9 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("phone", &["phone", "cm", "ext"]),
     ("routing", &["dev", "proto", "process_id"]),
     ("routenet", &["dev", "net", "prefix", "area"]),
+    ("bgprouter", &["dev", "as"]),
+    ("bgpneighbor", &["dev", "peer", "as"]),
+    ("bgpnet", &["dev", "net", "prefix"]),
     ("natrole", &["dev", "iface", "dir"]),
     ("natrule", &["dev", "num", "iface"]),
 ];

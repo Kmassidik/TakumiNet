@@ -479,6 +479,8 @@ fn record_key(element: &Element) -> Vec<(String, String)> {
         "mail" => &["server", "from", "to", "subject"],
         "tftp" | "ftp" => &["server", "name"],
         "routenet" => &["dev", "net", "prefix", "area"],
+        "bgpneighbor" => &["dev", "peer"],
+        "bgpnet" => &["dev", "net", "prefix"],
         _ => &names[..names.len().min(1)],
     };
     key_names.iter().map(|name| (name.to_string(), element.get(name).unwrap_or("").to_string())).collect()

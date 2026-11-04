@@ -20,6 +20,7 @@ impl Workspace {
             "latency" => self.check_latency(check),
             "log" => self.check_log(check),
             "nat" => self.check_forward(check),
+            "bgp" => self.check_bgp(check),
             _ => return None,
         })
     }
@@ -267,6 +268,20 @@ impl Workspace {
             Some((_, severity, text)) => (true, format!("{severity}: {text}"), hint),
             None => (false, format!("no log line contains '{}'", check.expect.trim()), hint),
         }
+    }
+
+    /// `to` is the peer address; `expect` is `established` or `idle`.
+    fn check_bgp(&self, check: &Check) -> Verdict {
+        let hint = "Set the autonomous system on both routers and point each neighbor entry at the other side's address.".to_string();
+        if !matches!(check.expect.as_str(), "established" | "idle") {
+            return (false, format!("invalid session expectation '{}'", check.expect), "Use established or idle.".into());
+        }
+        let state = self.bgp_session_state(&check.from, &check.to);
+        let actual = match state {
+            "none" => format!("no neighbor entry for {}", check.to),
+            other => format!("session with {} is {other}", check.to),
+        };
+        (state == check.expect, actual, hint)
     }
 
     fn check_count(&self, check: &Check) -> Verdict {
