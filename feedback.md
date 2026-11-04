@@ -687,3 +687,15 @@ Owner: "dont forget SEO en/id, lets go build proper landing pages".
 - **Indonesian copy:** written in everyday Indonesian ("kamu"); worth a read by a native speaker before launch.
 - **Not done:** the workspace itself is English only; there is no automatic language choice from the browser setting (visitors switch with the EN/ID button).
 - **Tests:** `tests/ts/landing.test.ts` (42 checks across the four pages), `e2e_public_pages_are_ready_for_search_in_english_and_indonesian`, `tests/bend/seo_pairs.bend`.
+
+## F28. Device windows are all the same: audit report (2026-11-04)
+
+Owner: "when I click router, printer and so on I see the same modal as the PC; audit and research what is missing; report by 18:30".
+
+Full report: **`AUDIT-device-windows.md`** (research only, nothing changed).
+
+Headline findings:
+- Every device kind opens the same four tabs and the same seven PC apps.
+- 28 of the engine's 85 API routes have no screen (Wi-Fi, phones, VPN, PPPoE, IoT, cellular, mail, PTP, PRP), and eight Desktop app icons exist as art but are not wired.
+- Command line: only routers and switches have one; 39 of 73 common router commands are accepted.
+- Recommended first step: a device kind registry (one table for tabs, apps, command line, services and engine features per kind), then router and switch windows, then printer and hub, then wireless and phone.
