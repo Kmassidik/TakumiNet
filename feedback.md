@@ -247,7 +247,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 
 ---
 
-## F9. The About page URL ends in `.html`, and it needs an author and open-source section (done, except the licence)
+## F9. The About page URL ends in `.html`, and it needs an author and open-source section (done)
 
 ### Research
 - Route: `src/http/static_routes.rs:8` serves exactly `/about.html`. There is no `/about` route.
@@ -262,7 +262,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 - [ ] F9.2 Update the Help link, the service-worker precache, README and the tests.
 - [ ] F9.3 Add an author section: name, the GitHub repo link and the X link.
 - [ ] F9.4 Add an open-source section: anyone can open a pull request or rebuild it as their own, with the repo link.
-- [ ] F9.5 Owner picks a licence, and a LICENSE file is added. The page names it. (Left open on purpose: choosing a licence is the owner's decision. The page claims none and says it is open source.)
+- [x] F9.5 Licence: MIT (owner, 2026-11-04). `LICENSE` added, the About page names it.
 - [ ] F9.6 Move the page onto the shared styles (F1).
 - [ ] F9.7 Rename the Help item to just "About".
 
@@ -335,7 +335,7 @@ Decisions taken while building (the owner can change any of them):
 - F3.1: old `.tnet` files still open (read only). Saves, export and templates are `.xml`.
 - F3.6: nothing was deleted. The `topologies/*.ptw` and the `e2e.tnet`, `routing_*` leftovers are still there.
 - F6.3: the collapsed state is remembered per browser.
-- F9.5: no licence was chosen, so no LICENSE file was added and the page claims none.
+- F9.5: the owner chose MIT afterwards; `LICENSE` added and named on the About page.
 - F10.4: the welcome gallery stays for the first visit only. It is no longer in a menu.
 - F11: option (a). Each `tpl-*` template carries a `<demo>` record, and Play on a quiet template sends it first.
 

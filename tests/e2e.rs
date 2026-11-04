@@ -151,6 +151,7 @@ fn e2e_about_page_is_public_and_linked_from_help() {
         "https://x.com/KMassidik",
         "pull request",
         "Open source",
+        "MIT licence",
     ] {
         assert!(body.contains(required), "About page is missing {required:?}");
     }
