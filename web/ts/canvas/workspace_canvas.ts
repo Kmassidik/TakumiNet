@@ -5,6 +5,7 @@ import { packetAt } from "./packets";
 import { drawRacks } from "./rack_draw";
 import { hitNote, noteBox, type NoteInput } from "./notes";
 import { boundsOf, fitCamera, type Rect } from "./print_view";
+import { bufferSize, recenterShift, type Size } from "./view_size";
 import { hitRackBox, layoutRacks, type RackLayout } from "./rack_layout";
 import { buildScene, type Scene, type SceneDevice, type SceneLink, type WorkspaceInput } from "./scene";
 
@@ -58,6 +59,8 @@ export class WorkspaceCanvas {
     this.ctx = ctx;
     this.resize();
     window.addEventListener("resize", () => this.resize());
+    // Bars, the sidebar and its splitter change this box without any window resize.
+    if (typeof ResizeObserver !== "undefined") new ResizeObserver(() => this.resize()).observe(canvas);
     canvas.addEventListener("pointerdown", (ev) => this.onPointerDown(ev));
     canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
     canvas.addEventListener("pointerup", () => { this.panFrom = null; });
@@ -172,10 +175,20 @@ export class WorkspaceCanvas {
     this.requestDraw();
   }
 
+  private lastBox: Size | null = null;
+
   resize(): void {
-    const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = Math.round(this.cssWidth * dpr);
-    this.canvas.height = Math.round(this.cssHeight * dpr);
+    const box: Size = { w: this.cssWidth, h: this.cssHeight };
+    const buffer = bufferSize(box, window.devicePixelRatio || 1);
+    if (!buffer) return; // hidden or collapsed: keep the last picture, draw nothing new
+    if (this.lastBox && (this.lastBox.w !== box.w || this.lastBox.h !== box.h)) {
+      const { dx, dy } = recenterShift(this.camera.zoom, this.lastBox, box);
+      this.camera.x += dx;
+      this.camera.y += dy;
+    }
+    this.lastBox = box;
+    this.canvas.width = buffer.w;
+    this.canvas.height = buffer.h;
     this.requestDraw();
   }
 

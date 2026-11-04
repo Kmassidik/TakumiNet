@@ -357,6 +357,17 @@
     };
   }
 
+  // web/ts/canvas/view_size.ts
+  function bufferSize(css, ratio) {
+    if (!(css.w > 0) || !(css.h > 0))
+      return null;
+    const r = ratio > 0 ? ratio : 1;
+    return { w: Math.round(css.w * r), h: Math.round(css.h * r) };
+  }
+  function recenterShift(zoom, from, to) {
+    return { dx: (from.w - to.w) / (2 * zoom), dy: (from.h - to.h) / (2 * zoom) };
+  }
+
   // web/ts/canvas/rack_layout.ts
   var KIND_ORDER = [
     "router",
@@ -488,6 +499,8 @@
       this.ctx = ctx;
       this.resize();
       window.addEventListener("resize", () => this.resize());
+      if (typeof ResizeObserver !== "undefined")
+        new ResizeObserver(() => this.resize()).observe(canvas);
       canvas.addEventListener("pointerdown", (ev) => this.onPointerDown(ev));
       canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
       canvas.addEventListener("pointerup", () => {
@@ -595,10 +608,20 @@
       this.packets.push({ run, start: performance.now() });
       this.requestDraw();
     }
+    lastBox = null;
     resize() {
-      const dpr = window.devicePixelRatio || 1;
-      this.canvas.width = Math.round(this.cssWidth * dpr);
-      this.canvas.height = Math.round(this.cssHeight * dpr);
+      const box = { w: this.cssWidth, h: this.cssHeight };
+      const buffer = bufferSize(box, window.devicePixelRatio || 1);
+      if (!buffer)
+        return;
+      if (this.lastBox && (this.lastBox.w !== box.w || this.lastBox.h !== box.h)) {
+        const { dx, dy } = recenterShift(this.camera.zoom, this.lastBox, box);
+        this.camera.x += dx;
+        this.camera.y += dy;
+      }
+      this.lastBox = box;
+      this.canvas.width = buffer.w;
+      this.canvas.height = buffer.h;
       this.requestDraw();
     }
     requestDraw() {
