@@ -61,13 +61,13 @@ test("palette: tiles come only from the chosen category", () => {
   expect(palette).not.toMatch(/for \(const p of data\.palette\)/);
 });
 
-test("menus: File holds only file actions, and Examples has its two sections", () => {
+test("menus: File holds only file actions, and Examples has exactly two entries that open the window", () => {
   const file = index.slice(index.indexOf("<button>File</button>"), index.indexOf("<button>Edit</button>"));
   expect(file).not.toMatch(/gallery/i);
   expect(file).not.toMatch(/Lesson/);
   const examples = index.slice(index.indexOf("<button>Examples</button>"), index.indexOf("<button>Tools</button>"));
-  expect(examples).toMatch(/Lessons<\/div>/);
-  expect(examples).toMatch(/Example templates<\/div>/);
+  const entries = [...examples.matchAll(/<button data-action="([a-z-]+)">([^<]+)<\/button>/g)].map((m) => [m[1], m[2]]);
+  expect(entries).toEqual([["show-lessons", "Lessons"], ["show-templates", "Example templates"]]);
 });
 
 test("routes: no page is served at an address that ends in .html, except as a redirect", () => {

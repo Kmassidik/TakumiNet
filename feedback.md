@@ -284,7 +284,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 
 ### Todo
 - [ ] F10.1 Add a top-level **Examples** menu between View and Tools (or after Help; owner picks).
-- [ ] F10.2 Its entries: **Lessons** and **Example templates**. Each lists its items directly in the menu (title and goal), so one click opens one.
+- [x] F10.2 (changed by the owner, 2026-11-04) Examples has exactly two entries, Lessons and Example templates. Each opens the same window with just that list; picking a card opens it.
 - [ ] F10.3 Remove "Lesson gallery…" from File. File keeps New, Open, Save, Import, Export, Print.
 - [ ] F10.4 First visit: keep a welcome that points to Examples. Owner decides whether the big gallery dialog stays at all.
 - [ ] F10.5 The Lesson tab empty state (F8.6) links to Examples.

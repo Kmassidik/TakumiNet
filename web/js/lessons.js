@@ -73,7 +73,9 @@ function gallerySection(heading, cards) {
   return section;
 }
 
-function renderGallery(payload = {}) {
+/* `kind` is 'all' (first visit), 'lessons' or 'templates': the Examples menu opens
+   this same window with just the one list. */
+function renderGallery(payload = {}, kind = 'all') {
   const gallery = document.getElementById('lesson-gallery');
   const cards = document.getElementById('gallery-cards');
   const note = document.getElementById('gallery-note');
@@ -82,64 +84,27 @@ function renderGallery(payload = {}) {
   setGalleryMascot(payload.error ? 'error' : 'wave');
   const lessons = [...(payload.lessons || [])].sort((a, b) => a.id.localeCompare(b.id));
   const templates = [...(payload.templates || [])];
-  cards.replaceChildren(
-    gallerySection('Templates: ready to run', templates.map((item) => galleryCard('template', item))),
-    gallerySection('Lessons: you do each step', lessons.map((item) => galleryCard('lesson', item))),
-  );
+  const sections = [];
+  if (kind !== 'lessons') sections.push(gallerySection('Example templates: ready to run', templates.map((item) => galleryCard('template', item))));
+  if (kind !== 'templates') sections.push(gallerySection('Lessons: you do each step', lessons.map((item) => galleryCard('lesson', item))));
+  cards.replaceChildren(...sections);
   if (note) {
-    note.textContent = payload.error || (lessons.length || templates.length
-      ? 'Open a template to run it, or start a lesson and do each step yourself.'
+    const shown = kind === 'lessons' ? lessons : kind === 'templates' ? templates : [...lessons, ...templates];
+    const hint = kind === 'lessons' ? 'Start a lesson and do each step yourself.'
+      : kind === 'templates' ? 'Open a template, then press Play to watch it run.'
+      : 'Open a template to run it, or start a lesson and do each step yourself.';
+    note.textContent = payload.error || (shown.length ? hint
       : 'Nothing here yet. You can start a blank workspace or open an .xml file now.');
   }
 }
 
-async function showGallery() {
+async function showGallery(kind = 'all') {
   const gallery = document.getElementById('lesson-gallery');
   const note = document.getElementById('gallery-note');
   if (gallery) gallery.hidden = false;
   setGalleryMascot('think');
   if (note) note.textContent = 'Loading lessons…';
-  renderGallery(await getJson('/api/templates'));
-}
-
-/* ---------------- Examples menu: lessons and ready-to-use templates ---------------- */
-function exampleItem(item, meta) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.dataset.template = item.id;
-  button.title = item.goal || item.title;
-  const name = document.createElement('span');
-  name.textContent = item.title;
-  button.appendChild(name);
-  if (meta) {
-    const small = document.createElement('small');
-    small.textContent = meta;
-    button.appendChild(small);
-  }
-  button.onclick = () => openTemplate(item.id);
-  return button;
-}
-
-function renderExamplesMenu(payload = {}) {
-  const lessons = document.getElementById('examples-lessons');
-  const templates = document.getElementById('examples-templates');
-  const note = document.getElementById('examples-note');
-  if (!lessons || !templates) return;
-  const lessonItems = [...(payload.lessons || [])].sort((a, b) => a.id.localeCompare(b.id));
-  const templateItems = [...(payload.templates || [])];
-  lessons.replaceChildren(...lessonItems.map((item) => exampleItem(item, `Level ${item.level} · ${item.minutes} min`)));
-  templates.replaceChildren(...templateItems.map((item) => exampleItem(item, '')));
-  if (note) {
-    note.hidden = !payload.error && (lessonItems.length > 0 || templateItems.length > 0);
-    note.textContent = payload.error || (note.hidden ? '' : 'No examples are available yet.');
-  }
-}
-
-async function loadExamples() {
-  const payload = await getJson('/api/templates');
-  renderExamplesMenu(payload && (payload.lessons || payload.templates)
-    ? payload
-    : { error: 'Examples could not be loaded. Reload the page to try again.' });
+  renderGallery(await getJson('/api/templates'), kind);
 }
 
 function resetLessonState() {
@@ -312,3 +277,5 @@ async function resetLesson() {
 
 ACTIONS['check-work'] = checkWork;
 ACTIONS['reset-lesson'] = resetLesson;
+ACTIONS['show-lessons'] = () => showGallery('lessons');
+ACTIONS['show-templates'] = () => showGallery('templates');

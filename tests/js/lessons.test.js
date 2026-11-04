@@ -28,7 +28,7 @@ class Element {
 function harness(responses = {}) {
   const ids = ['lesson-gallery', 'gallery-cards', 'gallery-note', 'lesson-panel',
     'gallery-mascot', 'lesson-mascot', 'lesson-title', 'lesson-goal', 'lesson-meta', 'lesson-steps',
-    'lesson-checks', 'lesson-hint', 'check-work', 'examples-lessons', 'examples-templates', 'examples-note', 'lesson-empty'];
+    'lesson-checks', 'lesson-hint', 'check-work', 'lesson-empty'];
   const elements = Object.fromEntries(ids.map((id) => [id, new Element()]));
   const sounds = [];
   const statuses = [];
@@ -150,42 +150,56 @@ test('steps unlock one at a time: a check-backed step is done when its check pas
 
 const catalog = {
   lessons: [
-    { id: 't2', title: 'Second', level: 2, minutes: 10, goal: 'B' },
-    { id: 't1', title: 'First', level: 1, minutes: 5, goal: 'A' },
+    { id: 't2', title: 'Second', level: 2, minutes: 10, goal: 'B', stepCount: 2, checkCount: 1 },
+    { id: 't1', title: 'First', level: 1, minutes: 5, goal: 'A', stepCount: 3, checkCount: 2 },
   ],
   templates: [{ id: 'tpl-star', title: 'Star network', goal: 'Many PCs on one switch' }],
 };
 
-test('the Examples menu lists lessons first by id, then templates, one click each', () => {
-  const { context, elements } = harness();
-  context.renderExamplesMenu(catalog);
-  const lessons = elements['examples-lessons'].children;
-  const templates = elements['examples-templates'].children;
-  assert.deepEqual(lessons.map((b) => b.dataset.template), ['t1', 't2']);
-  assert.deepEqual(templates.map((b) => b.dataset.template), ['tpl-star']);
-  assert.equal(lessons[0].title, 'A');
-  assert.equal(typeof templates[0].onclick, 'function');
-  assert.equal(elements['examples-note'].hidden, true);
+function cardIds(elements) {
+  const out = [];
+  const walk = (el) => { if (el.dataset && el.dataset.template) out.push(el.dataset.template); el.children.forEach(walk); };
+  walk(elements['gallery-cards']);
+  return out;
+}
+
+test('Examples > Lessons opens the window with only the lessons', async () => {
+  const { context, elements } = harness({ '/api/templates': catalog });
+  await context.ACTIONS['show-lessons']();
+  assert.equal(elements['lesson-gallery'].hidden, false);
+  assert.deepEqual(cardIds(elements), ['t1', 't2']);
+  assert.match(elements['gallery-note'].textContent, /Start a lesson/);
 });
 
-test('clicking an Examples item opens that template or lesson', async () => {
+test('Examples > Example templates opens the window with only the templates', async () => {
+  const { context, elements } = harness({ '/api/templates': catalog });
+  await context.ACTIONS['show-templates']();
+  assert.deepEqual(cardIds(elements), ['tpl-star']);
+  assert.match(elements['gallery-note'].textContent, /press Play/);
+});
+
+test('the first-visit window still shows both lists', async () => {
+  const { context, elements } = harness({ '/api/templates': catalog });
+  await context.showGallery();
+  assert.deepEqual(cardIds(elements), ['tpl-star', 't1', 't2']);
+});
+
+test('clicking a card opens that template or lesson', async () => {
   const opened = [];
-  const { context, elements } = harness();
+  const { context, elements } = harness({ '/api/templates': catalog });
   context.api = async (path, body) => { opened.push([path, body.id]); return { lesson: null }; };
-  context.renderExamplesMenu(catalog);
-  elements['examples-templates'].children[0].onclick();
+  await context.ACTIONS['show-templates']();
+  elements['gallery-cards'].children[0].children[1].children[0].onclick();
   await new Promise((resolve) => setImmediate(resolve));
   assert.deepEqual(opened, [['/api/templates/open', 'tpl-star']]);
 });
 
-test('an empty or failed catalog shows a message and leaves the menu usable', async () => {
+test('an empty or failed catalog shows a message in the window', async () => {
   const { context, elements } = harness({ '/api/templates': {} });
-  context.renderExamplesMenu({ lessons: [], templates: [] });
-  assert.equal(elements['examples-note'].hidden, false);
-  assert.match(elements['examples-note'].textContent, /No examples/);
-  await context.loadExamples();
-  assert.match(elements['examples-note'].textContent, /could not be loaded/);
-  assert.equal(elements['examples-lessons'].children.length, 0);
+  await context.ACTIONS['show-lessons']();
+  assert.match(elements['gallery-note'].textContent, /Nothing here yet/);
+  context.renderGallery({ error: 'Lessons unavailable' }, 'lessons');
+  assert.equal(elements['gallery-note'].textContent, 'Lessons unavailable');
 });
 
 test('the Lesson tab shows its empty message until a lesson is open', () => {
