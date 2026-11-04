@@ -196,6 +196,78 @@ This turns the catalogue in section 3 into the project's backlog and its test su
 3. **Exam alignment**: should lessons map to published exam topics (CCNA-style and network-support-style), or stay vendor-neutral? (Mapping helps teachers find labs; the topic names are public but the exam names are trademarks, so we would say "routing and switching exam topics", not the exam name.)
 4. **Model names**: settle the vendor model numbers in the palette first.
 5. **Beginner mode versus strict mode** (wrong passwords, slow reboots) from the first report.
+6. **The seven tiers (section 10):** is this the right ladder, and where do you want to stop for the first public version? My suggestion: Tiers 1 to 3, then 4, before any new device types.
+7. **Learning layer:** do you want subnetting drills and flashcards inside Takumi, or do you want Takumi to stay a lab only?
+8. **Labs as files:** should teachers be able to write labs as readable files and share them by link?
+
+## 9. More references, found on GitHub
+
+Searched GitHub for network simulators, emulators and lab collections (2026-11-04) and read the README of the closest ones. Star counts are from the search. I studied what each one offers, not its code; their licences differ and none of it is copied.
+
+### 9.1 The field, in one table
+
+| Project | Stars | What it is | What people come to it for |
+|---|---|---|---|
+| [mininet/mininet](https://github.com/mininet/mininet) | 5,876 | Emulator for software-defined networks | OpenFlow and controller labs, research |
+| [srl-labs/containerlab](https://github.com/srl-labs/containerlab) | 2,926 | Networking labs from a topology file, using containers | Real network software in labs, labs as code |
+| [GNS3/gns3-gui](https://github.com/GNS3/gns3-gui) | 2,662 | Graphical emulator that runs real device images | Exam study and realistic labs |
+| [shadow/shadow](https://github.com/shadow/shadow) | 1,743 | Discrete-event simulator that runs real application code | Research on distributed systems |
+| [coreemu/core](https://github.com/coreemu/core) | 843 | Common Open Research Emulator | Quick virtual networks, wireless and mobility |
+| [intrig-unicamp/mininet-wifi](https://github.com/intrig-unicamp/mininet-wifi) | 543 | Mininet plus wireless | Wi-Fi and mobility labs |
+| [ipspace/netlab](https://github.com/ipspace/netlab) | 753 | "Making virtual networking labs suck less": lab description in a short file | Repeatable labs for many device types |
+| [errorinn/netsim](https://github.com/errorinn/netsim) | 181 | Web simulator for teaching security to high school students | Attack and defence games |
+| [gnu-gnu/network-fundamentals-lab](https://github.com/gnu-gnu/network-fundamentals-lab) | 132 | Troubleshooting labs where the lab starts broken | Break, observe, fix, with a walkthrough |
+| [Crequency/TopoSmith](https://github.com/Crequency/TopoSmith) | 6 | Browser-only topology simulator and analyser | Design a network and check it before building it |
+| [furrkanyasar/stp-simulator](https://github.com/furrkanyasar/stp-simulator) | 2 | Interactive spanning-tree simulator | Watch root election, failover, BPDUs |
+| [cornerstonian/ccna-command-center](https://github.com/cornerstonian/ccna-command-center) | 1 | Browser IOS-style lab, subnetting drills, flashcards | Exam practice with scoring |
+| [cochimbo/networksim](https://github.com/cochimbo/networksim) | 2 | Network topology with visual editor and chaos injection | Delay, loss, bandwidth limits, partitions |
+| [lukaudev/broadcast-studio](https://github.com/lukaudev/broadcast-studio) | 1 | Open source "alternative to GNS3 and Packet Tracer", web | Drag and drop plus a terminal with ping and traceroute |
+| [Prajwal-k-tech/EvoRoute](https://github.com/Prajwal-k-tech/EvoRoute) and other OSPF visualisers | 0-1 | Routing protocol visualisers | See OSPF and RIP converge when a link fails |
+
+**What the table says about us.** Our closest peers (browser-only, topology editor, packet view) are small projects. The large projects are all **emulators of real software** and need installs, images or containers. A **free browser-only simulator with a realistic feel, bilingual, with guided labs** has almost no direct competition. The things the small projects do well are listed next; they are the new tiers.
+
+### 9.2 What the small, closest projects do that we do not
+
+From TopoSmith, stp-simulator, ccna-command-center, network-fundamentals-lab, networksim and netsim:
+
+1. **Cables and ports are physical.** Cable type and length take part in the maths; ports are drawn on the device panel by medium (copper, fiber, PON, antenna); cabling by dragging from port to port; link aggregation is different from "two cables making a loop".
+2. **Wireless has space.** Access points and cell towers have a coverage area (circle or sector, radius in metres); right-click any point to measure which signals reach it, on which channel, with what quality; a chart of channel overlap (why 1, 6 and 11 do not overlap).
+3. **Diagnostics that explain.** "Can A reach B? If not, at which hop and with what reason code." A hop-by-hop path with link speed, VLAN and addresses. The end-to-end bottleneck and effective throughput. The DNS resolution path (which server, cache hit, forwarded, no such name). Detection of a layer 2 loop with the loop's path named and why the broadcast does not die.
+4. **Protocol internals made visible.** Spanning tree: protocol version, timers, root election, the frame inspector, failover when a cable is cut, a categorised log. Routing: visualise convergence when a link fails (RIP and OSPF).
+5. **Link impairments (chaos).** Delay, packet loss, bandwidth limits, corruption, duplication, partition between two parts of the network, set per link.
+6. **A learning layer around the labs.** Timed subnetting drills with streaks and step-by-step solutions; flashcards by topic; scenarios with an objective checklist and difficulty levels; a guided tour; labs that **start broken** with a walkthrough that says "intent, what was seen, what it means"; preset scenarios with **deliberate pitfalls** (for example a missing trunk tag on a guest uplink).
+7. **Racks and cabinets** with real unit sizes, front and back views. (We have a rack view in Physical; it has no unit sizes or back view.)
+8. **Labs as files.** The lab described in a short readable file (netlab, containerlab), so a teacher can write, share and version it. (We have `.xml`; it is not meant to be written by hand.)
+9. **Two languages in the tool itself** (stp-simulator has Turkish and English for the interface and the log messages).
+10. **Attack and defence games** for security (netsim for high school students).
+
+### 9.3 Ideas from the larger projects that are further away
+
+- **Software-defined networking** (OpenFlow, controllers) from mininet: a whole teaching area, mostly university.
+- **Bring your own network**: export a real network from an inventory tool and load it (nrx, digital twins), to test a change before doing it.
+- **Run real application code** (Shadow): research, out of scope.
+- **Real device images** (GNS3, containerlab): the opposite of what we are; our strength is no install.
+- **Mobility** (mininet-wifi, CORE): devices that move and hand over between access points.
+
+## 10. The tiers, extended
+
+The first report had three tiers. With the GitHub references there are seven. Each tier is a step in realism or reach; none depends on skipping an earlier one except where noted.
+
+| Tier | Name | What is in it | Evidence |
+|---|---|---|---|
+| **1** | **The real home and office story** | Home router web admin and its behaviour, DHCP and NAT done the usual way on a router, SSH and secrets, `show` commands that explain, a minimal internet | exam lists, home router guides, Indonesian reports |
+| **2** | **Every hidden engine feature gets a way in** | Screens for wireless, phones, VPN, mail, IoT, PPPoE, cellular; a window that matches each device kind | first audit |
+| **3** | **Explain failures** | "Where does it break and why" with a reason code; hop-by-hop path with speed and VLAN; DNS resolution path; loop detection with the loop named; fault injection | largest support-exam domain; TopoSmith; network-fundamentals-lab |
+| **4** | **A learning layer** | Subnetting drills; objective checklists with difficulty; guided tour; labs that start broken with a walkthrough; preset scenarios with deliberate pitfalls; flashcards | ccna-command-center; network-fundamentals-lab; stp-simulator |
+| **5** | **Physical realism** | Cable type and length matter; ports drawn by medium; wireless coverage and a signal probe; channel overlap; link lights; rack units with back view; link impairments (delay, loss, bandwidth, corruption, duplication, partition) | TopoSmith; networksim; mininet-wifi |
+| **6** | **Other platforms people ask for** | MikroTik-style router, Linux and Windows-style hosts, layer 3 switching, first-hop redundancy, route redistribution, SNMP, QoS | Indonesian curriculum; exam topics |
+| **7** | **Reach and reuse** | Labs written as readable files; share a lab by link; teacher mode (assign, check, see results); two-language interface for the tool itself; security attack and defence labs; scripting interface; import a real network; SDN and controller labs | netlab, containerlab, netsim, stp-simulator, mininet |
+
+**Where the five tiers I proposed earlier fit:** my earlier Tier 1 is now Tiers 1 to 3; earlier Tier 2 is Tier 6; earlier Tier 3 is the end of Tier 6 and Tier 7.
+
+**Why this order.** Tiers 1 to 3 give the base: a person sets up a believable network and can see why it fails. Tier 4 makes it teachable. Tier 5 makes it believable down to the cable. Tier 6 widens the devices. Tier 7 is reach. The **troubleshooting** and **learning** tiers (3 and 4) are what the small browser projects invest in most, and they are cheap next to new device types, because most of the engine already exists.
+
+**One finding that should change the plan.** The project that is closest to us in method (TopoSmith) deliberately does **not** simulate packets one by one and has no command line. We do both. That is the strongest point of difference: **a real command line and real packets, in a browser, with no install.** The tiers above protect and build on that, so each new feature should keep both working.
 
 ## 8. Method and limits
 
@@ -224,3 +296,4 @@ Limits you should know:
 - [Small office and home office: home router settings (MCSI library)](https://mcsi-library.readthedocs.io/articles/2023/09/soho-home-router-settings/soho-home-router-settings.html)
 - [Router setup guide (ipfyi)](https://ipfyi.com/guides/home-network/router-setup-guide/)
 - [How to configure DHCP settings on your router (busuk.org)](https://busuk.org/guide/dhcp-settings/)
+- GitHub projects in section 9.1 (links in the table), found with `gh search repos` on 2026-11-04

@@ -707,3 +707,9 @@ Owner: "audit the references people want to build their idea from, not only the 
 Report: **`AUDIT-references.md`** (research only, nothing changed). It lists 48 real-world ideas people bring (from published exam topic lists, a support-exam objective list, Indonesian vocational lab reports, simulator comparisons, common lab lists and home router guides), checks each against the engine and tests, defines what each component is judged by, ranks the gaps, and proposes a way to decide "replicated enough" (script the reference, run it, break it on purpose, keep it as a template with checks).
 
 Headline: 15 of 48 work and are proven by tests; 10 exist in the engine with no screen; 7 are partial; 15 are missing. The biggest absent references are the home router story, a router configured the usual way (DHCP pool, static NAT, SSH), layer 3 switching, fault injection for troubleshooting, Linux and Windows-style hosts, and MikroTik-style labs for the Indonesian audience.
+
+## F30. More references from GitHub, and seven tiers (2026-11-04)
+
+Owner: "find on GitHub so we have more tiers than this".
+
+Added to `AUDIT-references.md`: section 9 (14 projects, from the 5,876-star SDN emulator to small browser simulators; READMEs read for the closest ones) and section 10 (seven tiers). New ideas the small browser projects have that we do not: physical realism (cable type and length, ports by medium, wireless coverage and a signal probe, link impairments), explanations of failures (where it breaks and why, DNS path, loop detection), a learning layer (subnetting drills, objective checklists, labs that start broken with a walkthrough), labs as readable files, and a bilingual tool. Our difference from the closest peer: it has no command line and no per-packet simulation; we have both.
