@@ -41,3 +41,16 @@ test("dialogs: no hand-written close handler on a dialog", () => {
 test("dialogs: preferences sits inside an overlay, not loose on the page", () => {
   expect(index).toMatch(/<div id="prefs-dialog" class="overlay"/);
 });
+
+test("minimize: the status bar holds no component toggles", () => {
+  const status = index.slice(index.indexOf('<div class="statusbar">'));
+  expect(status.split("</div>")[0]).not.toMatch(/<button/);
+});
+
+test("minimize: every collapsible bar has exactly one handle on the component", () => {
+  const ids = [...index.matchAll(/data-collapsible="([a-z-]+)"/g)].map((m) => m[1]);
+  expect(ids).toEqual(["toolbar-primary", "toolbar-secondary", "palette"]);
+  for (const id of [...ids, "sidebar"]) {
+    expect(index.split(`data-collapse-for="${id}"`).length - 1).toBe(1);
+  }
+});

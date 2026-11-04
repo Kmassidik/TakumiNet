@@ -1,3 +1,5 @@
+import { readCollapsed, writeCollapsed } from "./collapse";
+
 export const SIDEBAR_DEFAULT_WIDTH = 330;
 const MIN_WIDTH = 240;
 const MAX_SHARE = 0.6;
@@ -30,18 +32,29 @@ export function wireSidebar(): void {
   if (!main) return;
   const sidebar = document.getElementById("sidebar");
   const splitter = document.getElementById("sidebar-splitter");
-  const toggle = document.getElementById("sidebar-toggle");
-  if (!sidebar || !splitter || !toggle) return;
+  const hide = document.querySelector<HTMLElement>('[data-collapse-for="sidebar"]');
+  const restore = document.getElementById("sidebar-restore");
+  if (!sidebar || !splitter || !hide || !restore) return;
 
   const setWidth = (px: number) => main.style.setProperty("--sidebar-width", `${px}px`);
   setWidth(clampSidebarWidth(readSavedWidth(), window.innerWidth));
 
+  const store = (() => {
+    try {
+      return localStorage;
+    } catch {
+      return null;
+    }
+  })();
   const setHidden = (hidden: boolean) => {
     main.classList.toggle("sidebar-hidden", hidden);
-    toggle.textContent = hidden ? "Show sidebar" : "Hide sidebar";
-    toggle.setAttribute("aria-expanded", String(!hidden));
+    restore.hidden = !hidden;
+    writeCollapsed(store, "sidebar", hidden);
   };
-  toggle.addEventListener("click", () => setHidden(!main.classList.contains("sidebar-hidden")));
+  main.classList.toggle("sidebar-hidden", readCollapsed(store).sidebar === true);
+  restore.hidden = !main.classList.contains("sidebar-hidden");
+  hide.addEventListener("click", () => setHidden(true));
+  restore.addEventListener("click", () => setHidden(false));
   document.addEventListener("keydown", (ev) => {
     if (ev.key !== "\\" || ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
     setHidden(!main.classList.contains("sidebar-hidden"));

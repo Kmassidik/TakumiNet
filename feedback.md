@@ -170,7 +170,7 @@ Ten dialogs are written by hand in `web/index.html`, each with its own title bar
 
 ---
 
-## F6. The minimize button belongs on the component, not in the bottom bar (open)
+## F6. The minimize button belongs on the component, not in the bottom bar (done)
 
 Correction to an earlier version: the palette can already be hidden. The sidebar and the palette each have a control, but not on the component.
 

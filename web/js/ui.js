@@ -657,6 +657,62 @@
     }
   }
 
+  // web/ts/ui/collapse.ts
+  var COLLAPSE_KEY = "pt-web:collapsed";
+  function readCollapsed(store) {
+    try {
+      const raw = store?.getItem(COLLAPSE_KEY);
+      if (!raw)
+        return {};
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+        return {};
+      const result = {};
+      for (const [id, value] of Object.entries(parsed))
+        if (value === true)
+          result[id] = true;
+      return result;
+    } catch {
+      return {};
+    }
+  }
+  function writeCollapsed(store, id, collapsed) {
+    try {
+      const all = readCollapsed(store);
+      if (collapsed)
+        all[id] = true;
+      else
+        delete all[id];
+      store?.setItem(COLLAPSE_KEY, JSON.stringify(all));
+    } catch {}
+  }
+  function handleText(label, collapsed) {
+    return collapsed ? { text: `+ ${label}`, title: `Show ${label.toLowerCase()}` } : { text: "−", title: `Minimize ${label.toLowerCase()}` };
+  }
+  function applyCollapsed(bar, handle, collapsed) {
+    const label = handle.dataset.label ?? "bar";
+    const { text, title } = handleText(label, collapsed);
+    bar.classList.toggle("collapsed", collapsed);
+    handle.textContent = text;
+    handle.title = title;
+    handle.setAttribute("aria-label", title);
+    handle.setAttribute("aria-expanded", String(!collapsed));
+  }
+  function wireCollapsibles(root, store) {
+    for (const bar of root.querySelectorAll("[data-collapsible]")) {
+      const id = bar.dataset.collapsible ?? "";
+      const handle = root.querySelector(`[data-collapse-for="${id}"]`);
+      if (!id || !handle)
+        continue;
+      applyCollapsed(bar, handle, readCollapsed(store)[id] === true);
+      handle.addEventListener("click", () => {
+        const next = !bar.classList.contains("collapsed");
+        applyCollapsed(bar, handle, next);
+        writeCollapsed(store, id, next);
+      });
+    }
+  }
+
   // web/ts/ui/sidebar.ts
   var SIDEBAR_DEFAULT_WIDTH = 330;
   var MIN_WIDTH = 240;
@@ -685,17 +741,28 @@
       return;
     const sidebar = document.getElementById("sidebar");
     const splitter = document.getElementById("sidebar-splitter");
-    const toggle = document.getElementById("sidebar-toggle");
-    if (!sidebar || !splitter || !toggle)
+    const hide = document.querySelector('[data-collapse-for="sidebar"]');
+    const restore = document.getElementById("sidebar-restore");
+    if (!sidebar || !splitter || !hide || !restore)
       return;
     const setWidth = (px) => main.style.setProperty("--sidebar-width", `${px}px`);
     setWidth(clampSidebarWidth(readSavedWidth(), window.innerWidth));
+    const store = (() => {
+      try {
+        return localStorage;
+      } catch {
+        return null;
+      }
+    })();
     const setHidden = (hidden) => {
       main.classList.toggle("sidebar-hidden", hidden);
-      toggle.textContent = hidden ? "Show sidebar" : "Hide sidebar";
-      toggle.setAttribute("aria-expanded", String(!hidden));
+      restore.hidden = !hidden;
+      writeCollapsed(store, "sidebar", hidden);
     };
-    toggle.addEventListener("click", () => setHidden(!main.classList.contains("sidebar-hidden")));
+    main.classList.toggle("sidebar-hidden", readCollapsed(store).sidebar === true);
+    restore.hidden = !main.classList.contains("sidebar-hidden");
+    hide.addEventListener("click", () => setHidden(true));
+    restore.addEventListener("click", () => setHidden(false));
     document.addEventListener("keydown", (ev) => {
       if (ev.key !== "\\" || ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement)
         return;
@@ -993,9 +1060,20 @@
     watchOverlays(stack);
   }
   wireDialogClose(document, stack);
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", wireSidebar);
-  } else {
+  var store = (() => {
+    try {
+      return localStorage;
+    } catch {
+      return null;
+    }
+  })();
+  var wireBars = () => {
     wireSidebar();
+    wireCollapsibles(document, store);
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", wireBars);
+  } else {
+    wireBars();
   }
 })();

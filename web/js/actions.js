@@ -176,10 +176,10 @@ const ACTIONS = {
     status('Zoom reset');
   },
   'toggle-palette'() {
-    const bar = document.getElementById('palette-bar');
-    bar.hidden = !bar.hidden;
-    status(bar.hidden ? 'Palette hidden' : 'Palette shown');
+    const handle = document.querySelector('[data-collapse-for="palette"]');
+    if (handle) handle.click();
   },
+
   'toggle-grid'() {
     showGrid = !showGrid;
     prefs.grid = showGrid;

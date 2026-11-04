@@ -2,6 +2,7 @@ import { bringToFront, makeWindowMovable, watchOverlays } from "./ui/dialogs";
 import type { DocLike, ElementLike } from "./ui/dom";
 import { WorkspaceCanvas } from "./canvas/workspace_canvas";
 import { wireSidebar } from "./ui/sidebar";
+import { wireCollapsibles } from "./ui/collapse";
 import { engineLoadingMessage, type EngineProgress } from "./ui/engine_loading";
 import { shouldAutoShowGallery } from "./ui/gallery_once";
 import { renderDeviceList, type ListedDevice } from "./ui/device_list";
@@ -35,10 +36,21 @@ if (document.readyState === "loading") {
   watchOverlays(stack);
 }
 wireDialogClose(document as unknown as EventSource, stack);
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", wireSidebar);
-} else {
+const store = (() => {
+  try {
+    return localStorage;
+  } catch {
+    return null;
+  }
+})();
+const wireBars = () => {
   wireSidebar();
+  wireCollapsibles(document, store);
+};
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", wireBars);
+} else {
+  wireBars();
 }
 
 declare global {
