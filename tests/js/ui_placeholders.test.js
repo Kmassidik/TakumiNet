@@ -99,6 +99,7 @@ test('every Desktop app dispatches to its real handler', () => {
     term: 'openTerm',
     cmd: 'openCmd',
     browser: 'openBrowser',
+    wifi: 'openWifiApp',
     editor: 'openEditor',
     firewall: 'openFirewall',
   };
@@ -114,11 +115,11 @@ test('every Desktop app dispatches to its real handler', () => {
   vm.runInContext(source('web/js/device_tabs.js'), context);
 
   const apps = vm.runInContext('DESKTOP_APPS', context);
-  const device = { id: 'pc0', name: 'PC0' };
+  const device = { id: 'pc0', name: 'PC0', kind: 'pc' };
   const pane = new Element();
   context.tabDesktop(pane, device);
   const buttons = pane.children[0].children;
-  assert.equal(apps.length, 7);
+  assert.equal(apps.length, 8);
   assert.equal(buttons.length, apps.length);
   assert.equal(apps.some(([, label]) => label === 'Dialup'), false);
 
@@ -132,12 +133,12 @@ test('every Desktop app dispatches to its real handler', () => {
   assert.equal(calls.length, apps.length);
 });
 
-test('device window exposes only the four supported tabs', () => {
+test('device window exposes only the supported tabs', () => {
   const html = source('web/index.html');
   const markup = html.match(/<div class="devwin-tabs" id="dw-tabs">([\s\S]*?)<\/div>/);
   assert.ok(markup);
   const tabs = Array.from(markup[1].matchAll(/data-tab="([^"]+)"/g), (match) => match[1]);
-  assert.deepEqual(tabs, ['physical', 'config', 'desktop', 'cli', 'services']);
+  assert.deepEqual(tabs, ['physical', 'config', 'wireless', 'desktop', 'cli', 'services']);
 });
 
 test('every static image has a real source before its window opens', () => {
@@ -179,7 +180,8 @@ test('the device window shows only the tabs a kind earns', () => {
   const windowSource = fs.readFileSync(path.join(root, 'web/js/device_window.js'), 'utf8');
   const terminal = fs.readFileSync(path.join(root, 'web/js/terminal.js'), 'utf8');
   const context = vm.createContext({ CONSOLE_KINDS: new Set(['router', 'switch', 'switch-l3', 'rtrw-gateway']) });
-  const kinds = windowSource.match(/const DESKTOP_KINDS[\s\S]*?\n/)[0];
+  const kinds = windowSource.match(/const DESKTOP_KINDS[\s\S]*?\n/)[0]
+    + windowSource.match(/const WIRELESS_KINDS[\s\S]*?\n/)[0];
   const fn = windowSource.match(/function deviceTabs[\s\S]*?\n}/)[0];
   vm.runInContext(kinds + fn + '\nglobalThis.deviceTabsTest = deviceTabs;', context);
   const tabs = context.deviceTabsTest;
@@ -188,5 +190,8 @@ test('the device window shows only the tabs a kind earns', () => {
   assert.deepStrictEqual([...tabs('router')], ['physical', 'config', 'cli']);
   assert.deepStrictEqual([...tabs('server')], ['physical', 'config', 'desktop', 'services']);
   assert.deepStrictEqual([...tabs('printer')], ['physical', 'config']);
+  for (const kind of ['homerouter', 'ap', 'wlc', 'hotspot-ap']) {
+    assert.deepStrictEqual([...tabs(kind)], ['physical', 'config', 'wireless'], kind);
+  }
   assert.ok(terminal.includes("'switch-l3', 'rtrw-gateway'"), 'the console kinds carry the new gear');
 });

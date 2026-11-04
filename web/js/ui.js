@@ -2391,18 +2391,26 @@
   // web/ts/ui/hotspot_window.ts
   function renderHotspotWindow(doc, body, device, post) {
     body.replaceChildren();
-    const done = asyncSection(doc, body, "Wireless networks", "Could not load the wireless networks.", async (box) => {
-      const res = await post(`/api/wifi/wlans?id=${encodeURIComponent(device.id)}`);
-      const err = errorOf(res);
-      if (err)
-        throw new Error(err);
-      const rows = records(res, "wlans");
-      box.replaceChildren();
-      if (rows.length === 0)
-        box.appendChild(note(doc, "empty", "No wireless network is set up yet."));
-      else
-        box.appendChild(rowList(doc, rows.map((r) => `${asText(r["ssid"])} (${asText(r["security"])})`)));
-    });
+    const manage = globalThis.renderWirelessManager;
+    let done = Promise.resolve();
+    if (typeof manage === "function") {
+      const box = el(doc, "div", "dw-wireless");
+      body.appendChild(box);
+      manage(box, device);
+    } else {
+      done = asyncSection(doc, body, "Wireless networks", "Could not load the wireless networks.", async (box) => {
+        const res = await post(`/api/wifi/wlans?id=${encodeURIComponent(device.id)}`);
+        const err = errorOf(res);
+        if (err)
+          throw new Error(err);
+        const rows = records(res, "wlans");
+        box.replaceChildren();
+        if (rows.length === 0)
+          box.appendChild(note(doc, "empty", "No wireless network is set up yet."));
+        else
+          box.appendChild(rowList(doc, rows.map((r) => `${asText(r["ssid"])} (${asText(r["security"])})`)));
+      });
+    }
     body.appendChild(note(doc, "plain", "Visitors sign in with a voucher on the gateway."));
     return done;
   }

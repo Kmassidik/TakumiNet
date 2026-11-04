@@ -51,6 +51,8 @@ const PRECACHE_URLS = Object.freeze([
   '/js/toolbars.js',
   '/js/topology.js',
   '/js/web_apps.js',
+  '/js/wireless_tab.js',
+  '/js/wifi_app.js',
   '/js/boot.js',
 
   '/art3d/apps/browser.webp',
