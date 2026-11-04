@@ -1,0 +1,14 @@
+<takuminet version="1">
+  <device id="homerouter0" kind="homerouter" model="Home Router" x="340" y="120" name="HomeRouter0" ip="192.168.1.1" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="100" y="330" name="Laptop0" ip="192.168.1.20" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="340" y="330" name="PC0" ip="192.168.1.21" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="580" y="330" name="Server0" ip="192.168.1.2" prefix="24"/>
+  <link a="homerouter0" a_port="Fa0" b="laptop0" b_port="Fa0" kind="eCopper"/>
+  <link a="homerouter0" a_port="Fa1" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="homerouter0" a_port="Fa2" b="server0" b_port="Fa0" kind="eCopper"/>
+  <net id="server0" gw="192.168.1.1" dns="192.168.1.2"/>
+  <pool id="server0" network="192.168.1.0" prefix="24" gw="192.168.1.1" dns="192.168.1.2"/>
+  <net id="laptop0" gw="192.168.1.1" dns="192.168.1.2"/>
+  <net id="pc0" gw="192.168.1.1" dns="192.168.1.2"/>
+  <page id="server0" body="Server0 home page"/>
+</takuminet>

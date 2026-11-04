@@ -252,6 +252,11 @@ fn l16_every_native_template_loads_without_unresolved_devices_or_ports() {
         let (status, body) = server.post(&format!("/api/templates/open?id={id}"));
         assert_eq!(status, 200, "{}: {body}", path.display());
         assert!(!body.contains("\"error\""), "{} has unresolved devices/ports: {body}", path.display());
-        assert!(body.contains("\"lesson\":{"), "{} has no lesson metadata: {body}", path.display());
+        let text = std::fs::read_to_string(&path).unwrap();
+        if text.contains("<lesson") {
+            assert!(body.contains("\"lesson\":{"), "{} has no lesson metadata: {body}", path.display());
+        } else {
+            assert!(body.contains("\"lesson\":null"), "{} is a template but carries a lesson: {body}", path.display());
+        }
     }
 }

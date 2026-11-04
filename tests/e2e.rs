@@ -846,9 +846,12 @@ fn e2e_lesson_templates_blank_new_and_checks() {
 
     let (status, _, body) = s.get("/api/templates");
     assert_eq!(status, 200, "{body}");
+    assert!(body.contains("\"lessons\":["), "{body}");
+    assert!(body.contains("\"templates\":["), "{body}");
     assert!(body.contains("\"id\":\"p1-e2e\""), "{body}");
     assert!(body.contains("\"title\":\"API lesson\""), "{body}");
     assert!(body.contains("\"stepCount\":2"), "{body}");
+    assert!(body.contains("\"id\":\"tpl-connect\""), "{body}");
 
     let (status, _, body) = s.post("/api/new");
     assert_eq!(status, 200, "{body}");

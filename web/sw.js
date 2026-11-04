@@ -156,6 +156,11 @@ const PRECACHE_URLS = Object.freeze([
   '/templates/t3.tnet',
   '/templates/t4.tnet',
   '/templates/t5.tnet',
+  '/templates/tpl-connect.tnet',
+  '/templates/tpl-home.tnet',
+  '/templates/tpl-routed.tnet',
+  '/templates/tpl-star.tnet',
+  '/templates/tpl-web.tnet',
 ]);
 
 self.addEventListener('install', (event) => {

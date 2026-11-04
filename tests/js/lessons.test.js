@@ -58,12 +58,13 @@ function harness(responses = {}) {
 
 test('gallery renders native lesson cards with original icons and start actions', () => {
   const { context, elements } = harness();
-  context.renderGallery({ templates: [
+  context.renderGallery({ lessons: [
     { id: 'b', title: 'Second', level: 2, minutes: 10, goal: 'B', stepCount: 2, checkCount: 1 },
     { id: 'a', title: 'First', level: 1, minutes: 5, goal: 'A', stepCount: 3, checkCount: 2 },
   ] });
   assert.equal(elements['lesson-gallery'].hidden, false);
-  const cards = elements['gallery-cards'].children;
+  const collect = (el, out = []) => { if (el.dataset && el.dataset.template) out.push(el); el.children.forEach((c) => collect(c, out)); return out; };
+  const cards = collect(elements['gallery-cards']);
   assert.equal(cards.length, 2);
   assert.equal(cards[0].dataset.template, 'a', 'gallery sorted by lesson id');
   const images = [];
@@ -81,7 +82,7 @@ test('gallery loading and errors use distinct mascot states', async () => {
   assert.match(elements['gallery-mascot'].src || '', /think\.webp$/);
   assert.equal(elements['gallery-note'].textContent, 'Loading lessons…');
 
-  resolveTemplates({ templates: [] });
+  resolveTemplates({ lessons: [], templates: [] });
   await showing;
   assert.match(elements['gallery-mascot'].src, /wave\.webp$/);
 

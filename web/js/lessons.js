@@ -26,6 +26,53 @@ function hideGallery() {
   if (gallery) gallery.hidden = true;
 }
 
+function galleryCard(kind, item) {
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = kind === 'template' ? 'lesson-card template-card' : 'lesson-card';
+  card.dataset.template = item.id;
+  card.onclick = () => openTemplate(item.id);
+
+  const icon = document.createElement('img');
+  icon.src = '/art3d/misc/network.webp';
+  icon.alt = '';
+  icon.width = 72;
+  icon.height = 72;
+  card.appendChild(icon);
+
+  const title = document.createElement('strong');
+  title.textContent = item.title;
+  card.appendChild(title);
+  const goal = document.createElement('span');
+  goal.className = 'lesson-card-goal';
+  goal.textContent = item.goal;
+  card.appendChild(goal);
+  const meta = document.createElement('span');
+  meta.className = 'lesson-card-meta';
+  meta.textContent = kind === 'template'
+    ? 'Ready to run · nothing to set'
+    : `Level ${item.level} · ${item.minutes} min · ${item.stepCount} steps`;
+  card.appendChild(meta);
+  const action = document.createElement('span');
+  action.className = 'lesson-card-action';
+  action.textContent = kind === 'template' ? 'Open network →' : 'Start lesson →';
+  card.appendChild(action);
+  return card;
+}
+
+function gallerySection(heading, cards) {
+  const section = document.createElement('section');
+  section.className = 'gallery-section';
+  const title = document.createElement('h3');
+  title.textContent = heading;
+  section.appendChild(title);
+  const grid = document.createElement('div');
+  grid.className = 'gallery-grid';
+  for (const card of cards) grid.appendChild(card);
+  section.appendChild(grid);
+  return section;
+}
+
 function renderGallery(payload = {}) {
   const gallery = document.getElementById('lesson-gallery');
   const cards = document.getElementById('gallery-cards');
@@ -33,43 +80,16 @@ function renderGallery(payload = {}) {
   if (!gallery || !cards) return;
   gallery.hidden = false;
   setGalleryMascot(payload.error ? 'error' : 'wave');
-  const templates = [...(payload.templates || [])].sort((a, b) => a.id.localeCompare(b.id));
-  const elements = templates.map((template) => {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'lesson-card';
-    card.dataset.template = template.id;
-    card.onclick = () => openTemplate(template.id);
-
-    const icon = document.createElement('img');
-    icon.src = '/art3d/misc/network.webp';
-    icon.alt = '';
-    icon.width = 72;
-    icon.height = 72;
-    card.appendChild(icon);
-
-    const title = document.createElement('strong');
-    title.textContent = template.title;
-    card.appendChild(title);
-    const goal = document.createElement('span');
-    goal.className = 'lesson-card-goal';
-    goal.textContent = template.goal;
-    card.appendChild(goal);
-    const meta = document.createElement('span');
-    meta.className = 'lesson-card-meta';
-    meta.textContent = `Level ${template.level} · ${template.minutes} min · ${template.stepCount} steps`;
-    card.appendChild(meta);
-    const action = document.createElement('span');
-    action.className = 'lesson-card-action';
-    action.textContent = 'Start lesson →';
-    card.appendChild(action);
-    return card;
-  });
-  cards.replaceChildren(...elements);
+  const lessons = [...(payload.lessons || [])].sort((a, b) => a.id.localeCompare(b.id));
+  const templates = [...(payload.templates || [])];
+  cards.replaceChildren(
+    gallerySection('Templates: ready to run', templates.map((item) => galleryCard('template', item))),
+    gallerySection('Lessons: you do each step', lessons.map((item) => galleryCard('lesson', item))),
+  );
   if (note) {
-    note.textContent = payload.error || (templates.length
-      ? 'Choose a guided lab. Your progress stays in this workspace.'
-      : 'Guided labs will appear here. You can start a blank workspace or open a native .tnet file now.');
+    note.textContent = payload.error || (lessons.length || templates.length
+      ? 'Open a template to run it, or start a lesson and do each step yourself.'
+      : 'Nothing here yet. You can start a blank workspace or open a native .tnet file now.');
   }
 }
 

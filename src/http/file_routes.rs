@@ -186,6 +186,20 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("t3", include_str!("../../web/templates/t3.tnet")),
     ("t4", include_str!("../../web/templates/t4.tnet")),
     ("t5", include_str!("../../web/templates/t5.tnet")),
+    ("tpl-connect", include_str!("../../web/templates/tpl-connect.tnet")),
+    ("tpl-star", include_str!("../../web/templates/tpl-star.tnet")),
+    ("tpl-home", include_str!("../../web/templates/tpl-home.tnet")),
+    ("tpl-routed", include_str!("../../web/templates/tpl-routed.tnet")),
+    ("tpl-web", include_str!("../../web/templates/tpl-web.tnet")),
+];
+
+/// Ready-to-run networks: no steps, nothing to set. Titles and goals for the gallery.
+const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
+    ("tpl-connect", "Two computers", "PC0 and PC1 on one cable, ready to ping"),
+    ("tpl-star", "Three computers on a switch", "PC0, PC1 and PC2 ready to talk through Switch0"),
+    ("tpl-home", "Home network", "Laptop0 and PC0 reach Server0's web page"),
+    ("tpl-routed", "Two networks and a router", "PC0 reaches PC3 through Router0"),
+    ("tpl-web", "Website by name", "PC0 looks up www.takumi.lab and opens the site"),
 ];
 
 fn template_text(ctx: &Ctx, id: &str) -> Result<String, ()> {
@@ -232,6 +246,7 @@ fn handle_templates(ctx: &Ctx) -> (&'static str, Vec<u8>) {
         .map(|(id, text)| ((*id).to_string(), (*text).to_string())).collect::<Vec<_>>();
 
     let mut lessons = Vec::new();
+    let mut templates = Vec::new();
     for (name, text) in sources {
         let workspace = match Workspace::from_tnet(&text) {
             Ok(workspace) => workspace,
@@ -240,17 +255,23 @@ fn handle_templates(ctx: &Ctx) -> (&'static str, Vec<u8>) {
                 return (json, json_error(&format!("{name}: {summary}")).into_bytes());
             }
         };
-        if let Some(lesson) = workspace.lesson {
-            lessons.push(lesson);
+        match workspace.lesson {
+            Some(lesson) => lessons.push(lesson),
+            None => templates.push(name),
         }
     }
     lessons.sort_by(|a, b| a.id.cmp(&b.id));
-    let templates = lessons.iter().map(|lesson| format!(
+    let lesson_cards = lessons.iter().map(|lesson| format!(
         "{{\"id\":{},\"title\":{},\"level\":{},\"minutes\":{},\"goal\":{},\"stepCount\":{},\"checkCount\":{}}}",
         json_str(&lesson.id), json_str(&lesson.title), lesson.level, lesson.minutes,
         json_str(&lesson.goal), lesson.steps.len(), lesson.checks.len(),
     )).collect::<Vec<_>>().join(",");
-    (json, format!("{{\"templates\":[{templates}]}}").into_bytes())
+    let template_cards = TEMPLATE_CARDS.iter()
+        .filter(|(id, _, _)| templates.iter().any(|name| name.ends_with(&format!("{id}.tnet")) || name == id))
+        .map(|(id, title, goal)| format!(
+            "{{\"id\":{},\"title\":{},\"goal\":{}}}", json_str(id), json_str(title), json_str(goal),
+        )).collect::<Vec<_>>().join(",");
+    (json, format!("{{\"lessons\":[{lesson_cards}],\"templates\":[{template_cards}]}}").into_bytes())
 }
 
 fn valid_template_id(id: &str) -> bool {

@@ -1,0 +1,21 @@
+<takuminet version="1">
+  <device id="router0" kind="router" model="2911" x="340" y="100" name="Router0" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="150" y="220" name="Switch0" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="2960" x="530" y="220" name="Switch1" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="60" y="370" name="PC0" ip="192.168.1.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC-PT" x="220" y="370" name="PC1" ip="192.168.1.11" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC-PT" x="460" y="370" name="PC2" ip="192.168.2.10" prefix="24"/>
+  <device id="pc3" kind="pc" model="PC-PT" x="620" y="370" name="PC3" ip="192.168.2.11" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="router0" a_port="Gig0/1" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/2" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/3" b="pc3" b_port="Fa0" kind="eCopper"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="192.168.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/1" up="1" ip="192.168.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc0" gw="192.168.1.1" dns=""/>
+  <net id="pc1" gw="192.168.1.1" dns=""/>
+  <net id="pc2" gw="192.168.2.1" dns=""/>
+  <net id="pc3" gw="192.168.2.1" dns=""/>
+</takuminet>
