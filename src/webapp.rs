@@ -24,6 +24,12 @@ fn host_of(url: &str) -> &str {
     rest.split(['/', ':']).next().unwrap_or("")
 }
 
+fn port_of(url: &str) -> Option<u16> {
+    let rest = url.trim().strip_prefix("http://").or_else(|| url.trim().strip_prefix("https://")).unwrap_or(url.trim());
+    let authority = rest.split('/').next().unwrap_or("");
+    authority.split_once(':').and_then(|(_, port)| port.parse().ok())
+}
+
 /// Fetch `url` from `client`.
 pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String> {
     let host = host_of(url);
@@ -44,6 +50,9 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
     };
 
     if server.2 == "homerouter" {
+        if let Some(port) = port_of(url).filter(|p| *p != 80) {
+            return fetch_forwarded(ws, client, &server.0, host, port);
+        }
         ws.send_http(client, &server.0, host)
             .map_err(|_| format!("Request timed out while reaching {host}"))?;
         return Ok(Page {
@@ -73,6 +82,27 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
                 name = server.1,
             )
         }),
+    })
+}
+
+fn fetch_forwarded(ws: &mut Workspace, client: &str, router: &str, host: &str, port: u16) -> Result<Page, String> {
+    let Some((target, inside)) = ws.port_forward_for(router, port) else {
+        return Err(format!("Connection refused by {host}:{port} (no forward for this port)"));
+    };
+    let Some(device) = ws.devices.iter().find(|d| d.id == target).map(|d| (d.name.clone(), d.kind.clone(), d.ip)) else {
+        return Err(format!("Connection refused by {host}:{port} (the forward points at a device that is gone)"));
+    };
+    if device.1 != "server" || inside != 80 {
+        return Err(format!("Connection refused by {}: nothing listens on port {inside}", device.0));
+    }
+    let custom = ws.http_pages.get(&target).cloned();
+    ws.send_http(client, &target, host).map_err(|_| format!("Request timed out while reaching {host}:{port}"))?;
+    Ok(Page {
+        status: 200,
+        reason: "OK",
+        host: host.to_string(),
+        title: device.0.clone(),
+        text: custom.unwrap_or_else(|| format!("Welcome to {}.", device.0)),
     })
 }
 

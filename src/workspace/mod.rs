@@ -13,6 +13,7 @@ mod checks;
 mod checks_more;
 mod json;
 mod router_admin;
+mod port_forward;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -33,6 +34,7 @@ mod startup;
 mod switching;
 mod traffic;
 mod tnet_lesson;
+mod tnet_records;
 mod route_types;
 mod records_load_routing;
 mod records_save_routing;
@@ -62,6 +64,7 @@ impl Workspace {
                 sim_time: 0.0,
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
+                port_forwards: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
@@ -265,6 +268,7 @@ impl Workspace {
                 sim_time: 0.0,
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
+                port_forwards: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),

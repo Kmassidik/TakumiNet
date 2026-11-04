@@ -412,6 +412,13 @@ impl Workspace {
         for (wlc, ssid) in guests {
             out.push_str(&format!("guestnet\t{}\t{}\n", wlc, escape_field(ssid)));
         }
+        let mut forwards: Vec<_> = self.port_forwards.iter().collect();
+        forwards.sort_by_key(|(id, _)| id.as_str());
+        for (router, list) in forwards {
+            for (outside, target, inside) in list {
+                out.push_str(&format!("portfwd\t{}\t{}\t{}\t{}\n", router, outside, target, inside));
+            }
+        }
         let mut vpn: Vec<_> = self.vpn.iter().collect();
         vpn.sort_by_key(|(id, _)| id.as_str());
         for (client, (server, user)) in vpn {

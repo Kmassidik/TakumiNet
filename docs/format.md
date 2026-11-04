@@ -109,6 +109,7 @@ device ports.
 | --- | --- | --- |
 | `cell` | `client tower` | Cellular client/tower association |
 | `wlan` | `wlc ssid psk security` | Wireless LAN definition on a controller |
+| `portfwd` | `router outside target inside` | Home-router port forward to an inside device |
 | `guestnet` | `wlc ssid` | Marks a wireless LAN as a guest network |
 | `capwap` | `ap wlc` | Access-point/controller association |
 | `wifi` | `client ssid wlc` | Wireless client WLAN selection |

@@ -321,6 +321,8 @@ pub struct Workspace {
     pub tables: Tables,
     /// DHCP pools configured on servers, by device id.
     pub dhcp_pools: HashMap<String, Pool>,
+    /// Port forwards on a home router: (outside port, inside device, inside port).
+    pub port_forwards: HashMap<String, Vec<(u16, String, u16)>>,
     /// Further pools on the same server, one per extra network.
     pub dhcp_more: HashMap<String, Vec<Pool>>,
     /// Addresses already handed out, by server id.

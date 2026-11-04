@@ -439,6 +439,11 @@ impl Workspace {
             ["wlan", wlc, ssid, psk] => {
                 let _ = self.wlan_add(wlc, &unescape_field(ssid), &unescape_field(psk));
             }
+            ["portfwd", router, outside, target, inside] => {
+                if let (Ok(o), Ok(i)) = (outside.parse(), inside.parse()) {
+                    let _ = self.add_port_forward(router, o, target, i);
+                }
+            }
             ["guestnet", wlc, ssid] => {
                 let _ = self.wlan_set_guest(wlc, &unescape_field(ssid), true);
             }

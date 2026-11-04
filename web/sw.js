@@ -166,6 +166,7 @@ const PRECACHE_URLS = Object.freeze([
   '/templates/les-l1-02-wifi-name.xml',
   '/templates/les-l1-03-guest-wifi.xml',
   '/templates/les-l1-04-reserve-address.xml',
+  '/templates/les-l1-05-port-forward.xml',
   '/templates/les-l1-07-find-the-fault.xml',
   '/templates/tpl-l3-office-vlans.xml',
   '/templates/les-l3-01-three-vlans.xml',

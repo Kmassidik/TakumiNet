@@ -14,6 +14,7 @@ impl Workspace {
             "login" => self.check_login(check),
             "outage" => self.check_outage(check),
             "wifi" => self.check_wifi(check),
+            "nat" => self.check_forward(check),
             _ => return None,
         })
     }
@@ -126,6 +127,19 @@ impl Workspace {
             return (false, format!("{ssid} uses {security}, not {}", check.expect), "Change the security setting of the network.".into());
         }
         (true, format!("joined to {ssid} ({security})"), hint)
+    }
+
+    /// `to` is the outside port; `expect` is `device:port` it must lead to.
+    fn check_forward(&self, check: &Check) -> Verdict {
+        let hint = "Create a forward from the outside port to the inside device and its port.".to_string();
+        let Ok(port) = check.to.parse::<u16>() else {
+            return (false, format!("invalid port '{}'", check.to), "Use a port number.".into());
+        };
+        match self.port_forward_for(&check.from, port) {
+            Some((target, inside)) if format!("{target}:{inside}") == check.expect => (true, format!("port {port} leads to {target}:{inside}"), hint),
+            Some((target, inside)) => (false, format!("port {port} leads to {target}:{inside}"), hint),
+            None => (false, format!("port {port} is not forwarded"), hint),
+        }
     }
 
     fn check_count(&self, check: &Check) -> Verdict {

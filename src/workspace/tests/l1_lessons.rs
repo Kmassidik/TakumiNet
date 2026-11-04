@@ -142,3 +142,25 @@ fn reservation_lesson_keeps_the_printer_on_one_address() {
     let ip = ws.devices.iter().find(|d| d.id == "printer0").and_then(|d| d.ip);
     assert_eq!(ip, crate::model::parse_ipv4("192.168.1.50"), "the address survives a restart");
 }
+
+#[test]
+fn port_forward_lesson_refuses_until_the_forward_exists_and_validates_input() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l1-05-port-forward.xml")).unwrap();
+    assert_eq!(results(&mut ws), vec![false, false]);
+    let page = crate::webapp::fetch(&mut ws, "outside0", "http://192.168.1.1:8080/").unwrap_err();
+    assert!(page.contains("no forward"), "{page}");
+    assert!(ws.add_port_forward("homerouter0", 0, "server0", 80).is_err());
+    assert!(ws.add_port_forward("homerouter0", 80, "server0", 80).is_err());
+    assert!(ws.add_port_forward("homerouter0", 8080, "nobody", 80).is_err());
+    assert!(ws.add_port_forward("laptop0", 8080, "server0", 80).is_err());
+    ws.add_port_forward("homerouter0", 8080, "server0", 8081).unwrap();
+    assert!(crate::webapp::fetch(&mut ws, "outside0", "http://192.168.1.1:8080/").unwrap_err().contains("nothing listens"));
+    assert!(ws.remove_port_forward("homerouter0", 8080));
+    assert!(!ws.remove_port_forward("homerouter0", 8080));
+    ws.add_port_forward("homerouter0", 8080, "server0", 80).unwrap();
+    assert!(ws.add_port_forward("homerouter0", 8080, "server0", 80).is_err(), "no duplicates");
+    assert_eq!(results(&mut ws), vec![true, true]);
+    let mut back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert!(crate::webapp::fetch(&mut back, "outside0", "http://192.168.1.1:8080/").is_ok());
+    assert!(crate::webapp::fetch(&mut back, "outside0", "http://192.168.1.1/").is_ok(), "the router page is still there");
+}

@@ -20,6 +20,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/http") => Some(handle_devices_http(ctx, query)),
         ("POST", "/api/router/login") => Some(handle_router_login(ctx, query)),
         ("POST", "/api/devices/routeradmin") => Some(handle_router_admin(ctx, query)),
+        ("POST", "/api/devices/portforward") => Some(handle_port_forward(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -265,5 +266,22 @@ fn handle_router_admin(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let user = query_value(query, "user").unwrap_or_default();
     let pass = query_value(query, "pass").unwrap_or_default();
     let (out, _) = apply(ctx, |ws| ws.set_router_admin(&id, &user, &pass));
+    (json, out.into_bytes())
+}
+
+fn handle_port_forward(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let target = query_value(query, "target").unwrap_or_default();
+    let port = |key: &str| query_value(query, key).and_then(|v| v.parse::<u16>().ok());
+    let remove = matches!(query_value(query, "remove").as_deref(), Some("1") | Some("true"));
+    let (out, _) = apply(ctx, |ws| {
+        let Some(outside) = port("outside") else { return Err("outside port must be a number from 1 to 65535".to_string()) };
+        if remove {
+            return if ws.remove_port_forward(&id, outside) { Ok(()) } else { Err(format!("port {outside} is not forwarded")) };
+        }
+        let Some(inside) = port("inside") else { return Err("inside port must be a number from 1 to 65535".to_string()) };
+        ws.add_port_forward(&id, outside, &target, inside)
+    });
     (json, out.into_bytes())
 }
