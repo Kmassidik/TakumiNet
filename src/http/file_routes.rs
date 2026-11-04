@@ -281,7 +281,7 @@ const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
     ("tpl-l1-broken-wifi", "Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
     ("tpl-l2-rtrw-small", "RT/RW Net with three homes", "A neighbourhood shares one line through a gateway, a pole radio and three homes"),
     ("tpl-l2-rtrw-busy", "RT/RW Net with a full line", "Four homes share one line and one of them fills it"),
-    ("tpl-l2-rtrw-hotspot", "Hotspot at the warung", "Visitors join an open hotspot and pay with vouchers"),
+    ("tpl-l2-rtrw-hotspot", "Hotspot at the cafe", "Visitors join an open hotspot and pay with vouchers"),
     ("tpl-l4-campus-three-layer", "Three-layer campus", "Access, distribution and core carry two buildings to one server"),
     ("tpl-l4-campus-wireless", "Campus wireless", "One controller, three access points, a staff network and a fenced guest network"),
     ("tpl-l4-campus-dmz", "Campus with a DMZ", "The public web server sits on its own shelf and cannot reach the inside"),
