@@ -286,7 +286,23 @@ function stepSim(dir) {
   sfx('movieControlButton');
 }
 
-function togglePlay() {
+/* A template carries its own traffic. Play on a quiet workspace sends it first, so
+   "ready to run" means press Play. Your own networks have none: send a PDU. */
+async function sendBuiltInTraffic() {
+  if (typeof data === 'undefined' || !data || !data.hasDemo) {
+    status('Nothing to play yet. Send a PDU first');
+    return false;
+  }
+  const response = await api('/api/demo');
+  if (response.error) return false; // api() already showed the message
+  if (!visibleEvents().length) {
+    status('The traffic was sent, but the protocol filters hide it. Press Show All.');
+    return false;
+  }
+  return true;
+}
+
+async function togglePlay() {
   if (playTimer) {
     clearInterval(playTimer);
     playTimer = null;
@@ -294,10 +310,7 @@ function togglePlay() {
     status('Paused');
     return;
   }
-  if (!visibleEvents().length) {
-    status('Nothing to play yet. Send a PDU first');
-    return;
-  }
+  if (!visibleEvents().length && !(await sendBuiltInTraffic())) return;
   sfx('movieControlButton');
   document.querySelector('#play-btn img').src = icon3d('sim/pause');
   status('Playing events');

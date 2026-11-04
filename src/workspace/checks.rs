@@ -8,7 +8,7 @@ impl Workspace {
         checks.iter().map(|check| self.run_check(check)).collect()
     }
 
-    fn send_addressed_pdu(&mut self, from: &str, to: &str) -> Result<(), String> {
+    pub(super) fn send_addressed_pdu(&mut self, from: &str, to: &str) -> Result<(), String> {
         let addressed = |id: &str| self.devices.iter().find(|device| device.id == id)
             .is_some_and(|device| device.ip.is_some() || device.ports.iter().any(|port| port.ip.is_some()));
         if !addressed(from) || !addressed(to) {

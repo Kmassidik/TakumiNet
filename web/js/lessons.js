@@ -50,7 +50,7 @@ function galleryCard(kind, item) {
   const meta = document.createElement('span');
   meta.className = 'lesson-card-meta';
   meta.textContent = kind === 'template'
-    ? 'Ready to run · nothing to set'
+    ? 'Ready to run · press Play to watch it'
     : `Level ${item.level} · ${item.minutes} min · ${item.stepCount} steps`;
   card.appendChild(meta);
   const action = document.createElement('span');

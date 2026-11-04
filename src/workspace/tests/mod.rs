@@ -1,6 +1,7 @@
 mod addressing;
 mod catalog;
 mod checks;
+mod demo;
 mod devices;
 mod notes;
 mod persistence;

@@ -10,4 +10,5 @@
   <net id="pc1" gw="" dns="192.168.1.100"/>
   <dns id="server0" name="www.takumi.lab" ip="192.168.1.100"/>
   <page id="server0" body="Server0 website"/>
+  <demo kind="http" from="pc0" to="" url="http://www.takumi.lab/"/>
 </takuminet>

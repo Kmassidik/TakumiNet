@@ -12,7 +12,6 @@ pub(super) fn sanitize(name: &str) -> String {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 /// Content type that marks a reply as a permanent redirect; the body is the new path.
 pub(super) const REDIRECT: &str = "text/x-redirect";
 
@@ -26,6 +25,7 @@ pub(super) fn respond_redirect(stream: &mut TcpStream, location: &str) -> io::Re
     stream.flush()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub(super) fn respond(stream: &mut TcpStream, status: &str, ctype: &str, body: &[u8]) -> io::Result<()> {
     write!(
         stream,

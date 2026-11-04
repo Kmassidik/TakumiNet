@@ -1089,3 +1089,25 @@ fn e2e_xml_is_the_file_type_and_old_tnet_files_still_open() {
         assert!(expect.is_empty() || reply.contains(expect), "{body:?} -> {reply}");
     }
 }
+
+#[test]
+fn e2e_play_on_a_template_sends_its_built_in_traffic_over_http() {
+    let s = spawn(38_244);
+    for id in ["tpl-connect", "tpl-star", "tpl-home", "tpl-routed", "tpl-web"] {
+        let (_, _, opened) = s.post(&format!("/api/templates/open?id={id}"));
+        assert!(opened.contains("\"hasDemo\":true"), "{id}: {opened}");
+        assert!(opened.contains("\"events\":[]"), "{id} opens quiet");
+        let (status, _, played) = s.post("/api/demo");
+        assert_eq!(status, 200);
+        assert!(!played.contains("\"error\""), "{id}: {played}");
+        assert!(!played.contains("\"events\":[]"), "{id} must capture events: {played}");
+    }
+
+    // A lesson and a blank workspace have none, and say so.
+    s.post("/api/templates/open?id=t1");
+    let (_, _, none) = s.post("/api/demo");
+    assert!(none.contains("no built-in traffic"), "{none}");
+    s.post("/api/new");
+    let (_, _, blank) = s.post("/api/demo");
+    assert!(blank.contains("no built-in traffic"), "{blank}");
+}

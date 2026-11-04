@@ -16,6 +16,7 @@ mod hardware;
 mod iot;
 mod ipv6;
 mod lesson;
+mod demo;
 mod notes;
 mod links;
 mod nat;
@@ -58,6 +59,7 @@ impl Workspace {
                 startup: None,
                 banners: HashMap::new(),
                 notes: Vec::new(),
+                demo: Vec::new(),
                 line_passwords: HashMap::new(),
                 powered_off: std::collections::HashSet::new(),
                 slots: HashMap::new(),
@@ -258,6 +260,7 @@ impl Workspace {
                 startup: None,
                 banners: HashMap::new(),
                 notes: Vec::new(),
+                demo: Vec::new(),
                 line_passwords: HashMap::new(),
                 powered_off: std::collections::HashSet::new(),
                 slots: HashMap::new(),
@@ -341,7 +344,7 @@ impl Workspace {
         self.json_events(&mut o);
         o.push_str("],\"lesson\":");
         self.lesson_json(&mut o);
-        o.push('}');
+        o.push_str(if self.demo.is_empty() { ",\"hasDemo\":false}" } else { ",\"hasDemo\":true}" });
         o
     }
 

@@ -130,6 +130,9 @@ impl Workspace {
         for note in notes {
             out.push_str(&format!("note\t{}\t{}\t{}\t{}\t{}\n", note.id, note.x, note.y, escape_field(&note.color), escape_field(&note.text)));
         }
+        for demo in &self.demo {
+            out.push_str(&format!("demo\t{}\t{}\t{}\t{}\n", escape_field(&demo.kind), demo.from, demo.to, escape_field(&demo.url)));
+        }
         let mut banners: Vec<_> = self.banners.iter().collect();
         banners.sort_by_key(|(id, _)| id.as_str());
         for (id, text) in banners {

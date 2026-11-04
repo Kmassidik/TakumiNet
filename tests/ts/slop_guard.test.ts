@@ -96,3 +96,12 @@ test("files: .xml is the file type; .tnet appears only where old files are read"
   expect(templates.every((n) => n.endsWith(".xml"))).toBe(true);
   expect(readFileSync(join(web, "sw.js"), "utf8")).not.toContain(".tnet");
 });
+
+test("templates: every example template carries built-in traffic, lessons carry none", () => {
+  const dir = join(web, "templates");
+  for (const name of readdirSync(dir)) {
+    const text = readFileSync(join(dir, name), "utf8");
+    if (name.startsWith("tpl-")) expect(text, name).toMatch(/<demo kind="(ping|http)" from="[a-z0-9]+"/);
+    else expect(text, name).not.toContain("<demo");
+  }
+});

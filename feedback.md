@@ -297,7 +297,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 
 ---
 
-## F11. Play on a template says "Nothing to play yet. Send a PDU first" (open)
+## F11. Play on a template says "Nothing to play yet. Send a PDU first" (done)
 
 Owner: "i use template btw why still show Nothing to play yet".
 

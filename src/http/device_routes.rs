@@ -27,6 +27,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/links/delete") => Some(handle_links_delete(ctx, query)),
         ("POST", "/api/pdu") => Some(handle_pdu(ctx, query)),
         ("POST", "/api/sim/reset") => Some(handle_sim_reset(ctx)),
+        ("POST", "/api/demo") => Some(handle_demo(ctx)),
         ("POST", "/api/undo") => Some(handle_undo(ctx)),
         ("POST", "/api/redo") => Some(handle_redo(ctx)),
         ("POST", "/api/reset") => Some(handle_reset(ctx)),
@@ -337,6 +338,12 @@ fn handle_pdu(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let src = query_value(query, "src").unwrap_or_default();
     let dst = query_value(query, "dst").unwrap_or_default();
     let (out, _) = apply_capture(ctx, |ws| ws.send_pdu(&src, &dst));
+    (json, out.into_bytes())
+}
+
+fn handle_demo(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let (out, _) = apply_capture(ctx, |ws| ws.run_demo().map(|_| ()));
     (json, out.into_bytes())
 }
 

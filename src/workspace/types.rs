@@ -386,10 +386,21 @@ pub struct Note {
     pub text: String,
 }
 
+/// Traffic a template sends when the user presses Play on a quiet workspace.
+/// `kind` is `ping` (from and to are device ids) or `http` (from is the client, url the page).
+#[derive(Clone, Debug, PartialEq)]
+pub struct Demo {
+    pub kind: String,
+    pub from: String,
+    pub to: String,
+    pub url: String,
+}
+
 #[derive(Clone)]
 pub struct Workspace {
     pub devices: Vec<Device>,
     pub notes: Vec<Note>,
+    pub demo: Vec<Demo>,
     pub links: Vec<Link>,
     pub lesson: Option<Lesson>,
     pub(super) counters: HashMap<String, u32>,

@@ -204,6 +204,14 @@ impl Workspace {
                     text: unescape_field(text),
                 });
             }
+            ["demo", kind, from, to, url] => {
+                self.demo.push(Demo {
+                    kind: unescape_field(kind),
+                    from: from.to_string(),
+                    to: to.to_string(),
+                    url: unescape_field(url),
+                });
+            }
             ["banner", id, text] => {
                 self.banners.insert(id.to_string(), unescape_field(text));
             }

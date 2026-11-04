@@ -19,6 +19,7 @@ const RECORDS: &[(&str, &[&str])] = &[
     ("dhcpclient", &["id"]),
     ("banner", &["id", "text"]),
     ("note", &["id", "x", "y", "color", "text"]),
+    ("demo", &["kind", "from", "to", "url"]),
     ("linepw", &["id", "pw"]),
     ("v6", &["id", "auto", "addr", "prefix", "gw", "dns"]),
     ("dot1x", &["id", "enabled", "user", "pass"]),
@@ -387,7 +388,7 @@ fn validate_record(
     let Some((_, names)) = RECORDS.iter().find(|(name, _)| *name == element.name) else {
         return;
     };
-    if !matches!(element.name.as_str(), "lesson" | "check" | "note") {
+    if !matches!(element.name.as_str(), "lesson" | "check" | "note" | "demo") {
         if let Some(reference) = names.first().filter(|name| matches!(**name, "id" | "dev" | "server" | "client" | "router" | "device" | "slave" | "phone" | "ap" | "wlc")) {
             let id = element.get(reference).unwrap_or("");
             if port_ws.devices.iter().all(|d| d.id != id) {
