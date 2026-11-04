@@ -45,7 +45,7 @@ export function renderKindWindow(
       return renderGatewayWindow(doc, pane, device, deps.post);
     case "client-radio":
     case "sector-radio":
-      return renderRadioWindow(doc, pane, device, workspace, deps.getText);
+      return renderRadioWindow(doc, pane, device, deps.getText, deps.post);
     case "provider-link":
       renderProviderWindow(doc, pane, device, workspace);
       return Promise.resolve();

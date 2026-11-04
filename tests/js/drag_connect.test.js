@@ -37,19 +37,26 @@ function harness({ linkError = null } = {}) {
     status: (m) => statuses.push(m),
     setSelection() {}, renderTopology() {}, sfx() {},
     api: async (p, params) => { apiCalls.push({ p, params }); return linkError ? { error: linkError } : {}; },
+    /* The picker is its own file; here every device resolves to the auto-pick. */
+    choosePort: async () => ({ port: null }),
   });
   vm.runInContext(source, context);
-  const press = (id) => context.startDrag({ preventDefault() {} }, context.data.devices.find((d) => d.id === id));
-  const release = (overId) => {
+  const flush = () => new Promise((resolve) => setImmediate(resolve));
+  const press = async (id) => {
+    context.startDrag({ preventDefault() {} }, context.data.devices.find((d) => d.id === id));
+    await flush();
+  };
+  const release = async (overId) => {
     deviceUnderPointer = overId ? { id: overId } : null;
     for (const fn of listeners.pointerup.splice(0)) fn({ clientX: 0, clientY: 0 });
+    await flush();
   };
-  return { context, els, listeners, apiCalls, statuses, press, release };
+  return { context, els, listeners, apiCalls, statuses, press, release, flush };
 }
 
-test('pressing a device in cable mode anchors the cable and never moves the device', () => {
+test('pressing a device in cable mode anchors the cable and never moves the device', async () => {
   const h = harness();
-  h.press('d1');
+  await h.press('d1');
   assert.equal(vm.runInContext('cableFrom', h.context), 'd1');
   // No move handler was installed, so dragging cannot change the position.
   assert.equal(h.listeners.pointermove.length, 0);
@@ -59,9 +66,8 @@ test('pressing a device in cable mode anchors the cable and never moves the devi
 
 test('releasing the drag over another device posts the same link as click-click', async () => {
   const h = harness();
-  h.press('d1');
-  h.release('d2');
-  await Promise.resolve();
+  await h.press('d1');
+  await h.release('d2');
   assert.equal(h.apiCalls.length, 1);
   assert.equal(h.apiCalls[0].p, '/api/links');
   assert.equal(h.apiCalls[0].params.a, 'd1');
@@ -72,21 +78,20 @@ test('releasing the drag over another device posts the same link as click-click'
 
 test('releasing over empty canvas keeps the pending end, and click-click still finishes', async () => {
   const h = harness();
-  h.press('d1');
-  h.release(null);
+  await h.press('d1');
+  await h.release(null);
   assert.equal(h.apiCalls.length, 0);
   assert.equal(vm.runInContext('cableFrom', h.context), 'd1');
-  h.press('d2');
-  await Promise.resolve();
+  await h.press('d2');
   assert.equal(h.apiCalls.length, 1);
   assert.equal(h.apiCalls[0].params.a, 'd1');
   assert.equal(h.apiCalls[0].params.b, 'd2');
 });
 
-test('releasing on the pressed device itself keeps the pending end for the far click', () => {
+test('releasing on the pressed device itself keeps the pending end for the far click', async () => {
   const h = harness();
-  h.press('d1');
-  h.release('d1');
+  await h.press('d1');
+  await h.release('d1');
   assert.equal(h.apiCalls.length, 0);
   assert.equal(vm.runInContext('cableFrom', h.context), 'd1');
 });
@@ -94,9 +99,9 @@ test('releasing on the pressed device itself keeps the pending end for the far c
 test('a refused drag link keeps the toast behaviour', async () => {
   const refusal = 'these two cannot be joined by this cable';
   const h = harness({ linkError: refusal });
-  h.press('d1');
-  h.release('d2');
-  await new Promise((resolve) => setImmediate(resolve));
+  await h.press('d1');
+  await h.release('d2');
+  await h.flush();
   assert.equal(h.els['link-toast'].hidden, false);
   assert.equal(h.els['link-toast'].textContent, refusal);
 });

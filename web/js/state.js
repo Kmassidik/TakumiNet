@@ -9,6 +9,8 @@ let drag = null;
 let lastClick = null;
 let cableMode = false;
 let cableFrom = null;
+/* Interface the user picked for the pending end; null lets the engine pick. */
+let cableFromPort = null;
 /* Cable the palette is currently drawing; sent with every /api/links call. */
 let cableKind = 'eCopper';
 const CABLE_TYPES = [

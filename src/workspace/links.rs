@@ -5,8 +5,20 @@ impl Workspace {
         self.link_kind(a, b, "eCopper")
     }
 
-    /// Link two devices with an explicit cable type.
+    /// Link two devices with an explicit cable type, auto-picking the ports.
     pub fn link_kind(&mut self, a: &str, b: &str, kind: &str) -> Result<(), String> {
+        self.link_ports(a, b, kind, None, None)
+    }
+
+    /// Link two devices, terminating on the named ports where one is given.
+    pub fn link_ports(
+        &mut self,
+        a: &str,
+        b: &str,
+        kind: &str,
+        a_port: Option<&str>,
+        b_port: Option<&str>,
+    ) -> Result<(), String> {
         if !CABLE_KINDS.contains(&kind) {
             return Err(format!("unknown cable type {kind}"));
         }
@@ -27,7 +39,15 @@ impl Workspace {
             return Err("already linked".into());
         }
         self.media_check(a, b, kind)?;
-        let (a_port, b_port) = self.assign_ports(a, b, kind);
+        let (auto_a, auto_b) = self.assign_ports(a, b, kind);
+        let a_port = match a_port {
+            Some(raw) => self.claim_port(a, raw, kind)?,
+            None => auto_a,
+        };
+        let b_port = match b_port {
+            Some(raw) => self.claim_port(b, raw, kind)?,
+            None => auto_b,
+        };
         if duplicate && (self.port_used(a, &a_port) || self.port_used(b, &b_port)) {
             return Err("no free interface for another link".into());
         }
@@ -40,6 +60,19 @@ impl Workspace {
         });
         self.recompute_routing();
         Ok(())
+    }
+
+    /// Validate a port the user named: it must exist, be free, and belong to
+    /// the family this cable terminates on.
+    fn claim_port(&self, id: &str, raw: &str, kind: &str) -> Result<String, String> {
+        let name = self.canonical_iface(id, raw)?;
+        if !port_takes_cable(&name, kind) {
+            return Err(format!("this cable cannot plug into {name}"));
+        }
+        if self.port_used(id, &name) {
+            return Err(format!("{name} is already connected"));
+        }
+        Ok(name)
     }
 
     /// Only end devices drive a console session; routers and switches answer one.
@@ -300,4 +333,20 @@ impl Workspace {
 
     /// Models the two module slots accept.
     pub const MODULE_MODELS: &'static [&'static str] = &["HWIC-2T", "NM-2FE2W"];
+}
+
+/// Whether a named interface belongs to the family this cable terminates on.
+/// Dedicated media (console, phone, coax, IoT) always pick their own port.
+fn port_takes_cable(name: &str, kind: &str) -> bool {
+    let serial = name.starts_with("Serial");
+    match kind {
+        "eSerial" => serial,
+        "eCopper" | "eCross" | "eFiber" => {
+            !serial
+                && ["FastEthernet", "GigabitEthernet", "Ethernet", "Ether"]
+                    .iter()
+                    .any(|family| name.starts_with(family))
+        }
+        _ => false,
+    }
 }
