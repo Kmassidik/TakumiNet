@@ -366,7 +366,15 @@ async function togglePlay() {
   if (playStarting) return;
   playStarting = true;
   try {
-    if (!visibleEvents().length && !(await sendBuiltInTraffic())) return;
+    const events = visibleEvents();
+    if (!events.length && !(await sendBuiltInTraffic())) return;
+    /* Play on a finished capture rewinds and replays it, like any media player.
+       The traffic is already captured, so nothing is sent again. */
+    const current = events.findIndex((e) => e.id === simCursor);
+    if (events.length && current >= events.length - 1) {
+      simCursor = -1;
+      renderEvents();
+    }
   } finally {
     playStarting = false;
   }

@@ -8,27 +8,35 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'web/js/actions.js'), 'utf8');
+const stateSource = fs.readFileSync(path.join(root, 'web/js/state.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
 
+/* The fake interval is controllable: tick() runs every pending callback once,
+   so the auto-pause and rewind paths actually execute in the tests. */
 function playContext(events, extra = {}) {
   const statuses = [];
   const sounds = [];
+  const intervals = new Map();
+  let nextTimer = 1;
   const context = vm.createContext({
     console,
     icon3d: (key) => key,
     status: (msg) => statuses.push(msg),
     sfx: (name) => sounds.push(name),
     visibleEvents: () => events,
-    stepSim() {},
+    renderEvents() {},
+    animatePath() {},
+    simCursor: -1,
     playbackSpeed: 1,
     playTimer: null,
     document: { querySelector: () => ({ src: '' }), getElementById: () => null },
-    setInterval: () => 1,
-    clearInterval() {},
+    setInterval: (fn) => { const id = nextTimer; nextTimer += 1; intervals.set(id, fn); return id; },
+    clearInterval: (id) => { intervals.delete(id); },
     ...extra,
   });
   vm.runInContext(source, context);
-  return { context, statuses, sounds };
+  const tick = () => { for (const fn of [...intervals.values()]) fn(); };
+  return { context, statuses, sounds, tick };
 }
 
 test('Play with no recorded events says what to do and makes no sound', () => {
@@ -65,11 +73,70 @@ test('Play on a template with no events sends its built-in traffic, then plays i
   assert.deepEqual(sounds, ['movieControlButton']);
 });
 
-test('Play with events already captured does not send the built-in traffic again', async () => {
+test('Play mid-capture resumes from the cursor without rewinding or resending', async () => {
   const calls = [];
-  const { context } = playContext([{ id: 1 }], { data: { hasDemo: true }, api: async (path) => { calls.push(path); return {}; } });
+  const { context, tick } = playContext([{ id: 1 }, { id: 2 }, { id: 3 }], {
+    simCursor: 1,
+    data: { hasDemo: true },
+    api: async (path) => { calls.push(path); return {}; },
+  });
   await vm.runInContext('togglePlay()', context);
   assert.deepEqual(calls, []);
+  assert.equal(vm.runInContext('simCursor', context), 1);
+  tick();
+  assert.equal(vm.runInContext('simCursor', context), 2);
+});
+
+test('Play at the end of the capture rewinds and replays without resending', async () => {
+  const calls = [];
+  const { context, tick } = playContext([{ id: 1 }, { id: 2 }], {
+    simCursor: 2,
+    data: { hasDemo: true },
+    api: async (path) => { calls.push(path); return {}; },
+  });
+  await vm.runInContext('togglePlay()', context);
+  assert.deepEqual(calls, [], 'the capture is already here; nothing is sent again');
+  assert.equal(vm.runInContext('simCursor', context), -1, 'the cursor rewinds to the start');
+  assert.notEqual(vm.runInContext('playTimer', context), null);
+  tick();
+  assert.equal(vm.runInContext('simCursor', context), 1, 'replay begins at the first event');
+});
+
+test('the auto-pause at the end still fires, and the next Play starts over', async () => {
+  const { context, statuses, tick } = playContext([{ id: 1 }, { id: 2 }], {
+    data: { hasDemo: true },
+    api: async () => { throw new Error('must not call'); },
+  });
+  await vm.runInContext('togglePlay()', context);
+  tick();
+  tick();
+  assert.equal(vm.runInContext('simCursor', context), 2);
+  tick();
+  assert.equal(vm.runInContext('playTimer', context), null, 'reaching the last event pauses');
+  assert.equal(statuses.at(-1), 'Paused');
+  await vm.runInContext('togglePlay()', context);
+  assert.equal(vm.runInContext('simCursor', context), -1);
+  assert.notEqual(vm.runInContext('playTimer', context), null);
+});
+
+test('Reset then Play sends the built-in traffic again', async () => {
+  const events = [{ id: 1 }];
+  const calls = [];
+  const { context } = playContext(events, {
+    simCursor: 1,
+    data: { hasDemo: true },
+    api: async (path) => {
+      calls.push(path);
+      if (path === '/api/sim/reset') events.length = 0;
+      if (path === '/api/demo') events.push({ id: 2 });
+      return {};
+    },
+  });
+  await vm.runInContext("ACTIONS['reset-sim']()", context);
+  assert.equal(vm.runInContext('simCursor', context), -1);
+  await vm.runInContext('togglePlay()', context);
+  assert.deepEqual(calls, ['/api/sim/reset', '/api/demo']);
+  assert.notEqual(vm.runInContext('playTimer', context), null);
 });
 
 test('a failed built-in traffic run starts nothing and plays no sound', async () => {
@@ -80,6 +147,33 @@ test('a failed built-in traffic run starts nothing and plays no sound', async ()
   await vm.runInContext('togglePlay()', context);
   assert.equal(vm.runInContext('playTimer', context), null);
   assert.deepEqual(sounds, []);
+});
+
+test('a half-failed demo renders the events it captured and shows the error', async () => {
+  const rendered = [];
+  const statusBar = { textContent: '' };
+  const statusIcon = { hidden: true };
+  const reply = { error: 'Built-in ping from WargaTerpencil failed', devices: [{ id: 'pc0' }], events: [{ id: 1 }] };
+  const context = vm.createContext({
+    console,
+    URLSearchParams,
+    fetch: async () => ({ json: async () => reply }),
+    localStorage: { getItem: () => null, setItem() {} },
+    document: {
+      getElementById: (id) => (id === 'status-msg' ? statusBar : statusIcon),
+      querySelectorAll: () => [],
+    },
+    Audio: function Audio() { return { currentTime: 0, play: () => Promise.resolve() }; },
+    renderFilters: () => rendered.push('filters'),
+    renderAll: () => rendered.push('all'),
+  });
+  vm.runInContext(stateSource, context);
+  const res = await vm.runInContext("api('/api/demo')", context);
+  assert.equal(res.error, reply.error);
+  assert.equal(statusBar.textContent, reply.error, 'the error is shown');
+  assert.equal(statusIcon.hidden, false);
+  assert.ok(rendered.includes('all'), 'the captured-so-far events are rendered');
+  assert.equal(vm.runInContext('data', context).events.length, 1);
 });
 
 test('built-in traffic hidden by the filters says so instead of staying silent', async () => {
