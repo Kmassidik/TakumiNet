@@ -713,3 +713,11 @@ Headline: 15 of 48 work and are proven by tests; 10 exist in the engine with no 
 Owner: "find on GitHub so we have more tiers than this".
 
 Added to `AUDIT-references.md`: section 9 (14 projects, from the 5,876-star SDN emulator to small browser simulators; READMEs read for the closest ones) and section 10 (seven tiers). New ideas the small browser projects have that we do not: physical realism (cable type and length, ports by medium, wireless coverage and a signal probe, link impairments), explanations of failures (where it breaks and why, DNS path, loop detection), a learning layer (subnetting drills, objective checklists, labs that start broken with a walkthrough), labs as readable files, and a bilingual tool. Our difference from the closest peer: it has no command line and no per-packet simulation; we have both.
+
+## F31. The scale ladder plan, with an end-to-end Bend test (2026-11-04)
+
+Owner: "build the idea, at least 1000 lines, with e2e test with Bend, template usage and lesson on every level".
+
+Done: **`IDEA-scales.md`** (about 2,200 lines). Eleven levels from house to world (rumah, RT/RW Net, small office, campus, data center, local ISP, city, regency, province, country, world). Each level has the same 14 subsections, at least 2 templates and 3 lessons in `spec` blocks (55+ lessons with checks), Indonesian terms and risks. Part 3 has the engine and UI roadmap, 33 new device kinds, staging, glossary, acceptance criteria and a decision table with reasons. No questions were asked; each choice is written down with its reason.
+
+Test: `tests/ts/idea_scales.test.ts` parses every spec block, checks ids, references, prerequisite order and cycles, check kinds, the 14 subsections and vendor names, then generates a Bend program that recomputes the same rules and must print `0`. A second case feeds it a broken plan and expects `3`. Model test, not a proof. First runs failed on Bend rules (affine variables, recursion order); fixed until it passed.
