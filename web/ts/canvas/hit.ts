@@ -1,5 +1,5 @@
 import type { Point } from "./camera";
-import type { Scene, SceneDevice, SceneLink } from "./scene";
+import type { Scene, SceneDevice, SceneGroup, SceneLink } from "./scene";
 
 /* Top-most device under the point: later devices are drawn on top. */
 export function hitDevice(scene: Scene, p: Point): SceneDevice | null {
@@ -7,6 +7,16 @@ export function hitDevice(scene: Scene, p: Point): SceneDevice | null {
     const d = scene.devices[i]!;
     const { x, y, w, h } = d.box;
     if (p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h) return d;
+  }
+  return null;
+}
+
+/* Group nodes draw on top of devices, so they are hit-tested first. */
+export function hitGroup(scene: Scene, p: Point): SceneGroup | null {
+  for (let i = scene.groups.length - 1; i >= 0; i--) {
+    const g = scene.groups[i]!;
+    const { x, y, w, h } = g.box;
+    if (p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h) return g;
   }
   return null;
 }

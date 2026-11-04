@@ -17,6 +17,8 @@ import { openModal } from "./ui/modal";
 import { ModalStack } from "./ui/modal_stack";
 import { wireDialogClose, type EventSource } from "./ui/dialog_close";
 import { renderKindWindow, windowIdForKind } from "./ui/kind_windows";
+import { makeGroupPress, renderGroupCard, type GroupLike, type GroupPressDeps } from "./ui/group_card";
+import { renderFlowsWindow } from "./ui/flows_window";
 import type { KindDevice, KindWorkspace } from "./ui/kind_parts";
 
 const doc = document as unknown as DocLike;
@@ -54,18 +56,39 @@ const getText = async (path: string): Promise<string> => {
   return res.text();
 };
 
-globalThis.openWindowForKind = (device, workspace) => {
-  const winId = windowIdForKind(device?.kind ?? "");
-  const win = winId ? document.getElementById(winId) : null;
+const kindOverlay = (id: string | null, title: string): ElementLike | null => {
+  const win = id ? document.getElementById(id) : null;
   const name = win?.querySelector<HTMLElement>(".kindwin-name");
   const body = win?.querySelector<HTMLElement>(".kindwin-body");
-  if (!win || !name || !body) return false;
-  name.textContent = device.name;
+  if (!win || !name || !body) return null;
+  name.textContent = title;
   win.hidden = false;
   bringToFront(win);
-  void renderKindWindow(doc, body as unknown as ElementLike, device, workspace ?? {}, { post: postJson, getText });
+  return body as unknown as ElementLike;
+};
+
+globalThis.openWindowForKind = (device, workspace) => {
+  const body = kindOverlay(windowIdForKind(device?.kind ?? ""), device.name);
+  if (!body) return false;
+  void renderKindWindow(doc, body, device, workspace ?? {}, { post: postJson, getText });
   return true;
 };
+
+globalThis.openGroupCard = (group) => {
+  const body = kindOverlay("group-window", group.name);
+  if (!body) return false;
+  renderGroupCard(doc, body, group);
+  return true;
+};
+
+globalThis.openFlowsWindow = (workspace) => {
+  const body = kindOverlay("flows-window", "Flows");
+  if (!body) return false;
+  void renderFlowsWindow(doc, body, workspace ?? {}, { post: postJson, getText });
+  return true;
+};
+
+globalThis.makeGroupPress = makeGroupPress;
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
 } else {
@@ -111,5 +134,8 @@ declare global {
   var makeWindowMovable: (win: HTMLElement | null) => void;
   var askConfirm: (message: string, okText?: string) => Promise<boolean>;
   var openWindowForKind: (device: KindDevice, workspace: KindWorkspace | null) => boolean;
+  var openGroupCard: (group: GroupLike) => boolean;
+  var openFlowsWindow: (workspace: KindWorkspace | null) => boolean;
+  var makeGroupPress: (deps: GroupPressDeps) => (group: GroupLike) => void;
   var askText: (message: string, value?: string) => Promise<string | null>;
 }

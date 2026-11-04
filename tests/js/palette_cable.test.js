@@ -35,7 +35,7 @@ function harness() {
       querySelector: (sel) => (sel === '.canvas-wrap' ? els.wrap : null),
     },
     data: {
-      groups: [{ label: 'End devices', icon: 'a' }, { label: 'Connections', icon: 'b' }],
+      paletteGroups: [{ label: 'End devices', icon: 'a' }, { label: 'Connections', icon: 'b' }],
       palette: [{ label: 'PC-PT', icon: 'p', kind: 'pc' }],
     },
     CABLE_TYPES: [['eCopper', 'Copper', 'straight', 'Copper']],

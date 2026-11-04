@@ -28,12 +28,19 @@ function renderTopology() {
 
 function wireWorkspaceCanvas() {
   wireNoteKeys();
+  const groupPress = makeGroupPress({
+    now: () => performance.now(),
+    post: async (path) => (await fetch(path, { method: 'POST' })).json(),
+    card: (group) => openGroupCard(group),
+    applied: (res) => { setData(res); status('Group expanded'); },
+  });
   workspaceCanvas.handlers = {
     onDeviceDown: (device, ev) => {
       const d = data.devices.find((x) => x.id === device.id);
       if (viewMode === 'physical') selectPhysical(d);
       else startDrag(ev, d);
     },
+    onGroupDown: (group) => groupPress(group),
     onLinkDown: (link) => {
       selectedLink = { a: link.a, b: link.b };
       setSelection([]);

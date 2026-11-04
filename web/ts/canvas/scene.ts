@@ -1,3 +1,5 @@
+import { planGroups, type GroupInput, type GroupNode } from "./group_scene";
+
 export interface DeviceInput {
   id: string;
   kind?: string;
@@ -23,6 +25,7 @@ export interface LinkInput {
 export interface WorkspaceInput {
   devices: DeviceInput[];
   links: LinkInput[];
+  groups?: GroupInput[];
 }
 
 export interface Box {
@@ -36,6 +39,10 @@ export interface SceneDevice extends DeviceInput {
   box: Box;
 }
 
+export interface SceneGroup extends GroupNode {
+  box: Box;
+}
+
 export interface SceneLink extends LinkInput {
   a: string;
   b: string;
@@ -46,21 +53,32 @@ export interface SceneLink extends LinkInput {
 export interface Scene {
   devices: SceneDevice[];
   links: SceneLink[];
+  groups: SceneGroup[];
 }
 
 const BOX = { left: 36, top: 34, size: 72 };
 
+function boxAt(x: number, y: number): Box {
+  return { x: x - BOX.left, y: y - BOX.top, w: BOX.size, h: BOX.size };
+}
+
 export function buildScene(workspace: WorkspaceInput): Scene {
-  const devices: SceneDevice[] = workspace.devices.map((d) => ({
-    ...d,
-    box: { x: d.x - BOX.left, y: d.y - BOX.top, w: BOX.size, h: BOX.size },
-  }));
-  const byId = new Map(devices.map((d) => [d.id, d]));
+  const plan = planGroups(workspace.devices, workspace.links, workspace.groups ?? []);
+  const devices: SceneDevice[] = plan.devices.map((d) => ({ ...d, box: boxAt(d.x, d.y) }));
+  const groups: SceneGroup[] = plan.groups.map((g) => ({ ...g, box: boxAt(g.x, g.y) }));
+  const byId = new Map<string, SceneDevice>(devices.map((d) => [d.id, d]));
+  // A cable may end at a group node; it joins the map as a bare anchor point.
+  for (const g of groups) {
+    byId.set(g.id, {
+      id: g.id, kind: "group", name: g.name, model: "", icon: "",
+      x: g.x, y: g.y, ip: "", prefix: 0, box: g.box,
+    });
+  }
   const links: SceneLink[] = [];
-  for (const link of workspace.links) {
+  for (const link of plan.links) {
     const from = byId.get(link.a);
     const to = byId.get(link.b);
     if (from && to) links.push({ ...link, from, to });
   }
-  return { devices, links };
+  return { devices, links, groups };
 }

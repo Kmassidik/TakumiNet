@@ -104,6 +104,15 @@
     }
     return null;
   }
+  function hitGroup(scene, p) {
+    for (let i = scene.groups.length - 1;i >= 0; i--) {
+      const g = scene.groups[i];
+      const { x, y, w, h } = g.box;
+      if (p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h)
+        return g;
+    }
+    return null;
+  }
   function distanceToSegment(p, a, b) {
     const dx = b.x - a.x;
     const dy = b.y - a.y;
@@ -177,6 +186,7 @@
 
   // web/ts/canvas/draw.ts
   var LED_COLORS = { green: "#0a7a3d", amber: "#c98a00", red: "#c62828" };
+  var STATUS_COLORS = { up: "#0a7a3d", degraded: "#e6a23c", down: "#b42318", isolated: "#667085" };
   var GRID_WORLD = 25;
   var SELECT = "#2b6cb0";
   function drawScene(ctx, scene, camera, options) {
@@ -190,6 +200,8 @@
       drawLink(ctx, link, camera, options);
     for (const device of scene.devices)
       drawDevice(ctx, device, camera, options);
+    for (const group of scene.groups)
+      drawGroup(ctx, group, camera, options);
     for (const packet of options.packets ?? [])
       drawPacket(ctx, packet, camera);
     for (const note of options.notes ?? [])
@@ -282,6 +294,27 @@
     ctx.fillText(device.model, cx, origin.y + 86 * camera.zoom);
     if (device.ip)
       ctx.fillText(`${device.ip}/${device.prefix}`, cx, origin.y + 98 * camera.zoom);
+  }
+  function drawGroup(ctx, group, camera, options) {
+    const origin = camera.toScreen({ x: group.box.x, y: group.box.y });
+    const size = group.box.w * camera.zoom;
+    const selected = options.selected?.has(group.id) ?? false;
+    ctx.fillStyle = "#eef3fb";
+    ctx.fillRect(origin.x, origin.y, size, size);
+    ctx.strokeStyle = selected ? SELECT : "#667085";
+    ctx.lineWidth = selected ? 2 : 1.5;
+    ctx.strokeRect(origin.x, origin.y, size, size);
+    ctx.fillStyle = STATUS_COLORS[group.status] ?? STATUS_COLORS.isolated;
+    ctx.beginPath();
+    ctx.arc(origin.x + size - 10 * camera.zoom, origin.y + 10 * camera.zoom, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1b1f23";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    const cx = origin.x + size / 2;
+    ctx.fillText(group.name, cx, origin.y + 74 * camera.zoom);
+    ctx.fillStyle = "#667085";
+    ctx.fillText(`${group.devices} device${group.devices === 1 ? "" : "s"}`, cx, origin.y + 86 * camera.zoom);
   }
   function drawPacket(ctx, packet, camera) {
     const p = camera.toScreen(packet.at);
@@ -455,22 +488,69 @@
     return null;
   }
 
+  // web/ts/canvas/group_scene.ts
+  function planGroups(devices, links, groups) {
+    const owner = new Map;
+    const nodes = [];
+    for (const group of groups) {
+      const members = devices.filter((d) => group.members.includes(d.id));
+      if (!members.length)
+        continue;
+      nodes.push({
+        id: group.id,
+        name: group.name,
+        devices: group.devices,
+        status: group.status,
+        x: members.reduce((sum, d) => sum + d.x, 0) / members.length,
+        y: members.reduce((sum, d) => sum + d.y, 0) / members.length
+      });
+      for (const member of members)
+        owner.set(member.id, group.id);
+    }
+    const visible = devices.filter((d) => !owner.has(d.id));
+    const drawn = [];
+    for (const link of links) {
+      const a = owner.get(link.a) ?? link.a;
+      const b = owner.get(link.b) ?? link.b;
+      if (a === b && (owner.has(link.a) || owner.has(link.b)))
+        continue;
+      drawn.push(a === link.a && b === link.b ? link : { ...link, a, b });
+    }
+    return { devices: visible, links: drawn, groups: nodes };
+  }
+
   // web/ts/canvas/scene.ts
   var BOX2 = { left: 36, top: 34, size: 72 };
+  function boxAt(x, y) {
+    return { x: x - BOX2.left, y: y - BOX2.top, w: BOX2.size, h: BOX2.size };
+  }
   function buildScene(workspace) {
-    const devices = workspace.devices.map((d) => ({
-      ...d,
-      box: { x: d.x - BOX2.left, y: d.y - BOX2.top, w: BOX2.size, h: BOX2.size }
-    }));
+    const plan = planGroups(workspace.devices, workspace.links, workspace.groups ?? []);
+    const devices = plan.devices.map((d) => ({ ...d, box: boxAt(d.x, d.y) }));
+    const groups = plan.groups.map((g) => ({ ...g, box: boxAt(g.x, g.y) }));
     const byId = new Map(devices.map((d) => [d.id, d]));
+    for (const g of groups) {
+      byId.set(g.id, {
+        id: g.id,
+        kind: "group",
+        name: g.name,
+        model: "",
+        icon: "",
+        x: g.x,
+        y: g.y,
+        ip: "",
+        prefix: 0,
+        box: g.box
+      });
+    }
     const links = [];
-    for (const link of workspace.links) {
+    for (const link of plan.links) {
       const from = byId.get(link.a);
       const to = byId.get(link.b);
       if (from && to)
         links.push({ ...link, from, to });
     }
-    return { devices, links };
+    return { devices, links, groups };
   }
 
   // web/ts/canvas/workspace_canvas.ts
@@ -480,7 +560,7 @@
     canvas;
     camera = new Camera({ x: 0, y: 0, zoom: 1 });
     handlers = {};
-    scene = { devices: [], links: [] };
+    scene = { devices: [], links: [], groups: [] };
     racks = { racks: [] };
     state = null;
     ctx;
@@ -527,7 +607,11 @@
     renderForPrint(width, height) {
       const state = this.state;
       const physical = !!state?.physical;
-      const rects = physical ? this.racks.racks.map((r) => r.rect) : [...this.scene.devices.map((d) => d.box), ...(state?.notes ?? []).map((n) => noteBox(n))];
+      const rects = physical ? this.racks.racks.map((r) => r.rect) : [
+        ...this.scene.devices.map((d) => d.box),
+        ...this.scene.groups.map((g) => g.box),
+        ...(state?.notes ?? []).map((n) => noteBox(n))
+      ];
       const bounds = boundsOf(rects);
       if (!bounds)
         return null;
@@ -558,18 +642,18 @@
       return this.camera.toWorld({ x: this.cssWidth / 2, y: this.cssHeight / 2 });
     }
     fit() {
-      const devices = this.scene.devices;
-      if (!devices.length) {
+      const boxes = [...this.scene.devices, ...this.scene.groups].map((d) => d.box);
+      if (!boxes.length) {
         this.camera.zoom = 1;
         this.camera.x = 0;
         this.camera.y = 0;
         this.requestDraw();
         return;
       }
-      const xs = devices.map((d) => d.box.x);
-      const ys = devices.map((d) => d.box.y);
-      const xe = devices.map((d) => d.box.x + d.box.w);
-      const ye = devices.map((d) => d.box.y + d.box.h);
+      const xs = boxes.map((b) => b.x);
+      const ys = boxes.map((b) => b.y);
+      const xe = boxes.map((b) => b.x + b.w);
+      const ye = boxes.map((b) => b.y + b.h);
       const minX = Math.min(...xs) - 40;
       const minY = Math.min(...ys) - 40;
       const width = Math.max(...xe) + 40 - minX;
@@ -702,6 +786,9 @@
           return this.handlers.onDeviceDown?.(device, ev);
         return this.handlers.onBackgroundDown?.(ev);
       }
+      const group = hitGroup(this.scene, world);
+      if (group)
+        return this.handlers.onGroupDown?.(group, ev);
       const device = hitDevice(this.scene, world);
       if (device)
         return this.handlers.onDeviceDown?.(device, ev);
@@ -716,7 +803,10 @@
       if (!this.panFrom) {
         if (this.state?.physical)
           return;
-        this.handlers.onHover?.(hitDevice(this.scene, this.worldAt(ev)), ev);
+        const world = this.worldAt(ev);
+        const group = hitGroup(this.scene, world);
+        const over = group ? { name: group.name, model: `${group.devices} device${group.devices === 1 ? "" : "s"}` } : hitDevice(this.scene, world);
+        this.handlers.onHover?.(over, ev);
         return;
       }
       const here = this.screenAt(ev);
@@ -2225,6 +2315,194 @@
     }
   }
 
+  // web/ts/ui/group_card.ts
+  var STATUS_TEXT = {
+    up: "Up: every boundary cable is live",
+    degraded: "Degraded: a device inside has a port down",
+    down: "Down: a boundary cable is down",
+    isolated: "Isolated: no cable crosses the boundary"
+  };
+  function renderGroupCard(doc, body, group) {
+    body.replaceChildren();
+    const box = section(doc, body, group.name);
+    const list = el(doc, "ul", "kw-list");
+    list.appendChild(el(doc, "li", "kw-row", `${group.devices} device${group.devices === 1 ? "" : "s"} inside`));
+    list.appendChild(el(doc, "li", `kw-row kw-status-${group.status}`, STATUS_TEXT[group.status] ?? group.status));
+    box.appendChild(list);
+    body.appendChild(el(doc, "p", "kw-note", "Double-click the node on the canvas to expand it."));
+  }
+  var DOUBLE_MS = 400;
+  function makeGroupPress(deps) {
+    let last = null;
+    return (group) => {
+      const t = deps.now();
+      if (last && last.id === group.id && t - last.t < DOUBLE_MS) {
+        last = null;
+        (async () => {
+          try {
+            const res = await deps.post(`/api/groups/expand?id=${encodeURIComponent(group.id)}`);
+            if (!errorOf(res))
+              deps.applied(res);
+          } catch {}
+        })();
+        return;
+      }
+      last = { id: group.id, t };
+      deps.card(group);
+    };
+  }
+
+  // web/ts/ui/flows_window.ts
+  var enc4 = encodeURIComponent;
+  function parseFlows(xml) {
+    const flows = [];
+    for (const m of xml.matchAll(/<flow\s+dev="([^"]*)"\s+to="([^"]*)"\s+mbit="([^"]*)"/g)) {
+      flows.push({ from: m[1], to: m[2], mbit: Number(m[3]) || 0 });
+    }
+    return { flows, spread: /<flowspread\s+on="(1|true)"/.test(xml) };
+  }
+  function loadClass(percent) {
+    return percent >= 100 ? "kw-load-danger" : percent >= 70 ? "kw-load-warn" : "kw-load-ok";
+  }
+  function deviceName2(workspace, id) {
+    return workspace.devices?.find((d) => d.id === id)?.name ?? id;
+  }
+  function deviceId(workspace, typed) {
+    return workspace.devices?.find((d) => d.name === typed)?.id ?? typed;
+  }
+  function renderFlowsWindow(doc, body, workspace, deps) {
+    body.replaceChildren();
+    const outcome = el(doc, "div", "kw-outcome");
+    let loadsBox = null;
+    let flowsBox = null;
+    const fillLoads = async (box) => {
+      const res = await deps.post("/api/flows/list");
+      const err = errorOf(res);
+      if (err)
+        throw new Error(err);
+      const rows = records(res, "links");
+      box.replaceChildren();
+      if (!rows.length) {
+        box.appendChild(note(doc, "empty", "No cables yet. Connect two devices first."));
+        return;
+      }
+      const table = el(doc, "table", "kw-table");
+      const head = el(doc, "tr", "");
+      for (const title of ["Cable", "Mbit/s", "Capacity", "Load"])
+        head.appendChild(el(doc, "th", "", title));
+      table.appendChild(head);
+      for (const row of rows) {
+        const tr = el(doc, "tr", "");
+        tr.appendChild(el(doc, "td", "", `${asText(row["a"])} ${asText(row["aPort"])} ↔ ${asText(row["b"])} ${asText(row["bPort"])}`));
+        tr.appendChild(el(doc, "td", "", `${Number(row["mbit"]) || 0}`));
+        tr.appendChild(el(doc, "td", "", `${Number(row["capacity"]) || 0}`));
+        const percent = Number(row["percent"]) || 0;
+        tr.appendChild(el(doc, "td", loadClass(percent), `${percent}%`));
+        table.appendChild(tr);
+      }
+      box.appendChild(table);
+    };
+    const refresh = async () => {
+      if (loadsBox)
+        await fillLoads(loadsBox).catch(() => {
+          return;
+        });
+      if (flowsBox)
+        await fillFlows(flowsBox).catch(() => {
+          return;
+        });
+    };
+    const setFlow = async (from, to, mbit) => {
+      try {
+        const res = await deps.post(`/api/flows/set?from=${enc4(from)}&to=${enc4(to)}&mbit=${mbit}`);
+        const err = errorOf(res);
+        if (err) {
+          showOutcome(doc, outcome, "error", err);
+          return;
+        }
+        showOutcome(doc, outcome, "ok", mbit === 0 ? `Flow removed: ${deviceName2(workspace, from)} → ${deviceName2(workspace, to)}.` : `Flow set: ${deviceName2(workspace, from)} → ${deviceName2(workspace, to)} at ${mbit} Mbit/s.`);
+        await refresh();
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    const setSpread = async (on) => {
+      try {
+        const res = await deps.post(`/api/flows/set?spread=${on ? "1" : "0"}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", on ? "Flows now spread over spare paths." : "Flows now take one path each.");
+          await refresh();
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    const fillFlows = async (box) => {
+      const { flows, spread } = parseFlows(await deps.getText("/api/export"));
+      box.replaceChildren();
+      if (!flows.length) {
+        box.appendChild(note(doc, "empty", "No flows yet. Add one to light up the cables."));
+      } else {
+        const list = el(doc, "ul", "kw-list");
+        for (const flow of flows) {
+          const item = el(doc, "li", "kw-row", `${deviceName2(workspace, flow.from)} → ${deviceName2(workspace, flow.to)} · ${flow.mbit} Mbit/s`);
+          item.appendChild(createButton(doc, {
+            label: "Remove",
+            className: "kw-remove",
+            onClick: () => void setFlow(flow.from, flow.to, 0)
+          }));
+          list.appendChild(item);
+        }
+        box.appendChild(list);
+      }
+      box.appendChild(createButton(doc, {
+        label: "Spread over spare paths",
+        className: "kw-spread",
+        toggled: spread,
+        onClick: () => void setSpread(!spread)
+      }));
+    };
+    const done = Promise.all([
+      asyncSection(doc, body, "Cable loads", "Could not load the cable loads.", (box) => {
+        loadsBox = box;
+        return fillLoads(box);
+      }),
+      asyncSection(doc, body, "Flows", "Could not load the flows.", (box) => {
+        flowsBox = box;
+        return fillFlows(box);
+      })
+    ]).then(() => {
+      return;
+    });
+    const form = el(doc, "div", "kw-form");
+    const from = field(doc, form, "From device");
+    const to = field(doc, form, "To device");
+    const mbit = field(doc, form, "Mbit/s", "number");
+    const add = async () => {
+      const fromTyped = from.value.trim();
+      const toTyped = to.value.trim();
+      const rate = Number(mbit.value.trim());
+      if (!fromTyped || !toTyped) {
+        showOutcome(doc, outcome, "error", "Name both ends of the flow.");
+        return;
+      }
+      if (!Number.isInteger(rate) || rate < 0) {
+        showOutcome(doc, outcome, "error", "Mbit/s must be a whole number; 0 removes the flow.");
+        return;
+      }
+      await setFlow(deviceId(workspace, fromTyped), deviceId(workspace, toTyped), rate);
+    };
+    const submit = () => void add();
+    onEnter(mbit, submit);
+    form.appendChild(createButton(doc, { label: "Add flow", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    body.appendChild(form);
+    return done;
+  }
+
   // web/ts/main.ts
   var doc = document;
   var stack = new ModalStack;
@@ -2254,19 +2532,39 @@
       throw new Error(`request failed (${res.status})`);
     return res.text();
   };
-  globalThis.openWindowForKind = (device, workspace) => {
-    const winId = windowIdForKind(device?.kind ?? "");
-    const win = winId ? document.getElementById(winId) : null;
+  var kindOverlay = (id, title) => {
+    const win = id ? document.getElementById(id) : null;
     const name = win?.querySelector(".kindwin-name");
     const body = win?.querySelector(".kindwin-body");
     if (!win || !name || !body)
-      return false;
-    name.textContent = device.name;
+      return null;
+    name.textContent = title;
     win.hidden = false;
     bringToFront(win);
+    return body;
+  };
+  globalThis.openWindowForKind = (device, workspace) => {
+    const body = kindOverlay(windowIdForKind(device?.kind ?? ""), device.name);
+    if (!body)
+      return false;
     renderKindWindow(doc, body, device, workspace ?? {}, { post: postJson, getText });
     return true;
   };
+  globalThis.openGroupCard = (group) => {
+    const body = kindOverlay("group-window", group.name);
+    if (!body)
+      return false;
+    renderGroupCard(doc, body, group);
+    return true;
+  };
+  globalThis.openFlowsWindow = (workspace) => {
+    const body = kindOverlay("flows-window", "Flows");
+    if (!body)
+      return false;
+    renderFlowsWindow(doc, body, workspace ?? {}, { post: postJson, getText });
+    return true;
+  };
+  globalThis.makeGroupPress = makeGroupPress;
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
   } else {

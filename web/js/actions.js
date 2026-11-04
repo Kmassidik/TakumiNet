@@ -258,6 +258,25 @@ const ACTIONS = {
     status(`Meshed ${chosen.length} devices — ${data.links.length} links`);
     sfx('connect1');
   },
+  async 'collapse-group'() {
+    if (selectionCount() < 2) {
+      status('Select two or more devices first (shift-click adds to the selection)');
+      sfx('errorMsg');
+      return;
+    }
+    const name = await askText('Group name', 'Group');
+    if (!name || !name.trim()) return;
+    const members = [...selection].join(',');
+    const r = await api('/api/groups/collapse', { name: name.trim(), members });
+    if (!r.error) {
+      setSelection([]);
+      status(`Collapsed into ${name.trim()}`);
+      sfx('connect1');
+    }
+  },
+  flows() {
+    openFlowsWindow(data);
+  },
   async 'reset-sim'() {
     const r = await api('/api/sim/reset');
     if (!r.error) { simCursor = -1; commandLog = []; renderEvents(); status('Simulation reset'); }
