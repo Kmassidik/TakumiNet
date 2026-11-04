@@ -78,13 +78,13 @@ pub(super) fn retired_kind(model: &str) -> Option<&'static str> {
 pub(super) const GROUPS: &[(&str, &str)] = &[
     ("Routers", "/art3d/groups/routers.webp"),
     ("Switches", "/art3d/groups/switches.webp"),
-    ("Hubs", "/art3d/groups/hubs.webp"),
     ("Wireless", "/art3d/groups/wireless.webp"),
-    ("Security", "/art3d/groups/security.webp"),
-    ("WAN", "/art3d/groups/wan.webp"),
+    ("Home and internet", "/art3d/groups/wan.webp"),
+    ("Backbone", "/art3d/groups/hubs.webp"),
+    ("Security and servers", "/art3d/groups/security.webp"),
     ("End devices", "/art3d/misc/devices.webp"),
     ("Connections", "/art3d/misc/cable.webp"),
-    ("IoE", "/art3d/groups/notes.webp"),
+    ("IoT", "/art3d/groups/notes.webp"),
 ];
 
 pub(super) const FILTERS: &[&str] = &[
