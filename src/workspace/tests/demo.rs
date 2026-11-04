@@ -101,6 +101,66 @@ fn a_step_that_names_a_missing_device_fails_clearly_and_the_template_still_opens
     assert!(ws.events.is_empty(), "nothing is captured for a step that cannot run");
 }
 
+/// The engine re-records whatever it is asked to run; replaying a finished
+/// capture is the page's job (Play rewinds instead of asking again), so a
+/// second run appends a second recording. The demo's own traffic doubles
+/// exactly; ARP chatter does not repeat because the caches are warm.
+#[test]
+fn running_the_demo_twice_records_its_traffic_twice() {
+    let mut ws = Workspace::from_tnet(TEMPLATES[0].1).unwrap();
+    ws.run_demo().unwrap();
+    let first = ws.events.len();
+    let pings = ws.events.iter().filter(|e| e.proto == "ICMP").count();
+    assert!(pings > 0);
+    ws.run_demo().unwrap();
+    assert_eq!(ws.events.iter().filter(|e| e.proto == "ICMP").count(), pings * 2);
+    assert!(ws.events.len() > first, "the first recording is kept, not replaced");
+    let mut ids: Vec<u32> = ws.events.iter().map(|e| e.id).collect();
+    let count = ids.len();
+    ids.dedup();
+    assert_eq!(ids.len(), count, "every recording gets its own event ids");
+}
+
+/// Reset clears only the recording: events, clock and learned tables. An
+/// address lease is network state the device still holds, not capture state,
+/// so it survives.
+#[test]
+fn reset_sim_clears_the_capture_but_keeps_dhcp_leases() {
+    let mut ws = Workspace::new();
+    ws.set_dhcp_pool("server0", "192.168.2.0", 24, "192.168.2.1", "8.8.8.8").unwrap();
+    let pc = ws.add("PC-PT", 600.0, 200.0).unwrap();
+    ws.link(&pc, "switch1").unwrap();
+    let lease = ws.acquire_dhcp(&pc).unwrap();
+    ws.send_pdu("pc0", "pc2").unwrap();
+    assert!(!ws.events.is_empty());
+    assert!(!ws.tables.macs.is_empty());
+
+    ws.reset_sim();
+    assert!(ws.events.is_empty());
+    assert_eq!(ws.next_event, 0);
+    assert_eq!(ws.sim_time, 0.0);
+    assert!(ws.tables.macs.is_empty() && ws.tables.arps.is_empty());
+    assert_eq!(ws.dhcp_leases.get("server0"), Some(&vec![lease.ip]));
+    let d = ws.devices.iter().find(|d| d.id == pc).unwrap();
+    assert_eq!(d.ip, Some(lease.ip), "the client keeps its leased address");
+}
+
+#[test]
+fn the_two_step_regency_demo_captures_both_pairs_in_order() {
+    let (_, text) = TEMPLATES.iter().find(|(name, _)| *name == "tpl-l8-regency-radio").unwrap();
+    let mut ws = Workspace::from_tnet(text).unwrap();
+    assert_eq!(ws.run_demo().unwrap(), 2);
+    let starts_at = |id: &str| {
+        ws.events.iter().position(|e| e.proto == "ICMP" && e.path.first().map(String::as_str) == Some(id))
+    };
+    let first = starts_at("pc0").expect("pc0 ping captured");
+    let second = starts_at("pc1").expect("pc1 ping captured");
+    assert!(first < second, "steps are captured in template order");
+    for index in [first, second] {
+        assert_eq!(ws.events[index].path.last().map(String::as_str), Some("server0"));
+    }
+}
+
 #[test]
 fn an_unknown_kind_and_a_failing_request_are_reported_not_swallowed() {
     let unknown = TEMPLATES[0].1.replace("kind=\"ping\"", "kind=\"telepathy\"");

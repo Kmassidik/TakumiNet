@@ -87,6 +87,9 @@ async function api(path, params = {}) {
   if (res.error) {
     status(res.error, true);
     sfx('errorMsg');
+    /* A half-failed capture run still returns the workspace, so the events
+       recorded before the failing step appear instead of vanishing. */
+    if (Array.isArray(res.devices)) setData(res);
     return res;
   }
   setData(res);

@@ -117,6 +117,9 @@ where
 }
 
 /// A dropped PDU is both an API error and a successful capture mutation.
+/// Such a half-failed run keeps its new events and answers with the updated
+/// workspace plus an `error` field, so the page can render what was captured
+/// while it shows the message.
 fn apply_capture<F>(ctx: &Ctx, f: F) -> (String, bool)
 where
     F: FnOnce(&mut Workspace) -> Result<(), String>,
@@ -140,7 +143,12 @@ where
                 hist.undo.remove(0);
             }
             hist.redo.clear();
-            (json_error(&e), false)
+            let mut out = ws.json();
+            out.pop();
+            out.push_str(",\"error\":");
+            out.push_str(&json_str(&e));
+            out.push('}');
+            (out, false)
         }
         Err(e) => {
             *ws = backup;
@@ -262,6 +270,22 @@ mod tests {
         assert_eq!(ctype, "application/vnd.tcpdump.pcap");
         assert_eq!(&pcap[..4], &0xa1b2c3d4u32.to_le_bytes());
         assert!(pcap.len() > 24 + 42);
+    }
+
+    #[test]
+    fn a_half_failed_demo_returns_the_workspace_with_its_events_plus_the_error() {
+        let ctx = context();
+        let broken = include_str!("../../web/templates/tpl-l8-regency-radio.xml")
+            .replace("from=\"pc1\"", "from=\"pc9\"");
+        *ctx.ws.lock().unwrap() = Workspace::from_tnet(&broken).unwrap();
+        let (ctype, body) = device_routes::route(&ctx, "POST", "/api/demo", "").unwrap();
+        assert_eq!(ctype, "application/json");
+        let body = String::from_utf8(body).unwrap();
+        assert!(body.contains("\"error\":"), "{body}");
+        assert!(body.contains("pc9"), "{body}");
+        assert!(body.contains("\"devices\":["), "the reply carries the full workspace: {body}");
+        assert!(body.contains("\"proto\":\"ICMP\""), "the first step's events are included: {body}");
+        assert!(!ctx.ws.lock().unwrap().events.is_empty(), "the partial capture is kept");
     }
 
     #[test]
