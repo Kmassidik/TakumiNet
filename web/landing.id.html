@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Takumi: lab jaringan gratis di browser</title>
+<meta name="description" content="Bangun jaringan dengan router, switch, dan komputer, lalu ikuti setiap paket. Gratis, tanpa akun, dan bisa dipakai offline di browser.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#ffffff">
+<meta name="author" content="Kurnia Massidik">
+<link rel="canonical" href="{{SITE_URL}}/id">
+<link rel="alternate" hreflang="en" href="{{SITE_URL}}/">
+<link rel="alternate" hreflang="id" href="{{SITE_URL}}/id">
+<link rel="alternate" hreflang="x-default" href="{{SITE_URL}}/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Takumi">
+<meta property="og:title" content="Takumi: lab jaringan gratis di browser">
+<meta property="og:description" content="Bangun jaringan dengan router, switch, dan komputer, lalu ikuti setiap paket. Gratis, tanpa akun, dan bisa dipakai offline di browser.">
+<meta property="og:url" content="{{SITE_URL}}/id">
+<meta property="og:locale" content="id_ID">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:image" content="{{SITE_URL}}/landing/og-id.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Takumi si beruang di samping tulisan Takumi, lab jaringan di browser">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@KMassidik">
+<meta name="twitter:title" content="Takumi: lab jaringan gratis di browser">
+<meta name="twitter:description" content="Bangun jaringan dengan router, switch, dan komputer, lalu ikuti setiap paket. Gratis, tanpa akun, dan bisa dipakai offline di browser.">
+<meta name="twitter:image" content="{{SITE_URL}}/landing/og-id.png">
+<link rel="icon" type="image/webp" href="/art3d/mascot/idle.webp">
+<link rel="preload" as="image" href="/landing/takumi-wave.webp" type="image/webp" fetchpriority="high">
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/landing.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{SITE_URL}}/#site",
+      "name": "Takumi",
+      "url": "{{SITE_URL}}/id",
+      "inLanguage": "id"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "{{SITE_URL}}/#app",
+      "name": "Takumi",
+      "url": "{{SITE_URL}}/id",
+      "description": "Lab jaringan gratis di browser: bangun jaringan, ikuti setiap paket, dan periksa hasilmu lewat pelajaran terpandu.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any (web browser)",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "inLanguage": "id",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "image": "{{SITE_URL}}/landing/og-id.png",
+      "author": {
+        "@type": "Person",
+        "name": "Kurnia Massidik",
+        "url": "https://x.com/KMassidik",
+        "sameAs": [
+          "https://x.com/KMassidik",
+          "https://github.com/Kmassidik"
+        ]
+      },
+      "codeRepository": "https://github.com/Kmassidik/TakumiNet"
+    },
+    {
+      "@type": "FAQPage",
+      "inLanguage": "id",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Apakah Takumi gratis?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ya. Takumi gratis dipakai dan open source dengan lisensi MIT."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Perlu akun atau instalasi?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tidak. Buka di browser dan langsung mulai membangun. Tidak ada yang perlu dipasang."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Apakah bisa dipakai offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bisa. Setelah kunjungan pertama, halaman, mesin jaringan, dan gambar-gambarnya tersimpan di browser, jadi tetap berjalan tanpa koneksi."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Di mana jaringan saya disimpan?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Di komputer kamu sendiri. Simpan jaringan sebagai file .xml lalu buka lagi nanti. Tidak ada yang diunggah."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Bisakah dipakai untuk mengajar di kelas?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bisa. Pelajaran terpandu dan contoh jaringan dibuat untuk ruang kelas, dan jaringan apa pun bisa dibagikan sebagai file .xml."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Langsung ke isi halaman</a>
+<header class="top">
+  <a class="brand" href="/id"><img src="/art3d/mascot/idle.webp" alt="" width="34" height="34">Takumi</a>
+  <nav aria-label="Site">
+    <a href="/id/about">Tentang</a>
+    <a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">GitHub</a>
+    <a class="lang" href="/" hreflang="en" lang="en" title="English">EN</a>
+    <a class="pill solid small only-computer" href="/workspace">Buka workspace</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <h1>Bangun jaringan dan lihat cara kerjanya.</h1>
+    <p class="lede">Lab jaringan gratis di browser. Pasang router, switch, dan komputer, tarik kabel di antaranya, lalu ikuti setiap paket dari satu perangkat ke perangkat berikutnya.</p>
+    <p class="actions only-computer">
+      <a class="pill solid" href="/workspace">Buka workspace</a>
+      <a class="pill line" href="/workspace?open=tpl-routed">Coba dua jaringan dan satu router</a>
+    </p>
+    <p class="phone-note">Workspace butuh komputer atau tablet. Buka halaman ini di sana untuk mulai membangun.</p>
+
+    <div class="peek">
+      <div class="slot slot-hero"><img src="/landing/takumi-wave.webp" alt="Takumi si beruang melambaikan tangan" width="512" height="512" fetchpriority="high"></div>
+      <div class="card hard cap-card">
+        <table class="cap" aria-label="Example captured packets">
+          <thead><tr><th>Waktu</th><th>Dari</th><th>Di</th><th>Tipe</th><th>Info</th></tr></thead>
+          <tbody>
+            <tr><td>0.003</td><td>PC0</td><td>Router0</td><td class="t-arp">ARP</td><td>PC0 bertanya siapa pemilik 192.168.1.1</td></tr>
+            <tr><td>0.006</td><td>Router0</td><td>PC0</td><td class="t-arp">ARP</td><td>Router0 menjawab dengan alamatnya</td></tr>
+            <tr class="now"><td>0.009</td><td>PC0</td><td>PC3</td><td class="t-icmp">ICMP</td><td>Permintaan echo tiba dengan TTL 127</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="block ink" aria-labelledby="wire">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="wire">Rangkai jaringan</h2>
+        <p>Pilih kategori, seret perangkat ke kanvas, lalu hubungkan dua perangkat dengan kabel yang tepat: copper straight-through, crossover, serial, fiber, atau console. Atur alamat di jendela perangkat, seperti di perangkat sungguhan.</p>
+        <div class="card flat tiles" aria-hidden="true">
+          <div class="tabs"><span>Router</span><span>Switch</span><span class="on">Perangkat akhir</span><span>Nirkabel</span></div>
+          <div class="tilerow">
+            <span><img src="/art3d/devices/pc.webp" alt="" width="40" height="40" loading="lazy">PC-PT</span>
+            <span><img src="/art3d/devices/laptop.webp" alt="" width="40" height="40" loading="lazy">Laptop</span>
+            <span><img src="/art3d/devices/server.webp" alt="" width="40" height="40" loading="lazy">Server</span>
+            <span><img src="/art3d/devices/printer.webp" alt="" width="40" height="40" loading="lazy">Printer</span>
+          </div>
+        </div>
+      </div>
+      <div class="slot"><img src="/landing/takumi-idle.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
+    </div>
+  </section>
+
+  <section class="block teal" aria-labelledby="follow">
+    <div class="block-grid flip">
+      <div class="slot"><img src="/landing/takumi-think.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
+      <div class="say">
+        <h2 id="follow">Ikuti paketnya</h2>
+        <p>Tekan Play dan setiap perangkat mengambil keputusannya satu per satu: ARP, DNS, ping, halaman web. Buka frame mana pun untuk melihat lapisan dan byte-nya, lalu saring daftar berdasarkan protokol.</p>
+        <div class="card flat" aria-hidden="true">
+          <table class="mini">
+            <thead><tr><th>Waktu</th><th>Perangkat asal</th><th>Di perangkat</th><th>Tipe</th></tr></thead>
+            <tbody>
+              <tr><td>0.003</td><td>PC0</td><td>Switch0</td><td class="t-dns">DNS</td></tr>
+              <tr><td>0.007</td><td>Switch0</td><td>Server0</td><td class="t-arp">ARP</td></tr>
+              <tr class="now"><td>0.011</td><td>PC0</td><td>Server0</td><td class="t-http">HTTP</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block grey" aria-labelledby="check">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="check">Periksa hasilmu</h2>
+        <p>Pelajaran terpandu memberi langkah yang harus dikerjakan, dan pemeriksaan yang membaca jaringan secara langsung. Saat ada yang gagal, kamu melihat apa yang diharapkan, apa yang terjadi, dan petunjuknya.</p>
+        <ul class="card flat checks" aria-hidden="true">
+          <li class="pass"><span></span>PC0 menjangkau PC3 lewat Router0</li>
+          <li class="pass"><span></span>Router menurunkan TTL yang sampai menjadi 127</li>
+          <li class="todo"><span></span>Router0 punya prefix yang terhubung di sisi kiri<small>Belum diperiksa</small></li>
+        </ul>
+      </div>
+      <div class="slot"><img src="/landing/takumi-happy.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
+    </div>
+  </section>
+
+  <section class="start" aria-labelledby="start">
+    <h2 id="start">Mulai dari jaringan yang sudah jalan</h2>
+    <div class="lists">
+      <div class="card hard">
+        <h3>Contoh jaringan</h3>
+        <ul>
+          <li><a href="/workspace?open=tpl-connect"><strong>Dua komputer</strong><span>PC0 dan PC1 di satu kabel, siap di-ping</span></a></li>
+          <li><a href="/workspace?open=tpl-star"><strong>Tiga komputer pada satu switch</strong><span>PC0, PC1, dan PC2 siap saling bicara lewat Switch0</span></a></li>
+          <li><a href="/workspace?open=tpl-home"><strong>Jaringan rumah</strong><span>Laptop0 dan PC0 membuka halaman web Server0</span></a></li>
+          <li><a href="/workspace?open=tpl-routed"><strong>Dua jaringan dan satu router</strong><span>PC0 menjangkau PC3 lewat Router0</span></a></li>
+          <li><a href="/workspace?open=tpl-web"><strong>Website lewat nama</strong><span>PC0 mencari www.takumi.lab lalu membuka situsnya</span></a></li>
+        </ul>
+      </div>
+      <div class="card hard">
+        <h3>Pelajaran terpandu</h3>
+        <ul>
+          <li><a href="/workspace?open=t1"><strong>Hubungkan dua komputer</strong><span>PC0 bisa me-ping PC1</span></a></li>
+          <li><a href="/workspace?open=t2"><strong>Jaringan bintang dengan switch</strong><span>Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka</span></a></li>
+          <li><a href="/workspace?open=t3"><strong>Jaringan rumah dengan alamat otomatis</strong><span>Komputer meminjam alamat, lalu membuka halaman web</span></a></li>
+          <li><a href="/workspace?open=t4"><strong>Dua jaringan dihubungkan router</strong><span>Jangkau PC3 lewat Router0 dengan TTL 127</span></a></li>
+          <li><a href="/workspace?open=t5"><strong>Buka website lewat nama</strong><span>Cari www.takumi.lab lalu buka websitenya</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="start faq" aria-labelledby="faq">
+    <h2 id="faq">Pertanyaan yang sering muncul</h2>
+    <div class="faq-list">
+        <details><summary>Apakah Takumi gratis?</summary><p>Ya. Takumi gratis dipakai dan open source dengan lisensi MIT.</p></details>
+        <details><summary>Perlu akun atau instalasi?</summary><p>Tidak. Buka di browser dan langsung mulai membangun. Tidak ada yang perlu dipasang.</p></details>
+        <details><summary>Apakah bisa dipakai offline?</summary><p>Bisa. Setelah kunjungan pertama, halaman, mesin jaringan, dan gambar-gambarnya tersimpan di browser, jadi tetap berjalan tanpa koneksi.</p></details>
+        <details><summary>Di mana jaringan saya disimpan?</summary><p>Di komputer kamu sendiri. Simpan jaringan sebagai file .xml lalu buka lagi nanti. Tidak ada yang diunggah.</p></details>
+        <details><summary>Bisakah dipakai untuk mengajar di kelas?</summary><p>Bisa. Pelajaran terpandu dan contoh jaringan dibuat untuk ruang kelas, dan jaringan apa pun bisa dibagikan sebagai file .xml.</p></details>
+    </div>
+  </section>
+
+  <section class="block ink free" aria-labelledby="free">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="free">Gratis, dan bebas kamu ubah</h2>
+        <p>Takumi berjalan sepenuhnya di browser, jadi jaringanmu tetap ada di komputermu. Tidak perlu akun, dan bisa dipakai offline setelah selesai dimuat. Mesin, antarmuka, dan semua gambarnya adalah karya orisinal, dirilis dengan lisensi MIT. Siapa pun boleh mengirim pull request atau membuat versinya sendiri.</p>
+        <p class="actions">
+          <a class="pill solid brand only-computer" href="/workspace">Buka workspace</a>
+          <a class="pill line light" href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">Kode di GitHub</a>
+          <a class="pill line light" href="https://x.com/KMassidik" rel="noopener noreferrer">Ikuti pembuatnya di X</a>
+        </p>
+      </div>
+      <div class="slot"><img src="/landing/takumi-wave.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>Kode, gambar, dan suara orisinal.</span>
+  <a href="/id/about">Tentang Takumi</a>
+  <span>Lisensi MIT, 2026 Kurnia Massidik</span>
+</footer>
+</body>
+</html>

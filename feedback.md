@@ -672,3 +672,18 @@ Owner: "change the name into Takumi only, not TakumiNet, check all".
 - The offline cache is now named `Takumi-v1`. Caches made under the old name are cleared when the new service worker starts.
 - The package is `takumi-web` and the Docker image is `takumi`.
 - Not renamed on purpose: the GitHub address `github.com/Kmassidik/TakumiNet` (that is the real repository name; rename the repository on GitHub first and then the links), the local folder name, the Rust crate (`pt-web`), and the old session handle named in the planning notes.
+
+## F27. Proper landing pages: search tags, English and Indonesian (done, 2026-11-04)
+
+Owner: "dont forget SEO en/id, lets go build proper landing pages".
+
+- **Four public pages:** `/` and `/about` in English, `/id` and `/id/about` in Indonesian. They are written by one template (`tools/landing/build_pages.py`) with one set of words per language, so the two languages cannot drift apart. A test fails if a page on disk is not what the template makes.
+- **Search tags on every page:** a title under 60 characters, a description of 70 to 165, a canonical address, `hreflang` links for English, Indonesian and `x-default`, Open Graph and Twitter cards (1200 x 630 picture in the page's own language), `robots`, and structured data: WebSite, SoftwareApplication (free, MIT, author) and, on the landing pages, FAQPage; on About, AboutPage. No ratings or reviews are invented.
+- **New landing section:** five plain questions and answers, in both languages, whose text is exactly what the structured data says.
+- **Files for crawlers:** `/robots.txt` (keeps `/api/` and `/workspace` out) and `/sitemap.xml` (the four pages, each pointing at both languages). The workspace page has `noindex`.
+- **Site address:** canonical links, cards and the sitemap need an absolute address. Set `SITE_URL` (for example `https://takumi.example`) when running the server; without it the pages use `http://localhost:<PORT>`. **Owner decision needed: the real domain.**
+- **Social pictures:** `tools/landing/make_og.py` draws `og-en.png` and `og-id.png` from the mascot picture and a system font.
+- **Accessibility and speed:** skip link, one heading per page, sized pictures, the hero picture loads first, the rest load lazily, the questions are plain `<details>`.
+- **Indonesian copy:** written in everyday Indonesian ("kamu"); worth a read by a native speaker before launch.
+- **Not done:** the workspace itself is English only; there is no automatic language choice from the browser setting (visitors switch with the EN/ID button).
+- **Tests:** `tests/ts/landing.test.ts` (42 checks across the four pages), `e2e_public_pages_are_ready_for_search_in_english_and_indonesian`, `tests/bend/seo_pairs.bend`.

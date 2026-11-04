@@ -3,28 +3,105 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>About Takumi</title>
-<meta name="description" content="Takumi is a free network lab that runs in your browser. One person builds it and anyone can change it.">
+<title>About Takumi: a free, open source network lab</title>
+<meta name="description" content="Takumi is a free network lab that runs in your browser. One person builds it and anyone can change it. Open source under the MIT licence.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#ffffff">
+<meta name="author" content="Kurnia Massidik">
+<link rel="canonical" href="{{SITE_URL}}/about">
+<link rel="alternate" hreflang="en" href="{{SITE_URL}}/about">
+<link rel="alternate" hreflang="id" href="{{SITE_URL}}/id/about">
+<link rel="alternate" hreflang="x-default" href="{{SITE_URL}}/about">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Takumi">
+<meta property="og:title" content="About Takumi: a free, open source network lab">
+<meta property="og:description" content="Takumi is a free network lab that runs in your browser. One person builds it and anyone can change it. Open source under the MIT licence.">
+<meta property="og:url" content="{{SITE_URL}}/about">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="id_ID">
+<meta property="og:image" content="{{SITE_URL}}/landing/og-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Takumi the bear next to the words Takumi, a network lab in your browser">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@KMassidik">
+<meta name="twitter:title" content="About Takumi: a free, open source network lab">
+<meta name="twitter:description" content="Takumi is a free network lab that runs in your browser. One person builds it and anyone can change it. Open source under the MIT licence.">
+<meta name="twitter:image" content="{{SITE_URL}}/landing/og-en.png">
 <link rel="icon" type="image/webp" href="/art3d/mascot/idle.webp">
+<link rel="preload" as="image" href="/landing/takumi-wave.webp" type="image/webp" fetchpriority="high">
 <link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/landing.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{SITE_URL}}/#site",
+      "name": "Takumi",
+      "url": "{{SITE_URL}}/about",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "{{SITE_URL}}/#app",
+      "name": "Takumi",
+      "url": "{{SITE_URL}}/about",
+      "description": "A free network lab in the browser: build networks, follow every packet, and check your work with guided lessons.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any (web browser)",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "inLanguage": "en",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "image": "{{SITE_URL}}/landing/og-en.png",
+      "author": {
+        "@type": "Person",
+        "name": "Kurnia Massidik",
+        "url": "https://x.com/KMassidik",
+        "sameAs": [
+          "https://x.com/KMassidik",
+          "https://github.com/Kmassidik"
+        ]
+      },
+      "codeRepository": "https://github.com/Kmassidik/TakumiNet"
+    },
+    {
+      "@type": "AboutPage",
+      "name": "About Takumi: a free, open source network lab",
+      "url": "{{SITE_URL}}/about",
+      "inLanguage": "en",
+      "about": {
+        "@id": "{{SITE_URL}}/#app"
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <a class="brand" href="/"><img src="/art3d/mascot/idle.webp" alt="" width="34" height="34">Takumi</a>
   <nav aria-label="Site">
     <a href="/">Home</a>
     <a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">GitHub</a>
+    <a class="lang" href="/id/about" hreflang="id" lang="id" title="Bahasa Indonesia">ID</a>
     <a class="pill solid small only-computer" href="/workspace">Open the workspace</a>
   </nav>
 </header>
 
-<main>
+<main id="main">
   <section class="hero">
     <h1>About Takumi</h1>
     <p class="lede">A free network lab that runs in your browser. No account, no install. One person builds it, and anyone can change it.</p>
     <div class="peek">
-      <div class="slot slot-hero"><img src="/landing/takumi-wave.webp" alt="Takumi the bear waving hello" width="512" height="512"></div>
+      <div class="slot slot-hero"><img src="/landing/takumi-wave.webp" alt="Takumi the bear waving hello" width="512" height="512" fetchpriority="high"></div>
     </div>
   </section>
 
@@ -34,13 +111,13 @@
         <h2 id="why">Why it exists</h2>
         <p>Learning how networks work should not need an account, an installer or a licence key. Takumi opens in a browser tab, works offline after your first visit, and keeps your networks on your own computer.</p>
       </div>
-      <div class="slot"><img src="/landing/takumi-idle.webp" alt="" width="512" height="512"></div>
+      <div class="slot"><img src="/landing/takumi-idle.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
   <section class="block teal" aria-labelledby="who">
     <div class="block-grid flip">
-      <div class="slot"><img src="/landing/takumi-think.webp" alt="" width="512" height="512"></div>
+      <div class="slot"><img src="/landing/takumi-think.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
       <div class="say">
         <h2 id="who">Who makes it</h2>
         <p>Takumi is built and looked after by Kurnia Massidik. Found a bug or have an idea? Say hello on X, or open an issue on GitHub.</p>
@@ -59,7 +136,7 @@
         <p>Open source under the MIT licence. Fork it and build your own version, or send a pull request and help make this one better.</p>
         <p class="actions left"><a class="pill solid" href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">Read the code</a></p>
       </div>
-      <div class="slot"><img src="/landing/takumi-happy.webp" alt="" width="512" height="512"></div>
+      <div class="slot"><img src="/landing/takumi-happy.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
     </div>
   </section>
 

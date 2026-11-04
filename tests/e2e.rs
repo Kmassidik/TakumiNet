@@ -1163,3 +1163,56 @@ fn e2e_landing_page_sends_people_into_the_workspace() {
     assert!(workspace.contains("Simulation Panel"), "the workspace lives at /workspace");
     assert_eq!(s.get("/workspace/").0, 404);
 }
+
+#[test]
+fn e2e_public_pages_are_ready_for_search_in_english_and_indonesian() {
+    let s = spawn(38_246);
+
+    for (path, lang, canonical_end) in [("/", "en", "/"), ("/id", "id", "/id"), ("/about", "en", "/about"), ("/id/about", "id", "/id/about")] {
+        let (status, head, body) = s.get(path);
+        assert_eq!(status, 200, "{path}");
+        assert!(head.contains("text/html"), "{path}: {head}");
+        assert!(body.contains(&format!("<html lang=\"{lang}\">")), "{path}");
+        assert!(!body.contains("{{SITE_URL}}"), "{path}: the site address must be filled in before sending");
+        let canonical = body.split("<link rel=\"canonical\" href=\"").nth(1).and_then(|r| r.split('"').next()).unwrap_or("");
+        assert!(canonical.starts_with("http://localhost:") && canonical.ends_with(canonical_end), "{path}: {canonical}");
+        assert!(body.contains("hreflang=\"x-default\""), "{path}");
+        assert!(body.contains("application/ld+json"), "{path}");
+        assert!(!body.contains(".html\""), "{path}: no address may end in .html");
+    }
+    assert_eq!(s.get("/id/").0, 404);
+    assert_eq!(s.get("/id/about/").0, 404);
+
+    // The Indonesian page is in Indonesian and the English one is not.
+    assert!(s.get("/id").2.contains("Bangun jaringan dan lihat cara kerjanya."));
+    assert!(s.get("/").2.contains("Build a network and watch it work."));
+
+    // The picture used when a link is shared exists for both languages.
+    for lang in ["en", "id"] {
+        let (status, head, png) = s.get_raw(&format!("/landing/og-{lang}.png"));
+        assert_eq!(status, 200, "og-{lang}");
+        assert!(head.contains("image/png"), "{head}");
+        assert!(png.starts_with(b"\x89PNG"), "og-{lang} is not a PNG");
+    }
+
+    // robots.txt keeps the app and the API out of search, and names the sitemap.
+    let (status, head, robots) = s.get("/robots.txt");
+    assert_eq!(status, 200);
+    assert!(head.contains("text/plain"), "{head}");
+    assert!(robots.contains("Disallow: /api/") && robots.contains("Disallow: /workspace"), "{robots}");
+    assert!(robots.contains("Sitemap: http://localhost:") && robots.contains("/sitemap.xml"), "{robots}");
+
+    // The sitemap lists all four pages, each pointing at both language versions.
+    let (status, head, sitemap) = s.get("/sitemap.xml");
+    assert_eq!(status, 200);
+    assert!(head.contains("xml"), "{head}");
+    assert_eq!(sitemap.matches("<loc>").count(), 4, "{sitemap}");
+    for path in ["/", "/id", "/about", "/id/about"] {
+        assert!(sitemap.contains(&format!("{path}</loc>")), "{path} missing from the sitemap");
+    }
+    assert_eq!(sitemap.matches("hreflang=\"x-default\"").count(), 4);
+    assert!(!sitemap.contains("/workspace") && !sitemap.contains("/api/"));
+
+    // The app page itself is not offered to search engines.
+    assert!(s.get("/workspace").2.contains("noindex"));
+}

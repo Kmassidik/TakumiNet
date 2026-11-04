@@ -36,9 +36,22 @@ pub struct Ctx {
     topo: Topology,
     #[cfg(not(target_arch = "wasm32"))]
     web_root: String,
+    /// The public address of this site, used in canonical links, social cards and the sitemap.
+    /// Set `SITE_URL` (for example `https://takumi.example`); the default points at this machine.
+    #[cfg(not(target_arch = "wasm32"))]
+    site_url: String,
     ws: Arc<Mutex<Workspace>>,
     hist: Arc<Mutex<History>>,
     cli: Arc<Mutex<std::collections::HashMap<String, CliSession>>>,
+}
+
+/// `SITE_URL` without a trailing slash, or `http://localhost:<PORT>` when it is not set.
+#[cfg(not(target_arch = "wasm32"))]
+fn site_url_from_env() -> String {
+    match std::env::var("SITE_URL") {
+        Ok(url) if !url.trim().is_empty() => url.trim().trim_end_matches('/').to_string(),
+        _ => format!("http://localhost:{}", std::env::var("PORT").unwrap_or_else(|_| "3000".to_string())),
+    }
 }
 
 impl Ctx {
@@ -49,6 +62,8 @@ impl Ctx {
             topo: demo(),
             #[cfg(not(target_arch = "wasm32"))]
             web_root: web_root.to_string(),
+            #[cfg(not(target_arch = "wasm32"))]
+            site_url: site_url_from_env(),
             ws: Arc::new(Mutex::new(Workspace::new())),
             hist: Arc::new(Mutex::new(History::default())),
             cli: Arc::new(Mutex::new(std::collections::HashMap::new())),

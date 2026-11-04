@@ -7,6 +7,8 @@ const PRECACHE_URLS = Object.freeze([
   '/',
   '/workspace',
   '/about',
+  '/id',
+  '/id/about',
   '/tokens.css',
   '/landing.css',
   '/landing/takumi-idle.webp',
