@@ -23,6 +23,7 @@ mod balancer;
 mod bgp;
 mod collapse;
 mod flow;
+mod host_firewall;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -60,6 +61,7 @@ mod wireless;
 
 pub use bgp::*;
 pub use route_types::*;
+pub use host_firewall::*;
 pub use sniffer::*;
 pub use types::*;
 use palette::*;
@@ -82,6 +84,7 @@ impl Workspace {
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
                 port_forwards: HashMap::new(),
+                host_firewalls: HashMap::new(),
                 demands: HashMap::new(),
                 queues: HashMap::new(),
                 queue_parent: HashMap::new(),
@@ -282,6 +285,7 @@ impl Workspace {
         self.tables.forget(id);
         self.routing.remove(id);
         self.bgp.remove(id);
+        self.host_firewalls.remove(id);
         self.recompute_routing();
         true
     }
@@ -305,6 +309,7 @@ impl Workspace {
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
                 port_forwards: HashMap::new(),
+                host_firewalls: HashMap::new(),
                 demands: HashMap::new(),
                 queues: HashMap::new(),
                 queue_parent: HashMap::new(),

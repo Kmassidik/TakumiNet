@@ -17,21 +17,22 @@ fn handle_cmd(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let id = query_value(query, "id").unwrap_or_default();
     let line = query_value(query, "line").unwrap_or_default();
     let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
-    let trimmed = line.trim_start();
-    let head = trimmed.get(..7).unwrap_or("");
-    if head.eq_ignore_ascii_case("telnet ") {
-        let (output, peer) = crate::cmd::telnet(&mut ws, &id, trimmed[7..].trim());
+    let words: Vec<&str> = line.split_whitespace().collect();
+    let verb = words.first().map(|w| w.to_ascii_lowercase()).unwrap_or_default();
+    if matches!(verb.as_str(), "telnet" | "ssh" | "console") {
+        let (output, peer) = crate::cmd::connect(&mut ws, &id, &verb, &words[1..]);
         let peer = match peer {
             Some(p) => format!(",\"peer\":{}", json_str(&p)),
             None => String::new(),
         };
         (
             json,
-            format!("{{\"output\":{}{}}}", json_str(&output), peer).into_bytes(),
+            format!("{{\"output\":{}{},\"prompt\":{}}}", json_str(&output), peer, json_str(&crate::cmd::prompt(&ws, &id))).into_bytes(),
         )
     } else {
         let output = crate::cmd::run(&mut ws, &id, &line);
-        (json, format!("{{\"output\":{}}}", json_str(&output)).into_bytes())
+        let prompt = crate::cmd::prompt(&ws, &id);
+        (json, format!("{{\"output\":{},\"prompt\":{}}}", json_str(&output), json_str(&prompt)).into_bytes())
     }
 }
 

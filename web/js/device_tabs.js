@@ -39,12 +39,10 @@ function tabDesktop(pane, d) {
     app.appendChild(span);
     app.onclick = () => {
       if (action === 'ipconfig') openIpDialog(d);
-      else if (action === 'cmd') openCmd(d);
       else if (action === 'term') openTerm(d);
       else if (action === 'browser') openBrowser(d);
       else if (action === 'wifi') openWifiApp(d);
       else if (action === 'editor') openEditor(d);
-      else if (action === 'firewall') openFirewall(d);
       else if (action === 'capture') openCapture(d);
     };
     desk.appendChild(app);
@@ -199,7 +197,7 @@ function tabConfig(pane, d) {
 function tabCli(pane, d) {
   const box = document.createElement('div');
   box.className = 'dw-cli';
-  box.innerHTML = '<pre class="dw-cli-out"></pre><div class="dw-cli-line"><span class="dw-cli-prompt"></span><input class="dw-cli-in" aria-label="Console input"></div>';
+  box.innerHTML = '<pre class="dw-cli-out"></pre><div class="dw-cli-line"><span class="dw-cli-prompt"></span><input class="dw-cli-in" aria-label="Console input"><button class="btn dw-cli-help" title="Modes and commands to start with">Help</button></div>';
   pane.appendChild(box);
   const out = box.querySelector('.dw-cli-out');
   const promptEl = box.querySelector('.dw-cli-prompt');
@@ -223,5 +221,6 @@ function tabCli(pane, d) {
       out.textContent += 'The console did not answer.\n';
     }
   };
+  box.querySelector('.dw-cli-help').onclick = () => openCliHelp((code) => { input.value = code; input.focus(); });
   input.focus();
 }

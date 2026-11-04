@@ -326,6 +326,8 @@ pub struct Workspace {
     pub dhcp_pools: HashMap<String, Pool>,
     /// Port forwards on a home router: (outside port, inside device, inside port).
     pub port_forwards: HashMap<String, Vec<(u16, String, u16)>>,
+    /// The ufw firewall of each end device.
+    pub host_firewalls: HashMap<String, HostFirewall>,
     /// What each home pulls, in Mbit/s, for the queue model.
     pub demands: HashMap<String, u32>,
     /// Per-customer limits on a gateway, by login name.

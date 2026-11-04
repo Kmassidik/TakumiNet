@@ -243,12 +243,63 @@ fn help_documents_the_new_options() {
     let mut ws = Workspace::new();
     let out = run(&mut ws, "pc0", "help");
     for needle in [
-        "ipconfig /release",
+        "ipconfig [/release | /renew]",
         "ping [-n N]",
         "tracert [-h N]",
-        "arp -d",
+        "arp -a | arp -d",
         "route print",
+        "sudo ufw",
     ] {
         assert!(out.contains(needle), "{needle} missing: {out}");
     }
+}
+
+#[test]
+fn every_command_explains_itself() {
+    let mut ws = Workspace::new();
+    for entry in help::COMMANDS {
+        let out = run(&mut ws, "pc0", &format!("{} --help", entry.name));
+        assert!(run(&mut ws, "pc0", &format!("{} /?", entry.name)).contains("Usage:"));
+        assert!(out.contains("Usage:"), "{} --help: {out}", entry.name);
+        assert!(out.contains(entry.summary), "{} --help: {out}", entry.name);
+    }
+    for alias in ["ifconfig", "traceroute", "ss", "cls"] {
+        assert!(help::is_known(alias), "{alias}");
+        assert!(run(&mut ws, "pc0", &format!("{alias} --help")).contains("Usage:"));
+    }
+    assert!(run(&mut ws, "pc0", "ping /?").contains("Usage: ping"));
+}
+
+#[test]
+fn the_prompt_names_the_device_and_its_address() {
+    let ws = Workspace::new();
+    assert_eq!(prompt(&ws, "pc0"), "PC0@192.168.1.10:~$");
+}
+
+#[test]
+fn whoami_hostname_and_ip_read_the_device() {
+    let mut ws = Workspace::new();
+    assert_eq!(run(&mut ws, "pc0", "hostname"), "PC0\n");
+    assert_eq!(run(&mut ws, "pc0", "whoami"), "user\n");
+    assert_eq!(run(&mut ws, "pc0", "sudo whoami"), "root\n");
+    let addr = run(&mut ws, "pc0", "ip addr");
+    assert!(addr.contains("inet 192.168.1.10/24"), "{addr}");
+    let route = run(&mut ws, "pc0", "ip route");
+    assert!(route.contains("default via 192.168.1.1"), "{route}");
+    assert!(run(&mut ws, "pc0", "ping -c 1 192.168.1.11").contains("TTL=128"));
+    assert!(run(&mut ws, "pc0", "ip bogus").starts_with("Usage: ip"));
+}
+
+#[test]
+fn ssh_opens_a_router_session_and_refuses_a_stranger() {
+    let mut ws = Workspace::new();
+    let (text, peer) = connect(&mut ws, "pc0", "ssh", &["admin@192.168.1.1"]);
+    assert!(text.contains("Connected"), "{text}");
+    assert!(peer.is_some());
+    let (text, peer) = connect(&mut ws, "pc0", "ssh", &["10.9.9.9"]);
+    assert!(text.contains("ssh: connect to host 10.9.9.9"), "{text}");
+    assert!(peer.is_none());
+    let (text, peer) = connect(&mut ws, "pc0", "console", &[]);
+    assert!(text.contains("no console cable"), "{text}");
+    assert!(peer.is_none());
 }

@@ -19,6 +19,7 @@ async function cliRequest(path, params) {
 }
 
 async function openTerm(d) {
+  if (!CONSOLE_KINDS.has(d.kind)) return openCmd(d);
   const win = document.getElementById('term-window');
   const out = document.getElementById('term-out');
   const input = document.getElementById('term-in');
@@ -35,27 +36,8 @@ async function openTerm(d) {
   titleEl.textContent = 'Terminal';
   win.addEventListener('dialog-closed', close, { once: true });
 
-  /* A router or switch is its own console; anything else needs a console cable
-     to one, exactly like the real Desktop → Terminal icon. */
-  let target = d;
-  if (!CONSOLE_KINDS.has(d.kind)) {
-    let peer = null;
-    try {
-      peer = await cliRequest('/api/console', { id: d.id });
-    } catch { peer = null; }
-    if (!peer || !peer.peer) {
-      out.textContent = '% No console cable to a router or switch.\n' +
-        '% Pick the Console cable in the palette, then click this device and the router.\n';
-      promptEl.textContent = '>';
-      input.disabled = true;
-      input.onkeydown = null;
-      return;
-    }
-    target = data.devices.find((x) => x.id === peer.peer) || { id: peer.peer, name: peer.name };
-    titleEl.textContent = `Terminal — ${d.name} → ${target.name}`;
-  }
+  const target = d;
   termTarget = target;
-  if (termDevice !== d) return; // closed while resolving
 
   input.disabled = true;
   input.onkeydown = async (e) => {
@@ -95,6 +77,8 @@ async function openTerm(d) {
   };
 
   promptEl.textContent = `${target.name}>`;
+  const help = document.getElementById('term-help');
+  if (help) help.onclick = () => openCliHelp((code) => { input.value = code; input.focus(); });
   input.focus();
   cliRequest('/api/cli', { id: target.id, line: '' }).then((r) => {
     if (termDevice !== d || win.hidden) return;

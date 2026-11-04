@@ -385,11 +385,11 @@
 <div id="cmd-window" class="overlay" hidden>
   <div class="preview cmdwin">
     <div class="devwin-title">
-      <span id="cmd-title">Command Prompt</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
+      <span id="cmd-title">Terminal</span>
+      <span class="dw-btns"><button class="btn" id="cmd-help" title="Show the commands this terminal knows">Help</button><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <pre id="cmd-out" class="cmd-out"></pre>
-    <div class="cmd-line"><span id="cmd-prompt">C:\&gt;</span><input id="cmd-in" autocomplete="off" spellcheck="false"></div>
+    <div class="cmd-line"><span id="cmd-prompt">$</span><input id="cmd-in" autocomplete="off" spellcheck="false"></div>
   </div>
 </div>
 
@@ -397,7 +397,7 @@
   <div class="preview cmdwin termwin">
     <div class="devwin-title">
       <span id="term-title">Terminal</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
+      <span class="dw-btns"><button class="btn" id="term-help" title="Modes and commands to start with">Help</button><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <pre id="term-out" class="cmd-out"></pre>
     <div class="cmd-line"><span id="term-prompt">&gt;</span><input id="term-in" autocomplete="off" spellcheck="false"></div>
@@ -460,16 +460,13 @@
   </div>
 </div>
 
-<div id="firewall-dialog" class="overlay" hidden>
-  <div class="preview firewallwin">
+<div id="cli-help-dialog" class="overlay" hidden>
+  <div class="preview kindwin">
     <div class="devwin-title">
-      <span id="firewall-title">Firewall</span>
+      <span>Command line help</span>
       <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
-    <div class="firewall-body">
-      <div class="meta" id="firewall-note"></div>
-      <pre class="firewall-out" id="firewall-out"></pre>
-    </div>
+    <div class="kw-pane" id="cli-help-body"></div>
   </div>
 </div>
 
@@ -597,6 +594,7 @@
 
 <div id="tip" class="tip" hidden></div>
 <script src="/js/phone.js"></script>
+<script src="/js/cli_help.js"></script>
 <script src="/js/engine.js"></script>
 <script src="/js/state.js"></script>
 <script src="/js/cable_feedback.js"></script>
@@ -631,7 +629,6 @@
 <script src="/js/browser_pages.js"></script>
 <script src="/js/web_apps.js"></script>
 <script src="/js/sniffer_app.js"></script>
-<script src="/js/clients.js"></script>
 <script src="/js/terminal.js"></script>
 <script src="/js/boot.js"></script>
 <script src="/js/recovery.js"></script>

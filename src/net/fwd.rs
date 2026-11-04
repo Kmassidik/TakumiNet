@@ -387,6 +387,11 @@ where
                 note = format!("{} records the frame and passes it on", dev.name);
                 sniff_packet(ws, dev_id, data_started_at + i as f64 * 0.001, src_mac, dst_mac, &packet);
             }
+            _ if i == last && i > 0 => {
+                if let Some(label) = ws.ufw_blocks(dev_id, &packet) {
+                    drop_here!(format!("ufw on {} denied {}", dev.name, label));
+                }
+            }
             _ => {}
         }
 

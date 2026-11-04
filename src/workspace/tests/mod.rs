@@ -17,6 +17,7 @@ mod l7_l8;
 mod l9_l11;
 mod l9_l11_more;
 mod notes;
+mod host_firewall;
 mod persistence;
 mod realtime;
 mod routing;

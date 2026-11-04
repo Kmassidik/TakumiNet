@@ -2,13 +2,10 @@
 const DESKTOP_APPS = [
   ['apps/nic', 'IP Configuration', 'ipconfig'],
   ['apps/terminal', 'Terminal', 'term'],
-  ['apps/cmd', 'Command Prompt', 'cmd'],
   ['apps/browser', 'Web Browser', 'browser'],
   ['apps/wireless', 'Wireless', 'wifi'],
   ['groups/notes', 'Text Editor', 'editor'],
   ['apps/traffic', 'Capture', 'capture'],
-  ['groups/firewall', 'Firewall', 'firewall'],
-  ['groups/firewall6', 'IPv6 Firewall', 'firewall'],
 ];
 
 let dwDevice = null;

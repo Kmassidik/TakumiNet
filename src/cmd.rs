@@ -4,6 +4,12 @@
 use crate::model::ipv4_string;
 use crate::workspace::{Device, Workspace};
 
+mod help;
+mod shell;
+mod ufw;
+
+pub use shell::{connect, prompt};
+
 /// Execute one command line from device `id`.
 pub fn run(ws: &mut Workspace, id: &str, line: &str) -> String {
     let line = line.trim();
@@ -11,13 +17,25 @@ pub fn run(ws: &mut Workspace, id: &str, line: &str) -> String {
         return String::new();
     }
     let mut parts = line.split_whitespace();
-    let verb = parts.next().unwrap_or("").to_ascii_lowercase();
-    let args: Vec<&str> = parts.collect();
+    let mut verb = parts.next().unwrap_or("").to_ascii_lowercase();
+    let mut args: Vec<&str> = parts.collect();
+    let root = verb == "sudo" && !args.is_empty() && !help::wants_help(&verb, &args);
+    if root {
+        verb = args.remove(0).to_ascii_lowercase();
+    }
+    if help::wants_help(&verb, &args) {
+        if let Some(text) = help::command_help(&verb) {
+            return text;
+        }
+    }
+    if let Some(out) = shell::run_extra(ws, id, &verb, &args, root) {
+        return out;
+    }
     let arg = args.first().copied().unwrap_or("");
 
     match verb.as_str() {
-        "ipconfig" if arg.eq_ignore_ascii_case("/release") => ipconfig_release(ws, id),
-        "ipconfig" if arg.eq_ignore_ascii_case("/renew") => match ws.acquire_dhcp(id) {
+        "ipconfig" | "ifconfig" if arg.eq_ignore_ascii_case("/release") => ipconfig_release(ws, id),
+        "ipconfig" | "ifconfig" if arg.eq_ignore_ascii_case("/renew") => match ws.acquire_dhcp(id) {
             Ok(lease) => {
                 let mut out = format!(
                     "Windows IP Configuration\n\nDHCP enabled: Yes\nLease from {}: {}\n\n",
@@ -29,7 +47,7 @@ pub fn run(ws: &mut Workspace, id: &str, line: &str) -> String {
             }
             Err(e) => format!("An error occurred while renewing interface FastEthernet0: {e}\n\n"),
         },
-        "ipconfig" => ipconfig(ws, id),
+        "ipconfig" | "ifconfig" => ipconfig(ws, id),
         "ping" => ping(ws, id, &args),
         "tracert" | "traceroute" => tracert(ws, id, &args),
         "arp" => arp(ws, id, arg),
@@ -38,9 +56,10 @@ pub fn run(ws: &mut Workspace, id: &str, line: &str) -> String {
             _ => bad_option(),
         },
         "nslookup" => nslookup(ws, id, arg),
-        "netstat" => netstat(ws, id),
+        "netstat" | "ss" => netstat(ws, id),
         "telnet" => telnet(ws, id, arg).0,
-        "help" => help(),
+        "help" => help::overview(),
+        "clear" | "cls" => String::new(),
         other => format!(
             "'{other}' is not recognized as an internal or external command,\noperable program or batch file.\n\n"
         ),
@@ -401,11 +420,8 @@ pub fn telnet(ws: &mut Workspace, id: &str, target: &str) -> (String, Option<Str
     }
 }
 
-fn help() -> String {
-    String::from(
-        "Available commands:\n  ipconfig              Show the adapter configuration\n  ipconfig /release     Release the DHCP address\n  ipconfig /renew       Request a DHCP address\n  ping [-n N] <host>    Send ICMP echo requests (default 4, max 20)\n  tracert [-h N] <host> Trace the path, at most N hops (default 30)\n  arp -a                Show the ARP cache\n  arp -d                Clear the ARP cache\n  route print           Show the IPv4 routing table\n  nslookup <name>       Resolve a name\n  netstat               Show local sockets\n  cls                   Clear the screen\n  exit                  Close the window\n\n",
-    )
-}
-
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod tests_ufw;

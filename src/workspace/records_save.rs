@@ -419,6 +419,7 @@ impl Workspace {
                 out.push_str(&format!("portfwd\t{}\t{}\t{}\t{}\n", router, outside, target, inside));
             }
         }
+        out.push_str(&self.ufw_records());
         let mut tunnels: Vec<_> = self.tunnels.iter().collect();
         tunnels.sort_by_key(|(id, _)| id.as_str());
         for (device, (peer, key)) in tunnels {
