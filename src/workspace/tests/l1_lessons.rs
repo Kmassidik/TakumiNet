@@ -109,3 +109,21 @@ fn removing_a_missing_network_is_an_error() {
     assert!(ws.wlan_remove("homerouter0", "Nope").is_err());
     assert!(ws.wlan_remove("laptop0", "HomeWifi4821").is_err());
 }
+
+#[test]
+fn guest_lesson_fences_visitors_in_both_directions_and_survives_save() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l1-03-guest-wifi.xml")).unwrap();
+    assert_eq!(results(&mut ws), vec![false, false, true]);
+    ws.wlan_add("homerouter0", "GuestWifi", "guest-pass1").unwrap();
+    ws.wifi_join("laptop0", "GuestWifi", "guest-pass1").unwrap();
+    assert!(ws.send_pdu("laptop0", "printer0").is_ok(), "not a guest network yet");
+    ws.wlan_set_guest("homerouter0", "GuestWifi", true).unwrap();
+    assert_eq!(results(&mut ws), vec![true, true, true]);
+    assert!(ws.send_pdu("printer0", "laptop0").unwrap_err().contains("guest network"));
+    assert!(ws.send_pdu("laptop0", "homerouter0").is_ok(), "the router itself stays reachable");
+    let mut back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert!(back.send_pdu("laptop0", "printer0").is_err());
+    ws.wlan_set_guest("homerouter0", "GuestWifi", false).unwrap();
+    assert!(ws.send_pdu("laptop0", "printer0").is_ok());
+    assert!(ws.wlan_set_guest("homerouter0", "Nope", true).is_err());
+}

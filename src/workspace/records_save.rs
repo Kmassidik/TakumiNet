@@ -407,6 +407,11 @@ impl Workspace {
                 wlc
             ));
         }
+        let mut guests: Vec<_> = self.wlan_guest.iter().collect();
+        guests.sort();
+        for (wlc, ssid) in guests {
+            out.push_str(&format!("guestnet\t{}\t{}\n", wlc, escape_field(ssid)));
+        }
         let mut vpn: Vec<_> = self.vpn.iter().collect();
         vpn.sort_by_key(|(id, _)| id.as_str());
         for (client, (server, user)) in vpn {

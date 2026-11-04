@@ -387,6 +387,8 @@ pub struct Workspace {
     pub stp_priorities: HashMap<String, HashMap<u16, u16>>,
     /// WLANs per wireless LAN controller: (SSID, PSK).
     pub wlans: HashMap<String, Vec<Wlan>>,
+    /// Guest networks as (controller, name): their clients may only talk to the controller.
+    pub wlan_guest: std::collections::HashSet<(String, String)>,
     /// Wireless association: client -> (SSID, controller id).
     pub wifi: HashMap<String, (String, String)>,
     /// VPN client config: device -> (server address, user).

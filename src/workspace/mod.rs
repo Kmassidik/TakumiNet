@@ -32,6 +32,7 @@ mod security;
 mod startup;
 mod switching;
 mod traffic;
+mod tnet_lesson;
 mod route_types;
 mod records_load_routing;
 mod records_save_routing;
@@ -97,6 +98,7 @@ impl Workspace {
                 stp_modes: HashMap::new(),
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),
+                wlan_guest: Default::default(),
                 capwap: HashMap::new(),
                 iot_regs: HashMap::new(),
                 ptp: HashMap::new(),
@@ -299,6 +301,7 @@ impl Workspace {
                 stp_modes: HashMap::new(),
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),
+                wlan_guest: Default::default(),
                 capwap: HashMap::new(),
                 iot_regs: HashMap::new(),
                 ptp: HashMap::new(),

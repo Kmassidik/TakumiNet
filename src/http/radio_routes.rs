@@ -23,6 +23,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/ptp/sync") => Some(handle_ptp_sync(ctx, query)),
         ("POST", "/api/prp/enable") => Some(handle_prp_enable(ctx, query)),
         ("POST", "/api/wifi/remove") => Some(handle_wifi_remove(ctx, query)),
+        ("POST", "/api/wifi/guest") => Some(handle_wifi_guest(ctx, query)),
         ("POST", "/api/cell/join") => Some(handle_cell_join(ctx, query)),
         ("POST", "/api/cell/status") => Some(handle_cell_status(ctx, query)),
         _ => None,
@@ -328,5 +329,14 @@ fn handle_wifi_remove(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let id = query_value(query, "id").unwrap_or_default();
     let ssid = query_value(query, "ssid").unwrap_or_default();
     let (out, _) = apply(ctx, |ws| ws.wlan_remove(&id, &ssid));
+    (json, out.into_bytes())
+}
+
+fn handle_wifi_guest(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let ssid = query_value(query, "ssid").unwrap_or_default();
+    let on = !matches!(query_value(query, "on").as_deref(), Some("0") | Some("false"));
+    let (out, _) = apply(ctx, |ws| ws.wlan_set_guest(&id, &ssid, on));
     (json, out.into_bytes())
 }

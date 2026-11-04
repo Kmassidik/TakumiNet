@@ -51,7 +51,34 @@ impl Workspace {
             return Err(format!("WLAN {ssid} not found"));
         }
         self.wifi.retain(|_, (joined, on)| !(joined == ssid && on == wlc));
+        self.wlan_guest.remove(&(wlc.to_string(), ssid.to_string()));
         Ok(())
+    }
+
+    /// Mark a network as a guest network: its clients cannot reach the home devices.
+    pub fn wlan_set_guest(&mut self, wlc: &str, ssid: &str, on: bool) -> Result<(), String> {
+        let exists = self.wlans.get(wlc).is_some_and(|l| l.iter().any(|w| w.ssid == ssid));
+        if !exists {
+            return Err(format!("WLAN {ssid} not found"));
+        }
+        let key = (wlc.to_string(), ssid.to_string());
+        if on { self.wlan_guest.insert(key); } else { self.wlan_guest.remove(&key); }
+        Ok(())
+    }
+
+    /// A guest client may reach only the controller it joined, in either direction.
+    pub(super) fn guest_blocked(&self, src: &str, dst: &str) -> Option<String> {
+        let guest_of = |id: &str| {
+            self.wifi.get(id).filter(|(ssid, wlc)| self.wlan_guest.contains(&(wlc.clone(), ssid.clone())))
+        };
+        for (client, other) in [(src, dst), (dst, src)] {
+            if let Some((ssid, wlc)) = guest_of(client) {
+                if other != wlc {
+                    return Some(format!("blocked: {ssid} is a guest network and can only reach {}", self.name_of(wlc)));
+                }
+            }
+        }
+        None
     }
 
     pub fn wlan_list(&self, wlc: &str) -> Vec<(String, String)> {

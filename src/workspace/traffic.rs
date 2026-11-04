@@ -69,7 +69,10 @@ impl Workspace {
         if src == dst {
             return Err("source and destination are the same".into());
         }
-        Ok(())
+        match self.guest_blocked(src, dst) {
+            Some(reason) => Err(reason),
+            None => Ok(()),
+        }
     }
 
     pub(super) fn record_delivery(

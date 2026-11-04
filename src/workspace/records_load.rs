@@ -439,6 +439,9 @@ impl Workspace {
             ["wlan", wlc, ssid, psk] => {
                 let _ = self.wlan_add(wlc, &unescape_field(ssid), &unescape_field(psk));
             }
+            ["guestnet", wlc, ssid] => {
+                let _ = self.wlan_set_guest(wlc, &unescape_field(ssid), true);
+            }
             ["capwap", ap, wlc] => {
                 let _ = self.capwap_join(ap, wlc);
             }
