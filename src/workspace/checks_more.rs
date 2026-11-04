@@ -126,6 +126,13 @@ impl Workspace {
         if !check.expect.is_empty() && security != check.expect {
             return (false, format!("{ssid} uses {security}, not {}", check.expect), "Change the security setting of the network.".into());
         }
+        if let Some(least) = check.url.strip_prefix("bars:").and_then(|n| n.parse::<u8>().ok()) {
+            let bars = self.wifi_signal(&check.from).unwrap_or(0);
+            if bars < least {
+                return (false, format!("{bars} of 4 bars"), "Join a closer access point, or move one closer.".into());
+            }
+            return (true, format!("joined to {ssid}, {bars} of 4 bars"), hint);
+        }
         (true, format!("joined to {ssid} ({security})"), hint)
     }
 

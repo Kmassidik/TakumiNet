@@ -164,3 +164,24 @@ fn port_forward_lesson_refuses_until_the_forward_exists_and_validates_input() {
     assert!(crate::webapp::fetch(&mut back, "outside0", "http://192.168.1.1:8080/").is_ok());
     assert!(crate::webapp::fetch(&mut back, "outside0", "http://192.168.1.1/").is_ok(), "the router page is still there");
 }
+
+#[test]
+fn far_room_lesson_needs_a_roam_to_the_closer_access_point() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l1-06-far-room.xml")).unwrap();
+    assert_eq!(ws.wifi_signal("phone0"), Some(1), "the router is far from the phone");
+    assert_eq!(results(&mut ws), vec![false, true]);
+    ws.wlan_add("ap0", "KeluargaSantoso", "santoso-2024").unwrap();
+    ws.wifi_roam("phone0", "ap0").unwrap();
+    assert_eq!(ws.wifi_signal("phone0"), Some(3));
+    assert_eq!(results(&mut ws), vec![true, true]);
+}
+
+#[test]
+fn signal_bars_follow_distance_and_need_a_join() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l1-06-far-room.xml")).unwrap();
+    assert_eq!(ws.wifi_signal("laptop0"), None, "not joined");
+    for (x, bars) in [(200.0, 4), (420.0, 3), (520.0, 2), (620.0, 1), (700.0, 0)] {
+        assert!(ws.mv("phone0", x, 200.0));
+        assert_eq!(ws.wifi_signal("phone0"), Some(bars), "at x {x}");
+    }
+}

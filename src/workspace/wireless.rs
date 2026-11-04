@@ -198,4 +198,21 @@ impl Workspace {
     pub fn wifi_status(&self, client: &str) -> Option<(String, String)> {
         self.wifi.get(client).cloned()
     }
+
+    /// Signal bars, 0 to 4, from the canvas distance between the client and the
+    /// device whose network it joined. A teaching model, not radio physics.
+    pub fn wifi_signal(&self, client: &str) -> Option<u8> {
+        let (_, wlc) = self.wifi.get(client)?;
+        let place = |id: &str| self.devices.iter().find(|d| d.id == id).map(|d| (d.x, d.y));
+        let (cx, cy) = place(client)?;
+        let (wx, wy) = place(wlc)?;
+        let distance = (cx - wx).hypot(cy - wy);
+        Some(match distance {
+            d if d <= 150.0 => 4,
+            d if d <= 250.0 => 3,
+            d if d <= 350.0 => 2,
+            d if d <= 450.0 => 1,
+            _ => 0,
+        })
+    }
 }

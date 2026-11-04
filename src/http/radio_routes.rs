@@ -130,9 +130,10 @@ fn handle_wifi_status(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         Some((ssid, wlc)) => (
             json,
             format!(
-                "{{\"associated\":true,\"ssid\":{},\"wlc\":{}}}",
+                "{{\"associated\":true,\"ssid\":{},\"wlc\":{},\"bars\":{}}}",
                 json_str(&ssid),
-                json_str(&wlc)
+                json_str(&wlc),
+                ws.wifi_signal(&id).unwrap_or(0)
             )
             .into_bytes(),
         ),
