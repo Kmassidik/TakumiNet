@@ -191,6 +191,7 @@ function tabConfig(pane, d) {
       document.getElementById('cfg-note').textContent = r.error;
     }
   };
+  configSections(box, d);
   return;
 }
 

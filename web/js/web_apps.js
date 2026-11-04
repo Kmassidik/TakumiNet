@@ -44,6 +44,9 @@ function openBrowser(d) {
     p.textContent = r.text;
     body.appendChild(h);
     body.appendChild(p);
+    /* Some simulated hosts answer with an interactive page. */
+    if (r.app === 'router') renderRouterPage(d, r, body);
+    else if (r.app === 'portal') renderPortalPage(d, r, body);
     sfx('popUp');
   };
 

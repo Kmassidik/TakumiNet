@@ -125,3 +125,52 @@ test("adding an account posts the user and reloads the account list", async () =
   expect(calls).toContain("/api/devices/aaa?id=gw1&user=sari&pass=pw1");
   expect(calls.filter((c) => c.startsWith("/api/aaa/list")).length).toBe(2);
 });
+
+const pooled = {
+  ...gateway,
+  pools: [{ network: "192.168.10.0", prefix: 24, gateway: "192.168.10.1", dns: null }],
+};
+const poolReply = () => ({
+  devices: [{ id: "gw1", pools: [{ network: "192.168.20.0", prefix: 24, gateway: "192.168.20.1", dns: "198.51.100.53" }] }],
+});
+
+test("the pools section lists the snapshot and removing posts remove=1", async () => {
+  const doc = new FakeDocument();
+  const body = new FakeElement("div");
+  const { post, calls } = mockPost({ ...fullResponses, "/api/devices/dhcp": poolReply });
+  await renderGatewayWindow(doc, body, pooled, post);
+  expect(allText(body)).toContain("192.168.10.0/24 · gateway 192.168.10.1 · DNS none");
+
+  button(body, "Remove").click();
+  await flush();
+  expect(calls).toContain("/api/devices/dhcp?id=gw1&network=192.168.10.0&prefix=24&remove=1");
+  expect(allText(body)).toContain("192.168.20.0/24 · gateway 192.168.20.1 · DNS 198.51.100.53");
+});
+
+test("adding a pool posts more=1 and shows the engine's refusal verbatim", async () => {
+  const doc = new FakeDocument();
+  const body = new FakeElement("div");
+  const { post, calls } = mockPost({ ...fullResponses, "/api/devices/dhcp": poolReply });
+  await renderGatewayWindow(doc, body, gateway, post);
+  expect(allText(body)).toContain("No pools yet.");
+
+  inputUnder(body, "Network").value = "192.168.20.0";
+  inputUnder(body, "Prefix").value = "24";
+  inputUnder(body, "Gateway").value = "192.168.20.1";
+  inputUnder(body, "DNS").value = "198.51.100.53";
+  button(body, "Add pool").click();
+  await flush();
+  expect(calls).toContain(
+    "/api/devices/dhcp?id=gw1&network=192.168.20.0&prefix=24&gateway=192.168.20.1&dns=198.51.100.53&more=1",
+  );
+  expect(allText(body)).toContain("Pool 192.168.20.0/24 saved.");
+
+  const refused = new FakeElement("div");
+  const bad = mockPost({ ...fullResponses, "/api/devices/dhcp": { error: "pool prefix must be between 1 and 30" } });
+  await renderGatewayWindow(doc, refused, gateway, bad.post);
+  inputUnder(refused, "Network").value = "192.168.20.0";
+  inputUnder(refused, "Prefix").value = "31";
+  button(refused, "Add pool").click();
+  await flush();
+  expect(allText(refused)).toContain("pool prefix must be between 1 and 30");
+});

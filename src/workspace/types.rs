@@ -425,6 +425,8 @@ pub struct Workspace {
     pub tunnels: HashMap<String, (u32, String)>,
     /// PPPoE client config: device -> (server address, user).
     pub pppoe: HashMap<String, (String, String)>,
+    /// Sign-in attempts against a home router's page: (client, router, user, accepted).
+    pub router_logins: Vec<(String, String, String, bool)>,
     /// AP -> controller registrations (CAPWAP join).
     pub capwap: HashMap<String, String>,
     /// Modbus holding registers per industrial device (256 words).

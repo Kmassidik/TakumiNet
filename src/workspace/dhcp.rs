@@ -163,6 +163,25 @@ impl Workspace {
         Ok(())
     }
 
+    /// Drop one pool by its network. Removing the primary pool promotes the
+    /// first extra pool, so leases keep being answered from what is left.
+    pub fn remove_dhcp_pool(&mut self, id: &str, network: &str, prefix: u8) -> bool {
+        let Some(net) = crate::model::parse_ipv4(network.trim()) else { return false };
+        let wanted = net & crate::model::mask_of(prefix);
+        let matches = |p: &Pool| p.network == wanted && p.prefix == prefix;
+        if self.dhcp_pools.get(id).is_some_and(|p| matches(p)) {
+            match self.dhcp_more.get_mut(id).and_then(|extra| (!extra.is_empty()).then(|| extra.remove(0))) {
+                Some(next) => { self.dhcp_pools.insert(id.to_string(), next); }
+                None => { self.dhcp_pools.remove(id); }
+            }
+            return true;
+        }
+        let Some(extra) = self.dhcp_more.get_mut(id) else { return false };
+        let before = extra.len();
+        extra.retain(|p| !matches(p));
+        extra.len() != before
+    }
+
     /// The VLAN of the switch access port a device is cabled to; `None` when it hangs
     /// on a trunk, a router or no switch at all.
     fn access_vlan_of(&self, id: &str) -> Option<u16> {

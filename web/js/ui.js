@@ -1874,6 +1874,10 @@
   }
 
   // web/ts/ui/kind_parts.ts
+  function deviceField(res, id, key) {
+    const devices = Array.isArray(res["devices"]) ? res["devices"] : [];
+    return devices.find((d) => d["id"] === id)?.[key];
+  }
   function modelBlurbLine(workspace, device) {
     const blurb = workspace.palette?.find((p) => p.label === device.model)?.blurb;
     return blurb && device.model ? `${device.model} — ${blurb}` : "";
@@ -2316,6 +2320,84 @@
     root.appendChild(form);
     return done;
   }
+  function poolLine(p) {
+    return `${p.network}/${p.prefix} · gateway ${p.gateway || "none"} · DNS ${p.dns || "none"}`;
+  }
+  function poolsSection(doc, root, device, post) {
+    const box = section(doc, root, "DHCP pools");
+    const list = el(doc, "div", "kw-pool-list");
+    const outcome = el(doc, "div", "kw-outcome");
+    const render = (pools) => {
+      list.replaceChildren();
+      if (pools.length === 0) {
+        list.appendChild(note(doc, "empty", "No pools yet."));
+        return;
+      }
+      for (const p of pools) {
+        const row = el(doc, "div", "kw-row");
+        row.appendChild(el(doc, "span", "kw-row-text", poolLine(p)));
+        row.appendChild(createButton(doc, {
+          label: "Remove",
+          className: "kw-retry",
+          onClick: () => void remove(p)
+        }));
+        list.appendChild(row);
+      }
+    };
+    const applied = (res) => {
+      const pools = deviceField(res, device.id, "pools");
+      render(Array.isArray(pools) ? pools : []);
+    };
+    const remove = async (p) => {
+      try {
+        const res = await post(`/api/devices/dhcp?id=${enc2(device.id)}&network=${enc2(p.network)}&prefix=${p.prefix}&remove=1`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Pool ${p.network}/${p.prefix} removed.`);
+          applied(res);
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    render(device.pools ?? []);
+    box.appendChild(list);
+    const form = el(doc, "div", "kw-form");
+    const network = field(doc, form, "Network");
+    const prefix = field(doc, form, "Prefix", "number");
+    const gateway = field(doc, form, "Gateway");
+    const dns = field(doc, form, "DNS");
+    const submit = () => void add();
+    const add = async () => {
+      const net = network.value.trim();
+      const len = wholeNumber(prefix.value);
+      if (!net || len === null) {
+        showOutcome(doc, outcome, "error", "Type a network and a prefix length.");
+        return;
+      }
+      try {
+        const res = await post(`/api/devices/dhcp?id=${enc2(device.id)}&network=${enc2(net)}&prefix=${len}` + `&gateway=${enc2(gateway.value.trim())}&dns=${enc2(dns.value.trim())}&more=1`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Pool ${net}/${len} saved.`);
+          applied(res);
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(network, submit);
+    onEnter(prefix, submit);
+    onEnter(gateway, submit);
+    onEnter(dns, submit);
+    form.appendChild(createButton(doc, { label: "Add pool", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    box.appendChild(form);
+  }
   function renderGatewayWindow(doc, body, device, post) {
     body.replaceChildren();
     const loads = [
@@ -2323,6 +2405,7 @@
       queuesSection(doc, body, device, post)
     ];
     vouchersSection(doc, body, device, post);
+    poolsSection(doc, body, device, post);
     loads.push(accountsSection(doc, body, device, post));
     return Promise.all(loads).then(() => {
       return;
@@ -2448,12 +2531,87 @@
         box.appendChild(el(doc, "pre", "kw-mono", output));
     });
   }
+  function sharedGwLine(g) {
+    return `${g.vip} · priority ${g.priority}${g.owner ? " · answering now" : ""}`;
+  }
+  function sharedGatewaySection(doc, root, device, post) {
+    const box = section(doc, root, "Shared gateway");
+    const list = el(doc, "div", "kw-gw-list");
+    const outcome = el(doc, "div", "kw-outcome");
+    const render = (rows) => {
+      list.replaceChildren();
+      if (rows.length === 0) {
+        list.appendChild(note(doc, "empty", "Not sharing any address."));
+        return;
+      }
+      for (const g of rows) {
+        const row = el(doc, "div", "kw-row");
+        row.appendChild(el(doc, "span", "kw-row-text", sharedGwLine(g)));
+        row.appendChild(createButton(doc, {
+          label: "Leave",
+          className: "kw-retry",
+          onClick: () => void leave(g)
+        }));
+        list.appendChild(row);
+      }
+    };
+    const applied = (res) => {
+      const rows = deviceField(res, device.id, "sharedGws");
+      render(Array.isArray(rows) ? rows : []);
+    };
+    const leave = async (g) => {
+      try {
+        const res = await post(`/api/devices/sharedgw?id=${enc3(device.id)}&vip=${enc3(g.vip)}&remove=1`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Left the shared address ${g.vip}.`);
+          applied(res);
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    render(device.sharedGws ?? []);
+    box.appendChild(list);
+    const form = el(doc, "div", "kw-form");
+    const vip = field(doc, form, "Shared address");
+    const priority = field(doc, form, "Priority", "number");
+    const submit = () => void share();
+    const share = async () => {
+      const address = vip.value.trim();
+      if (!address || !priority.value.trim()) {
+        showOutcome(doc, outcome, "error", "Type the shared address and a priority.");
+        return;
+      }
+      try {
+        const res = await post(`/api/devices/sharedgw?id=${enc3(device.id)}&vip=${enc3(address)}&priority=${enc3(priority.value.trim())}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Sharing ${address}.`);
+          applied(res);
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(vip, submit);
+    onEnter(priority, submit);
+    form.appendChild(createButton(doc, { label: "Share", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    box.appendChild(form);
+  }
   function renderL3SwitchWindow(doc, body, device, getText, post) {
     body.replaceChildren();
-    return Promise.all([
+    const loads = [
       portsSection(doc, body, device, getText, post),
       routesSection(doc, body, device, post)
-    ]).then(() => {
+    ];
+    sharedGatewaySection(doc, body, device, post);
+    return Promise.all(loads).then(() => {
       return;
     });
   }

@@ -247,12 +247,14 @@ fn handle_webfetch(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         Ok(p) => (
             json,
             format!(
-                "{{\"status\":{},\"reason\":{},\"host\":{},\"title\":{},\"text\":{}}}",
+                "{{\"status\":{},\"reason\":{},\"host\":{},\"title\":{},\"text\":{},\"app\":{},\"device\":{}}}",
                 p.status,
                 json_str(p.reason),
                 json_str(&p.host),
                 json_str(&p.title),
-                json_str(&p.text)
+                json_str(&p.text),
+                json_str(p.app),
+                json_str(&p.device)
             )
             .into_bytes(),
         ),
@@ -266,7 +268,9 @@ fn handle_router_login(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let to = query_value(query, "to").unwrap_or_default();
     let user = query_value(query, "user").unwrap_or_default();
     let pass = query_value(query, "pass").unwrap_or_default();
-    let (out, _) = apply(ctx, |ws| ws.router_login(&from, &to, &user, &pass));
+    // A refused sign-in is still a real, captured attempt: the lesson grader
+    // wants to see it, so the refusal must not roll the workspace back.
+    let (out, _) = apply_capture(ctx, |ws| ws.router_login(&from, &to, &user, &pass));
     (json, out.into_bytes())
 }
 
@@ -341,7 +345,7 @@ fn handle_voucher(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let id = query_value(query, "id").unwrap_or_default();
     let code = query_value(query, "code").unwrap_or_default();
     let client = query_value(query, "client").unwrap_or_default();
-    let (out, _) = apply(ctx, |ws| {
+    let (out, ok) = apply(ctx, |ws| {
         if client.is_empty() {
             let Some(minutes) = query_value(query, "minutes").and_then(|v| v.parse().ok()) else {
                 return Err("minutes must be a whole number".to_string());
@@ -351,6 +355,13 @@ fn handle_voucher(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
             ws.voucher_redeem(&id, &client, &code)
         }
     });
+    if ok && !client.is_empty() {
+        let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+        let minutes = ws.voucher_rows(&id).into_iter()
+            .find(|(c, _, _)| *c == code.trim())
+            .map_or(0, |(_, m, _)| m);
+        return (json, format!("{{\"minutes\":{minutes}}}").into_bytes());
+    }
     (json, out.into_bytes())
 }
 

@@ -1,14 +1,22 @@
+import { createButton } from "./button";
 import type { DocLike, ElementLike } from "./dom";
 import { parsePortsInfo, renderPortsPanel } from "./ports_panel";
 import {
   asText,
   asyncSection,
+  deviceField,
   el,
   errorOf,
+  field,
   note,
+  onEnter,
+  rowList,
+  section,
+  showOutcome,
   type GetText,
   type KindDevice,
   type Post,
+  type SharedGwEntry,
 } from "./kind_parts";
 
 const enc = encodeURIComponent;
@@ -73,6 +81,86 @@ function routesSection(doc: DocLike, root: ElementLike, device: KindDevice, post
   });
 }
 
+export function sharedGwLine(g: SharedGwEntry): string {
+  return `${g.vip} · priority ${g.priority}${g.owner ? " · answering now" : ""}`;
+}
+
+/* Membership in a shared (first-hop redundant) gateway address: the highest
+   healthy priority answers for the address. */
+function sharedGatewaySection(doc: DocLike, root: ElementLike, device: KindDevice, post: Post): void {
+  const box = section(doc, root, "Shared gateway");
+  const list = el(doc, "div", "kw-gw-list");
+  const outcome = el(doc, "div", "kw-outcome");
+
+  const render = (rows: SharedGwEntry[]): void => {
+    list.replaceChildren();
+    if (rows.length === 0) {
+      list.appendChild(note(doc, "empty", "Not sharing any address."));
+      return;
+    }
+    for (const g of rows) {
+      const row = el(doc, "div", "kw-row");
+      row.appendChild(el(doc, "span", "kw-row-text", sharedGwLine(g)));
+      row.appendChild(createButton(doc, {
+        label: "Leave",
+        className: "kw-retry",
+        onClick: () => void leave(g),
+      }));
+      list.appendChild(row);
+    }
+  };
+
+  const applied = (res: Record<string, unknown>): void => {
+    const rows = deviceField(res, device.id, "sharedGws");
+    render(Array.isArray(rows) ? (rows as SharedGwEntry[]) : []);
+  };
+
+  const leave = async (g: SharedGwEntry): Promise<void> => {
+    try {
+      const res = await post(`/api/devices/sharedgw?id=${enc(device.id)}&vip=${enc(g.vip)}&remove=1`);
+      const err = errorOf(res);
+      if (err) showOutcome(doc, outcome, "error", err);
+      else {
+        showOutcome(doc, outcome, "ok", `Left the shared address ${g.vip}.`);
+        applied(res);
+      }
+    } catch {
+      showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+    }
+  };
+
+  render(device.sharedGws ?? []);
+  box.appendChild(list);
+
+  const form = el(doc, "div", "kw-form");
+  const vip = field(doc, form, "Shared address");
+  const priority = field(doc, form, "Priority", "number");
+  const submit = (): void => void share();
+  const share = async (): Promise<void> => {
+    const address = vip.value.trim();
+    if (!address || !priority.value.trim()) {
+      showOutcome(doc, outcome, "error", "Type the shared address and a priority.");
+      return;
+    }
+    try {
+      const res = await post(`/api/devices/sharedgw?id=${enc(device.id)}&vip=${enc(address)}&priority=${enc(priority.value.trim())}`);
+      const err = errorOf(res);
+      if (err) showOutcome(doc, outcome, "error", err);
+      else {
+        showOutcome(doc, outcome, "ok", `Sharing ${address}.`);
+        applied(res);
+      }
+    } catch {
+      showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+    }
+  };
+  onEnter(vip, submit);
+  onEnter(priority, submit);
+  form.appendChild(createButton(doc, { label: "Share", className: "kw-submit", onClick: submit }));
+  form.appendChild(outcome);
+  box.appendChild(form);
+}
+
 export function renderL3SwitchWindow(
   doc: DocLike,
   body: ElementLike,
@@ -81,8 +169,10 @@ export function renderL3SwitchWindow(
   post: Post,
 ): Promise<void> {
   body.replaceChildren();
-  return Promise.all([
+  const loads = [
     portsSection(doc, body, device, getText, post),
     routesSection(doc, body, device, post),
-  ]).then(() => undefined);
+  ];
+  sharedGatewaySection(doc, body, device, post);
+  return Promise.all(loads).then(() => undefined);
 }

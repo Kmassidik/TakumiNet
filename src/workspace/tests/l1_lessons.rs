@@ -38,21 +38,40 @@ fn graded(ws: &mut Workspace, check: Check) -> CheckResult {
 }
 
 #[test]
-fn router_login_accepts_the_sticker_and_refuses_anything_else() {
+fn the_login_check_requires_a_real_sign_in_and_a_real_refusal() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-home.xml")).unwrap();
+    // Nothing happened yet: the grader never signs in by itself, so both fail.
+    let r = graded(&mut ws, login_check("admin:admin", "ok"));
+    assert!(!r.passed && r.actual.contains("has not signed in"), "{}", r.actual);
+    assert!(!graded(&mut ws, login_check("admin:letmein", "refused")).passed);
+
+    // A refused attempt from the browser satisfies only the refusal check.
+    assert!(ws.router_login("laptop0", "192.168.1.1", "admin", "letmein").is_err());
+    assert!(graded(&mut ws, login_check("admin:letmein", "refused")).passed);
+    assert!(!graded(&mut ws, login_check("admin:admin", "ok")).passed);
+
+    // A real sign-in satisfies the login check.
+    ws.router_login("laptop0", "192.168.1.1", "admin", "admin").unwrap();
     assert!(graded(&mut ws, login_check("admin:admin", "ok")).passed);
-    assert!(!graded(&mut ws, login_check("admin:wrong", "ok")).passed);
-    assert!(graded(&mut ws, login_check("admin:wrong", "refused")).passed);
-    assert!(!graded(&mut ws, login_check("admin:admin", "refused")).passed);
-    assert!(!graded(&mut ws, login_check("", "ok")).passed);
+
+    // Another device's sign-in does not count for this one.
+    let r = graded_from(&mut ws, "pc0", "ok");
+    assert!(!r.passed, "{}", r.actual);
+}
+
+fn graded_from(ws: &mut Workspace, from: &str, expect: &str) -> CheckResult {
+    let mut check = login_check("admin:admin", expect);
+    check.from = from.into();
+    graded(ws, check)
 }
 
 #[test]
 fn router_login_follows_the_cable_and_the_target() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-home.xml")).unwrap();
     ws.set_port_up("homerouter0", "FastEthernet0", false);
+    assert!(ws.router_login("laptop0", "192.168.1.1", "admin", "admin").unwrap_err().contains("timed out"));
     let r = graded(&mut ws, login_check("admin:admin", "ok"));
-    assert!(!r.passed && r.actual.contains("timed out"), "{}", r.actual);
+    assert!(!r.passed, "a failed delivery is not a sign-in: {}", r.actual);
     assert!(ws.router_login("pc0", "192.168.1.2", "admin", "admin").unwrap_err().contains("no router page"));
     assert!(ws.router_login("pc0", "10.9.9.9", "admin", "admin").unwrap_err().contains("timed out"));
 }
@@ -79,11 +98,15 @@ fn the_admin_password_survives_save_and_open() {
 }
 
 #[test]
-fn the_sign_in_lesson_passes_with_the_sticker_and_not_before_a_cable_fault() {
+fn the_sign_in_lesson_grades_what_the_learner_really_did() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l1-01-router-login.xml")).unwrap();
+    assert_eq!(results(&mut ws), vec![false, false], "nothing passes before the learner acts");
+
+    assert!(ws.router_login("laptop0", "192.168.1.1", "admin", "letmein").is_err());
+    assert_eq!(results(&mut ws), vec![false, true], "a real refusal satisfies only the refusal step");
+
+    ws.router_login("laptop0", "192.168.1.1", "admin", "admin").unwrap();
     assert_eq!(results(&mut ws), vec![true, true]);
-    ws.set_router_admin("homerouter0", "admin", "family-secret").unwrap();
-    assert_eq!(results(&mut ws), vec![false, true], "the sticker no longer works once the password changes");
 }
 
 const WIFI: &str = include_str!("../../../web/templates/les-l1-02-wifi-name.xml");
