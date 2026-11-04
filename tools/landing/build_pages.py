@@ -15,7 +15,7 @@ X = "https://x.com/KMassidik"
 
 EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed", 3), ("tpl-web", 4),
             ("tpl-l1-wifi-home", 5), ("tpl-l1-two-rooms", 6), ("tpl-l1-broken-wifi", 7)]
-LESSONS = ["t1", "t2", "t3", "t4", "t5"]
+LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-07-find-the-fault"]
 
 T = {
     "en": {
@@ -60,7 +60,8 @@ T = {
             ("A star network with a switch", "Three PCs talk and Switch0 learns their MAC addresses"),
             ("Home network with automatic addresses", "Computers lease addresses, then open a web page"),
             ("Two networks joined by a router", "Reach PC3 through Router0 with TTL 127"),
-            ("Visit a website by name", "Resolve www.takumi.lab and open the website")],
+            ("Visit a website by name", "Resolve www.takumi.lab and open the website"),
+            ("Find the fault at home", "Laptop0 reaches Phone0 after you fix its address")],
         "faq_h": "Questions people ask",
         "faq": [
             ("Is Takumi free?", "Yes. It is free to use and open source under the MIT licence."),
@@ -130,7 +131,8 @@ T = {
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
             ("Jaringan rumah dengan alamat otomatis", "Komputer meminjam alamat, lalu membuka halaman web"),
             ("Dua jaringan dihubungkan router", "Jangkau PC3 lewat Router0 dengan TTL 127"),
-            ("Buka website lewat nama", "Cari www.takumi.lab lalu buka websitenya")],
+            ("Buka website lewat nama", "Cari www.takumi.lab lalu buka websitenya"),
+            ("Cari kesalahan di rumah", "Laptop0 menjangkau Phone0 setelah alamatnya kamu perbaiki")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
             ("Apakah Takumi gratis?", "Ya. Takumi gratis dipakai dan open source dengan lisensi MIT."),

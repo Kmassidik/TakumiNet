@@ -162,6 +162,7 @@ const PRECACHE_URLS = Object.freeze([
   '/sounds/simulationTab.wav',
   '/sounds/topologyTab.wav',
 
+  '/templates/les-l1-07-find-the-fault.xml',
   '/templates/t1.xml',
   '/templates/t2.xml',
   '/templates/t3.xml',

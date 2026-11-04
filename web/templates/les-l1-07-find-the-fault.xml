@@ -1,0 +1,14 @@
+<takumi version="1">
+  <device id="homerouter0" kind="homerouter" model="Home Router" x="340" y="120" name="HomeRouter0" ip="192.168.1.1" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="160" y="330" name="Laptop0" ip="192.168.2.20" prefix="24"/>
+  <device id="phone0" kind="tablet" model="Tablet PC" x="520" y="330" name="Phone0" ip="192.168.1.21" prefix="24"/>
+  <link a="homerouter0" a_port="Fa0" b="laptop0" b_port="Fa0" kind="eCopper"/>
+  <link a="homerouter0" a_port="Fa1" b="phone0" b_port="Fa0" kind="eCopper"/>
+  <lesson id="les-l1-07-find-the-fault" title="Find the fault at home" level="1" minutes="10" goal="Laptop0 reaches Phone0 after you fix its address"/>
+  <step n="1" text="Ping Phone0 (192.168.1.21) from Laptop0 and read the message."/>
+  <step n="2" text="Compare the address of Laptop0 with the address of HomeRouter0. They must start with the same three numbers."/>
+  <step n="3" text="Set Laptop0 to 192.168.1.20 with mask 255.255.255.0." check="c1"/>
+  <step n="4" text="Ping Phone0 again." check="c2"/>
+  <check id="c1" kind="config" from="laptop0" to="ip" url="" expect="192.168.1.20" label="Laptop0 has an address in the home network"/>
+  <check id="c2" kind="ping" from="laptop0" to="phone0" url="" expect="ok" label="Laptop0 reaches Phone0"/>
+</takumi>
