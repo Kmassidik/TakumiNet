@@ -6,7 +6,6 @@
 //! path, exactly as they do on the wire.
 
 use std::collections::VecDeque;
-
 use crate::cli::expand_iface;
 use crate::model::ipv4_string;
 use crate::net::packet::{Frame, IpProto, Mac, Packet, Payload, Transit};
@@ -429,7 +428,6 @@ where
     })
 }
 
-
 fn find<'a>(ws: &'a Workspace, id: &str) -> Result<&'a Device, String> {
     ws.devices
         .iter()
@@ -538,7 +536,6 @@ fn switch_port_vlan(dev: &Device, raw: &str, vlan: &mut Option<u16>) -> bool {
     }
 }
 
-
 fn port_on(dev: &Device, raw: &str) -> String {
     let names: Vec<String> = dev.ports.iter().map(|p| p.name.clone()).collect();
     expand_iface(raw, &names).unwrap_or_else(|| raw.to_string())
@@ -627,8 +624,6 @@ fn routed_path(
     ddev: &Device,
     dst_ip: u32,
 ) -> Result<DataPath, String> {
-    use crate::model::ipv4_string;
-
     let mut chain: Vec<String> = vec![sdev.id.clone()];
     let mut leg_vlans = Vec::new();
     let mut current = sdev.clone();

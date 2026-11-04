@@ -12,12 +12,14 @@ export const CONNECTIONS = "Connections";
 export const DEFAULT_GROUP = "End devices";
 
 export const GROUP_KINDS: Readonly<Record<string, readonly string[]>> = {
-  Routers: ["router", "rtrw-gateway"],
+  Routers: ["router", "rtrw-gateway",
+    "backbone-pop", "internet-exchange", "national-gateway"],
   Switches: ["switch", "switch-l3"],
   Hubs: ["hub", "patchpanel"],
   Wireless: ["ap", "wlc", "hotspot-ap", "sector-radio", "client-radio", "celltower"],
   Security: ["asa"],
-  WAN: ["cloud", "provider-link", "homerouter", "cablemodem", "dsl"],
+  WAN: ["cloud", "provider-link", "homerouter", "cablemodem", "dsl",
+    "submarine-cable"],
   "End devices": ["pc", "laptop", "server", "load-balancer", "printer", "phone", "analogphone", "tv", "tablet", "sniffer"],
   [CONNECTIONS]: [],
   IoE: ["ioe", "thing", "plc"],

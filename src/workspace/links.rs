@@ -132,6 +132,7 @@ impl Workspace {
                     | "phone" | "asa" | "wlc" | "ap" | "hub" | "switch" | "router"
                     | "homerouter" | "cloud" | "rtrw-gateway" | "provider-link"
                     | "sector-radio" | "client-radio" | "hotspot-ap" | "switch-l3" | "load-balancer"
+                    | "backbone-pop" | "internet-exchange" | "national-gateway" | "submarine-cable"
             )
         };
         let network = |k: &str| matches!(k, "switch" | "router" | "switch-l3");
