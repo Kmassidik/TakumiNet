@@ -14,7 +14,7 @@ docker build -t takuminet .
 docker run --rm --name pt-web -p 3000:3000 takuminet
 ```
 
-Open **http://127.0.0.1:3000**. Stop the container with `docker rm -f pt-web`.
+Open **http://127.0.0.1:3000** for the landing page, or **http://127.0.0.1:3000/workspace** to go straight to the workspace. Stop the container with `docker rm -f pt-web`.
 The image contains the native static/development server, the complete web app,
 all five templates, original assets, and the committed WebAssembly engine. It
 needs no runtime package installation or external asset service.

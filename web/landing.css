@@ -1,0 +1,111 @@
+/* The landing page uses the same tokens as the workspace, so the two look like one product. */
+* { box-sizing: border-box; }
+html { color-scheme: light; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--font-ui); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); }
+a:focus-visible, .button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: var(--r-m); }
+h1, h2, h3, p, ul { margin: 0; }
+
+.top, main > section, .foot { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+
+/* ---------- header ---------- */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 0; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font-size: 18px; font-weight: 750; letter-spacing: -.01em; text-decoration: none; }
+.top nav { display: flex; align-items: center; gap: 22px; font-size: 15px; }
+.top nav a:not(.button) { color: var(--text-2); text-decoration: none; }
+.top nav a:not(.button):hover { color: var(--accent); text-decoration: underline; }
+
+.button {
+  display: inline-block; padding: 11px 20px; border: 1px solid var(--accent); border-radius: var(--r-m);
+  background: var(--accent); color: var(--white); font-size: 16px; font-weight: 650; text-decoration: none;
+}
+.button:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.button.quiet { background: transparent; color: var(--accent); }
+.button.quiet:hover { background: var(--accent-bg); }
+.button.small { padding: 7px 14px; font-size: 14px; }
+
+/* ---------- hero ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; align-items: center; padding: 56px 0 72px; }
+h1 { max-width: 15ch; text-wrap: balance; font-size: clamp(40px, 5.6vw, 68px); font-weight: 800; line-height: 1.02; letter-spacing: -.04em; }
+.lede { max-width: 46ch; margin-top: 22px; color: var(--text-2); font-size: 19px; line-height: 1.55; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.fine { margin-top: 18px; color: var(--muted); font-size: 14px; }
+.phone-note { display: none; margin-top: 26px; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--white); color: var(--text-2); }
+
+.stage { margin: 0; padding: 18px 18px 8px; border: 1px solid var(--line-soft); border-radius: var(--r-xl); background: var(--white); box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--shadow-ink) 40%, transparent); }
+.net { display: block; width: 100%; height: auto; color: var(--faint); }
+.net text { fill: var(--text-2); }
+.packet { fill: var(--packet); stroke: var(--white); stroke-width: 3; offset-path: path("M70 262 L190 152 L280 54 L370 152 L490 262"); offset-rotate: 0deg; animation: travel 9s linear infinite; }
+@keyframes travel { 0% { offset-distance: 0%; } 92%, 100% { offset-distance: 100%; } }
+
+.cap { width: 100%; margin-top: 6px; border-collapse: collapse; font: 12px/1.4 var(--font-mono); }
+.cap th { padding: 6px 8px; border-bottom: 1px solid var(--line-soft); color: var(--muted); font-weight: 600; text-align: left; }
+.cap td { padding: 6px 8px; border-bottom: 1px solid var(--surface); white-space: nowrap; }
+.cap td:last-child { white-space: normal; color: var(--text-2); }
+.cap tbody tr { animation: lit 9s infinite; }
+.cap tbody tr:nth-child(2) { animation-delay: -6s; }
+.cap tbody tr:nth-child(3) { animation-delay: -3s; }
+@keyframes lit { 0%, 30% { background: var(--warn-bg); } 34%, 100% { background: transparent; } }
+
+/* ---------- content bands ---------- */
+.band { padding: 64px 0; border-top: 1px solid var(--line-soft); }
+h2 { max-width: 22ch; font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; line-height: 1.1; letter-spacing: -.03em; }
+.row { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; align-items: center; margin-top: 44px; }
+.row + .row { margin-top: 56px; }
+h3 { font-size: 20px; font-weight: 750; letter-spacing: -.015em; }
+.say p { max-width: 50ch; margin-top: 10px; color: var(--text-2); }
+
+.mock { padding: 14px; border: 1px solid var(--line-soft); border-radius: var(--r-l); background: var(--white); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs span { padding: 4px 12px; border: 1px solid var(--line-soft); border-radius: 999px; color: var(--text-2); font-size: 13px; }
+.tabs .on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 650; }
+.tilerow { display: flex; gap: 8px; margin-top: 12px; }
+.tilerow span { display: grid; justify-items: center; gap: 2px; flex: 1; padding: 8px 4px; border: 1px solid var(--line-soft); border-radius: var(--r-m); background: var(--window); font-size: 12px; color: var(--text-2); }
+
+.mini { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mini th { padding: 6px 10px; border-bottom: 1px solid var(--line-soft); color: var(--muted); font-weight: 600; text-align: left; }
+.mini td { padding: 8px 10px; border-bottom: 1px solid var(--surface); }
+.mini .now td { background: var(--warn-bg); font-weight: 650; }
+.t-dns { color: var(--accent-ink); font-weight: 650; }
+.t-arp { color: var(--warn-ink); font-weight: 650; }
+.t-http { color: var(--ok); font-weight: 650; }
+
+.checks { display: grid; gap: 8px; padding: 0; list-style: none; }
+.checks li { display: grid; grid-template-columns: 22px 1fr; align-items: start; gap: 10px; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: var(--r-m); font-size: 15px; }
+.checks small { grid-column: 2; margin-top: -2px; color: var(--muted); font-size: 13px; }
+.checks span { width: 18px; height: 18px; margin-top: 2px; border: 2px solid var(--faint); border-radius: 50%; }
+.checks .pass { border-color: var(--ok-line); background: var(--ok-bg); }
+.checks .pass span { border-color: var(--ok); background: var(--ok); box-shadow: inset 0 0 0 3px var(--ok-bg); }
+
+.lists { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; margin-top: 36px; }
+.lists ul { margin-top: 12px; padding: 0; list-style: none; border-top: 1px solid var(--line-soft); }
+.lists li { border-bottom: 1px solid var(--line-soft); }
+.lists a { display: grid; gap: 2px; padding: 14px 4px; color: var(--text); text-decoration: none; }
+.lists a:hover { background: var(--white); }
+.lists strong { color: var(--accent); font-weight: 650; }
+.lists a:hover strong { text-decoration: underline; }
+.lists span { color: var(--muted-2); font-size: 15px; }
+
+.plain p { max-width: 62ch; margin-top: 18px; color: var(--text-2); }
+.links-line { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; padding: 28px 0 44px; border-top: 1px solid var(--line-soft); color: var(--muted); font-size: 14px; }
+
+/* ---------- small screens ---------- */
+@media (max-width: 900px) {
+  .hero, .row, .lists { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .hero { padding-top: 28px; }
+  .cap th:nth-child(3), .cap td:nth-child(3) { display: none; }
+}
+/* Phones cannot use the workspace: no buttons into it, one plain note instead (keep in step with PHONE_QUERY in js/phone.js). */
+@media (max-width: 599px), (max-height: 500px) and (pointer: coarse) {
+  .only-computer { display: none !important; }
+  .phone-note { display: block; }
+  .lists a { pointer-events: none; }
+  .lists strong { color: var(--text); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .packet { animation: none; offset-distance: 52%; }
+  .cap tbody tr { animation: none; }
+  .cap tbody tr:nth-child(3) { background: var(--warn-bg); }
+}

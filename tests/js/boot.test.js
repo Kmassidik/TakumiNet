@@ -105,3 +105,46 @@ test('a fresh load is marked clean before anything else can change', async () =>
   await context.boot().catch(() => {});
   assert.equal(order[0], 'clean');
 });
+
+function openLinkHarness(search) {
+  const opened = [];
+  const galleries = [];
+  const replaced = [];
+  const context = vm.createContext({
+    data: null,
+    api: async () => ({}),
+    getJson: async () => ({ tabs: { physical: 'P' }, devices: [], links: [] }),
+    status() {}, sfx() {}, renderGallery() {}, renderAll() {}, renderPalette() {}, renderFilters() {},
+    renderToolbar() {}, initWorkspaceCanvas() {}, wireMenus() {}, wireActions() {}, wireKeyboard() {},
+    wireCanvasDrop() {}, wireWorkspaceCanvas() {},
+    showGallery: async () => { galleries.push(1); },
+    shouldAutoShowGallery: () => true,
+    openTemplate: async (id) => { opened.push(id); return {}; },
+    document: anyElement(),
+    workspaceCanvas: { fit() {} },
+    window: { addEventListener() {} },
+    location: { search }, URLSearchParams,
+    history: { replaceState: (...args) => replaced.push(args) },
+    markClean() {},
+    setView() {}, makeWindowMovable() {}, renderTopology() {}, renderRunLog() {}, renderEvents() {}, renderLesson() {}, PRIMARY: [], SECONDARY: [],
+  });
+  vm.runInContext(source, context);
+  return { context, opened, galleries, replaced };
+}
+
+test('a link with ?open= opens that example and skips the welcome window', async () => {
+  const { context, opened, galleries, replaced } = openLinkHarness('?open=tpl-routed');
+  await context.boot();
+  assert.deepEqual(opened, ['tpl-routed']);
+  assert.deepEqual(galleries, []);
+  assert.equal(replaced[0][2], '/workspace');
+});
+
+test('an ?open= value that is not a plain id is ignored', async () => {
+  for (const search of ['?open=../../etc', '?open=', '?open=a b', '?open=%3Cscript%3E', '?x=1']) {
+    const { context, opened, galleries } = openLinkHarness(search);
+    await context.boot();
+    assert.deepEqual(opened, [], search);
+    assert.deepEqual(galleries, [1], search); // the normal first-visit window instead
+  }
+});

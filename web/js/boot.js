@@ -56,7 +56,12 @@ async function boot() {
     makeWindowMovable(document.getElementById(id));
   }
   status('Ready');
-  if (shouldAutoShowGallery()) await showGallery();
+  // A link such as /workspace?open=tpl-routed opens that example or lesson straight away.
+  const requested = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('open') : null;
+  if (requested && /^[a-z0-9-]+$/.test(requested)) {
+    if (typeof history !== 'undefined') history.replaceState(null, '', '/workspace');
+    await openTemplate(requested);
+  } else if (shouldAutoShowGallery()) await showGallery();
 }
 
 

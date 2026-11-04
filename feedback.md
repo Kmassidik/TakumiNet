@@ -512,3 +512,15 @@ Owner: "block the phone view ... render one view that says this app is not suppo
 - Tests: `tests/js/phone.test.js`, `tests/js/engine.test.js` (two new cases), `tests/bend/phone_block.bend`.
 - Checked in Chrome at 390 x 844: only the message was visible, `engine.wasm` was not requested, the app did not start; at 1512 x 855 it reloaded and started.
 - Not blocked on purpose: the About page (`/about`) still works on a phone, so the link in the message opens.
+
+## F22. A landing page at `/`, with the workspace at `/workspace` (done, 2026-11-04)
+
+Owner: "build a landing page ... this one sends into the workspace ... none slop".
+
+- `/` is a new landing page (`web/landing.html`, `web/landing.css`). The app moved to `/workspace`. Links, the offline cache, the About page and the tests were updated.
+- Design: it uses the app's own tokens, so both look like one product. The hero is a live loop of one packet crossing a small network while the capture rows light up in step; it stops for people who ask for less motion. Below it, three rows each carry a different coded mock-up (palette tiles, an events table, lesson checks) instead of three identical cards, then plain lists of the five example networks and five lessons, then a short note on the licence. No numbered markers, no all-caps labels, no arrows in buttons, no gradients, no emoji.
+- Every example and lesson link goes to `/workspace?open=<id>`, which opens that network straight away and skips the welcome window. Only plain ids are accepted (letters, digits, dashes).
+- On a phone the buttons are replaced by one note that the workspace needs a computer or a tablet.
+- Tests: `tests/ts/landing.test.ts`, `tests/bend/landing_links.bend`, two new cases in `tests/js/boot.test.js`, `e2e_landing_page_sends_people_into_the_workspace`.
+- Checked in Chrome: desktop (hero, rows, lists), a 390 px window, and `/workspace?open=tpl-routed` opening the network with the welcome window skipped.
+- Not done: no real screenshots of the app on the page (the mock-ups are drawn in code, so they cannot go stale), and no dark mode (the app has none).

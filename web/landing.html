@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TakumiNet: build a network and watch it work</title>
+<meta name="description" content="A free network lab in your browser. Drop in routers, switches and computers, connect them, and follow every packet. No account, no install.">
+<link rel="icon" type="image/webp" href="/art3d/mascot/idle.webp">
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/landing.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/"><img src="/art3d/mascot/idle.webp" alt="" width="30" height="30">TakumiNet</a>
+  <nav aria-label="Site">
+    <a href="/about">About</a>
+    <a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">GitHub</a>
+    <a class="button small only-computer" href="/workspace">Open the workspace</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>Build a network and watch it work.</h1>
+      <p class="lede">TakumiNet is a free network lab in your browser. Drop in routers, switches and computers, run a cable between them, then follow every packet from one device to the next.</p>
+      <p class="actions only-computer">
+        <a class="button" href="/workspace">Open the workspace</a>
+        <a class="button quiet" href="/workspace?open=tpl-routed">Try two networks and a router</a>
+      </p>
+      <p class="phone-note">The workspace needs a computer or a tablet. Open this page there to start building.</p>
+      <p class="fine">No account and no install. After the first load it works offline.</p>
+    </div>
+
+    <figure class="stage" aria-label="A packet crossing a small network while the capture table records it">
+      <svg class="net" viewBox="0 0 560 330" role="img" aria-label="PC0 on the left network and PC3 on the right network, joined through two switches and a router">
+        <g class="links" stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M70 262 L190 152"/><path d="M190 152 L280 54"/><path d="M280 54 L370 152"/><path d="M370 152 L490 262"/>
+        </g>
+        <g class="devices" font-size="13" text-anchor="middle">
+          <image href="/art3d/devices/pc.webp" x="38" y="230" width="64" height="64"/><text x="70" y="312">PC0</text>
+          <image href="/art3d/devices/switch.webp" x="158" y="120" width="64" height="64"/><text x="190" y="196">Switch0</text>
+          <image href="/art3d/devices/router.webp" x="248" y="22" width="64" height="64"/><text x="280" y="100">Router0</text>
+          <image href="/art3d/devices/switch.webp" x="338" y="120" width="64" height="64"/><text x="370" y="196">Switch1</text>
+          <image href="/art3d/devices/pc.webp" x="458" y="230" width="64" height="64"/><text x="490" y="312">PC3</text>
+        </g>
+        <circle class="packet" r="9"/>
+      </svg>
+      <table class="cap" aria-label="Captured packets">
+        <thead><tr><th>Time</th><th>From</th><th>At</th><th>Type</th><th>Info</th></tr></thead>
+        <tbody>
+          <tr><td>0.003</td><td>PC0</td><td>Router0</td><td>ARP</td><td>PC0 asks who has 192.168.1.1</td></tr>
+          <tr><td>0.006</td><td>Router0</td><td>PC0</td><td>ARP</td><td>Router0 answers with its address</td></tr>
+          <tr><td>0.009</td><td>PC0</td><td>PC3</td><td>ICMP</td><td>Echo request arrives with TTL 127</td></tr>
+        </tbody>
+      </table>
+    </figure>
+  </section>
+
+  <section class="band" aria-labelledby="do">
+    <h2 id="do">Wire it, run it, check it</h2>
+
+    <article class="row">
+      <div class="say">
+        <h3>Wire it up</h3>
+        <p>Pick a category, drag a device onto the canvas, then connect two devices with the right cable: copper straight-through, crossover, serial, fiber or console. Set addresses in the device window, like on real equipment.</p>
+      </div>
+      <div class="mock tiles" aria-hidden="true">
+        <div class="tabs"><span>Routers</span><span>Switches</span><span class="on">End devices</span><span>Wireless</span></div>
+        <div class="tilerow">
+          <span><img src="/art3d/devices/pc.webp" alt="" width="40" height="40">PC-PT</span>
+          <span><img src="/art3d/devices/laptop.webp" alt="" width="40" height="40">Laptop</span>
+          <span><img src="/art3d/devices/server.webp" alt="" width="40" height="40">Server</span>
+          <span><img src="/art3d/devices/printer.webp" alt="" width="40" height="40">Printer</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="row">
+      <div class="say">
+        <h3>Follow the packet</h3>
+        <p>Press Play and each device makes its decision in turn: ARP, DNS, ping, a web page. Open any captured frame to read its layers and its bytes, and filter the list by protocol.</p>
+      </div>
+      <div class="mock" aria-hidden="true">
+        <table class="mini">
+          <thead><tr><th>Time</th><th>Last device</th><th>At device</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td>0.003</td><td>PC0</td><td>Switch0</td><td class="t-dns">DNS</td></tr>
+            <tr><td>0.007</td><td>Switch0</td><td>Server0</td><td class="t-arp">ARP</td></tr>
+            <tr class="now"><td>0.011</td><td>PC0</td><td>Server0</td><td class="t-http">HTTP</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="row">
+      <div class="say">
+        <h3>Check your work</h3>
+        <p>Guided lessons give you steps to do, and checks that read the live network. When something fails you see what was expected, what the network did, and a hint.</p>
+      </div>
+      <div class="mock" aria-hidden="true">
+        <ul class="checks">
+          <li class="pass"><span></span>PC0 reaches PC3 through Router0</li>
+          <li class="pass"><span></span>The router decrements the delivered TTL to 127</li>
+          <li class="todo"><span></span>Router0 has the left connected prefix<small>Not checked yet</small></li>
+        </ul>
+      </div>
+    </article>
+  </section>
+
+  <section class="band" aria-labelledby="start">
+    <h2 id="start">Start from a network that already runs</h2>
+    <div class="lists">
+      <div>
+        <h3>Example networks</h3>
+        <ul>
+          <li><a href="/workspace?open=tpl-connect"><strong>Two computers</strong><span>PC0 and PC1 on one cable, ready to ping</span></a></li>
+          <li><a href="/workspace?open=tpl-star"><strong>Three computers on a switch</strong><span>PC0, PC1 and PC2 ready to talk through Switch0</span></a></li>
+          <li><a href="/workspace?open=tpl-home"><strong>Home network</strong><span>Laptop0 and PC0 reach Server0's web page</span></a></li>
+          <li><a href="/workspace?open=tpl-routed"><strong>Two networks and a router</strong><span>PC0 reaches PC3 through Router0</span></a></li>
+          <li><a href="/workspace?open=tpl-web"><strong>Website by name</strong><span>PC0 looks up www.takumi.lab and opens the site</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Guided lessons</h3>
+        <ul>
+          <li><a href="/workspace?open=t1"><strong>Connect two computers</strong><span>PC0 can ping PC1</span></a></li>
+          <li><a href="/workspace?open=t2"><strong>A star network with a switch</strong><span>Three PCs talk and Switch0 learns their MAC addresses</span></a></li>
+          <li><a href="/workspace?open=t3"><strong>Home network with automatic addresses</strong><span>Computers lease addresses, then open a web page</span></a></li>
+          <li><a href="/workspace?open=t4"><strong>Two networks joined by a router</strong><span>Reach PC3 through Router0 with TTL 127</span></a></li>
+          <li><a href="/workspace?open=t5"><strong>Visit a website by name</strong><span>Resolve www.takumi.lab and open the website</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band plain" aria-labelledby="free">
+    <h2 id="free">Free, and yours to change</h2>
+    <p>TakumiNet runs entirely in your browser, so your networks stay on your machine. It needs no account and works offline once it has loaded. The engine, the interface and every picture are original work, released under the MIT licence. Anyone can send a pull request or fork it and build their own version.</p>
+    <p class="links-line"><a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">Source on GitHub</a><a href="https://x.com/KMassidik" rel="noopener noreferrer">Follow the author on X</a><a href="/about">About TakumiNet</a></p>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>TakumiNet is not affiliated with Cisco.</span>
+  <span>MIT licence, 2026 Kurnia Massidik</span>
+</footer>
+</body>
+</html>

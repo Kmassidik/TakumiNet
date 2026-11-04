@@ -4,8 +4,10 @@ const CACHE_PREFIX = 'TakumiNet-';
 const CACHE_NAME = `${CACHE_PREFIX}v1`;
 const PRECACHE_URLS = Object.freeze([
   '/',
+  '/workspace',
   '/about',
   '/tokens.css',
+  '/landing.css',
   '/workspace.css',
   '/engine.wasm',
 
@@ -200,7 +202,7 @@ self.addEventListener('fetch', (event) => {
     } catch (error) {
       const cached = await cache.match(request);
       if (cached) return cached;
-      if (request.mode === 'navigate') return cache.match('/');
+      if (request.mode === 'navigate') return (await cache.match(url.pathname)) || cache.match('/');
       throw error;
     }
   })());
