@@ -16,6 +16,9 @@ impl Workspace {
         }
         let addr = crate::model::parse_ipv4(ip.trim())
             .ok_or_else(|| format!("invalid address: {ip}"))?;
+        if !self.dhcp_pool_list(server).iter().any(|p| crate::model::contains(addr, p.network, p.prefix)) {
+            return Err("the reserved address must belong to one of the server's pools".into());
+        }
         let list = self
             .dhcp_reservations
             .entry(server.to_string())

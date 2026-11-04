@@ -127,3 +127,18 @@ fn guest_lesson_fences_visitors_in_both_directions_and_survives_save() {
     assert!(ws.send_pdu("laptop0", "printer0").is_ok());
     assert!(ws.wlan_set_guest("homerouter0", "Nope", true).is_err());
 }
+
+#[test]
+fn reservation_lesson_keeps_the_printer_on_one_address() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l1-04-reserve-address.xml")).unwrap();
+    assert_eq!(results(&mut ws), vec![false, false, false]);
+    assert!(ws.set_dhcp_reservation("server0", "printer0", "10.9.9.9").is_err(), "outside every pool");
+    assert!(ws.set_dhcp_reservation("server0", "printer0", "nonsense").is_err());
+    ws.set_dhcp_reservation("server0", "printer0", "192.168.1.50").unwrap();
+    ws.acquire_dhcp("printer0").unwrap();
+    assert_eq!(results(&mut ws), vec![true, true, true]);
+    ws.release_dhcp("printer0");
+    ws.acquire_dhcp("printer0").unwrap();
+    let ip = ws.devices.iter().find(|d| d.id == "printer0").and_then(|d| d.ip);
+    assert_eq!(ip, crate::model::parse_ipv4("192.168.1.50"), "the address survives a restart");
+}

@@ -137,7 +137,8 @@ impl Workspace {
             "devices" => self.devices.iter().filter(|d| check.to.is_empty() || d.kind == check.to).count(),
             "leases" => self.dhcp_leases.get(&check.to).map_or(0, Vec::len),
             "routes" => self.selected_routes(&check.to).len(),
-            other => return (false, format!("unknown count scope '{other}'"), "Use devices, leases or routes.".into()),
+            "reservations" => self.dhcp_reservations.get(&check.to).map_or(0, Vec::len),
+            other => return (false, format!("unknown count scope '{other}'"), "Use devices, leases, routes or reservations.".into()),
         };
         (found >= least, format!("{found} found, {least} needed"), hint)
     }

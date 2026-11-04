@@ -17,7 +17,7 @@ EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed",
             ("tpl-l1-wifi-home", 5), ("tpl-l1-two-rooms", 6), ("tpl-l1-broken-wifi", 7),
             ("tpl-l3-office-vlans", 8),
             ("tpl-l4-campus-ospf", 9)]
-LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-02-wifi-name", "les-l1-03-guest-wifi", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence", "les-l4-03-ospf-campus", "les-l3-05-port-security", "les-l3-03-dhcp-per-vlan"]
+LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-02-wifi-name", "les-l1-03-guest-wifi", "les-l1-04-reserve-address", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence", "les-l4-03-ospf-campus", "les-l3-05-port-security", "les-l3-03-dhcp-per-vlan"]
 
 from words import T
 

@@ -1138,7 +1138,7 @@ fn e2e_landing_page_sends_people_into_the_workspace() {
         let id: String = part.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '-').collect();
         if !ids.contains(&id) { ids.push(id); }
     }
-    assert_eq!(ids.len(), 25, "ten examples and fifteen lessons: {ids:?}");
+    assert_eq!(ids.len(), 26, "ten examples and sixteen lessons: {ids:?}");
     for id in &ids {
         let (_, _, opened) = s.post(&format!("/api/templates/open?id={id}"));
         assert!(!opened.contains("\"error\""), "{id}: {opened}");

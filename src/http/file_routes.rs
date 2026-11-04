@@ -200,6 +200,7 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("les-l1-01-router-login", include_str!("../../web/templates/les-l1-01-router-login.xml")),
     ("les-l1-02-wifi-name", include_str!("../../web/templates/les-l1-02-wifi-name.xml")),
     ("les-l1-03-guest-wifi", include_str!("../../web/templates/les-l1-03-guest-wifi.xml")),
+    ("les-l1-04-reserve-address", include_str!("../../web/templates/les-l1-04-reserve-address.xml")),
     ("les-l1-07-find-the-fault", include_str!("../../web/templates/les-l1-07-find-the-fault.xml")),
     ("tpl-l3-office-vlans", include_str!("../../web/templates/tpl-l3-office-vlans.xml")),
     ("les-l3-01-three-vlans", include_str!("../../web/templates/les-l3-01-three-vlans.xml")),

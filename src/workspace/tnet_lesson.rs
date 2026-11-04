@@ -65,11 +65,11 @@ pub(super) fn validate_lesson_records(
                     invalidate(valid, problems, index, element, "kind", format!("unknown check kind '{kind}'"));
                 }
                 let from = element.get("from").unwrap_or("");
-                if !device_exists(from) {
+                if kind != "count" && !device_exists(from) {
                     invalidate(valid, problems, index, element, "from", format!("refers to device '{from}' that does not exist"));
                 }
                 let to = element.get("to").unwrap_or("");
-                if matches!(kind, "ping" | "ttl") && !device_exists(to) {
+                if matches!(kind, "ping" | "ttl" | "noreach") && !device_exists(to) {
                     invalidate(valid, problems, index, element, "to", format!("refers to device '{to}' that does not exist"));
                 }
                 if kind == "arp" && crate::model::parse_ipv4(to).is_none() && !device_exists(to) {
@@ -96,6 +96,17 @@ pub(super) fn validate_lesson_records(
                         if crate::model::parse_ipv4(element.get("expect").unwrap_or("")).is_none() {
                             invalidate(valid, problems, index, element, "expect", "nslookup expectation must be an IPv4 address");
                         }
+                    }
+                    "count" => {
+                        if !matches!(from, "devices" | "leases" | "routes" | "reservations") {
+                            invalidate(valid, problems, index, element, "from", "count scope must be devices, leases, routes or reservations");
+                        }
+                        if element.get("expect").unwrap_or("").parse::<usize>().is_err() {
+                            invalidate(valid, problems, index, element, "expect", "count expectation must be an unsigned integer");
+                        }
+                    }
+                    "outage" if !element.get("url").unwrap_or("").contains(':') => {
+                        invalidate(valid, problems, index, element, "url", "outage check needs the cut as device:port");
                     }
                     "route" => {
                         let expect = element.get("expect").unwrap_or("");
