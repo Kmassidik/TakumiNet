@@ -41,6 +41,8 @@ export interface DrawOptions {
 }
 
 const LED_COLORS: Record<string, string> = { green: "#0a7a3d", amber: "#c98a00", red: "#c62828" };
+/* --ok, --warn, --danger and --muted from tokens.css; canvas fills cannot read CSS variables. */
+const STATUS_COLORS: Record<string, string> = { up: "#0a7a3d", degraded: "#e6a23c", down: "#b42318", isolated: "#667085" };
 const GRID_WORLD = 25;
 const SELECT = "#2b6cb0";
 
@@ -51,6 +53,7 @@ export function drawScene(ctx: Canvas2D, scene: Scene, camera: Camera, options: 
   if (!scene.devices.length && options.empty) drawEmpty(ctx, options, width, height);
   for (const link of scene.links) drawLink(ctx, link, camera, options);
   for (const device of scene.devices) drawDevice(ctx, device, camera, options);
+  for (const group of scene.groups) drawGroup(ctx, group, camera, options);
   for (const packet of options.packets ?? []) drawPacket(ctx, packet, camera);
   for (const note of options.notes ?? []) drawNote(ctx, note, camera, options.selectedNote ?? null);
 }
@@ -144,6 +147,28 @@ function drawDevice(ctx: Canvas2D, device: Scene["devices"][number], camera: Cam
   ctx.fillStyle = "#667085";
   ctx.fillText(device.model, cx, origin.y + 86 * camera.zoom);
   if (device.ip) ctx.fillText(`${device.ip}/${device.prefix}`, cx, origin.y + 98 * camera.zoom);
+}
+
+function drawGroup(ctx: Canvas2D, group: Scene["groups"][number], camera: Camera, options: DrawOptions): void {
+  const origin = camera.toScreen({ x: group.box.x, y: group.box.y });
+  const size = group.box.w * camera.zoom;
+  const selected = options.selected?.has(group.id) ?? false;
+  ctx.fillStyle = "#eef3fb";
+  ctx.fillRect(origin.x, origin.y, size, size);
+  ctx.strokeStyle = selected ? SELECT : "#667085";
+  ctx.lineWidth = selected ? 2 : 1.5;
+  ctx.strokeRect(origin.x, origin.y, size, size);
+  ctx.fillStyle = STATUS_COLORS[group.status] ?? STATUS_COLORS.isolated!;
+  ctx.beginPath();
+  ctx.arc(origin.x + size - 10 * camera.zoom, origin.y + 10 * camera.zoom, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#1b1f23";
+  ctx.font = "12px sans-serif";
+  ctx.textAlign = "center";
+  const cx = origin.x + size / 2;
+  ctx.fillText(group.name, cx, origin.y + 74 * camera.zoom);
+  ctx.fillStyle = "#667085";
+  ctx.fillText(`${group.devices} device${group.devices === 1 ? "" : "s"}`, cx, origin.y + 86 * camera.zoom);
 }
 
 function drawPacket(ctx: Canvas2D, packet: Packet, camera: Camera): void {

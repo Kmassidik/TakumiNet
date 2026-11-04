@@ -182,7 +182,8 @@ impl Workspace {
             o.push_str(&s(f));
         }
 
-        o.push_str("],\"groups\":[");
+        // "groups" is taken by the collapsed-node groups at the top level.
+        o.push_str("],\"paletteGroups\":[");
         for (i, (name, icon)) in GROUPS.iter().enumerate() {
             if i > 0 {
                 o.push(',');

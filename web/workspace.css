@@ -827,6 +827,18 @@ html, body {
 .kw-permit { color: var(--ok); }
 .kw-deny { color: var(--danger-ink); }
 .kw-row .kw-remove { margin-left: 8px; padding: 1px 7px; font-size: 11px; }
+.kw-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.kw-table th { text-align: left; font-weight: 600; color: var(--ink-2); }
+.kw-table th, .kw-table td { padding: 2px 8px 2px 0; border-bottom: 1px solid var(--line-soft); }
+.kw-load-ok { color: var(--ok); }
+.kw-load-warn { color: var(--warn-ink); }
+.kw-load-danger { color: var(--danger-ink); font-weight: 600; }
+.kw-status-up { color: var(--ok); }
+.kw-status-degraded { color: var(--warn-ink); }
+.kw-status-down { color: var(--danger-ink); }
+.kw-status-isolated { color: var(--muted); }
+.kw-spread { margin-top: 4px; align-self: flex-start; }
+.kw-spread[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand); }
 .kw-mono {
   margin: 0; padding: 6px 8px; max-height: 180px; overflow: auto; white-space: pre-wrap;
   font: 11px/1.5 var(--font-mono); color: var(--screen-text);

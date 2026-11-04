@@ -1,5 +1,5 @@
 import { Camera, type Point } from "./camera";
-import { hitDevice, hitLink } from "./hit";
+import { hitDevice, hitGroup, hitLink } from "./hit";
 import { drawScene, type Canvas2D, type Packet } from "./draw";
 import { packetAt } from "./packets";
 import { drawRacks } from "./rack_draw";
@@ -7,7 +7,7 @@ import { hitNote, noteBox, type NoteInput } from "./notes";
 import { boundsOf, fitCamera, type Rect } from "./print_view";
 import { bufferSize, recenterShift, type Size } from "./view_size";
 import { hitRackBox, layoutRacks, type RackLayout } from "./rack_layout";
-import { buildScene, type Scene, type SceneDevice, type SceneLink, type WorkspaceInput } from "./scene";
+import { buildScene, type Scene, type SceneDevice, type SceneGroup, type SceneLink, type WorkspaceInput } from "./scene";
 
 export interface CanvasState {
   workspace: WorkspaceInput;
@@ -30,6 +30,7 @@ export interface PacketRun {
 
 export interface PointerHandlers {
   onDeviceDown?: (device: { id: string; name: string }, ev: PointerEvent) => void;
+  onGroupDown?: (group: SceneGroup, ev: PointerEvent) => void;
   onLinkDown?: (link: SceneLink, ev: PointerEvent) => void;
   onBackgroundDown?: (ev: PointerEvent) => void;
   onNoteDown?: (note: NoteInput, ev: PointerEvent) => void;
@@ -41,7 +42,7 @@ const LINK_TOLERANCE_PX = 6;
 export class WorkspaceCanvas {
   readonly camera = new Camera({ x: 0, y: 0, zoom: 1 });
   handlers: PointerHandlers = {};
-  private scene: Scene = { devices: [], links: [] };
+  private scene: Scene = { devices: [], links: [], groups: [] };
   private racks: RackLayout = { racks: [] };
   private state: CanvasState | null = null;
   private readonly ctx: CanvasRenderingContext2D;
@@ -86,7 +87,11 @@ export class WorkspaceCanvas {
     const physical = !!state?.physical;
     const rects: Rect[] = physical
       ? this.racks.racks.map((r) => r.rect)
-      : [...this.scene.devices.map((d) => d.box), ...(state?.notes ?? []).map((n) => noteBox(n))];
+      : [
+          ...this.scene.devices.map((d) => d.box),
+          ...this.scene.groups.map((g) => g.box),
+          ...(state?.notes ?? []).map((n) => noteBox(n)),
+        ];
     const bounds = boundsOf(rects);
     if (!bounds) return null;
     const page = document.createElement("canvas");
@@ -119,18 +124,18 @@ export class WorkspaceCanvas {
   }
 
   fit(): void {
-    const devices = this.scene.devices;
-    if (!devices.length) {
+    const boxes = [...this.scene.devices, ...this.scene.groups].map((d) => d.box);
+    if (!boxes.length) {
       this.camera.zoom = 1;
       this.camera.x = 0;
       this.camera.y = 0;
       this.requestDraw();
       return;
     }
-    const xs = devices.map((d) => d.box.x);
-    const ys = devices.map((d) => d.box.y);
-    const xe = devices.map((d) => d.box.x + d.box.w);
-    const ye = devices.map((d) => d.box.y + d.box.h);
+    const xs = boxes.map((b) => b.x);
+    const ys = boxes.map((b) => b.y);
+    const xe = boxes.map((b) => b.x + b.w);
+    const ye = boxes.map((b) => b.y + b.h);
     const minX = Math.min(...xs) - 40;
     const minY = Math.min(...ys) - 40;
     const width = Math.max(...xe) + 40 - minX;
@@ -267,6 +272,8 @@ export class WorkspaceCanvas {
       if (device) return this.handlers.onDeviceDown?.(device, ev);
       return this.handlers.onBackgroundDown?.(ev);
     }
+    const group = hitGroup(this.scene, world);
+    if (group) return this.handlers.onGroupDown?.(group, ev);
     const device = hitDevice(this.scene, world);
     if (device) return this.handlers.onDeviceDown?.(device, ev);
     const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
@@ -279,7 +286,12 @@ export class WorkspaceCanvas {
   private onPointerMove(ev: PointerEvent): void {
     if (!this.panFrom) {
       if (this.state?.physical) return;
-      this.handlers.onHover?.(hitDevice(this.scene, this.worldAt(ev)), ev);
+      const world = this.worldAt(ev);
+      const group = hitGroup(this.scene, world);
+      const over = group
+        ? { name: group.name, model: `${group.devices} device${group.devices === 1 ? "" : "s"}` }
+        : hitDevice(this.scene, world);
+      this.handlers.onHover?.(over, ev);
       return;
     }
     const here = this.screenAt(ev);

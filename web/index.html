@@ -85,6 +85,9 @@
           <button data-action="build-bus">Build Bus Topology…</button>
           <button data-action="mesh">Create Full Mesh</button>
           <div class="sep"></div>
+          <button data-action="collapse-group">Collapse into one node</button>
+          <button data-action="flows">Flows…</button>
+          <div class="sep"></div>
           <button data-action="reset-sim">Reset Simulation</button>
           <button data-action="custom-device">Custom Device…</button>
         </div>
@@ -515,6 +518,26 @@
   <div class="preview kindwin kindwin-wide">
     <div class="devwin-title">
       <span class="kindwin-name">Layer 3 switch</span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
+    </div>
+    <div class="kindwin-body"></div>
+  </div>
+</div>
+
+<div id="group-window" class="overlay" hidden>
+  <div class="preview kindwin">
+    <div class="devwin-title">
+      <span class="kindwin-name">Group</span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
+    </div>
+    <div class="kindwin-body"></div>
+  </div>
+</div>
+
+<div id="flows-window" class="overlay" hidden>
+  <div class="preview kindwin kindwin-wide">
+    <div class="devwin-title">
+      <span class="kindwin-name">Flows</span>
       <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
     </div>
     <div class="kindwin-body"></div>

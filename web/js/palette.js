@@ -11,9 +11,9 @@ function leaveCableMode() {
 function renderPalette() {
   const groups = document.getElementById('groups');
   groups.replaceChildren();
-  const labels = data.groups.map((g) => g.label);
+  const labels = data.paletteGroups.map((g) => g.label);
   paletteGroup = paletteStartGroup(paletteGroup, labels);
-  data.groups.forEach((g) => {
+  data.paletteGroups.forEach((g) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'group-tab' + (g.label === paletteGroup ? ' active' : '');
