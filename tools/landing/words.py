@@ -102,6 +102,7 @@ T = {
             ("Close the provincial ring", "Any single backbone cable can break and PopPalu still reaches KontenSulawesi"),
             ("When the national gateway fails", "The two provinces still reach each other when a cable at GerbangJakarta is cut, and the overseas page stays under 120 milliseconds"),
             ("A triangle under the sea", "Any one submarine cable can break and all three countries still reach each other")],
+        "more_in_workspace": "All {examples} example networks and {lessons} lessons are waiting inside the workspace.",
         "faq_h": "Questions people ask",
         "faq": [
             ("Is Takumi free?", "Yes. It is free to use and open source under the MIT licence."),
@@ -230,6 +231,7 @@ T = {
             ("Tutup cincin provinsi", "Satu kabel backbone mana pun boleh putus dan POP terjauh tetap menjangkau server konten"),
             ("Saat gerbang nasional gagal", "Kedua provinsi tetap saling melihat setelah kabel di gerbang putus, dan halaman luar negeri tetap cepat"),
             ("Segitiga di bawah laut", "Satu kabel laut mana pun boleh putus dan ketiga negara tetap saling menjangkau")],
+        "more_in_workspace": "Semua {examples} contoh jaringan dan {lessons} pelajaran menunggu di dalam workspace.",
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
             ("Apakah Takumi gratis?", "Ya. Takumi gratis dipakai dan open source dengan lisensi MIT."),

@@ -142,16 +142,14 @@ test("the visible questions are exactly the questions in the structured data", (
   }
 });
 
-test("every example and lesson link opens a template that exists, once each in the lists", () => {
+test("the landing shows three examples and three lessons, and each link opens", () => {
   for (const key of ["landingEn", "landingId"] as const) {
     const page = html[key];
     const ids = [...page.matchAll(/href="\/workspace\?open=([a-z0-9-]+)"/g)].map((m) => m[1]!);
     for (const id of ids) expect(templateIds, id).toContain(id);
-    expect(new Set(ids)).toEqual(new Set(templateIds));
-    const lists = page.slice(page.indexOf('<section class="start" aria-labelledby="start">'), page.indexOf('<section class="start faq"'));
-    const listed = [...lists.matchAll(/href="\/workspace\?open=([a-z0-9-]+)"/g)].map((m) => m[1]!);
-    expect(listed.length).toBe(new Set(listed).size);
-    expect(listed.length).toBe(templateIds.length);
+    expect(new Set(ids).size).toBe(7);
+    expect(page).toContain("/workspace?open=tpl-home");
+    expect(page).toContain("/workspace?open=t1");
   }
 });
 

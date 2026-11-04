@@ -41,6 +41,8 @@ EXAMPLES = [
     ("tpl-l9-backbone-ring", 24),
     ("tpl-l10-national", 25),
     ("tpl-l11-world", 26)]
+FEATURED_EXAMPLES = ["tpl-home", "tpl-l2-rtrw-small", "tpl-l4-campus-ospf"]
+FEATURED_LESSONS = ["t1", "les-l1-02-wifi-name", "les-l2-01-first-gateway"]
 LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-02-wifi-name", "les-l1-03-guest-wifi", "les-l1-04-reserve-address", "les-l1-05-port-forward", "les-l1-06-far-room", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence", "les-l4-03-ospf-campus", "les-l3-05-port-security", "les-l3-06-remote-owner", "les-l3-03-dhcp-per-vlan", "les-l2-01-first-gateway", "les-l2-02-customer-login", "les-l2-03-speed-limits", "les-l2-06-find-the-hog", "les-l2-04-voucher-hotspot", "les-l2-05-far-house", "les-l4-05-campus-wifi", "les-l4-06-dmz", "les-l4-01-three-layers", "les-l4-02-root-and-bundles", "les-l4-04-spare-gateway", "les-l5-01-leaf-spine", "les-l5-02-lose-a-spine", "les-l5-03-load-balancer", "les-l5-04-overlay-network", "les-l6-01-address-plan", "les-l6-02-first-bgp", "les-l6-03-two-upstreams", "les-l5-05-find-the-hot-link", "les-l7-01-ring-heals", "les-l7-02-city-services", "les-l8-01-far-village", "les-l9-01-ring-cut", "les-l10-01-gateway-down", "les-l11-01-cable-cut"]
 
 from words import T
@@ -145,10 +147,11 @@ def img(pose, alt, eager=False):
 def landing(t):
     ex = "\n".join(
         f'          <li><a href="/workspace?open={tid}"><strong>{esc(t["examples"][i][0])}</strong><span>{esc(t["examples"][i][1])}</span></a></li>'
-        for tid, i in EXAMPLES)
+        for tid, i in EXAMPLES if tid in FEATURED_EXAMPLES)
     les = "\n".join(
         f'          <li><a href="/workspace?open={lid}"><strong>{esc(t["lessons"][i][0])}</strong><span>{esc(t["lessons"][i][1])}</span></a></li>'
-        for i, lid in enumerate(LESSONS))
+        for i, lid in enumerate(LESSONS) if lid in FEATURED_LESSONS)
+    more = esc(t["more_in_workspace"].format(examples=len(EXAMPLES), lessons=len(LESSONS)))
     tabs = "".join(f'<span class="on">{esc(x)}</span>' if i == 2 else f"<span>{esc(x)}</span>" for i, x in enumerate(t["tabs"]))
     tiles = "\n".join(f'            <span><img src="/art3d/devices/{f}.webp" alt="" width="40" height="40" loading="lazy">{esc(n)}</span>'
                       for f, n in zip(["pc", "laptop", "server", "printer"], t["tiles"]))
@@ -249,6 +252,7 @@ def landing(t):
         </ul>
       </div>
     </div>
+    <p class="more"><a href="/workspace">{more}</a></p>
   </section>
 
   <section class="start faq" aria-labelledby="faq">
