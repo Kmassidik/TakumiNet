@@ -8,11 +8,13 @@ interface Paint {
   arcFills: string[];
   fills: string[];
   texts: string[];
+  fonts: string[];
+  textFills: string[];
   images: unknown[];
 }
 
 function paintRecorder(): { ctx: Canvas2D; paint: Paint } {
-  const paint: Paint = { arcFills: [], fills: [], texts: [], images: [] };
+  const paint: Paint = { arcFills: [], fills: [], texts: [], fonts: [], textFills: [], images: [] };
   const ctx = {
     canvas: { width: 800, height: 600 },
     fillStyle: "#000",
@@ -29,7 +31,8 @@ function paintRecorder(): { ctx: Canvas2D; paint: Paint } {
     stroke() {},
     fill() { paint.arcFills.push(ctx.fillStyle); },
     arc() {},
-    fillText(text: string) { paint.texts.push(text); },
+    fillText(text: string) { paint.texts.push(text); paint.fonts.push(ctx.font); paint.textFills.push(ctx.fillStyle); },
+    strokeText() {},
     drawImage(image: unknown) { paint.images.push(image); },
   };
   return { ctx: ctx as unknown as Canvas2D, paint };
@@ -47,6 +50,30 @@ test("link LEDs take their colour from the port state", () => {
   const { ctx, paint } = paintRecorder();
   drawScene(ctx, buildScene(cabled), new Camera({ x: 0, y: 0, zoom: 1 }), { grid: false, width: 800, height: 600 });
   expect(paint.arcFills).toEqual(["#0a7a3d", "#c98a00"]);
+});
+
+test("the device label stack: semibold name, 10px muted kind line, 11px IP", () => {
+  const { ctx, paint } = paintRecorder();
+  const addressed = {
+    devices: [{ id: "a", name: "PC0", model: "PC-PT", icon: "", x: 100, y: 100, ip: "10.0.0.2", prefix: 24 }],
+    links: [],
+  };
+  drawScene(ctx, buildScene(addressed), new Camera({ x: 0, y: 0, zoom: 1 }), { grid: false, width: 800, height: 600 });
+  const at = (text: string) => paint.texts.indexOf(text);
+  expect(paint.fonts[at("PC0")]).toBe("600 12px sans-serif");
+  expect(paint.textFills[at("PC0")]).toBe("#1b1f23");
+  expect(paint.fonts[at("PC-PT")]).toBe("10px sans-serif");
+  expect(paint.textFills[at("PC-PT")]).toBe("#667085");
+  expect(paint.fonts[at("10.0.0.2/24")]).toBe("11px sans-serif");
+});
+
+test("port labels are 10px and muted", () => {
+  const { ctx, paint } = paintRecorder();
+  drawScene(ctx, buildScene(cabled), new Camera({ x: 0, y: 0, zoom: 1 }), { grid: false, width: 800, height: 600 });
+  const at = paint.texts.indexOf("Fa0");
+  expect(at).toBeGreaterThanOrEqual(0);
+  expect(paint.fonts[at]).toBe("10px sans-serif");
+  expect(paint.textFills[at]).toBe("#667085");
 });
 
 test("an empty workspace shows the mascot and the next step", () => {
