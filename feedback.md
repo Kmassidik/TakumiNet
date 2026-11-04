@@ -647,3 +647,18 @@ Owner: "remove all vendor related in here".
 - Device MAC addresses no longer use a vendor's address prefix. They now use a locally administered prefix (`0254.4b..`). The low bytes are unchanged, so lab results that depend on MAC order did not change.
 - The lab password used in tests is now `lab`.
 - Open for the owner (not changed): the palette still carries model numbers taken from a vendor's product line (for example 2911, 1941, 2960, ASA 5505, PC-PT). They appear in the palette, in the template files and in lesson text. Renaming them touches the catalog, ten template files, lessons, tests and the art file names. Tell me the naming you want (for example R-100, S-200) and I will do it as one change.
+
+## F25. White landing page with a 3D Takumi in the middle (done, 2026-11-04)
+
+Owner: "the colour should be white ... use our mascot at the centre ... make a 3D Takumi rather than the network ... for each card use the layout in Praxis-AI".
+
+This replaces the dark network scene from F23 (its model, poster and camera code were removed).
+
+- **Layout taken from `/Desktop/Apps/Praxis-AI`** (`src/lib/components/landing/`): a white page, a giant centred uppercase headline with two pill buttons, the mascot standing on a thick-bordered card with a hard offset shadow, then full-width rounded colour blocks (ink black, teal, light grey) with a huge title and text on one side and the mascot on the other, alternating. Then two hard-shadow cards for the examples and lessons, and a closing black block.
+- **Colour:** white page; the block teal is taken from Takumi's scarf. New tokens: `--brand`, `--brand-strong`, `--brand-soft`, `--ink-block` (the old dark stage tokens were removed).
+- **Takumi in 3D:** `tools/landing/build_takumi.py` builds him in Blender from spheres, curves and boxes, following the flat mascot art (grey bear, teal ears, teal network-cable scarf ending in a plug, pink cheeks). Output: `web/landing/takumi.glb` (about 750 KB) with named moving parts (`head`, `earL/R`, `eyeL/R`, `armL/R`, `legL/R`, `scarf`). Check renders (`takumi-front.png`, `takumi-side.png`) are written next to it but are not committed.
+- **In the browser** (`web/ts/landing/`): `motion.ts` (slot choice, pose, blink, gaze, frame guard), `scene.ts` (three.js), `mode.ts`, `main.ts`. One canvas sits over the page. Takumi glides to the slot nearest the middle of the window, turns toward the text, strikes the slot's pose (wave, rest, think, happy), looks at the mouse, blinks, and jumps when clicked. The fur bump and the soft shadow are drawn in code.
+- **Fallback:** phones, "reduce motion", no WebGL, a failed model, or a slow machine (average frame over 34 ms for 150 frames) keep the existing flat mascot pictures in the same five slots.
+- **Measured in Chrome (this Mac, 2x display):** 120 fps while scrolling the whole page; landing script 154 KB gzipped (budget 300 KB); model under 1 MB.
+- **Tests:** `tests/ts/landing_motion.test.ts`, `landing_scene.test.ts`, `landing.test.ts`, `tests/bend/slot_pick.bend`, and the landing e2e test.
+- **Not done:** the thinking pose raises the arm instead of touching the chin, and Takumi has no mouth animation. The model is simple shapes, not a sculpted fur model, so it is close to the art but not identical.

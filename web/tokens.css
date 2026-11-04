@@ -11,9 +11,8 @@
   --warn: #e6a23c; --warn-bg: #fff3c4; --warn-line: #f0b429; --warn-ink: #a86a00; --warn-fill: #ffe08a; --packet: #e8590c;
   --screen-bg: #203a2b; --screen-text: #c9f7d4; --screen-dim: #9ed4ae; --screen-ok: #eafff0; --screen-edge: #51705c;
   --shadow-ink: #19395b; --scrim: rgba(21, 36, 56, .28); --scrim-strong: rgba(16, 24, 40, 0.45);
-  /* the landing page stage */
-  --stage: #05080d; --stage-2: #0b1118; --on-stage: #eaf0f8; --on-stage-muted: #9fb0c6; --cable: #52d6ff; --led: #2ee59d;
-  --glass: rgba(12, 19, 30, .66); --glass-line: rgba(160, 190, 230, .2);
+  /* the landing page: white, with the colours of Takumi's scarf */
+  --brand: #2fbf9f; --brand-strong: #1fae8f; --brand-soft: #dcf6ef; --ink-block: #15191f;
   --r-s: 3px; --r-m: 4px; --r-l: 6px; --r-xl: 10px;
   --font-ui: "Segoe UI", system-ui, sans-serif; --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 }

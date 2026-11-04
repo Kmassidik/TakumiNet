@@ -5,75 +5,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TakumiNet: build a network and watch it work</title>
 <meta name="description" content="A free network lab in your browser. Drop in routers, switches and computers, connect them, and follow every packet. No account, no install.">
-<meta name="color-scheme" content="dark">
 <link rel="icon" type="image/webp" href="/art3d/mascot/idle.webp">
-<link rel="preload" as="image" href="/landing/poster.webp" type="image/webp">
 <link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
-<img class="poster" src="/landing/poster.webp" alt="" width="1600" height="900" fetchpriority="high">
 <canvas id="stage" aria-hidden="true"></canvas>
 
 <header class="top">
-  <a class="brand" href="/"><img src="/art3d/mascot/idle.webp" alt="" width="32" height="32">TakumiNet</a>
+  <a class="brand" href="/"><img src="/art3d/mascot/idle.webp" alt="" width="34" height="34">TakumiNet</a>
   <nav aria-label="Site">
     <a href="/about">About</a>
     <a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">GitHub</a>
-    <a class="button glass small only-computer" href="/workspace">Open the workspace</a>
+    <a class="pill solid small only-computer" href="/workspace">Open the workspace</a>
   </nav>
 </header>
 
 <main>
-  <section class="screen hero">
+  <section class="hero">
     <h1>Build a network and watch it work.</h1>
     <p class="lede">A free network lab in your browser. Drop in routers, switches and computers, run a cable between them, then follow every packet from one device to the next.</p>
     <p class="actions only-computer">
-      <a class="button" href="/workspace">Open the workspace</a>
-      <a class="button glass" href="/workspace?open=tpl-routed">Try two networks and a router</a>
+      <a class="pill solid" href="/workspace">Open the workspace</a>
+      <a class="pill line" href="/workspace?open=tpl-routed">Try two networks and a router</a>
     </p>
     <p class="phone-note">The workspace needs a computer or a tablet. Open this page there to start building.</p>
-    <p class="fine">No account and no install. After the first load it works offline.</p>
-  </section>
 
-  <section class="screen step" aria-labelledby="wire">
-    <div class="panel">
-      <h2 id="wire">Wire it up</h2>
-      <p>Pick a category, drag a device onto the canvas, then connect two devices with the right cable: copper straight-through, crossover, serial, fiber or console. Set addresses in the device window, like on real equipment.</p>
+    <div class="peek">
+      <div class="slot slot-hero" data-takumi-slot data-pose="wave" data-side="center"><img src="/art3d/mascot/wave.webp" alt="Takumi, the TakumiNet mascot, waving" width="256" height="256"></div>
+      <div class="card hard cap-card">
+        <table class="cap" aria-label="Example captured packets">
+          <thead><tr><th>Time</th><th>From</th><th>At</th><th>Type</th><th>Info</th></tr></thead>
+          <tbody>
+            <tr><td>0.003</td><td>PC0</td><td>Router0</td><td class="t-arp">ARP</td><td>PC0 asks who has 192.168.1.1</td></tr>
+            <tr><td>0.006</td><td>Router0</td><td>PC0</td><td class="t-arp">ARP</td><td>Router0 answers with its address</td></tr>
+            <tr class="now"><td>0.009</td><td>PC0</td><td>PC3</td><td class="t-icmp">ICMP</td><td>Echo request arrives with TTL 127</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 
-  <section class="screen step right" aria-labelledby="follow">
-    <div class="panel">
-      <h2 id="follow">Follow the packet</h2>
-      <p>Press Play and each device makes its decision in turn: ARP, DNS, ping, a web page. Open any captured frame to read its layers and its bytes, and filter the list by protocol.</p>
-      <table class="cap" aria-label="Example captured packets">
-        <thead><tr><th>Time</th><th>From</th><th>At</th><th>Type</th></tr></thead>
-        <tbody>
-          <tr><td>0.003</td><td>PC0</td><td>Router0</td><td class="t-arp">ARP</td></tr>
-          <tr><td>0.006</td><td>Router0</td><td>PC0</td><td class="t-arp">ARP</td></tr>
-          <tr class="now"><td>0.009</td><td>PC0</td><td>PC3</td><td class="t-icmp">ICMP</td></tr>
-        </tbody>
-      </table>
+  <section class="block ink" aria-labelledby="wire">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="wire">Wire it up</h2>
+        <p>Pick a category, drag a device onto the canvas, then connect two devices with the right cable: copper straight-through, crossover, serial, fiber or console. Set addresses in the device window, like on real equipment.</p>
+        <div class="card flat tiles" aria-hidden="true">
+          <div class="tabs"><span>Routers</span><span>Switches</span><span class="on">End devices</span><span>Wireless</span></div>
+          <div class="tilerow">
+            <span><img src="/art3d/devices/pc.webp" alt="" width="40" height="40">PC-PT</span>
+            <span><img src="/art3d/devices/laptop.webp" alt="" width="40" height="40">Laptop</span>
+            <span><img src="/art3d/devices/server.webp" alt="" width="40" height="40">Server</span>
+            <span><img src="/art3d/devices/printer.webp" alt="" width="40" height="40">Printer</span>
+          </div>
+        </div>
+      </div>
+      <div class="slot" data-takumi-slot data-pose="idle" data-side="right"><img src="/art3d/mascot/idle.webp" alt="" width="256" height="256"></div>
     </div>
   </section>
 
-  <section class="screen step" aria-labelledby="check">
-    <div class="panel">
-      <h2 id="check">Check your work</h2>
-      <p>Guided lessons give you steps to do, and checks that read the live network. When something fails you see what was expected, what the network did, and a hint.</p>
-      <ul class="checks">
-        <li class="pass"><span></span>PC0 reaches PC3 through Router0</li>
-        <li class="pass"><span></span>The router decrements the delivered TTL to 127</li>
-        <li class="todo"><span></span>Router0 has the left connected prefix<small>Not checked yet</small></li>
-      </ul>
+  <section class="block teal" aria-labelledby="follow">
+    <div class="block-grid flip">
+      <div class="slot" data-takumi-slot data-pose="think" data-side="left"><img src="/art3d/mascot/think.webp" alt="" width="256" height="256"></div>
+      <div class="say">
+        <h2 id="follow">Follow the packet</h2>
+        <p>Press Play and each device makes its decision in turn: ARP, DNS, ping, a web page. Open any captured frame to read its layers and its bytes, and filter the list by protocol.</p>
+        <div class="card flat" aria-hidden="true">
+          <table class="mini">
+            <thead><tr><th>Time</th><th>Last device</th><th>At device</th><th>Type</th></tr></thead>
+            <tbody>
+              <tr><td>0.003</td><td>PC0</td><td>Switch0</td><td class="t-dns">DNS</td></tr>
+              <tr><td>0.007</td><td>Switch0</td><td>Server0</td><td class="t-arp">ARP</td></tr>
+              <tr class="now"><td>0.011</td><td>PC0</td><td>Server0</td><td class="t-http">HTTP</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block grey" aria-labelledby="check">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="check">Check your work</h2>
+        <p>Guided lessons give you steps to do, and checks that read the live network. When something fails you see what was expected, what the network did, and a hint.</p>
+        <ul class="card flat checks" aria-hidden="true">
+          <li class="pass"><span></span>PC0 reaches PC3 through Router0</li>
+          <li class="pass"><span></span>The router decrements the delivered TTL to 127</li>
+          <li class="todo"><span></span>Router0 has the left connected prefix<small>Not checked yet</small></li>
+        </ul>
+      </div>
+      <div class="slot" data-takumi-slot data-pose="happy" data-side="right"><img src="/art3d/mascot/happy.webp" alt="" width="256" height="256"></div>
     </div>
   </section>
 
   <section class="start" aria-labelledby="start">
     <h2 id="start">Start from a network that already runs</h2>
     <div class="lists">
-      <div class="panel">
+      <div class="card hard">
         <h3>Example networks</h3>
         <ul>
           <li><a href="/workspace?open=tpl-connect"><strong>Two computers</strong><span>PC0 and PC1 on one cable, ready to ping</span></a></li>
@@ -83,7 +113,7 @@
           <li><a href="/workspace?open=tpl-web"><strong>Website by name</strong><span>PC0 looks up www.takumi.lab and opens the site</span></a></li>
         </ul>
       </div>
-      <div class="panel">
+      <div class="card hard">
         <h3>Guided lessons</h3>
         <ul>
           <li><a href="/workspace?open=t1"><strong>Connect two computers</strong><span>PC0 can ping PC1</span></a></li>
@@ -96,17 +126,25 @@
     </div>
   </section>
 
-  <section class="free" aria-labelledby="free">
-    <div class="panel wide">
-      <h2 id="free">Free, and yours to change</h2>
-      <p>TakumiNet runs entirely in your browser, so your networks stay on your machine. It needs no account and works offline once it has loaded. The engine, the interface and every picture are original work, released under the MIT licence. Anyone can send a pull request or fork it and build their own version.</p>
-      <p class="links-line"><a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">Source on GitHub</a><a href="https://x.com/KMassidik" rel="noopener noreferrer">Follow the author on X</a><a href="/about">About TakumiNet</a></p>
+  <section class="block ink free" aria-labelledby="free">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="free">Free, and yours to change</h2>
+        <p>TakumiNet runs entirely in your browser, so your networks stay on your machine. It needs no account and works offline once it has loaded. The engine, the interface and every picture are original work, released under the MIT licence. Anyone can send a pull request or fork it and build their own version.</p>
+        <p class="actions">
+          <a class="pill solid brand only-computer" href="/workspace">Open the workspace</a>
+          <a class="pill line light" href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">Source on GitHub</a>
+          <a class="pill line light" href="https://x.com/KMassidik" rel="noopener noreferrer">Follow the author on X</a>
+        </p>
+      </div>
+      <div class="slot" data-takumi-slot data-pose="wave" data-side="right"><img src="/art3d/mascot/wave.webp" alt="" width="256" height="256"></div>
     </div>
   </section>
 </main>
 
 <footer class="foot">
   <span>Original code, artwork and sounds.</span>
+  <a href="/about">About TakumiNet</a>
   <span>MIT licence, 2026 Kurnia Massidik</span>
 </footer>
 <script src="/js/landing.js" defer></script>

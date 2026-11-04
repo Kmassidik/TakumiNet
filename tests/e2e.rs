@@ -1125,6 +1125,7 @@ fn e2e_landing_page_sends_people_into_the_workspace() {
     assert_eq!(status, 200);
     assert!(head.contains("text/html"), "{head}");
     assert!(landing.contains("Build a network and watch it work."), "headline missing");
+    assert!(landing.contains("data-takumi-slot"), "Takumi must have a place on the page");
     assert!(landing.contains(r#"href="/workspace""#), "the main button must open the workspace");
     assert!(!landing.contains("Simulation Panel"), "'/' must be the landing page, not the app");
     assert!(!landing.contains(".html"), "no address may end in .html");
@@ -1142,12 +1143,13 @@ fn e2e_landing_page_sends_people_into_the_workspace() {
     }
 
     // The scene's own files are served with the right types.
-    for (path, kind) in [("/landing/network.glb", "model/gltf-binary"), ("/landing/poster.webp", "image/webp"), ("/js/landing.js", "javascript")] {
+    for (path, kind) in [("/landing/takumi.glb", "model/gltf-binary"), ("/js/landing.js", "javascript")] {
         let (status, head, _) = s.get_raw(path);
         assert_eq!(status, 200, "{path}");
         assert!(head.contains(kind), "{path}: {head}");
     }
     assert_eq!(s.get("/landing/other.glb").0, 404);
+    assert_eq!(s.get("/landing/network.glb").0, 404, "the old network model is gone");
 
     // The page's own files are served.
     let (status, head, _) = s.get("/landing.css");

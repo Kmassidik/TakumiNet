@@ -1,18 +1,14 @@
 import {
-  ACESFilmicToneMapping, AdditiveBlending, CanvasTexture, Color, DirectionalLight, Fog, HemisphereLight, Mesh, MeshBasicMaterial,
-  MeshStandardMaterial, Object3D, PerspectiveCamera, PMREMGenerator, PointLight, Scene, SphereGeometry, Sprite, SpriteMaterial, SRGBColorSpace, Vector2, Vector3, WebGLRenderer,
+  AmbientLight, Box3, CanvasTexture, Color, DirectionalLight, Group, HemisphereLight, Mesh, MeshPhysicalMaterial, NeutralToneMapping,
+  Object3D, PerspectiveCamera, PMREMGenerator, RepeatWrapping, Scene, Sprite, SpriteMaterial, SRGBColorSpace, Vector3, WebGLRenderer,
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { FrameGuard, cameraAt, loopDistance, routeAt, routeLength, scrollProgress, type CameraKey, type V3 } from "./path";
+import { FrameGuard, blinkScale, damp, gaze, pickSlot, poseAt, stand, type Slot } from "./motion";
 
-/* The live landing scene: the devices exported from Blender (tools/landing/build_scene.py),
-   one packet crossing them, and a camera that follows the page scroll. Colours come
-   from the page's tokens, not from this file. */
+/* Takumi, the mascot, as a live 3D model. He is built in Blender (tools/landing/build_takumi.py)
+   and stands in whichever page slot is nearest the middle of the window, strikes that slot's
+   pose, looks at the pointer and blinks. */
 
 export interface SceneHandle {
   stop(): void;
@@ -25,94 +21,100 @@ export interface SceneOptions {
   onSlow(): void;
 }
 
-const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const DEPTH = 1400; // distance of the camera, in pixels, so one world unit is one pixel at the mascot
+const NODES = ["body", "head", "earL", "earR", "eyeL", "eyeR", "armL", "armR", "legL", "legR", "scarf"] as const;
+type NodeName = (typeof NODES)[number];
 
-/* Blender is Z-up and the exporter turns that into Y-up: (x, y, z) becomes (x, z, -y). */
-const fromBlender = (x: number, y: number, z: number): V3 => ({ x, y: z, z: -y });
+function softBlob(size: number, stops: Array<[number, string]>): CanvasTexture {
+  // Drawn here in code, so there is no image file and no hard edge.
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const g = c.getContext("2d");
+  if (g) {
+    const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    for (const [at, color] of stops) grad.addColorStop(at, color);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, size, size);
+  }
+  return new CanvasTexture(c);
+}
 
-const ROUTE: V3[] = [
-  fromBlender(-9, 3, 0.55),
-  fromBlender(-4.5, 0, 0.55),
-  fromBlender(0, -3, 0.55),
-  fromBlender(4.5, 0, 0.55),
-  fromBlender(9, 3, 0.55),
-];
-
-export const KEYS: CameraKey[] = [
-  { at: 0.0, position: { x: 8, y: 14, z: 21 }, look: { x: -6.6, y: 0, z: 0.5 } },
-  { at: 0.25, position: { x: -8.5, y: 3.4, z: 5.2 }, look: { x: -5.4, y: 0.4, z: -0.6 } },
-  { at: 0.5, position: { x: 3.2, y: 3.6, z: 9.5 }, look: { x: 0.2, y: 0.4, z: 2.2 } },
-  { at: 0.75, position: { x: 0, y: 15.5, z: 6 }, look: { x: 0, y: 0, z: 0 } },
-  { at: 1.0, position: { x: 0, y: 9, z: 19 }, look: { x: 0, y: 0.2, z: -1 } },
-];
+function furBump(): CanvasTexture {
+  // Fine random grey speckle: it makes the plush surface catch the light unevenly, like fur.
+  const size = 256;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const g = c.getContext("2d");
+  if (g) {
+    const img = g.createImageData(size, size);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = 110 + Math.floor(Math.random() * 90);
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+      img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  }
+  const t = new CanvasTexture(c);
+  t.wrapS = t.wrapT = RepeatWrapping;
+  t.repeat.set(7, 7);
+  return t;
+}
 
 export async function startScene(options: SceneOptions): Promise<SceneHandle> {
   const { canvas } = options;
-  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+  renderer.setClearColor(new Color("#ffffff"), 0);
   renderer.outputColorSpace = SRGBColorSpace;
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMapping = NeutralToneMapping;
+  renderer.toneMappingExposure = 1.0;
 
-  const stage = new Color(css("--stage") || "#05080d");
   const scene = new Scene();
-  scene.background = stage;
-  scene.fog = new Fog(stage, 28, 62);
-
-  const camera = new PerspectiveCamera(36, 1, 0.1, 120);
+  const camera = new PerspectiveCamera(30, 1, 10, DEPTH * 3);
+  camera.position.set(0, 0, DEPTH);
   const pmrem = new PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.2;
+  scene.environmentIntensity = 0.55;
 
-  scene.add(new HemisphereLight(new Color("#9db8e8"), stage, 0.35));
-  const key = new DirectionalLight(new Color("#cfe0ff"), 2.1);
-  key.position.set(-6, 12, 8);
+  scene.add(new AmbientLight(new Color("#ffffff"), 0.35));
+  scene.add(new HemisphereLight(new Color("#ffffff"), new Color("#cdd5df"), 0.9));
+  const key = new DirectionalLight(new Color("#fff6ec"), 2.3);
+  key.position.set(-300, 500, 700);
   scene.add(key);
-  const rim = new PointLight(new Color(css("--packet") || "#e8590c"), 16, 26, 1.8);
-  rim.position.set(9, 6, -7);
-  scene.add(rim);
+  const fill = new DirectionalLight(new Color("#dbe8ff"), 0.9);
+  fill.position.set(500, 100, 500);
+  scene.add(fill);
 
   const gltf = await new GLTFLoader().loadAsync(options.modelUrl);
-  scene.add(gltf.scene);
-  gltf.scene.traverse((o: Object3D) => {
+  const model = gltf.scene;
+  const bump = furBump();
+  model.traverse((o: Object3D) => {
     const mesh = o as Mesh;
     if (!mesh.isMesh) return;
-    // The stage floor is only there to catch light: keep it dark and matte so nothing glares off it.
-    if (mesh.name === "floor") {
-      const floor = mesh.material as MeshStandardMaterial;
-      floor.color.multiplyScalar(0.3);
-      floor.roughness = 0.75;
-      floor.metalness = 0.1;
+    const m = mesh.material as MeshPhysicalMaterial;
+    if (m && (m.name === "fur" || m.name === "fur_shade")) {
+      m.bumpMap = bump;
+      m.bumpScale = 0.9;
+      m.needsUpdate = true;
     }
   });
 
-  // The travelling light: a bright core plus a wide soft halo that the bloom pass spreads further.
-  const packetColor = new Color(css("--packet") || "#e8590c");
-  const packet = new Mesh(new SphereGeometry(0.26, 24, 16), new MeshBasicMaterial({ color: packetColor.clone().multiplyScalar(3.2) }));
-  // The halo is a soft round gradient drawn here in code (no image file), so it has no hard edge.
-  const glow = document.createElement("canvas");
-  glow.width = glow.height = 128;
-  const g = glow.getContext("2d");
-  if (g) {
-    const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-    grad.addColorStop(0, "rgba(255,255,255,0.95)");
-    grad.addColorStop(0.18, "rgba(255,255,255,0.45)");
-    grad.addColorStop(0.5, "rgba(255,255,255,0.1)");
-    grad.addColorStop(1, "rgba(255,255,255,0)");
-    g.fillStyle = grad;
-    g.fillRect(0, 0, 128, 128);
+  const parts = {} as Record<NodeName, Object3D>;
+  for (const name of NODES) {
+    const part = model.getObjectByName(name);
+    if (!part) throw new Error(`the model has no "${name}"`);
+    parts[name] = part;
   }
-  const halo = new Sprite(new SpriteMaterial({ map: new CanvasTexture(glow), color: packetColor, blending: AdditiveBlending, depthWrite: false, transparent: true }));
-  halo.scale.set(3.4, 3.4, 1);
-  packet.add(halo);
-  scene.add(packet);
-  const packetLight = new PointLight(packetColor, 14, 7, 1.8);
-  packet.add(packetLight);
+  const eyeHome = { L: parts.eyeL.position.clone(), R: parts.eyeR.position.clone() };
 
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new Vector2(1, 1), 0.5, 0.55, 0.72);
-  composer.addPass(bloom);
-  composer.addPass(new OutputPass());
+  const box = new Box3().setFromObject(model);
+  const modelHeight = Math.max(0.001, box.max.y - box.min.y);
+  model.position.y -= box.min.y; // feet on the ground of the group
+  const mascot = new Group();
+  mascot.add(model);
+  scene.add(mascot);
+
+  const shadow = new Sprite(new SpriteMaterial({ map: softBlob(128, [[0, "rgba(20,28,40,0.34)"], [0.55, "rgba(20,28,40,0.14)"], [1, "rgba(20,28,40,0)"]]), transparent: true, depthWrite: false }));
+  scene.add(shadow);
 
   const resize = () => {
     const w = Math.max(1, canvas.clientWidth);
@@ -120,9 +122,8 @@ export async function startScene(options: SceneOptions): Promise<SceneHandle> {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
-    composer.setPixelRatio(dpr);
-    composer.setSize(w, h);
     camera.aspect = w / h;
+    camera.fov = (2 * Math.atan(h / 2 / DEPTH) * 180) / Math.PI;
     camera.updateProjectionMatrix();
   };
   resize();
@@ -131,44 +132,106 @@ export async function startScene(options: SceneOptions): Promise<SceneHandle> {
 
   const pointer = { x: 0, y: 0 };
   const onMove = (e: PointerEvent) => {
-    pointer.x = (e.clientX / window.innerWidth - 0.5) * 2;
-    pointer.y = (e.clientY / window.innerHeight - 0.5) * 2;
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
   };
   window.addEventListener("pointermove", onMove, { passive: true });
+  let reactUntil = 0;
+  let hopStart = -10;
+  const onDown = (e: Event) => {
+    if ((e.target as HTMLElement | null)?.closest?.("[data-takumi-slot]")) {
+      reactUntil = performance.now() / 1000 + 1.6;
+      hopStart = performance.now() / 1000;
+    }
+  };
+  window.addEventListener("pointerdown", onDown, { passive: true });
 
-  const length = routeLength(ROUTE);
   const guard = new FrameGuard(34, 150);
-  const eye = new Vector3();
-  const target = new Vector3();
-  let progress = 0;
-  let smoothProgress = 0;
+  const cur = { x: 0, y: 0, scale: 1, armL: 0.12, armR: 0.12, headTilt: 0, headNod: 0, bob: 0.01, lean: 0, yaw: 0 };
+  let activeSlot = -1;
   let running = true;
-  let last = performance.now();
-  const start = last;
   let first = true;
+  let last = performance.now();
+  const start = last / 1000;
+  const probe = new Vector3();
 
   const frame = (now: number) => {
     if (!running) return;
-    const dt = Math.min(0.1, (now - last) / 1000);
+    const rawDt = (now - last) / 1000;
+    const dt = Math.min(0.1, rawDt);
     if (guard.add(now - last)) {
       running = false;
       options.onSlow();
       return;
     }
     last = now;
+    const t = now / 1000 - start;
 
-    progress = scrollProgress(window.scrollY, document.documentElement.scrollHeight, window.innerHeight);
-    smoothProgress += (progress - smoothProgress) * Math.min(1, dt * 5);
-    const cam = cameraAt(KEYS, smoothProgress);
-    eye.set(cam.position.x + pointer.x * 0.5, cam.position.y - pointer.y * 0.3, cam.position.z);
-    target.set(cam.look.x, cam.look.y, cam.look.z);
-    camera.position.copy(eye);
-    camera.lookAt(target);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const nodes = [...document.querySelectorAll<HTMLElement>("[data-takumi-slot]")];
+    const slots: Slot[] = nodes.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left, top: r.top, width: r.width, height: r.height, pose: el.dataset.pose ?? "idle", side: (el.dataset.side as Slot["side"]) ?? "center" };
+    });
+    const pick = pickSlot(slots, vh);
+    if (pick >= 0) {
+      if (pick !== activeSlot) {
+        if (activeSlot >= 0) hopStart = now / 1000;
+        activeSlot = pick;
+      }
+      const slot = slots[pick]!;
+      const target = stand(slot, vw, vh, modelHeight);
+      const snap = first ? 1000 : 7;
+      cur.x = damp(cur.x, target.x, snap, dt);
+      cur.y = damp(cur.y, target.y, snap, dt);
+      cur.scale = damp(cur.scale, target.scale, snap, dt);
 
-    const p = routeAt(ROUTE, loopDistance((now - start) / 1000, 2.6, length, 1.4));
-    packet.position.set(p.x, p.y, p.z);
+      // a wave to say hello on arrival, then the slot's own pose; a click makes him jump for joy
+      const intro = slot.pose === "wave" && t > 4.5 ? "idle" : slot.pose;
+      const name = now / 1000 < reactUntil ? "happy" : intro;
+      const pose = poseAt(name, t);
+      cur.armL = damp(cur.armL, pose.armL, 9, dt);
+      cur.armR = damp(cur.armR, pose.armR, 9, dt);
+      cur.headTilt = damp(cur.headTilt, pose.headTilt, 7, dt);
+      cur.headNod = damp(cur.headNod, pose.headNod, 7, dt);
+      cur.bob = damp(cur.bob, pose.bob, 5, dt);
+      const turn = slot.side === "left" ? 0.4 : slot.side === "right" ? -0.4 : 0;
+      cur.lean = damp(cur.lean, turn, 5, dt);
+    }
 
-    composer.render();
+    // the pointer, measured from where Takumi's face is on screen
+    const faceX = cur.x + vw / 2;
+    const faceY = vh / 2 - (cur.y + cur.scale * modelHeight * 0.68);
+    const lookX = gaze((pointer.x - faceX) / (vw / 2));
+    const lookY = gaze((pointer.y - faceY) / (vh / 2));
+
+    const hopAge = now / 1000 - hopStart;
+    const hop = hopAge >= 0 && hopAge < 0.55 ? Math.sin((hopAge / 0.55) * Math.PI) * 0.16 : 0;
+    const bobY = (Math.sin(t * 2.4) * cur.bob + hop) * modelHeight * cur.scale;
+
+    mascot.position.set(cur.x, cur.y + bobY, 0);
+    mascot.scale.setScalar(cur.scale);
+    mascot.rotation.y = cur.lean + lookX * 0.2;
+    parts.armL.rotation.z = -cur.armL;
+    parts.armR.rotation.z = cur.armR;
+    parts.head.rotation.z = cur.headTilt;
+    parts.head.rotation.x = cur.headNod + lookY * 0.12;
+    parts.head.rotation.y = lookX * 0.22;
+    const blink = blinkScale(t);
+    for (const side of ["L", "R"] as const) {
+      const eye = parts[`eye${side}`];
+      eye.scale.y = blink;
+      eye.position.x = eyeHome[side].x + lookX * 0.035;
+      eye.position.y = eyeHome[side].y - lookY * 0.03;
+    }
+
+    probe.set(cur.x, cur.y - 4, -5);
+    shadow.position.copy(probe);
+    shadow.scale.set(modelHeight * cur.scale * 0.82, modelHeight * cur.scale * 0.13, 1);
+    (shadow.material as SpriteMaterial).opacity = Math.max(0.35, 1 - hop * 2.2);
+
+    renderer.render(scene, camera);
     if (first) {
       first = false;
       options.onReady();
@@ -182,7 +245,7 @@ export async function startScene(options: SceneOptions): Promise<SceneHandle> {
       running = false;
       observer.disconnect();
       window.removeEventListener("pointermove", onMove);
-      composer.dispose();
+      window.removeEventListener("pointerdown", onDown);
       renderer.dispose();
       pmrem.dispose();
     },
