@@ -101,3 +101,51 @@ fn the_regency_template_survives_save_and_open() {
     assert_eq!(again.demo, ws.demo);
     assert!(again.send_pdu("pc1", "server0").is_ok());
 }
+
+#[test]
+fn two_cuts_lesson_fails_on_the_line_and_passes_once_the_ring_is_rejoined() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l7-02-two-cuts.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false, false], "a line: any second cut strands a district");
+    ws.links.push(Link {
+        a: "barat".into(),
+        a_port: "GigabitEthernet0/1".into(),
+        b: "selatan".into(),
+        b_port: "GigabitEthernet0/2".into(),
+        kind: "eFiber".into(),
+    });
+    ws.recompute_routing();
+    assert_eq!(passes(&mut ws), vec![true, true, true]);
+}
+
+#[test]
+fn city_exchange_lesson_passes_once_the_second_provider_peers_and_announces() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l7-04-city-exchange.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![true, false, false, false], "only PenyediaFajar peers at the exchange");
+    ws.bgp_config("isp2", 64702).unwrap();
+    ws.bgp_neighbor("isp2", "10.70.8.5", 64700).unwrap();
+    ws.bgp_network("isp2", ip("192.168.77.0").unwrap(), 24).unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true, true, true]);
+    assert_eq!(ws.bgp_session_state("cx0", "10.70.8.6"), "established");
+}
+
+#[test]
+fn rain_fade_lesson_recovers_once_the_hill_relay_splits_the_hop() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l8-02-rain-fade.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![true, false], "dry season, but no backup for the valley pair yet");
+    ws.set_port_delay("mw0", "FastEthernet1", 30_000).unwrap();
+    ws.set_port_delay("mw1", "FastEthernet0", 30_000).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false], "heavy rain fades the valley hop");
+    ws.link("rh0", "mw2").unwrap();
+    ws.link("mw2", "pop0").unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true]);
+}
+
+#[test]
+fn satellite_village_lesson_lands_in_its_band_once_the_terminal_is_cabled() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l8-03-satellite-village.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false, true], "the terminal cable is not plugged in yet");
+    ws.link("rh0", "sat0").unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true, true]);
+    let satellite = ws.path_latency_ms("pc1", "server0").unwrap();
+    assert!(satellite > 400.0 && satellite < 600.0, "satellite village at {satellite} ms");
+}
