@@ -1,12 +1,7 @@
 {
   "src/net/fwd.rs": 696,
-  "src/net/packet.rs": 651,
-  "src/cmd.rs": 651,
   "src/workspace/switching.rs": 598,
-  "src/workspace/tests/routing.rs": 866,
   "src/workspace/routing.rs": 1066,
-  "src/cli/show.rs": 654,
   "src/cli/tests.rs": 509,
-  "tests/labs/main.rs": 1331,
   "tests/e2e.rs": 1218
 }
