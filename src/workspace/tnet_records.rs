@@ -54,6 +54,8 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("lbpool", &["dev", "member"]),
     ("group", &["gid", "name", "members"]),
     ("vnet2", &["dev", "vni"]),
+    ("flow", &["dev", "to", "mbit"]),
+    ("flowspread", &["on"]),
     ("portfwd", &["router", "outside", "target", "inside"]),
     ("capwap", &["ap", "wlc"]),
     ("wifi", &["client", "ssid", "wlc"]),

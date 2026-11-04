@@ -86,10 +86,10 @@ struct Capture {
 }
 
 #[derive(Clone, Debug)]
-struct DataPath {
-    devices: Vec<String>,
+pub(crate) struct DataPath {
+    pub(crate) devices: Vec<String>,
     /// Exact cable indices, including the selected member of an EtherChannel.
-    links: Vec<usize>,
+    pub(crate) links: Vec<usize>,
 }
 
 /// Deliver one ICMP echo request from `src` to `dst`.
@@ -608,7 +608,7 @@ fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
 
 /// Control-plane walk: follow next hops until the destination, then stitch the
 /// VLAN-constrained L2 legs into the exact device and cable path.
-fn routed_path(
+pub(crate) fn routed_path(
     ws: &Workspace,
     sdev: &Device,
     ddev: &Device,

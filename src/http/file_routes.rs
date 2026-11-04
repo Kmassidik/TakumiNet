@@ -229,6 +229,7 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("les-l5-03-load-balancer", include_str!("../../web/templates/les-l5-03-load-balancer.xml")),
     ("tpl-l5-overlay", include_str!("../../web/templates/tpl-l5-overlay.xml")),
     ("les-l5-04-overlay-network", include_str!("../../web/templates/les-l5-04-overlay-network.xml")),
+    ("les-l5-05-find-the-hot-link", include_str!("../../web/templates/les-l5-05-find-the-hot-link.xml")),
     ("les-l1-07-find-the-fault", include_str!("../../web/templates/les-l1-07-find-the-fault.xml")),
     ("tpl-l3-office-vlans", include_str!("../../web/templates/tpl-l3-office-vlans.xml")),
     ("les-l3-01-three-vlans", include_str!("../../web/templates/les-l3-01-three-vlans.xml")),

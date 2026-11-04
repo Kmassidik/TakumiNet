@@ -110,6 +110,8 @@ device ports.
 | `cell` | `client tower` | Cellular client/tower association |
 | `wlan` | `wlc ssid psk security` | Wireless LAN definition on a controller |
 | `portfwd` | `router outside target inside` | Home-router port forward to an inside device |
+| `flow` | `dev to mbit` | Steady flow for the flow view |
+| `flowspread` | `on` | Flows split over a second live path when set |
 | `vnet2` | `dev vni` | Server membership in a virtual tenant network |
 | `group` | `gid name members` | Collapsed node: shown name and comma-joined member ids |
 | `lbpool` | `dev member` | Load balancer pool membership |

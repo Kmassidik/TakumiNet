@@ -27,6 +27,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/voucher") => Some(handle_voucher(ctx, query)),
         ("POST", "/api/devices/lbpool") => Some(handle_lb_pool(ctx, query)),
         ("POST", "/api/lb/list") => Some(handle_lb_list(ctx, query)),
+        ("POST", "/api/flows/set") => Some(handle_flow_set(ctx, query)),
+        ("POST", "/api/flows/list") => Some(handle_flow_list(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -373,4 +375,31 @@ fn handle_lb_list(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         .collect::<Vec<_>>()
         .join(",");
     (json, format!("{{\"pool\":[{rows}]}}").into_bytes())
+}
+
+fn handle_flow_set(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let from = query_value(query, "from").unwrap_or_default();
+    let to = query_value(query, "to").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| {
+        if let Some(spread) = query_value(query, "spread") {
+            ws.set_flow_spread(spread == "1" || spread == "true");
+            return Ok(());
+        }
+        let Some(mbit) = query_value(query, "mbit").and_then(|v| v.parse().ok()) else {
+            return Err("mbit must be a whole number".to_string());
+        };
+        ws.flow_set(&from, &to, mbit)
+    });
+    (json, out.into_bytes())
+}
+
+fn handle_flow_list(ctx: &Ctx, _query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let rows = ws.link_loads().iter().map(|l| format!(
+        "{{\"a\":{},\"aPort\":{},\"b\":{},\"bPort\":{},\"mbit\":{:.1},\"capacity\":{:.1},\"percent\":{:.1}}}",
+        json_str(&l.a), json_str(&l.a_port), json_str(&l.b), json_str(&l.b_port), l.mbit, l.capacity_mbit, l.percent
+    )).collect::<Vec<_>>().join(",");
+    (json, format!("{{\"links\":[{rows}]}}").into_bytes())
 }

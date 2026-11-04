@@ -84,6 +84,7 @@ T = {
             ("Lose a spine and keep running", "Cross-rack traffic survives the loss of either spine"),
             ("Three servers behind one name", "The page opens through WebFront and every server takes a turn"),
             ("Two tenants on one fabric", "Blue servers see each other across racks and never see green"),
+            ("Find the hot link", "No cable carries more than 70 percent once the flows spread"),
             ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
@@ -195,6 +196,7 @@ T = {
             ("Kehilangan spine dan tetap jalan", "Lalu lintas antar-rak bertahan saat salah satu spine mati"),
             ("Tiga server di balik satu nama", "Halaman terbuka lewat WebFront dan setiap server mendapat giliran"),
             ("Dua penyewa di satu fabric", "Server biru saling melihat antar-rak dan tidak pernah melihat hijau"),
+            ("Cari kabel yang panas", "Tidak ada kabel yang membawa lebih dari 70 persen setelah aliran disebar"),
             ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [

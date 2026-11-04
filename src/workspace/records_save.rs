@@ -444,6 +444,12 @@ impl Workspace {
                 escape_field(user)
             ));
         }
+        for (from, to, mbit) in &self.flows {
+            out.push_str(&format!("flow\t{}\t{}\t{}\n", from, to, mbit));
+        }
+        if self.flow_spread {
+            out.push_str("flowspread\t1\n");
+        }
         let mut vnets: Vec<_> = self.vnets.iter().collect();
         vnets.sort();
         for (device, vni) in vnets {

@@ -91,3 +91,30 @@ fn the_overlay_lesson_separates_tenants_and_survives_a_move() {
     assert!(ws.vnet_join("server0", 16_777_216).is_err());
     assert!(ws.vnet_join("l1", 100).is_err(), "only servers join tenant networks");
 }
+
+#[test]
+fn the_hot_link_lesson_cools_down_when_flows_spread() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l5-05-find-the-hot-link.xml")).unwrap();
+    let hottest = ws.link_loads().remove(0);
+    assert!(hottest.percent > 100.0, "both flows pile onto one spine: {}", hottest.percent);
+    assert_eq!(passes(&mut ws), vec![false]);
+    ws.set_flow_spread(true);
+    let hottest = ws.link_loads().remove(0);
+    assert!(hottest.percent <= 70.0, "spread flows stay cool: {}", hottest.percent);
+    assert_eq!(passes(&mut ws), vec![true]);
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.flow_rows().len(), 2, "flows survive save and open");
+    assert!(back.flow_spread);
+}
+
+#[test]
+fn flow_input_is_validated_and_zero_removes() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l5-leaf-spine.xml")).unwrap();
+    assert!(ws.flow_set("server0", "server0", 10).is_err());
+    assert!(ws.flow_set("server0", "ghost", 10).is_err());
+    assert!(ws.flow_set("server0", "server2", 100_001).is_err());
+    ws.flow_set("server0", "server2", 10).unwrap();
+    ws.flow_set("server0", "server2", 0).unwrap();
+    assert!(ws.flow_rows().is_empty());
+    assert_eq!(ws.hottest_link_percent(), 0.0);
+}

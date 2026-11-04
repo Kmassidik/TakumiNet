@@ -217,6 +217,11 @@ impl Workspace {
         let Ok(most) = check.expect.parse::<f64>() else {
             return (false, format!("invalid load '{}'", check.expect), "Use a percentage.".into());
         };
+        if check.to == "links" {
+            let hottest = self.hottest_link_percent();
+            let actual = format!("the hottest cable carries {hottest:.0} % of its speed");
+            return (hottest <= most, actual, "Spread the flows over both paths.".into());
+        }
         match self.line_load(&check.from, &check.to) {
             Some(load) if load < most => (true, format!("load {load:.0} % of the line"), hint),
             Some(load) => (false, format!("load {load:.0} % of the line"), hint),

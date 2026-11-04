@@ -201,6 +201,7 @@ const PRECACHE_URLS = Object.freeze([
   '/templates/les-l5-03-load-balancer.xml',
   '/templates/tpl-l5-overlay.xml',
   '/templates/les-l5-04-overlay-network.xml',
+  '/templates/les-l5-05-find-the-hot-link.xml',
   '/templates/les-l1-07-find-the-fault.xml',
   '/templates/tpl-l3-office-vlans.xml',
   '/templates/les-l3-01-three-vlans.xml',

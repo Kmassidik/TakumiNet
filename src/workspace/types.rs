@@ -337,6 +337,9 @@ pub struct Workspace {
     pub lb_pools: HashMap<String, Vec<String>>,
     pub lb_hits: HashMap<String, HashMap<String, u32>>,
     pub(super) lb_next: HashMap<String, usize>,
+    /// Steady flows for the flow view: (from, to, Mbit/s).
+    pub flows: Vec<(String, String, u32)>,
+    pub flow_spread: bool,
     /// Virtual tenant networks: device -> network id.
     pub vnets: HashMap<String, u32>,
     /// Collapsed nodes: group id -> (shown name, member device ids).

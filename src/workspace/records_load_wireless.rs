@@ -36,6 +36,14 @@ impl Workspace {
                     let _ = self.add_port_forward(router, o, target, i);
                 }
             }
+            ["flow", dev, to, mbit] => {
+                if let Ok(m) = mbit.parse() {
+                    let _ = self.flow_set(dev, to, m);
+                }
+            }
+            ["flowspread", on] => {
+                self.flow_spread = *on == "1";
+            }
             ["vnet2", dev, vni] => {
                 if let Ok(v) = vni.parse() {
                     let _ = self.vnet_join(dev, v);

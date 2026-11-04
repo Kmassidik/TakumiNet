@@ -20,6 +20,7 @@ mod shared_gateway;
 mod stp_state;
 mod balancer;
 mod collapse;
+mod flow;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -82,6 +83,8 @@ impl Workspace {
                 lb_next: HashMap::new(),
                 groups: HashMap::new(),
                 vnets: HashMap::new(),
+                flows: Vec::new(),
+                flow_spread: false,
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
@@ -299,6 +302,8 @@ impl Workspace {
                 lb_next: HashMap::new(),
                 groups: HashMap::new(),
                 vnets: HashMap::new(),
+                flows: Vec::new(),
+                flow_spread: false,
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
