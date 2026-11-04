@@ -382,6 +382,11 @@ where
                 }
             }
             "hub" => note = "repeated to every port".into(),
+            "patchpanel" => note = format!("{} passes the frame through, port to port", dev.name),
+            "sniffer" => {
+                note = format!("{} records the frame and passes it on", dev.name);
+                sniff_packet(ws, dev_id, data_started_at + i as f64 * 0.001, src_mac, dst_mac, &packet);
+            }
             _ => {}
         }
 
@@ -434,12 +439,6 @@ fn find<'a>(ws: &'a Workspace, id: &str) -> Result<&'a Device, String> {
         .find(|d| d.id == id)
         .ok_or_else(|| format!("unknown device {id}"))
 }
-
-/// Shortest path whose every interface is administratively up.
-
-
-
-/// Shortest data path ignoring interface state, used only to explain a failure.
 
 pub(super) fn bfs(ws: &Workspace, src: &str, dst: &str, require_up: bool, vlan: Option<u16>) -> Option<DataPath> {
     // Ports the spanning tree puts in blocking state never forward traffic.
@@ -553,7 +552,7 @@ fn next_l3_id(ws: &Workspace, path: &[String], i: usize, dst: &str) -> String {
             return dst.to_string();
         }
         if let Some(d) = ws.devices.iter().find(|d| d.id == *id) {
-            if d.kind != "switch" && d.kind != "hub" {
+            if !crate::model::l2_transparent(&d.kind) {
                 return d.id.clone();
             }
         }

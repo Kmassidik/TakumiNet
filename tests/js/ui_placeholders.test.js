@@ -101,6 +101,7 @@ test('every Desktop app dispatches to its real handler', () => {
     browser: 'openBrowser',
     editor: 'openEditor',
     firewall: 'openFirewall',
+    capture: 'openCapture',
   };
   const context = vm.createContext({
     document: { createElement: (tag) => new Element(tag) },
@@ -114,22 +115,32 @@ test('every Desktop app dispatches to its real handler', () => {
   vm.runInContext(source('web/js/device_tabs.js'), context);
 
   const apps = vm.runInContext('DESKTOP_APPS', context);
-  const device = { id: 'pc0', name: 'PC0' };
+  const device = { id: 'pc0', name: 'PC0', kind: 'pc' };
   const pane = new Element();
   context.tabDesktop(pane, device);
   const buttons = pane.children[0].children;
-  assert.equal(apps.length, 7);
-  assert.equal(buttons.length, apps.length);
+  assert.equal(apps.length, 8);
+  /* Capture is the sniffer's app: a PC desktop never shows it. */
+  const shown = apps.filter(([, , action]) => action !== 'capture');
+  assert.equal(buttons.length, shown.length);
   assert.equal(apps.some(([, label]) => label === 'Dialup'), false);
 
-  for (let i = 0; i < apps.length; i++) {
-    const [, label, action] = apps[i];
+  for (let i = 0; i < shown.length; i++) {
+    const [, label, action] = shown[i];
     const handler = handlers[action];
     assert.ok(handler, `${label} needs a real handler`);
     buttons[i].onclick();
     assert.deepEqual(calls.at(-1), { name: handler, device });
   }
-  assert.equal(calls.length, apps.length);
+  assert.equal(calls.length, shown.length);
+
+  const sniffer = { id: 'sniffer0', name: 'Sniffer0', kind: 'sniffer' };
+  const snifferPane = new Element();
+  context.tabDesktop(snifferPane, sniffer);
+  const snifferButtons = snifferPane.children[0].children;
+  assert.equal(snifferButtons.length, apps.length);
+  snifferButtons[apps.findIndex(([, , action]) => action === 'capture')].onclick();
+  assert.deepEqual(calls.at(-1), { name: 'openCapture', device: sniffer });
 });
 
 test('device window exposes only the four supported tabs', () => {

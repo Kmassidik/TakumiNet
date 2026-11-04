@@ -23,6 +23,7 @@ function tabDesktop(pane, d) {
   const desk = document.createElement('div');
   desk.className = 'dw-desktop';
   for (const [icon, label, action] of DESKTOP_APPS) {
+    if (action === 'capture' && d.kind !== 'sniffer') continue;
     const app = document.createElement('button');
     app.className = 'dw-app';
     app.title = label;
@@ -40,6 +41,7 @@ function tabDesktop(pane, d) {
       else if (action === 'browser') openBrowser(d);
       else if (action === 'editor') openEditor(d);
       else if (action === 'firewall') openFirewall(d);
+      else if (action === 'capture') openCapture(d);
     };
     desk.appendChild(app);
   }

@@ -1,6 +1,7 @@
 mod addressing;
 mod catalog;
 mod checks;
+mod coverage;
 mod demo;
 mod devices;
 mod l1_lessons;
@@ -20,5 +21,6 @@ mod realtime;
 mod routing;
 mod robustness;
 mod services;
+mod sniffer;
 mod traffic;
 mod wireless_iot;

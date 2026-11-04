@@ -130,6 +130,9 @@ impl Workspace {
                 k,
                 "pc" | "laptop" | "server" | "printer" | "tv" | "sniffer" | "tablet" | "pda"
                     | "phone" | "asa" | "wlc" | "ap" | "hub" | "switch" | "router"
+                    | "patchpanel" | "cablemodem" | "dsl" | "celltower"
+                    // IEC 61158 / Modbus TCP: industrial gear also talks plain Ethernet.
+                    | "plc" | "thing" | "ioe"
                     | "homerouter" | "cloud" | "rtrw-gateway" | "provider-link"
                     | "sector-radio" | "client-radio" | "hotspot-ap" | "switch-l3" | "load-balancer"
                     | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
@@ -175,7 +178,7 @@ impl Workspace {
                 }
             }
             "eCoax" => {
-                let endpoint = |k: &str| matches!(k, "homerouter" | "cloud");
+                let endpoint = |k: &str| matches!(k, "cablemodem" | "homerouter" | "cloud");
                 if !endpoint(&ka) && !endpoint(&kb) {
                     return Err("a coaxial cable needs a cable modem or cloud".into());
                 }

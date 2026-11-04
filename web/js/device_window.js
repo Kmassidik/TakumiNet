@@ -5,6 +5,7 @@ const DESKTOP_APPS = [
   ['apps/cmd', 'Command Prompt', 'cmd'],
   ['apps/browser', 'Web Browser', 'browser'],
   ['groups/notes', 'Text Editor', 'editor'],
+  ['apps/traffic', 'Capture', 'capture'],
   ['groups/firewall', 'Firewall', 'firewall'],
   ['groups/firewall6', 'IPv6 Firewall', 'firewall'],
 ];

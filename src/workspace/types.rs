@@ -34,6 +34,8 @@ pub struct PortCfg {
 pub struct Tables {
     pub(super) macs: HashMap<String, crate::net::packet::MacTable>,
     pub(super) arps: HashMap<String, crate::net::packet::ArpTable>,
+    /// Frames seen by each in-path sniffer, newest last, bounded.
+    pub(super) sniffer: HashMap<String, Vec<SnifferRow>>,
 }
 
 impl Tables {
@@ -53,6 +55,7 @@ impl Tables {
     pub fn forget(&mut self, id: &str) {
         self.macs.remove(id);
         self.arps.remove(id);
+        self.sniffer.remove(id);
     }
 
     /// `show mac address-table` rows for one switch.

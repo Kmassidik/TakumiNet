@@ -364,6 +364,12 @@ mod tests {
     }
 }
 
+/// Device kinds a frame crosses without being re-addressed: switches learn,
+/// hubs repeat, patch panels and sniffers pass it through untouched.
+pub fn l2_transparent(kind: &str) -> bool {
+    matches!(kind, "switch" | "hub" | "patchpanel" | "sniffer")
+}
+
 /// Device kinds that route packets with a routing table and NAT.
 pub fn routes_packets(kind: &str) -> bool {
     matches!(
