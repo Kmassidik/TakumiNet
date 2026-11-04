@@ -1,5 +1,8 @@
 import type { DocLike, ElementLike } from "./dom";
+import { renderBalancerWindow } from "./balancer_window";
+import { renderFirewallWindow } from "./firewall_window";
 import { renderGatewayWindow } from "./gateway_window";
+import { renderL3SwitchWindow } from "./l3switch_window";
 import { renderHotspotWindow } from "./hotspot_window";
 import { renderProviderWindow } from "./provider_window";
 import { renderRadioWindow } from "./radio_window";
@@ -16,6 +19,9 @@ const WINDOW_IDS: Record<string, string> = {
   "sector-radio": "radio-window",
   "provider-link": "provider-window",
   "hotspot-ap": "hotspot-window",
+  "asa": "firewall-window",
+  "load-balancer": "balancer-window",
+  "switch-l3": "l3switch-window",
 };
 
 /* Kinds without an entry here keep the generic PC-style device window. */
@@ -41,6 +47,12 @@ export function renderKindWindow(
       return Promise.resolve();
     case "hotspot-ap":
       return renderHotspotWindow(doc, body, device, deps.post);
+    case "asa":
+      return renderFirewallWindow(doc, body, device, deps.getText);
+    case "load-balancer":
+      return renderBalancerWindow(doc, body, device, workspace, deps.post);
+    case "switch-l3":
+      return renderL3SwitchWindow(doc, body, device, deps.getText, deps.post);
     default:
       return Promise.resolve();
   }
