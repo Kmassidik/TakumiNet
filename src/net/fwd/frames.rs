@@ -405,3 +405,20 @@ pub(super) fn blocked_reason(ws: &Workspace, src: &str, dst: &str) -> String {
     }
     "no path: devices are not connected".into()
 }
+
+/// True while live cabling (every port up) joins the two devices.
+pub fn reachable(ws: &Workspace, src: &str, dst: &str) -> bool {
+    usable_path(ws, src, dst).is_some()
+}
+
+pub(super) fn usable_path(ws: &Workspace, src: &str, dst: &str) -> Option<DataPath> {
+    bfs(ws, src, dst, true, None)
+}
+
+pub(super) fn usable_path_vlan(ws: &Workspace, src: &str, dst: &str, vlan: Option<u16>) -> Option<DataPath> {
+    bfs(ws, src, dst, true, vlan)
+}
+
+pub(super) fn any_path(ws: &Workspace, src: &str, dst: &str) -> Option<DataPath> {
+    bfs(ws, src, dst, false, None)
+}

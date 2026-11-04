@@ -13,3 +13,4 @@
 
 # working documents, kept local
 /internal
+__pycache__/

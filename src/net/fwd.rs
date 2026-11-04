@@ -438,25 +438,12 @@ fn find<'a>(ws: &'a Workspace, id: &str) -> Result<&'a Device, String> {
 }
 
 /// Shortest path whose every interface is administratively up.
-/// True while live cabling (every port up) joins the two devices.
-pub fn reachable(ws: &Workspace, src: &str, dst: &str) -> bool {
-    usable_path(ws, src, dst).is_some()
-}
 
-fn usable_path(ws: &Workspace, src: &str, dst: &str) -> Option<DataPath> {
-    bfs(ws, src, dst, true, None)
-}
 
-fn usable_path_vlan(ws: &Workspace, src: &str, dst: &str, vlan: Option<u16>) -> Option<DataPath> {
-    bfs(ws, src, dst, true, vlan)
-}
 
 /// Shortest data path ignoring interface state, used only to explain a failure.
-fn any_path(ws: &Workspace, src: &str, dst: &str) -> Option<DataPath> {
-    bfs(ws, src, dst, false, None)
-}
 
-fn bfs(ws: &Workspace, src: &str, dst: &str, require_up: bool, vlan: Option<u16>) -> Option<DataPath> {
+pub(super) fn bfs(ws: &Workspace, src: &str, dst: &str, require_up: bool, vlan: Option<u16>) -> Option<DataPath> {
     // Ports the spanning tree puts in blocking state never forward traffic.
     let blocked = if require_up { ws.stp_blocked_ports() } else { Vec::new() };
     let initial = DataPath { devices: vec![src.to_string()], links: Vec::new() };
@@ -699,3 +686,4 @@ fn routed_path(
 
 mod frames;
 use frames::*;
+pub use frames::reachable;
