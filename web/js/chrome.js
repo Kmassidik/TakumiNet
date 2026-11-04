@@ -48,8 +48,11 @@ function wireActions() {
       b.classList.add('active');
       document.getElementById('status-mode').textContent = b.textContent;
       status(`${b.textContent} mode`);
+      if (typeof realtimeSetMode === 'function') realtimeSetMode(b.textContent);
     };
   });
+  const activeMode = document.querySelector('.modes .mode.active');
+  if (activeMode && typeof realtimeSetMode === 'function') realtimeSetMode(activeMode.textContent);
 }
 
 const NUDGE_ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };

@@ -36,6 +36,7 @@ mod palette;
 mod records_load;
 mod records_save;
 mod tnet;
+mod realtime;
 mod routing;
 mod routing_igp;
 mod routing_ospf;

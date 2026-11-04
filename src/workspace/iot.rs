@@ -163,7 +163,7 @@ impl Workspace {
         let tower = self.cell_links[src].clone();
         let path = vec![src.to_string(), tower.clone(), dst.to_string()];
         self.next_event += 1;
-        self.events.push(Event {
+        self.push_event(Event {
             id: self.next_event,
             time: self.sim_time,
             last: self.name_of(src),
