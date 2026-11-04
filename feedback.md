@@ -524,3 +524,104 @@ Owner: "build a landing page ... this one sends into the workspace ... none slop
 - Tests: `tests/ts/landing.test.ts`, `tests/bend/landing_links.bend`, two new cases in `tests/js/boot.test.js`, `e2e_landing_page_sends_people_into_the_workspace`.
 - Checked in Chrome: desktop (hero, rows, lists), a 390 px window, and `/workspace?open=tpl-routed` opening the network with the welcome window skipped.
 - Not done: no real screenshots of the app on the page (the mock-ups are drawn in code, so they cannot go stale), and no dark mode (the app has none).
+
+---
+
+# Round 3 (2026-11-04): the landing page is slop, and a better plan
+
+Same rules: research and plan only. Nothing below is built. **build** starts it.
+
+## F23. Replace the landing page with a cinematic 3D one (open, plan)
+
+Owner: "landing page is slop ... learn from motionsites.ai ... you have Blender on this laptop, you have the native macOS API, you can use three.js too".
+
+### What went wrong with the first landing page (F22)
+
+- It had no identity: a blue-and-white page with a big bold headline, which looks like most tool pages.
+- The one distinctive thing TakumiNet owns, the 3D mascot and glossy 3D device art, was shrunk to a 30 px logo and small icons.
+- It never showed the real product, only small flat tables drawn in code.
+- The hero motion was a small dot inside a card. Nothing made you want to scroll.
+- F22 stays in the repo until F23 replaces it. Its routes, `?open=` links and tests stay, only the look changes.
+
+### What I learned from motionsites.ai (public pages only)
+
+- It is a gallery of landing pages made from paid AI prompts, not a product page. I opened the home page and the 3D section and looked at screenshots. The tool blocked reading the page's scripts, so I could not inspect how the motion is built.
+- Pattern 1: every page is built around one full-width moving image (looping video or a 3D scene) with very large type laid over it.
+- Pattern 2: each page has its own art direction, so no two look alike (a dark glowing one, a pale pink one, a saturated blue one).
+- Pattern 3: small glass-like buttons and pills sit on top of the motion, and the rest of the page stays quiet.
+- Pattern 4: the 3D section shows real 3D objects as hero art, not icons.
+- I take principles only. I will not copy their layouts, text or prompts.
+
+### What this laptop has (checked)
+
+- Blender 5.2.1 LTS runs headless from the command line (`Blender --background --python`), with the EEVEE and Cycles engines. Apple M2 Pro, Metal 4.
+- ffmpeg with H.264, VP9, AV1 and the hardware H.265 encoder (for any video).
+- Bun is installed, and `three` 0.182.0 (MIT licence) is already in Bun's cache, so adding it needs no new download.
+- Swift and the macOS frameworks are available. They are not needed here: Blender does the modelling and rendering, and the browser does the live view.
+- The existing art is flat 3D renders (WebP): devices, cables and the mascot. There are no 3D model files yet.
+
+### The concept: "follow the packet"
+
+One scroll-driven 3D scene. The hero is a dark, softly lit stage with TakumiNet's devices as glossy 3D objects, joined by glowing cables, with one orange packet travelling through them. Scrolling flies the camera along the packet's path, and the page text changes as it passes each stop:
+
+1. Hero: the whole network, slow drift, the packet crossing it. Headline and one button laid over the scene.
+2. Wire it up: the camera moves in on the cables and ports.
+3. Follow the packet: it slows at the router, and the capture rows appear beside it as real text.
+4. Check your work: green lights come on along the path.
+5. End: the camera pulls back and the page ends with the button, the example links, and the licence note.
+
+One bold element (the scene), everything else quiet and plain. The mascot appears as a flat picture standing in the scene (the existing art), because modelling it in 3D is a separate job.
+
+### Two ways to deliver it (owner chooses)
+
+| | A. Live three.js scene | B. Blender-rendered video |
+|---|---|---|
+| Look | Real time, reacts to the mouse and the scroll | Highest polish, fixed |
+| Cost on the visitor's machine | Needs WebGL, uses the GPU | Almost none |
+| Download | Script about 250 KB (compressed), models about 1.5 MB | One loop of 3 to 5 MB |
+| Interactive | Yes | No |
+| Offline | Yes, if cached | Yes, if cached |
+
+Recommendation: **A, with B's poster image as the fallback.** Blender models and lights the scene and exports the 3D models; three.js plays them live; a Blender-rendered still (WebP) is shown when WebGL is missing, when the visitor asks for less motion, or on a phone. Nothing is lost if WebGL fails.
+
+### The pipeline
+
+1. `tools/landing/build_scene.py` (Blender, headless): builds the devices from simple shapes with bevels, ports and LEDs (original shapes, not copies of any vendor's), the cables as tubes, the materials and the lights; exports one compressed `.glb` and renders the poster. The script lives in the repo, so the art can be rebuilt.
+2. `web/landing/` gets the `.glb`, the poster and the built script. The scene file is lazy-loaded, so the landing page itself stays light.
+3. A small TypeScript module (`web/ts/landing/scene.ts`) loads the models, lays out the path, animates the packet as a glowing instance and drives the camera from the scroll position. Built with Bun like the rest, only the parts of three.js that are used.
+4. The page copy, the example links and the `?open=` links from F22 stay, laid over the scene.
+5. Fallbacks: no WebGL or a failed load shows the poster; reduced-motion shows the poster without scrolling effects; a phone shows the poster and the existing "needs a computer" note.
+
+### Todo
+
+- [ ] F23.1 Owner decides the direction (see decisions below).
+- [ ] F23.2 Add `three` 0.182.0 as a dev dependency, bundled into one file by `bun run build` (no runtime package). Needs the owner's yes, given in chat on 2026-11-04 ("you can use three js").
+- [ ] F23.3 Write the Blender script; export the `.glb` (devices, cables, packet, stage) and the poster.
+- [ ] F23.4 Write the scene module (load, packet path, scroll camera, resize, dispose) with the fallbacks.
+- [ ] F23.5 Rewrite `landing.html` and `landing.css` around it, using the same tokens plus a small landing palette defined in `tokens.css` (no raw colours elsewhere).
+- [ ] F23.6 Keep the large files out of the offline cache's required list and the workspace untouched (the workspace must not load three.js).
+- [ ] F23.7 Record the art provenance: how the models were made, in `web/art/3d/README` and on the About page.
+
+### Tests (behaviour, error, Bend, slop guard)
+
+- Behaviour: the camera position for a scroll value stays on the path and never leaves it; the packet moves along the cables in order; the page shows each section's text.
+- Error: WebGL missing, a failed or corrupt `.glb`, and a resize to 0 each show the poster and do not throw.
+- Size budgets (a test fails if exceeded): landing script at most 300 KB gzipped, models at most 2 MB, poster at most 300 KB, workspace bundle unchanged.
+- Model check: the `.glb` has the right header, the device names the scene looks for, and no missing textures.
+- Bend: `tests/bend/scroll_path.bend`, the scroll-to-path mapping never decreases and ends at the last stop.
+- Slop guard: landing uses tokens only; the workspace bundle must not contain three.js; every landing image has a size.
+- Browser checks (by me in Chrome): frame time on this Mac, the poster fallback with WebGL turned off, reduced motion, a 390 px window.
+
+### Risks
+
+- The look depends on Blender work I have to judge by eye. I will render and check stills as I go.
+- Live 3D varies by machine. The poster fallback and a frame-time limit (drop to the poster below 30 fps for 2 seconds) cover that.
+- Adding three.js is a new dependency to maintain. It is pinned and only used on the landing page.
+- File size: models are compressed and lazy-loaded. A size test guards it.
+
+### Decisions needed from the owner
+
+1. **Direction:** dark glowing stage (recommended, it makes the orange packet and the lights read), or light and glossy to match the workspace?
+2. **Delivery:** A (live three.js with a poster fallback, recommended) or B (video only)?
+3. **Mascot:** flat picture in the scene (recommended) or a 3D model of it (extra work, extra time)?
+4. **three.js:** confirm adding `three` 0.182.0 as a pinned dev dependency.
