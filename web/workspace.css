@@ -793,6 +793,37 @@ html, body {
   border-radius: var(--r-s); background: var(--chrome);
   font: 12px var(--font-mono); color: var(--ink);
 }
+
+/* ---------- per-kind windows: gateway, radios, provider link, hotspot ---------- */
+.kindwin { width: 400px; max-width: 92vw; padding: 0; overflow: hidden; background: var(--window); }
+.kindwin-wide { width: 560px; max-width: 94vw; }
+.kindwin-body {
+  background: var(--white); border-top: 1px solid var(--line-win); padding: 12px;
+  display: flex; flex-direction: column; gap: 12px;
+  max-height: 70vh; overflow: auto; font-size: 12px; color: var(--text);
+}
+.kw-section { display: flex; flex-direction: column; gap: 4px; }
+.kw-heading { margin: 0; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.kw-section-body { display: flex; flex-direction: column; gap: 4px; }
+.kw-note { margin: 0; color: var(--text-2); }
+.kw-empty, .kw-loading { color: var(--muted); }
+.kw-error { color: var(--danger-ink); }
+.kw-ok { color: var(--ok); }
+.kw-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.kw-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+.kw-field { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--ink-2); }
+.kw-input {
+  font: inherit; width: 110px; padding: 3px 6px;
+  background: var(--white); border: 1px solid var(--line); border-radius: var(--r-s);
+}
+.kindwin .ui-button {
+  font: inherit; padding: 3px 10px; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-s);
+}
+.kindwin .ui-button:hover { background: var(--brand-soft); border-color: var(--brand); }
+.kindwin .ui-button:focus-visible, .kw-input:focus-visible { outline: 2px solid var(--brand-strong); outline-offset: 1px; }
+.kw-outcome { flex-basis: 100%; }
+.kw-outcome .kw-note { font-size: 11px; }
 .stat-line.ok { color: var(--ok); font-weight: 600; }
 .stat-line.off { color: var(--muted); }
 .wifi-list {

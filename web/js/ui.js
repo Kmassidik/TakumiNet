@@ -1598,6 +1598,394 @@
     });
   }
 
+  // web/ts/ui/kind_parts.ts
+  function el(doc, tag, className, text) {
+    const node = doc.createElement(tag);
+    node.className = className;
+    if (text !== undefined)
+      node.textContent = text;
+    return node;
+  }
+  function note(doc, state, text) {
+    const p = el(doc, "p", `kw-note kw-${state}`, text);
+    p.setAttribute("role", state === "error" ? "alert" : "status");
+    return p;
+  }
+  function rowList(doc, items) {
+    const list = el(doc, "ul", "kw-list");
+    for (const item of items)
+      list.appendChild(el(doc, "li", "kw-row", item));
+    return list;
+  }
+  function section(doc, root, title) {
+    const wrap = el(doc, "section", "kw-section");
+    wrap.appendChild(el(doc, "h3", "kw-heading", title));
+    const body = el(doc, "div", "kw-section-body");
+    wrap.appendChild(body);
+    root.appendChild(wrap);
+    return body;
+  }
+  function asyncSection(doc, root, title, errorText, fill) {
+    const box = section(doc, root, title);
+    const run = async () => {
+      box.replaceChildren();
+      box.appendChild(note(doc, "loading", "Loading…"));
+      try {
+        await fill(box);
+      } catch {
+        box.replaceChildren();
+        box.appendChild(note(doc, "error", errorText));
+        box.appendChild(createButton(doc, { label: "Try again", className: "kw-retry", onClick: () => void run() }));
+      }
+    };
+    return run();
+  }
+  function field(doc, form, labelText, type = "text") {
+    const label = el(doc, "label", "kw-field", labelText);
+    const input = el(doc, "input", "kw-input");
+    input.setAttribute("type", type);
+    if (type === "number")
+      input.setAttribute("min", "1");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("spellcheck", "false");
+    label.appendChild(input);
+    form.appendChild(label);
+    return input;
+  }
+  function onEnter(input, action) {
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter")
+        action();
+    });
+  }
+  function showOutcome(doc, target, state, text) {
+    target.replaceChildren();
+    target.appendChild(note(doc, state, text));
+  }
+  function records(res, key) {
+    const value = res[key];
+    return Array.isArray(value) ? value : [];
+  }
+  function asText(value) {
+    return typeof value === "string" ? value : value == null ? "" : String(value);
+  }
+  function errorOf(res) {
+    return typeof res["error"] === "string" && res["error"] ? res["error"] : null;
+  }
+  function linkEnds(workspace, id) {
+    const name = (deviceId) => workspace.devices?.find((d) => d.id === deviceId)?.name ?? deviceId;
+    const ends = [];
+    for (const link of workspace.links ?? []) {
+      if (link.a === id)
+        ends.push(`${link.aPort} to ${name(link.b)} ${link.bPort}`);
+      else if (link.b === id)
+        ends.push(`${link.bPort} to ${name(link.a)} ${link.aPort}`);
+    }
+    return ends;
+  }
+
+  // web/ts/ui/gateway_window.ts
+  var enc = encodeURIComponent;
+  function wholeNumber(value) {
+    const n = Number(value);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  }
+  function mbitText(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? (Math.round(n * 10) / 10).toString() : asText(value);
+  }
+  function sessionsSection(doc, root, device, post) {
+    return asyncSection(doc, root, "Customer sessions", "Could not load the sessions.", async (box) => {
+      const res = await post(`/api/pppoe/sessions?id=${enc(device.id)}`);
+      const err = errorOf(res);
+      if (err)
+        throw new Error(err);
+      const rows = records(res, "sessions");
+      box.replaceChildren();
+      if (rows.length === 0)
+        box.appendChild(note(doc, "empty", "No customer is connected yet."));
+      else
+        box.appendChild(rowList(doc, rows.map((r) => `${asText(r["user"])} on ${asText(r["client"])}`)));
+    });
+  }
+  function fillQueues(doc, box, device, post) {
+    return (async () => {
+      const res = await post(`/api/queues/list?id=${enc(device.id)}&port=Ether1`);
+      const err = errorOf(res);
+      if (err)
+        throw new Error(err);
+      const rows = records(res, "sessions");
+      const load = res["load"];
+      box.replaceChildren();
+      if (rows.length === 0)
+        box.appendChild(note(doc, "empty", "No customer is connected yet."));
+      else
+        box.appendChild(rowList(doc, rows.map((r) => `${asText(r["user"])} on ${asText(r["client"])}: ${mbitText(r["mbit"])} Mbit/s measured`)));
+      const loadText = typeof load === "number" ? `Line load: ${Math.round(load)}%` : "The line load is not measured yet.";
+      box.appendChild(note(doc, "plain", loadText));
+    })();
+  }
+  function queuesSection(doc, root, device, post) {
+    let listBox = null;
+    const done = asyncSection(doc, root, "Speed limits", "Could not load the speed limits.", (box) => {
+      listBox = box;
+      return fillQueues(doc, box, device, post);
+    });
+    const refresh = () => {
+      if (listBox)
+        fillQueues(doc, listBox, device, post).catch(() => {
+          return;
+        });
+    };
+    limitForm(doc, root, device, post, refresh);
+    parentForm(doc, root, device, post, refresh);
+    return done;
+  }
+  function limitForm(doc, root, device, post, refresh) {
+    const form = el(doc, "div", "kw-form");
+    const user = field(doc, form, "Customer");
+    const mbit = field(doc, form, "Limit in Mbit/s", "number");
+    const outcome = el(doc, "div", "kw-outcome");
+    const submit = () => void save();
+    const save = async () => {
+      const name = user.value.trim();
+      const limit = wholeNumber(mbit.value);
+      if (!name || limit === null) {
+        showOutcome(doc, outcome, "error", "Type a customer name and a whole number of Mbit/s.");
+        return;
+      }
+      try {
+        const res = await post(`/api/devices/queue?id=${enc(device.id)}&user=${enc(name)}&mbit=${limit}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Limit saved: ${name} at ${limit} Mbit/s.`);
+          refresh();
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(user, submit);
+    onEnter(mbit, submit);
+    form.appendChild(createButton(doc, { label: "Set limit", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    root.appendChild(form);
+  }
+  function parentForm(doc, root, device, post, refresh) {
+    const form = el(doc, "div", "kw-form");
+    const mbit = field(doc, form, "Whole line in Mbit/s", "number");
+    const outcome = el(doc, "div", "kw-outcome");
+    const submit = () => void save();
+    const save = async () => {
+      const limit = wholeNumber(mbit.value);
+      if (limit === null) {
+        showOutcome(doc, outcome, "error", "Type a whole number of Mbit/s.");
+        return;
+      }
+      try {
+        const res = await post(`/api/devices/queue?id=${enc(device.id)}&mbit=${limit}&parent=1`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Line limit saved: ${limit} Mbit/s.`);
+          refresh();
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(mbit, submit);
+    form.appendChild(createButton(doc, { label: "Set line limit", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    root.appendChild(form);
+  }
+  function vouchersSection(doc, root, device, post) {
+    const box = section(doc, root, "Vouchers");
+    const form = el(doc, "div", "kw-form");
+    const code = field(doc, form, "Code");
+    const minutes = field(doc, form, "Minutes", "number");
+    const outcome = el(doc, "div", "kw-outcome");
+    const submit = () => void save();
+    const save = async () => {
+      const codeText = code.value.trim();
+      const time = wholeNumber(minutes.value);
+      if (!codeText || time === null) {
+        showOutcome(doc, outcome, "error", "Type a code and a whole number of minutes.");
+        return;
+      }
+      try {
+        const res = await post(`/api/voucher?id=${enc(device.id)}&code=${enc(codeText)}&minutes=${time}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else
+          showOutcome(doc, outcome, "ok", `Voucher ${codeText} is ready for ${time} minutes.`);
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(code, submit);
+    onEnter(minutes, submit);
+    form.appendChild(createButton(doc, { label: "Create voucher", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    box.appendChild(form);
+  }
+  function accountsSection(doc, root, device, post) {
+    let listBox = null;
+    const fill = async (box) => {
+      listBox = box;
+      const res = await post(`/api/aaa/list?id=${enc(device.id)}`);
+      const err = errorOf(res);
+      if (err)
+        throw new Error(err);
+      const users = Array.isArray(res["users"]) ? res["users"].map(asText) : [];
+      box.replaceChildren();
+      if (users.length === 0)
+        box.appendChild(note(doc, "empty", "No customer account exists yet."));
+      else
+        box.appendChild(rowList(doc, users));
+    };
+    const done = asyncSection(doc, root, "Customer accounts", "Could not load the accounts.", fill);
+    const form = el(doc, "div", "kw-form");
+    const user = field(doc, form, "User");
+    const pass = field(doc, form, "Password", "password");
+    const outcome = el(doc, "div", "kw-outcome");
+    const submit = () => void save();
+    const save = async () => {
+      const name = user.value.trim();
+      if (!name || !pass.value) {
+        showOutcome(doc, outcome, "error", "Type a user name and a password.");
+        return;
+      }
+      try {
+        const res = await post(`/api/devices/aaa?id=${enc(device.id)}&user=${enc(name)}&pass=${enc(pass.value)}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Account ${name} added.`);
+          if (listBox)
+            await fill(listBox).catch(() => {
+              return;
+            });
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(user, submit);
+    onEnter(pass, submit);
+    form.appendChild(createButton(doc, { label: "Add account", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    root.appendChild(form);
+    return done;
+  }
+  function renderGatewayWindow(doc, body, device, post) {
+    body.replaceChildren();
+    const loads = [
+      sessionsSection(doc, body, device, post),
+      queuesSection(doc, body, device, post)
+    ];
+    vouchersSection(doc, body, device, post);
+    loads.push(accountsSection(doc, body, device, post));
+    return Promise.all(loads).then(() => {
+      return;
+    });
+  }
+
+  // web/ts/ui/hotspot_window.ts
+  function renderHotspotWindow(doc, body, device, post) {
+    body.replaceChildren();
+    const done = asyncSection(doc, body, "Wireless networks", "Could not load the wireless networks.", async (box) => {
+      const res = await post(`/api/wifi/wlans?id=${encodeURIComponent(device.id)}`);
+      const err = errorOf(res);
+      if (err)
+        throw new Error(err);
+      const rows = records(res, "wlans");
+      box.replaceChildren();
+      if (rows.length === 0)
+        box.appendChild(note(doc, "empty", "No wireless network is set up yet."));
+      else
+        box.appendChild(rowList(doc, rows.map((r) => `${asText(r["ssid"])} (${asText(r["security"])})`)));
+    });
+    body.appendChild(note(doc, "plain", "Visitors sign in with a voucher on the gateway."));
+    return done;
+  }
+
+  // web/ts/ui/provider_window.ts
+  function renderProviderWindow(doc, body, device, workspace) {
+    body.replaceChildren();
+    body.appendChild(note(doc, "plain", "The other end is the provider."));
+    const box = section(doc, body, "Cable ends");
+    const ends = linkEnds(workspace, device.id);
+    if (ends.length === 0)
+      box.appendChild(note(doc, "empty", "No cable is connected yet."));
+    else
+      box.appendChild(rowList(doc, ends));
+  }
+
+  // web/ts/ui/radio_window.ts
+  function portDelayMs(saved, deviceId) {
+    let max = 100;
+    for (const match of saved.matchAll(/<port id="([^"]+)"[^>]*delay_us="(\d+)"/g)) {
+      if (match[1] === deviceId)
+        max = Math.max(max, Number(match[2]));
+    }
+    const ms = max / 1000;
+    return Number.isInteger(ms) ? String(ms) : String(Math.round(ms * 10) / 10);
+  }
+  function cableSection(doc, body, device, workspace) {
+    const box = section(doc, body, "Cabled links");
+    const ends = linkEnds(workspace, device.id);
+    if (ends.length === 0)
+      box.appendChild(note(doc, "empty", "No cable is connected yet."));
+    else
+      box.appendChild(rowList(doc, ends));
+  }
+  function renderRadioWindow(doc, body, device, workspace, getText) {
+    body.replaceChildren();
+    cableSection(doc, body, device, workspace);
+    if (device.kind !== "client-radio")
+      return Promise.resolve();
+    return asyncSection(doc, body, "Radio delay", "Could not read the radio delay.", async (box) => {
+      const saved = await getText("/api/export");
+      const ms = portDelayMs(saved, device.id);
+      box.replaceChildren();
+      box.appendChild(note(doc, "plain", `This radio link adds ${ms} ms.`));
+    });
+  }
+
+  // web/ts/ui/kind_windows.ts
+  var WINDOW_IDS = {
+    "rtrw-gateway": "gateway-window",
+    "client-radio": "radio-window",
+    "sector-radio": "radio-window",
+    "provider-link": "provider-window",
+    "hotspot-ap": "hotspot-window"
+  };
+  function windowIdForKind(kind) {
+    return WINDOW_IDS[kind] ?? null;
+  }
+  function renderKindWindow(doc, body, device, workspace, deps) {
+    switch (device.kind) {
+      case "rtrw-gateway":
+        return renderGatewayWindow(doc, body, device, deps.post);
+      case "client-radio":
+      case "sector-radio":
+        return renderRadioWindow(doc, body, device, workspace, deps.getText);
+      case "provider-link":
+        renderProviderWindow(doc, body, device, workspace);
+        return Promise.resolve();
+      case "hotspot-ap":
+        return renderHotspotWindow(doc, body, device, deps.post);
+      default:
+        return Promise.resolve();
+    }
+  }
+
   // web/ts/main.ts
   var doc = document;
   var stack = new ModalStack;
@@ -1620,6 +2008,26 @@
   globalThis.formatLogLine = formatLogLine;
   globalThis.renderToolbar = (bar, items) => renderToolbar(doc, bar, items, (key) => icon3d(key));
   globalThis.makeWindowMovable = makeWindowMovable;
+  var postJson = async (path) => await (await fetch(path, { method: "POST" })).json();
+  var getText = async (path) => {
+    const res = await fetch(path);
+    if (!res.ok)
+      throw new Error(`request failed (${res.status})`);
+    return res.text();
+  };
+  globalThis.openWindowForKind = (device, workspace) => {
+    const winId = windowIdForKind(device?.kind ?? "");
+    const win = winId ? document.getElementById(winId) : null;
+    const name = win?.querySelector(".kindwin-name");
+    const body = win?.querySelector(".kindwin-body");
+    if (!win || !name || !body)
+      return false;
+    name.textContent = device.name;
+    win.hidden = false;
+    bringToFront(win);
+    renderKindWindow(doc, body, device, workspace ?? {}, { post: postJson, getText });
+    return true;
+  };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
   } else {
