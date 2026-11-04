@@ -23,6 +23,7 @@ function renderEvents() {
   if (!events.length) {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
+    td.colSpan = 5;
     td.textContent = 'No events — send a PDU to capture';
     tr.appendChild(td);
     tbody.appendChild(tr);
@@ -141,26 +142,53 @@ function renderFilters() {
   document.querySelectorAll('#filters input').forEach((cb) => {
     previous.set(cb.dataset.protocol, cb.checked);
   });
+  const openGroups = new Set([...box.querySelectorAll('details[open]')].map((d) => d.dataset.group));
   const labels = [...new Set([
     ...data.filters,
     ...data.events.flatMap((e) => [e.proto, e.type]),
   ])];
   box.replaceChildren();
-  for (const f of labels) {
-    const label = document.createElement('label');
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.dataset.protocol = f;
-    cb.checked = previous.has(f) ? previous.get(f) : true;
-    cb.addEventListener('change', renderEvents);
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(f));
-    box.appendChild(label);
+  for (const group of groupProtocols(labels)) {
+    const details = document.createElement('details');
+    details.className = 'filter-group';
+    details.dataset.group = group.name;
+    if (openGroups.has(group.name)) details.open = true;
+    const summary = document.createElement('summary');
+    const name = document.createElement('span');
+    name.textContent = group.name;
+    const count = document.createElement('small');
+    summary.appendChild(name);
+    summary.appendChild(count);
+    details.appendChild(summary);
+    const grid = document.createElement('div');
+    grid.className = 'filter-grid';
+    for (const f of group.labels) {
+      const label = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.dataset.protocol = f;
+      cb.checked = previous.has(f) ? previous.get(f) : true;
+      cb.addEventListener('change', () => { updateFilterCount(details); renderEvents(); });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(f));
+      grid.appendChild(label);
+    }
+    details.appendChild(grid);
+    updateFilterCount(details);
+    box.appendChild(details);
   }
+}
+
+/* "5 of 16 shown" beside each group name, so a closed group still tells its state. */
+function updateFilterCount(details) {
+  const boxes = [...details.querySelectorAll('input')];
+  const shown = boxes.filter((cb) => cb.checked).length;
+  details.querySelector('summary small').textContent = shown === boxes.length ? `${boxes.length}` : `${shown} of ${boxes.length}`;
 }
 
 function setAllFilters(value) {
   for (const cb of document.querySelectorAll('#filters input')) cb.checked = value;
+  document.querySelectorAll('#filters details').forEach(updateFilterCount);
   renderEvents();
 }
 

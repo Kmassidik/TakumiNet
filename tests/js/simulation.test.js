@@ -37,7 +37,21 @@ class Element {
     (this.listeners[name] ||= []).push(fn);
   }
 
+  descendants() {
+    return this.children.flatMap((c) => [c, ...c.descendants()]);
+  }
+
+  querySelectorAll(selector) {
+    if (selector === 'input') return this.descendants().filter((c) => c.tagName === 'INPUT');
+    if (selector === 'details[open]') return this.descendants().filter((c) => c.tagName === 'DETAILS' && c.open);
+    return [];
+  }
+
   querySelector(selector) {
+    if (selector === 'summary small') {
+      const summary = this.children.find((c) => c.tagName === 'SUMMARY');
+      return summary ? summary.children.find((c) => c.tagName === 'SMALL') : null;
+    }
     if (selector === 'input') return this.children.find((c) => c.tagName === 'INPUT') || null;
     if (selector === 'tr.current') return this.children.find((c) => c.className === 'current') || null;
     return null;
@@ -53,6 +67,11 @@ class Element {
   get textContent() {
     return this.children.length ? this.children.map((c) => c.textContent).join('') : this._text;
   }
+}
+
+/* Filters now sit inside layer groups, so the labels are found by walking the tree. */
+function filterLabels(h) {
+  return h.byId('filters').descendants().filter((c) => c.tagName === 'LABEL');
 }
 
 function harness(events = []) {
@@ -71,9 +90,8 @@ function harness(events = []) {
     getElementById: byId,
     querySelectorAll(selector) {
       if (selector === '#filters label') return byId('filters').children;
-      if (selector === '#filters input') {
-        return byId('filters').children.flatMap((label) => label.children.filter((c) => c.tagName === 'INPUT'));
-      }
+      if (selector === '#filters input') return byId('filters').descendants().filter((c) => c.tagName === 'INPUT');
+      if (selector === '#filters details') return byId('filters').children.filter((c) => c.tagName === 'DETAILS');
       return [];
     },
     querySelector(selector) {
@@ -86,6 +104,7 @@ function harness(events = []) {
     document,
     data: { events, filters: ['ICMP', 'HTTP'] },
     performance: { now: () => 1000 },
+    groupProtocols: (labels) => [{ name: 'All', labels: [...new Set(labels)] }],
     animatePath() {},
     sfx() {},
     status() {},
@@ -126,7 +145,7 @@ test('selection and playback retain stable event IDs across filter changes', () 
   h.byId('events').children[1].onclick();
   assert.equal(vm.runInContext('simCursor', h.context), 20);
 
-  const http = h.byId('filters').children[1].querySelector('input');
+  const http = filterLabels(h)[1].querySelector('input');
   http.checked = false;
   http.listeners.change[0]();
   assert.equal(vm.runInContext('simCursor', h.context), 20);
@@ -146,10 +165,10 @@ test('selection and playback retain stable event IDs across filter changes', () 
 test('new protocol filters preserve existing filter choices', () => {
   const h = harness([event(10, 'ICMP')]);
   h.context.renderFilters();
-  h.byId('filters').children[0].querySelector('input').checked = false;
+  filterLabels(h)[0].querySelector('input').checked = false;
   h.context.data = { events: [event(10, 'ICMP'), event(42, 'MODBUS')], filters: ['ICMP', 'HTTP'] };
   h.context.renderFilters();
-  const labels = h.byId('filters').children.map((label) => [label.textContent, label.querySelector('input').checked]);
+  const labels = filterLabels(h).map((label) => [label.textContent, label.querySelector('input').checked]);
   assert.deepEqual(labels, [['ICMP', false], ['HTTP', true], ['MODBUS', true]]);
 });
 

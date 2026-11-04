@@ -220,7 +220,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 
 ---
 
-## F8. The sidebar needs a rebuild and a UI refactor (open)
+## F8. The sidebar needs a rebuild and a UI refactor (done)
 
 ### Research
 - Structure (`web/index.html:117` to `224`): four tabs (Events, Lesson, Capture, Log) and panels with `data-panel`. The Events panel is split into **two** separate `data-panel="events"` wrappers, with the Log panel between them (the table and reset row first, then the playbar and filters). That duplication is a layout smell.

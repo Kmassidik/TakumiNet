@@ -138,6 +138,8 @@ function renderLesson() {
   if (!panel) return;
   const lesson = data && data.lesson;
   panel.hidden = !lesson;
+  const empty = document.getElementById('lesson-empty');
+  if (empty) empty.hidden = Boolean(lesson);
   if (!lesson) return;
   if (typeof selectSidebarTab === 'function') selectSidebarTab('lesson');
 

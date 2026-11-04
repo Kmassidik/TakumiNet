@@ -145,7 +145,7 @@
         <button class="collapse-handle sidebar-handle" data-collapse-for="sidebar" data-label="Sidebar" type="button">−</button>
       </nav>
       <div class="sidebar-body">
-      <div data-panel="lesson" hidden><section class="lesson-panel" id="lesson-panel" hidden>
+      <div data-panel="lesson" hidden><p class="lesson-empty" id="lesson-empty">No lesson is open. Pick one from Examples &gt; Lessons to start a guided lab.</p><section class="lesson-panel" id="lesson-panel" hidden>
         <div class="lesson-heading">
           <img id="lesson-mascot" src="/art3d/mascot/wave.webp" alt="TakumiNet mascot" width="52" height="52">
           <div><span class="lesson-kicker">Guided lab</span><h2 id="lesson-title"></h2><span class="lesson-meta" id="lesson-meta"></span></div>
@@ -160,42 +160,42 @@
         </div>
       </section>
       </div>
-      <div data-panel="events"><div class="sim-head">Simulation Panel</div>
-
-      <table class="events">
-        <thead>
-          <tr><th>Vis.</th><th>Timestamps</th><th>Last Device</th><th>At Device</th><th>Type</th></tr>
-        </thead>
-        <tbody id="events"></tbody>
-      </table>
-
-      <div class="sim-row">
-        <button class="btn" data-action="reset-sim">Reset Simulation</button>
-        <label class="check"><input type="checkbox" id="const-delay"> Constant Delay</label>
-        <span class="capture" id="captured">Captured: 0/0</span>
-      </div>
+      <div data-panel="events" class="panel-events">
+        <div class="sim-head">Simulation Panel</div>
+        <div class="events-wrap">
+          <table class="events">
+            <colgroup><col class="c-vis"><col class="c-time"><col class="c-last"><col class="c-at"><col class="c-type"></colgroup>
+            <thead>
+              <tr><th>Vis.</th><th>Time</th><th>Last device</th><th>At device</th><th>Type</th></tr>
+            </thead>
+            <tbody id="events"></tbody>
+          </table>
+        </div>
+        <div class="sim-row">
+          <button class="btn" data-action="reset-sim">Reset Simulation</button>
+          <label class="check"><input type="checkbox" id="const-delay"> Constant Delay</label>
+          <span class="capture" id="captured">Captured: 0/0</span>
+        </div>
+        <div class="playbar">
+          <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/art3d/sim/back.webp" alt="back"></button>
+          <button title="Play" data-sim="play2"><img src="/art3d/sim/play.webp" alt="play"></button>
+          <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.webp" alt="forward"></button>
+          <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.webp" alt="ffw"></button>
+        </div>
+        <section class="filter-section" aria-label="Event list filters">
+          <div class="filter-head">
+            <span>Event List Filters</span>
+            <span class="right">
+              <button class="mini" id="show-all">Show All</button>
+              <button class="mini" id="show-none">Hide All</button>
+            </span>
+          </div>
+          <div class="filters" id="filters"></div>
+        </section>
       </div>
       <div data-panel="log" hidden><div class="run-log-head">Run log <input id="run-log-filter" type="search" placeholder="filter device or text" spellcheck="false"></div>
       <ol id="run-log" class="run-log"></ol>
-
       </div>
-      <div data-panel="events"><div class="playbar">
-        <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/art3d/sim/back.webp" alt="back"></button>
-        <button title="Play" data-sim="play2"><img src="/art3d/sim/play.webp" alt="play"></button>
-        <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.webp" alt="forward"></button>
-        <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.webp" alt="ffw"></button>
-      </div>
-
-      <div class="filter-head">
-        <span>Event List Filters</span>
-        <span class="right">
-          <button class="mini" id="show-all">Show All</button>
-          <button class="mini" id="show-none">Hide All</button>
-        </span>
-      </div>
-
-      <div class="filters" id="filters"></div>
-    </div>
       <div data-panel="capture" hidden>
 <section class="capture-dock" id="capture-dock" aria-label="Network engineer view">
         <div class="capture-toolbar">
