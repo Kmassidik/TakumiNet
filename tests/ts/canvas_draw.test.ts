@@ -56,6 +56,33 @@ test("portLabelAt sits 22px along the cable from its end, 10px off the line", ()
   expect(portLabelAt({ x: 5, y: 5 }, { x: 5, y: 5 }, 27)).toEqual({ x: 5, y: -44 });
 });
 
+test("a downward cable's label takes the deep clearance, past the name stack", () => {
+  const down = portLabelAt({ x: 0, y: 0 }, { x: 0, y: 200 }, 27, 72);
+  expect(down).toEqual({ x: -10, y: 94 });
+  expect(down.y).toBeGreaterThan(72);
+  expect(portLabelAt({ x: 0, y: 0 }, { x: 100, y: 100 }, 27, 72).y).toBeCloseTo((94 + 10) / Math.SQRT2, 3);
+});
+
+test("upward and shallow cables keep the short clearance", () => {
+  expect(portLabelAt({ x: 0, y: 0 }, { x: 0, y: -200 }, 27, 72)).toEqual({ x: 10, y: -49 });
+  expect(portLabelAt({ x: 0, y: 0 }, { x: 100, y: 20 }, 27, 72).x).toBeCloseTo((100 / Math.hypot(100, 20)) * 49 - (20 / Math.hypot(100, 20)) * 10, 3);
+  expect(portLabelAt({ x: 0, y: 0 }, { x: 100, y: 0 }, 27, 72)).toEqual({ x: 49, y: 10 });
+});
+
+test("on a vertical cable the lower port label clears device.y + 72", () => {
+  const vertical = {
+    devices: [
+      { id: "a", name: "Switch0", model: "2960", icon: "/j.webp", x: 100, y: 100, ip: "", prefix: 0 },
+      { id: "b", name: "PC0", model: "PC-PT", icon: "/i.webp", x: 100, y: 300, ip: "10.0.0.2", prefix: 24 },
+    ],
+    links: [{ a: "a", b: "b", aPort: "Fa0/3", bPort: "Fa0", aState: "green", bState: "green", kind: "copper" }],
+  };
+  const { ctx, calls } = recorder();
+  drawScene(ctx, buildScene(vertical), new Camera({ x: 0, y: 0, zoom: 1 }), { grid: false, width: 800, height: 600 });
+  expect(calls).toContain("fillText:Fa0/3,90,194");
+  expect(calls).toContain("fillText:Fa0,110,251");
+});
+
 test("each port label is drawn beside its own endpoint, clear of the icon", () => {
   const { ctx, calls } = recorder();
   drawScene(ctx, buildScene(workspace), new Camera({ x: 0, y: 0, zoom: 1 }), { grid: false, width: 800, height: 600 });
