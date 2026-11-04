@@ -10,7 +10,7 @@ pub(super) struct BridgeId {
 }
 
 #[derive(Clone, Debug)]
-struct LogicalEdge {
+pub(super) struct LogicalEdge {
     a: String,
     b: String,
     a_ports: Vec<String>,

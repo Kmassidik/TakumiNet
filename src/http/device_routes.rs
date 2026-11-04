@@ -12,6 +12,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/ip") => Some(handle_devices_ip(ctx, query)),
         ("POST", "/api/devices/ipv6") => Some(handle_devices_ipv6(ctx, query)),
         ("POST", "/api/devices/dot1x") => Some(handle_devices_dot1x(ctx, query)),
+        ("POST", "/api/devices/sharedgw") => Some(handle_shared_gateway(ctx, query)),
         ("POST", "/api/devices/dhcp/reserve") => Some(handle_devices_dhcp_reserve(ctx, query)),
         ("POST", "/api/devices/dhcp/helper") => Some(handle_devices_dhcp_helper(ctx, query)),
         ("POST", "/api/ipv6/dhcp") => Some(handle_ipv6_dhcp(ctx, query)),
