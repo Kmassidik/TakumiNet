@@ -36,7 +36,10 @@ function harness() {
     },
     data: {
       paletteGroups: [{ label: 'End devices', icon: 'a' }, { label: 'Connections', icon: 'b' }],
-      palette: [{ label: 'PC-PT', icon: 'p', kind: 'pc' }],
+      palette: [
+        { label: 'PC-PT', icon: 'p', kind: 'pc', blurb: 'A desktop computer with a terminal.' },
+        { label: 'Mystery', icon: 'm', kind: 'pc' },
+      ],
     },
     CABLE_TYPES: [['eCopper', 'Copper', 'straight', 'Copper']],
     cableMode: false, cableKind: 'eCopper', cableFrom: null, pduMode: false,
@@ -65,6 +68,14 @@ test('leaving Connections turns cable mode off and clears the crosshair', () => 
   assert.equal(vm.runInContext('cableFrom', context), null);
   assert.equal(els.wrap.classes.has('cable-mode'), false);
   assert.equal(els.wrap.classes.has('crosshair'), false);
+});
+
+test('hovering a tile answers what the device is for', () => {
+  const { context, els } = harness();
+  context.renderPalette();
+  const tiles = els.palette.children.filter((c) => c.className === 'dev-tile' && c.draggable);
+  assert.equal(tiles[0].title, 'A desktop computer with a terminal.');
+  assert.equal(tiles[1].title, 'Drag Mystery onto the canvas');
 });
 
 test('switching category with no cable chosen changes nothing else', () => {

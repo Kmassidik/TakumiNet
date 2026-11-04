@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { windowIdForKind } from "../../web/ts/ui/kind_windows";
+import { renderKindWindow, windowIdForKind } from "../../web/ts/ui/kind_windows";
 import { renderProviderWindow } from "../../web/ts/ui/provider_window";
 import { renderHotspotWindow } from "../../web/ts/ui/hotspot_window";
 import { renderFirewallWindow } from "../../web/ts/ui/firewall_window";
@@ -34,6 +34,36 @@ test("ordinary kinds keep the generic device window", () => {
   for (const kind of ["pc", "router", "switch", "server", ""]) {
     expect(windowIdForKind(kind)).toBe(null);
   }
+});
+
+test("a kind window opens with the model's one-line description on top", async () => {
+  const doc = new FakeDocument();
+  const body = new FakeElement("div");
+  const blurb = "The line from a bigger provider; private addresses stop here without NAT.";
+  await renderKindWindow(
+    doc,
+    body,
+    { id: "wan1", name: "KeProvider", kind: "provider-link", model: "Provider Link" },
+    { ...workspace, palette: [{ label: "Provider Link", blurb }] },
+    { post: async () => ({}), getText: async () => "" },
+  );
+  const line = find(body, (n) => n.className === "kw-blurb");
+  expect(line?.textContent).toBe(`Provider Link — ${blurb}`);
+  expect(body.children[0]).toBe(line!);
+  expect(allText(body)).toContain("The other end is the provider.");
+});
+
+test("a kind window without a known model shows no description line", async () => {
+  const doc = new FakeDocument();
+  const body = new FakeElement("div");
+  await renderKindWindow(
+    doc,
+    body,
+    { id: "wan1", name: "KeProvider", kind: "provider-link" },
+    workspace,
+    { post: async () => ({}), getText: async () => "" },
+  );
+  expect(find(body, (n) => n.className === "kw-blurb")).toBe(null);
 });
 
 test("the provider card names the provider side and both cable ends", () => {
