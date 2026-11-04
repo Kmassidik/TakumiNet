@@ -50,19 +50,23 @@ const INK = "#1b1f23";
 const MUTED = "#667085";
 const HALO = "#ffffff"; /* --panel from tokens.css: the canvas background. */
 const ICON_CLEAR = 27;
+const STACK_CLEAR = 72;
+const DOWNWARD = 0.3;
 const PORT_ALONG = 22;
 const PORT_ASIDE = 10;
 
 /* The label sits `clear + 22` px from `end` along the cable towards `other`,
- * pushed 10 px perpendicular so it never lies on the line itself. */
-export function portLabelAt(end: Point, other: Point, clear = 0): Point {
+ * pushed 10 px perpendicular so it never lies on the line itself. A cable
+ * leaving mostly downward (unit y > 0.3) runs under the device's name, model
+ * and IP lines, so `deepClear` replaces `clear` to land the label below them. */
+export function portLabelAt(end: Point, other: Point, clear = 0, deepClear = clear): Point {
   const dx = other.x - end.x;
   const dy = other.y - end.y;
   const len = Math.hypot(dx, dy);
   if (len === 0) return { x: end.x, y: end.y - clear - PORT_ALONG };
   const ux = dx / len;
   const uy = dy / len;
-  const along = clear + PORT_ALONG;
+  const along = (uy > DOWNWARD ? deepClear : clear) + PORT_ALONG;
   return { x: end.x + ux * along - uy * PORT_ASIDE, y: end.y + uy * along + ux * PORT_ASIDE };
 }
 
@@ -157,11 +161,12 @@ function drawPortLabels(ctx: Canvas2D, link: SceneLink, camera: Camera): void {
   const a = camera.toScreen(link.from);
   const b = camera.toScreen(link.to);
   const clear = ICON_CLEAR * camera.zoom;
+  const deep = STACK_CLEAR * camera.zoom;
   ctx.font = "10px sans-serif";
   ctx.textAlign = "center";
-  const atA = portLabelAt(a, b, clear);
+  const atA = portLabelAt(a, b, clear, deep);
   haloText(ctx, link.aPort, atA.x, atA.y, MUTED);
-  const atB = portLabelAt(b, a, clear);
+  const atB = portLabelAt(b, a, clear, deep);
   haloText(ctx, link.bPort, atB.x, atB.y, MUTED);
 }
 

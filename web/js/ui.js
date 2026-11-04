@@ -193,9 +193,11 @@
   var MUTED = "#667085";
   var HALO = "#ffffff";
   var ICON_CLEAR = 27;
+  var STACK_CLEAR = 72;
+  var DOWNWARD = 0.3;
   var PORT_ALONG = 22;
   var PORT_ASIDE = 10;
-  function portLabelAt(end, other, clear = 0) {
+  function portLabelAt(end, other, clear = 0, deepClear = clear) {
     const dx = other.x - end.x;
     const dy = other.y - end.y;
     const len = Math.hypot(dx, dy);
@@ -203,7 +205,7 @@
       return { x: end.x, y: end.y - clear - PORT_ALONG };
     const ux = dx / len;
     const uy = dy / len;
-    const along = clear + PORT_ALONG;
+    const along = (uy > DOWNWARD ? deepClear : clear) + PORT_ALONG;
     return { x: end.x + ux * along - uy * PORT_ASIDE, y: end.y + uy * along + ux * PORT_ASIDE };
   }
   function haloText(ctx, text, x, y, color = INK) {
@@ -302,11 +304,12 @@
     const a = camera.toScreen(link.from);
     const b = camera.toScreen(link.to);
     const clear = ICON_CLEAR * camera.zoom;
+    const deep = STACK_CLEAR * camera.zoom;
     ctx.font = "10px sans-serif";
     ctx.textAlign = "center";
-    const atA = portLabelAt(a, b, clear);
+    const atA = portLabelAt(a, b, clear, deep);
     haloText(ctx, link.aPort, atA.x, atA.y, MUTED);
-    const atB = portLabelAt(b, a, clear);
+    const atB = portLabelAt(b, a, clear, deep);
     haloText(ctx, link.bPort, atB.x, atB.y, MUTED);
   }
   function drawDeviceBody(ctx, device, camera, options) {
