@@ -1,0 +1,45 @@
+<takumi version="1">
+<device id="laptop0" kind="laptop" model="Laptop" x="60" y="400" name="WargaKota" ip="10.40.1.20" prefix="24"/>
+<net id="laptop0" gw="10.40.1.1" dns="203.0.116.10"/>
+<device id="pop0" kind="backbone-pop" model="Backbone POP" x="240" y="260" name="PopKota" ip="" prefix="24"/>
+<port id="pop0" name="GigabitEthernet0/0" up="1" ip="10.40.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<port id="pop0" name="GigabitEthernet0/1" up="1" ip="10.40.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="pop0" name="GigabitEthernet0/2" up="1" ip="10.40.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="500"/>
+<device id="cache0" kind="server" model="Server" x="80" y="120" name="CacheKonten" ip="10.40.3.10" prefix="24"/>
+<net id="cache0" gw="10.40.3.1" dns=""/>
+<device id="gw0" kind="national-gateway" model="National Gateway" x="460" y="260" name="GerbangNasional" ip="" prefix="24"/>
+<port id="gw0" name="GigabitEthernet0/0" up="1" ip="10.40.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
+<port id="gw0" name="GigabitEthernet0/1" up="1" ip="203.0.116.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="cable0" kind="submarine-cable" model="Submarine Cable" x="660" y="160" name="KabelLaut" ip="" prefix="24"/>
+<port id="cable0" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cable0" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="origin0" kind="server" model="Server" x="840" y="60" name="AsalLuarNegeri" ip="203.0.116.10" prefix="24"/>
+<net id="origin0" gw="203.0.116.1" dns=""/>
+<link a="laptop0" a_port="Fa0" b="pop0" b_port="Gig0/1" kind="eCross"/>
+<link a="pop0" a_port="Gig0/0" b="gw0" b_port="Gig0/0" kind="eCopper"/>
+<link a="gw0" a_port="Gig0/1" b="cable0" b_port="Fa0" kind="eCopper"/>
+<link a="cable0" a_port="Fa1" b="origin0" b_port="Fa0" kind="eCross"/>
+<routing dev="pop0" proto="ospf" process_id="1"/>
+<routenet dev="pop0" net="10.40.1.0" prefix="24" area="0"/>
+<routenet dev="pop0" net="10.40.2.0" prefix="24" area="0"/>
+<routenet dev="pop0" net="10.40.3.0" prefix="24" area="0"/>
+<routenet dev="pop0" net="203.0.116.0" prefix="24" area="0"/>
+<routing dev="gw0" proto="ospf" process_id="1"/>
+<routenet dev="gw0" net="10.40.1.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.40.2.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.40.3.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="203.0.116.0" prefix="24" area="0"/>
+<dns id="origin0" name="www.konten.lab" ip="203.0.116.10"/>
+<dns id="origin0" name="cache.konten.lab" ip="10.40.3.10"/>
+<page id="origin0" body="The page, served from across the sea"/>
+<page id="cache0" body="The same page, kept one street away"/>
+<lesson id="les-l10-02-cache-saves-cables" title="A cache saves the cables" level="10" minutes="15" goal="The popular page is served from inside the country far faster than the overseas copy"/>
+<step n="1" text="Every evening the whole city opens the same page from AsalLuarNegeri, and every request crosses KabelLaut twice. A copy of the page already waits on CacheKonten, one street from PopKota, with no cable to its name."/>
+<step n="2" text="Run a crossover cable from GigabitEthernet0/2 on PopKota to CacheKonten. The cache joins the network and the name cache.konten.lab leads to it."/>
+<step n="3" text="Open http://cache.konten.lab/ from WargaKota. The page now comes from one street away." check="c1"/>
+<step n="4" text="Read the difference in delay: the cache answers in city time." check="c2"/>
+<step n="5" text="The overseas original still works, but every byte pays the sea crossing." check="c3"/>
+<check id="c1" kind="http" from="laptop0" to="" url="http://cache.konten.lab/" expect="CacheKonten" label="The cached page opens from inside the country"/>
+<check id="c2" kind="latency" from="laptop0" to="cache0" url="" expect="5" label="The cache answers in under 5 milliseconds"/>
+<check id="c3" kind="latency" from="laptop0" to="origin0" url="" expect="150" label="The overseas original stays within 150 milliseconds"/>
+</takumi>

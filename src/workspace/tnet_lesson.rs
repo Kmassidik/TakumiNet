@@ -98,8 +98,10 @@ pub(super) fn validate_lesson_records(
                         }
                     }
                     "count" => {
-                        if !matches!(from, "devices" | "leases" | "routes" | "reservations" | "queues" | "capwap" | "pool-members" | "served") {
-                            invalidate(valid, problems, index, element, "from", "count scope must be devices, leases, routes, reservations, queues or capwap");
+                        let named = matches!(from, "devices" | "leases" | "routes" | "reservations" | "queues" | "capwap" | "pool-members" | "served");
+                        let bgp_scope = from.strip_prefix("bgp:").is_some_and(device_exists);
+                        if !named && !bgp_scope {
+                            invalidate(valid, problems, index, element, "from", "count scope must be devices, leases, routes, reservations, queues, capwap, pool-members, served or bgp:<device>");
                         }
                         if element.get("expect").unwrap_or("").parse::<usize>().is_err() {
                             invalidate(valid, problems, index, element, "expect", "count expectation must be an unsigned integer");
