@@ -70,11 +70,15 @@ export function openModal(doc: DocLike, stack: ModalStack, options: ModalOptions
       },
     });
     doc.body.appendChild(backdrop);
-    if (field) {
-      field.focus();
-      field.select();
-    } else {
-      ok.focus();
-    }
+    /* Focus after the pointer event that opened us has finished; otherwise the
+       browser moves focus back to the page when that click completes. */
+    setTimeout(() => {
+      if (field) {
+        field.focus();
+        field.select();
+      } else {
+        ok.focus();
+      }
+    }, 0);
   });
 }

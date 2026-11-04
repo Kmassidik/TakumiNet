@@ -256,7 +256,8 @@ async function openTemplate(id, resetting = false) {
   resetLessonState();
   renderLesson();
   hideGallery();
-  status(resetting ? `Reset ${response.lesson.title}` : `Opened ${response.lesson.title}`);
+  const title = response.lesson ? response.lesson.title : id;
+  status(resetting ? `Reset ${title}` : `Opened ${title}`);
   if (!resetting) sfx('newScenarioButton');
   return response;
 }

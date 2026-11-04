@@ -872,12 +872,14 @@
         }
       });
       doc.body.appendChild(backdrop);
-      if (field) {
-        field.focus();
-        field.select();
-      } else {
-        ok.focus();
-      }
+      setTimeout(() => {
+        if (field) {
+          field.focus();
+          field.select();
+        } else {
+          ok.focus();
+        }
+      }, 0);
     });
   }
 
