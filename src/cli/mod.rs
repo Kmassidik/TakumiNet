@@ -164,3 +164,6 @@ pub fn run(ws: &mut Workspace, id: &str, s: &mut Session, line: &str) -> String 
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod tests_complete;

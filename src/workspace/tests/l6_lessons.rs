@@ -120,6 +120,36 @@ fn bgp_state_survives_a_save_and_open() {
 }
 
 #[test]
+fn the_prefix_filter_lesson_needs_the_deny_entry() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l6-04-prefix-filter.xml")).unwrap();
+    assert!(ws.has_route("border0", ip("192.168.0.0").unwrap(), 16), "the bogus announcement starts in the table");
+    assert_eq!(passes(&mut ws), vec![false, true, true]);
+    ws.bgp_deny("border0", ip("192.168.0.0").unwrap(), 16).unwrap();
+    assert!(!ws.has_route("border0", ip("192.168.0.0").unwrap(), 16));
+    assert_eq!(passes(&mut ws), vec![true, true, true]);
+    assert!(ws.has_route("border0", ip("203.0.113.0").unwrap(), 24), "legitimate routes survive the deny entry");
+    assert!(ws.send_pdu("pc0", "server0").is_ok());
+    assert_eq!(ws.bgp_denied("border0"), vec![(ip("192.168.0.0").unwrap(), 16)]);
+    assert!(ws.bgp_remove_deny("border0", ip("192.168.0.0").unwrap(), 16));
+    assert!(ws.has_route("border0", ip("192.168.0.0").unwrap(), 16), "removing the entry lets the announcement back in");
+}
+
+#[test]
+fn a_deny_entry_survives_a_save_and_open() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l6-04-prefix-filter.xml")).unwrap();
+    ws.bgp_deny("border0", ip("192.168.0.0").unwrap(), 16).unwrap();
+    assert!(ws.bgp_deny("nowhere", ip("192.168.0.0").unwrap(), 16).is_err());
+    assert!(ws.bgp_deny("border0", ip("192.168.0.0").unwrap(), 33).is_err());
+    assert!(!ws.bgp_remove_deny("border0", ip("10.9.9.0").unwrap(), 24));
+    let saved = ws.to_tnet();
+    assert!(saved.contains("<bgpdeny dev=\"border0\" net=\"192.168.0.0\" prefix=\"16\"/>"), "{saved}");
+    let mut back = Workspace::from_tnet(&saved).unwrap();
+    assert_eq!(back.bgp, ws.bgp);
+    assert!(!back.has_route("border0", ip("192.168.0.0").unwrap(), 16));
+    assert_eq!(passes(&mut back), vec![true, true, true]);
+}
+
+#[test]
 fn the_address_plan_lesson_needs_the_pool_the_lease_and_the_page() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l6-01-address-plan.xml")).unwrap();
     assert_eq!(passes(&mut ws), vec![false, false, false]);

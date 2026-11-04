@@ -228,6 +228,7 @@ const PRECACHE_URLS = Object.freeze([
   '/templates/les-l6-01-address-plan.xml',
   '/templates/les-l6-02-first-bgp.xml',
   '/templates/les-l6-03-two-upstreams.xml',
+  '/templates/les-l6-04-prefix-filter.xml',
   '/templates/les-l1-07-find-the-fault.xml',
   '/templates/tpl-l3-office-vlans.xml',
   '/templates/les-l3-01-three-vlans.xml',

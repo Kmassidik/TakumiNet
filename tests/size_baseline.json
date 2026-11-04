@@ -1,7 +1,4 @@
 {
   "src/net/fwd.rs": 689,
-  "src/workspace/switching.rs": 598,
-  "src/workspace/routing.rs": 1066,
-  "src/cli/tests.rs": 509,
-  "tests/e2e.rs": 1218
+  "src/workspace/switching.rs": 598
 }

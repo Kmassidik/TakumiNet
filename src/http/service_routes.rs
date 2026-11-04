@@ -419,6 +419,13 @@ fn handle_devices_bgp(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
             let Some(prefix) = query_value(query, "prefix").and_then(|v| v.parse().ok()) else {
                 return Err("prefix must be a whole number".to_string());
             };
+            let deny = matches!(query_value(query, "deny").as_deref(), Some("1") | Some("true"));
+            if deny {
+                if remove {
+                    return if ws.bgp_remove_deny(&id, network, prefix) { Ok(()) } else { Err(format!("{net}/{prefix} is not denied")) };
+                }
+                return ws.bgp_deny(&id, network, prefix);
+            }
             if remove {
                 return if ws.bgp_remove_network(&id, network, prefix) { Ok(()) } else { Err(format!("{net}/{prefix} is not announced")) };
             }
