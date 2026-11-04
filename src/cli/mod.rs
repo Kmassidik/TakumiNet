@@ -9,6 +9,7 @@ use crate::workspace::{Device, Workspace};
 mod config;
 mod exec;
 mod help;
+mod hints;
 mod interface;
 mod line;
 mod router;
@@ -152,14 +153,16 @@ pub fn run(ws: &mut Workspace, id: &str, s: &mut Session, line: &str) -> String 
         }
     }
 
-    match s.mode {
+    let mode = s.mode;
+    let out = match mode {
         Mode::User => exec::user(ws, id, s, &line, &lower),
         Mode::Priv => exec::privileged(ws, id, s, &line, &lower),
         Mode::Config => config::config_mode(ws, id, s, &line, &lower),
         Mode::Iface => interface::iface_mode(ws, id, s, &line, &lower),
         Mode::Router => router::router_mode(ws, id, s, &line, &lower),
         Mode::Line => line::line_mode(ws, id, s, &line, &lower),
-    }
+    };
+    hints::append(ws, id, mode, &lower, out)
 }
 
 #[cfg(test)]
@@ -167,3 +170,6 @@ mod tests;
 
 #[cfg(test)]
 mod tests_complete;
+
+#[cfg(test)]
+mod tests_hints;
