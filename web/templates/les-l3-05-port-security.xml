@@ -1,0 +1,39 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="2911" x="340" y="60" name="OfficeRouter" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="340" y="200" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="60" y="360" name="Desk0" ip="192.168.10.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC-PT" x="230" y="360" name="Desk1" ip="192.168.10.11" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC-PT" x="400" y="360" name="Desk2" ip="192.168.20.10" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="570" y="360" name="FileServer" ip="192.168.20.2" prefix="24"/>
+  <device id="printer0" kind="printer" model="Printer" x="740" y="360" name="Printer0" ip="192.168.30.10" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/4" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/5" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/6" b="printer0" b_port="Fa0" kind="eCopper"/>
+  <vlan id="switch0" vlan="10" name="staff"/>
+  <vlan id="switch0" vlan="20" name="servers"/>
+  <vlan id="switch0" vlan="30" name="devices"/>
+  <port id="switch0" name="FastEthernet0/1" up="1" ip="" prefix="24" vlan="1" trunk="1" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/2" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/3" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/4" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/5" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/6" up="1" ip="" prefix="24" vlan="30" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="router0" name="GigabitEthernet0/0.10" up="1" ip="192.168.10.1" prefix="24" vlan="1" trunk="0" dot1q="10" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/0.20" up="1" ip="192.168.20.1" prefix="24" vlan="1" trunk="0" dot1q="20" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/0.30" up="1" ip="192.168.30.1" prefix="24" vlan="1" trunk="0" dot1q="30" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc0" gw="192.168.10.1" dns=""/>
+  <net id="pc1" gw="192.168.10.1" dns=""/>
+  <net id="pc2" gw="192.168.20.1" dns=""/>
+  <net id="server0" gw="192.168.20.1" dns=""/>
+  <net id="printer0" gw="192.168.30.1" dns=""/>
+  <page id="server0" body="Shared files"/>
+  <lesson id="les-l3-05-port-security" title="Lock a desk port to one computer" level="3" minutes="10" goal="The port for Desk0 accepts only one address"/>
+  <step n="1" text="Open the settings of OfficeSwitch and find FastEthernet0/2, the port for Desk0."/>
+  <step n="2" text="Turn on port security on that port and allow 1 address." check="c1"/>
+  <step n="3" text="Ping Desk1 from Desk0. The known computer must still work." check="c2"/>
+  <check id="c1" kind="config" from="switch0" to="portsec:FastEthernet0/2" url="" expect="1" label="FastEthernet0/2 allows one address"/>
+  <check id="c2" kind="ping" from="pc0" to="pc1" url="" expect="ok" label="Desk0 still reaches Desk1"/>
+</takumi>

@@ -74,3 +74,13 @@ fn acl_lesson_fails_before_the_list_and_passes_after() {
     ws.acl_bind("router0", "GigabitEthernet0/0.30", 100, true).unwrap();
     assert_eq!(passes(&mut ws), vec![true, true, true]);
 }
+
+#[test]
+fn port_security_lesson_needs_the_setting_and_keeps_the_known_pc_working() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l3-05-port-security.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, true]);
+    ws.set_port_security("switch0", "FastEthernet0/2", 1).unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true]);
+    ws.set_port_security("switch0", "FastEthernet0/2", 2).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, true]);
+}

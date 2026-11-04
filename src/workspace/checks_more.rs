@@ -30,6 +30,11 @@ impl Workspace {
         let Some(device) = self.devices.iter().find(|d| d.id == check.from) else {
             return (false, format!("unknown device {}", check.from), "Fix the lesson device reference.".into());
         };
+        if let Some(iface) = check.to.strip_prefix("portsec:") {
+            let max = self.port_security_rows(&check.from).into_iter().find(|(name, _, _)| name == iface).map(|(_, max, _)| max);
+            let actual = max.map_or_else(|| "off".to_string(), |m| m.to_string());
+            return (actual == check.expect, format!("port security on {iface} is {actual}"), "Turn on port security for the port and set the allowed number of addresses.".into());
+        }
         let address = |value: Option<u32>| value.map(ipv4_string).unwrap_or_else(|| "none".into());
         let actual = match check.to.as_str() {
             "name" => device.name.clone(),
