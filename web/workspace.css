@@ -936,3 +936,9 @@ html, body {
   .print-sheet img { display: block; width: 100%; height: auto; max-height: 178mm; object-fit: contain; }
   .print-sheet figcaption { margin-top: 4mm; color: var(--text-2); font: 11px system-ui, sans-serif; }
 }
+
+/* ---------- menu bar: keyboard and hover states ---------- */
+.menu > button[aria-expanded="true"] { background: var(--accent-bg); }
+.menu > button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.menu .drop button.active:not(:disabled), .menu .drop a.active { background: var(--accent-bg); }
+.menu .drop button:focus, .menu .drop a:focus { outline: none; }

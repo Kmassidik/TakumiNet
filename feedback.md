@@ -325,6 +325,16 @@ Owner: "i use template btw why still show Nothing to play yet".
 
 ---
 
+## F12. Menus should behave like Windows menus (done)
+
+Owner: "build hover each menu like computer windows do".
+
+- Click opens a menu; after that, hovering another menu name switches to it. Clicking the open name, clicking outside, Escape or losing the window closes it. Nothing opens on hover alone.
+- Keyboard: arrows move across menus and through items (skipping separators and disabled items, wrapping round), Home and End, Enter runs the item, Escape closes the menu and then leaves the bar. Alt or F10 on its own puts the keyboard on the bar.
+- Roles and `aria-expanded` are set (`menubar`, `menu`, `menuitem`, `separator`).
+- Where: `web/ts/ui/menu_nav.ts` (rules, tested without a browser), `web/ts/ui/menubar.ts` (page glue), `tests/ts/menu_nav.test.ts`, `tests/bend/menu_nav.bend`.
+- Not built: submenus and underlined Alt+letter shortcuts (no menu has a submenu yet, and Alt+letter clashes with browser shortcuts).
+
 ## Build result (2026-11-04)
 
 All eleven items were built in this order: F5 (with F2), F6, F7, F8, F10, F9, F3, F11, F4, F1. Each is one commit on `main`.

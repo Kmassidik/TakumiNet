@@ -6,21 +6,6 @@ function renderAll() {
   if (viewMode === 'physical') renderTopology();
 }
 
-function wireMenus() {
-  document.querySelectorAll('.menu').forEach((menu) => {
-    const head = menu.querySelector(':scope > button');
-    head.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const open = menu.classList.contains('open');
-      document.querySelectorAll('.menu').forEach((m) => m.classList.remove('open'));
-      if (!open) menu.classList.add('open');
-    });
-  });
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.menu').forEach((m) => m.classList.remove('open'));
-  });
-}
-
 function wireActions() {
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
@@ -69,6 +54,7 @@ function wireActions() {
 
 function wireKeyboard() {
   document.addEventListener('keydown', async (e) => {
+    if (e.defaultPrevented) return; // the menu bar already used this key
     const active = document.activeElement;
     if (active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable)) return;
     if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === ' ') {
