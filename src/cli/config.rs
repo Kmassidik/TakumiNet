@@ -22,6 +22,11 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("vlan "), vlan),
 ];
 
+/// True when the line opens with configuration-mode vocabulary (see COMMANDS).
+pub(super) fn vocabulary(lower: &str) -> bool {
+    COMMANDS.iter().any(|(matches, _)| matches(lower))
+}
+
 pub(super) fn config_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
     for (matches, run) in COMMANDS {
         if matches(lower) {
