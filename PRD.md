@@ -7,7 +7,7 @@ Read first: this file, then `task.md` (history, roadmap, audit) and `provness/pt
 ## 0. Rules for the builder (omp). These override defaults.
 1. Every task = failing test first, then code, then `cargo test` green, then commit and push to `main`. **No Co-Authored-By, no attribution line, ever.**
 2. **Install nothing** (no Bend, Kani, Lean, Playwright, npm, further rustup targets; wasm32-unknown-unknown is already installed). Ask the previous session first. Python 3 + Pillow, swift, cargo are present.
-3. **No vendor file formats at all** (decision 2026-11-03). Our only file format is our own XML (`.tnet`).
+3. **No vendor file formats at all** (decision 2026-11-03). Our only file format is our own XML, saved as `.xml` (earlier `.tnet` files still open).
 3b. **Own art and own code only.** Never copy, download or reference Cisco files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
 4. **Fix what you find.** If you see a bug, wrong output, broken image or console error while working: write a failing test, fix it, commit it separately (`fix: ...`), note it in `provness/pt-web/result.md`. Do not skip it, do not ask permission for fixes.
 5. **If you are confused, ask the previous Claude session (`takuminet-d6`), do not stop.** Send one specific question with what you tried (`SendMessage({to: "takuminet-d6", ...})` if your harness has it; otherwise print it on its own line starting `ASK-CLAUDE:` so the user can relay it). Then keep working on any task that is not blocked by the answer. A step that fails twice is also a reason to ask. Never guess a product decision, never wait idle.
@@ -26,7 +26,7 @@ Bend is **not installed and was never run**; the owner said not to install it. T
 - Engine: L2 switching, VLAN, STP/RSTP, EtherChannel, static/RIP/OSPF/EIGRP, DHCP, DNS, NAT, ACL, IPv6, wireless, IoT, simulation capture. 20 CCNA lab tests (`tests/labs/main.rs`), ~220 tests total, all green.
 - UI: logical workspace, device windows (Physical/Config/Desktop/Services), CLI terminal, Realtime and Simulation modes, event list.
 - Assets we own: **97 3D icons** (`web/art/3d/`: 31 devices, 21 toolbar, 7 sim, 8 cables, 9 groups, 12 apps, 3 misc, 6 mascot poses), 11 generated sounds (`web/sounds/`), 31 flat SVG fallbacks (`web/art/*.svg`). Vendor references in `web/`: 0.
-- Files: own XML `.tnet`; the previous `.ptw` text format is read-only legacy compatibility.
+- Files: own XML `.xml` (legacy `.tnet` is read only); the previous `.ptw` text format is read-only legacy compatibility.
 - Server: Rust HTTP server holding **one shared workspace** (`ws: Arc<Mutex<Workspace>>`, `src/http/mod.rs:48`): every visitor edits the same network, so it cannot be hosted for many users as is. Target architecture (P5): the engine runs in the browser as WebAssembly and the server only serves static files.
 
 ## 3. Goals

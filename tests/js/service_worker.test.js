@@ -130,7 +130,7 @@ test('precache manifest contains every production file and no documentation asse
     if (filename.endsWith('.wav')) expected.push(`/sounds/${filename}`);
   }
   for (const filename of fs.readdirSync(path.join(root, 'web/templates'))) {
-    if (filename.endsWith('.tnet')) expected.push(`/templates/${filename}`);
+    if (filename.endsWith('.xml')) expected.push(`/templates/${filename}`);
   }
   expected.sort();
 

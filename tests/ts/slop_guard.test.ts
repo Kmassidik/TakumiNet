@@ -83,3 +83,16 @@ test("routes: no link or cached address in the page ends in .html", () => {
   expect(readFileSync(join(web, "about.html"), "utf8")).not.toMatch(/href="[^"]*\.html"/);
   expect(sw).not.toMatch(/'\/[a-z]+\.html'/);
 });
+
+test("files: .xml is the file type; .tnet appears only where old files are read", () => {
+  for (const { name, text } of sources) {
+    for (const line of text.split("\n")) {
+      if (!line.includes(".tnet")) continue;
+      expect(line, `${name}: ${line.trim()}`).toMatch(/xml\|tnet|\.xml,\.tnet|earlier version|legacy/i);
+    }
+  }
+  const templates = readdirSync(join(web, "templates"));
+  expect(templates.length).toBe(10);
+  expect(templates.every((n) => n.endsWith(".xml"))).toBe(true);
+  expect(readFileSync(join(web, "sw.js"), "utf8")).not.toContain(".tnet");
+});

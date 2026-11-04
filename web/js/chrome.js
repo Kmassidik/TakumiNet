@@ -113,7 +113,7 @@ function wireCanvasDrop() {
     const files = e.dataTransfer.files;
     if (files && files.length) {
       if (files.length === 1) await importTnetFile(files[0]);
-      else fileActionError('Drop one .tnet file at a time.');
+      else fileActionError('Drop one .xml file at a time.');
       return;
     }
     const model = e.dataTransfer.getData('text/plain');

@@ -151,16 +151,16 @@ const PRECACHE_URLS = Object.freeze([
   '/sounds/simulationTab.wav',
   '/sounds/topologyTab.wav',
 
-  '/templates/t1.tnet',
-  '/templates/t2.tnet',
-  '/templates/t3.tnet',
-  '/templates/t4.tnet',
-  '/templates/t5.tnet',
-  '/templates/tpl-connect.tnet',
-  '/templates/tpl-home.tnet',
-  '/templates/tpl-routed.tnet',
-  '/templates/tpl-star.tnet',
-  '/templates/tpl-web.tnet',
+  '/templates/t1.xml',
+  '/templates/t2.xml',
+  '/templates/t3.xml',
+  '/templates/t4.xml',
+  '/templates/t5.xml',
+  '/templates/tpl-connect.xml',
+  '/templates/tpl-home.xml',
+  '/templates/tpl-routed.xml',
+  '/templates/tpl-star.xml',
+  '/templates/tpl-web.xml',
 ]);
 
 self.addEventListener('install', (event) => {

@@ -1,6 +1,6 @@
-# TakumiNet native XML format (`.tnet`)
+# TakumiNet native XML format (`.xml`)
 
-`.tnet` is TakumiNet's writable, UTF-8 workspace format. Version 1 stores a
+`.xml` is TakumiNet's writable, UTF-8 workspace format. Version 1 stores a
 flat sequence of XML records beneath one `<takuminet>` root. Each known record
 uses attributes only; there is no significant text content in native records.
 

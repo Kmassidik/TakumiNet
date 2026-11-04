@@ -89,7 +89,7 @@ function renderGallery(payload = {}) {
   if (note) {
     note.textContent = payload.error || (lessons.length || templates.length
       ? 'Open a template to run it, or start a lesson and do each step yourself.'
-      : 'Nothing here yet. You can start a blank workspace or open a native .tnet file now.');
+      : 'Nothing here yet. You can start a blank workspace or open an .xml file now.');
   }
 }
 

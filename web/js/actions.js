@@ -32,8 +32,9 @@ function importProblemMessage(response, fallback = 'Import failed') {
    touching the rendered snapshot or its current filename. */
 async function importTnetFile(file) {
   if (!file) return false;
-  if (!/\.tnet$/i.test(file.name || '')) {
-    fileActionError(`“${file.name || 'This file'}” is not a TakumiNet file. Choose a .tnet file.`);
+  // .xml is the one file type. A .tnet file from an earlier version still opens.
+  if (!/\.(xml|tnet)$/i.test(file.name || '')) {
+    fileActionError(`“${file.name || 'This file'}” is not a TakumiNet file. Choose an .xml file.`);
     return false;
   }
   try {
@@ -50,7 +51,7 @@ async function importTnetFile(file) {
     if (await confirmOpenAnyway(response)) ({ res, json: response } = await send(true));
     if (!res.ok || response.error) throw new Error(importProblemMessage(response));
     setData(response);
-    currentName = file.name.replace(/\.tnet$/i, '');
+    currentName = file.name.replace(/\.(xml|tnet)$/i, '');
     currentTemplate = null;
     simCursor = -1;
     if (typeof resetLessonState === 'function') resetLessonState();
@@ -105,12 +106,12 @@ const ACTIONS = {
     const name = await askText('Save topology as', currentName);
     if (!name) return;
     const r = await api('/api/save', { name });
-    if (!r.error) { currentName = name; status(`Saved ${name}.tnet`); sfx('newScenarioButton'); }
+    if (!r.error) { currentName = name; status(`Saved ${name}.xml`); sfx('newScenarioButton'); }
   },
   async import() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.tnet';
+    input.accept = '.xml,.tnet'; // .tnet: legacy files, read only
     input.onchange = () => importTnetFile(input.files[0]);
     input.click();
   },
@@ -121,7 +122,7 @@ const ACTIONS = {
       const url = URL.createObjectURL(await res.blob());
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${currentName || 'topology'}.tnet`;
+      a.download = `${currentName || 'topology'}.xml`;
       document.body.appendChild(a);
       a.click();
       a.remove();

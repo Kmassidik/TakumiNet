@@ -58,7 +58,7 @@ fn pdu_is_a_real_frame_across_the_router() {
 
 #[test]
 fn l24_t4_simulation_device_order_equals_forwarding_path() {
-    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/t4.tnet")).unwrap();
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/t4.xml")).unwrap();
     for (id, ip, gateway) in [
         ("pc0", "192.168.1.10", "192.168.1.1"),
         ("pc1", "192.168.1.11", "192.168.1.1"),

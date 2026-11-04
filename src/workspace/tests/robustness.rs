@@ -1,7 +1,7 @@
 use super::super::*;
 use std::time::Instant;
 
-const V1: &str = include_str!("../../../tests/fixtures/native_v1.tnet");
+const V1: &str = include_str!("../../../tests/fixtures/native_v1.xml");
 
 fn document(records: &str) -> String {
     format!("<takuminet version=\"1\">\n{records}\n</takuminet>\n")

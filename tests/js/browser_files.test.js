@@ -37,25 +37,37 @@ function actionsHarness() {
   return { context, notices, mascots, fetches, changes, getInput: () => input };
 }
 
-test('import picker accepts only native .tnet files', async () => {
+test('import picker offers .xml, and still reads old .tnet files', async () => {
   const app = actionsHarness();
   await vm.runInContext('ACTIONS.import()', app.context);
-  assert.equal(app.getInput().accept, '.tnet');
+  assert.equal(app.getInput().accept, '.xml,.tnet');
 });
 
-test('a non-tnet pick is rejected before reading or changing the workspace', async () => {
+test('a pick that is not .xml or old .tnet is rejected before reading or changing the workspace', async () => {
   const app = actionsHarness();
   await vm.runInContext('ACTIONS.import()', app.context);
   let reads = 0;
-  app.getInput().files = [{ name: 'network.xml', async text() { reads++; return '<takuminet/>'; } }];
+  app.getInput().files = [{ name: 'network.json', async text() { reads++; return '{}'; } }];
   await app.getInput().onchange();
   assert.equal(reads, 0);
   assert.equal(app.fetches.length, 0);
   assert.equal(app.changes.length, 0);
   assert.equal(app.mascots.at(-1), 'error');
   assert.equal(app.notices.at(-1).failed, true);
-  assert.match(app.notices.at(-1).message, /\.tnet/);
+  assert.match(app.notices.at(-1).message, /Choose an \.xml file/);
 });
+
+for (const [fileName, expectedName] of [['my lab.xml', 'my lab'], ['old lab.tnet', 'old lab']]) {
+  test(`${fileName} imports and the file name loses its extension`, async () => {
+    const app = actionsHarness();
+    await vm.runInContext('ACTIONS.import()', app.context);
+    app.context.fetch = async (path) => ({ ok: true, async json() { return { devices: [], links: [], path }; } });
+    app.getInput().files = [{ name: fileName, async text() { return '<takuminet version="1"></takuminet>'; } }];
+    await app.getInput().onchange();
+    assert.equal(app.changes.length, 1);
+    assert.equal(vm.runInContext('currentName', app.context), expectedName);
+  });
+}
 
 test('invalid native XML reports every readable problem and preserves current data', async () => {
   const app = actionsHarness();
@@ -73,7 +85,7 @@ test('invalid native XML reports every readable problem and preserves current da
       };
     },
   });
-  app.getInput().files = [{ name: 'broken.tnet', async text() { return 'broken'; } }];
+  app.getInput().files = [{ name: 'broken.xml', async text() { return 'broken'; } }];
   await app.getInput().onchange();
   assert.equal(app.changes.length, 0);
   assert.equal(app.mascots.at(-1), 'error');
@@ -109,7 +121,7 @@ test('export downloads the current name through a Blob without a server write', 
   });
   vm.runInContext(actionsSource, context, { filename: 'web/js/actions.js' });
   await vm.runInContext('ACTIONS.export()', context);
-  assert.equal(anchor.download, 'my lab.tnet');
+  assert.equal(anchor.download, 'my lab.xml');
   assert.equal(anchor.href, 'blob:native-export');
   assert.equal(anchor.clicked, true);
   assert.equal(anchor.removed, true);
@@ -138,10 +150,10 @@ test('workspace file drop imports the file instead of creating a palette device'
   await listeners.drop({
     preventDefault() { prevented = true; },
     dataTransfer: {
-      files: [{ name: 'lesson.tnet' }],
+      files: [{ name: 'lesson.xml' }],
       getData() { throw new Error('file drop must not read palette text'); },
     },
   });
   assert.equal(prevented, true);
-  assert.deepEqual(imports, ['lesson.tnet']);
+  assert.deepEqual(imports, ['lesson.xml']);
 });

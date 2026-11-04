@@ -25,7 +25,7 @@ fn handle_save(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let name = sanitize(&query_value(query, "name").unwrap_or_else(|| "untitled".into()));
     let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     let _ = std::fs::create_dir_all(SAVE_DIR);
-    match std::fs::write(format!("{SAVE_DIR}/{name}.tnet"), ws.to_tnet()) {
+    match std::fs::write(format!("{SAVE_DIR}/{name}.xml"), ws.to_tnet()) {
         Ok(()) => (json, ws.json().into_bytes()),
         Err(e) => (json, json_error(&format!("save failed: {e}")).into_bytes()),
     }
@@ -34,7 +34,10 @@ fn handle_save(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
 fn handle_load(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let json = "application/json";
     let name = sanitize(&query_value(query, "name").unwrap_or_default());
-    let text = match std::fs::read_to_string(format!("{SAVE_DIR}/{name}.tnet")) {
+    // Saves are .xml. A .tnet file made by an earlier version still opens (read only).
+    let text = match std::fs::read_to_string(format!("{SAVE_DIR}/{name}.xml"))
+        .or_else(|_| std::fs::read_to_string(format!("{SAVE_DIR}/{name}.tnet")))
+    {
         Ok(t) => t,
         Err(_) => {
             return (json, json_error("no such topology").as_bytes().to_vec())
@@ -57,12 +60,13 @@ fn handle_load(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
 
 fn handle_saves() -> (&'static str, Vec<u8>) {
     let json = "application/json";
-    let mut names: Vec<String> = std::fs::read_dir(SAVE_DIR)
+    // .xml saves, plus .tnet files from earlier versions. A name appears once.
+    let names: std::collections::BTreeSet<String> = std::fs::read_dir(SAVE_DIR)
         .map(|rd| {
             rd.flatten()
                 .filter_map(|e| {
                     let p = e.path();
-                    if p.extension().and_then(|x| x.to_str()) != Some("tnet") {
+                    if !matches!(p.extension().and_then(|x| x.to_str()), Some("xml" | "tnet")) {
                         return None;
                     }
                     p.file_stem().map(|s| s.to_string_lossy().to_string())
@@ -70,7 +74,6 @@ fn handle_saves() -> (&'static str, Vec<u8>) {
                 .collect()
         })
         .unwrap_or_default();
-    names.sort();
     let list = names.iter().map(|n| json_str(n)).collect::<Vec<_>>().join(",");
     (json, format!("{{\"names\":[{list}]}}").into_bytes())
 }
@@ -181,16 +184,16 @@ fn template_dir(ctx: &Ctx) -> std::path::PathBuf {
 
 #[cfg(target_arch = "wasm32")]
 const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
-    ("t1", include_str!("../../web/templates/t1.tnet")),
-    ("t2", include_str!("../../web/templates/t2.tnet")),
-    ("t3", include_str!("../../web/templates/t3.tnet")),
-    ("t4", include_str!("../../web/templates/t4.tnet")),
-    ("t5", include_str!("../../web/templates/t5.tnet")),
-    ("tpl-connect", include_str!("../../web/templates/tpl-connect.tnet")),
-    ("tpl-star", include_str!("../../web/templates/tpl-star.tnet")),
-    ("tpl-home", include_str!("../../web/templates/tpl-home.tnet")),
-    ("tpl-routed", include_str!("../../web/templates/tpl-routed.tnet")),
-    ("tpl-web", include_str!("../../web/templates/tpl-web.tnet")),
+    ("t1", include_str!("../../web/templates/t1.xml")),
+    ("t2", include_str!("../../web/templates/t2.xml")),
+    ("t3", include_str!("../../web/templates/t3.xml")),
+    ("t4", include_str!("../../web/templates/t4.xml")),
+    ("t5", include_str!("../../web/templates/t5.xml")),
+    ("tpl-connect", include_str!("../../web/templates/tpl-connect.xml")),
+    ("tpl-star", include_str!("../../web/templates/tpl-star.xml")),
+    ("tpl-home", include_str!("../../web/templates/tpl-home.xml")),
+    ("tpl-routed", include_str!("../../web/templates/tpl-routed.xml")),
+    ("tpl-web", include_str!("../../web/templates/tpl-web.xml")),
 ];
 
 /// Ready-to-run networks: no steps, nothing to set. Titles and goals for the gallery.
@@ -205,7 +208,7 @@ const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
 fn template_text(ctx: &Ctx, id: &str) -> Result<String, ()> {
     #[cfg(not(target_arch = "wasm32"))]
     {
-        std::fs::read_to_string(template_dir(ctx).join(format!("{id}.tnet"))).map_err(|_| ())
+        std::fs::read_to_string(template_dir(ctx).join(format!("{id}.xml"))).map_err(|_| ())
     }
     #[cfg(target_arch = "wasm32")]
     {
@@ -229,7 +232,7 @@ fn handle_templates(ctx: &Ctx) -> (&'static str, Vec<u8>) {
             Err(error) => return (json, json_error(&format!("cannot read templates: {error}")).into_bytes()),
         };
         let mut paths: Vec<std::path::PathBuf> = entries.flatten().map(|entry| entry.path())
-            .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("tnet"))
+            .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("xml"))
             .collect();
         paths.sort();
         let mut sources = Vec::new();
@@ -267,7 +270,7 @@ fn handle_templates(ctx: &Ctx) -> (&'static str, Vec<u8>) {
         json_str(&lesson.goal), lesson.steps.len(), lesson.checks.len(),
     )).collect::<Vec<_>>().join(",");
     let template_cards = TEMPLATE_CARDS.iter()
-        .filter(|(id, _, _)| templates.iter().any(|name| name.ends_with(&format!("{id}.tnet")) || name == id))
+        .filter(|(id, _, _)| templates.iter().any(|name| name.ends_with(&format!("{id}.xml")) || name == id))
         .map(|(id, title, goal)| format!(
             "{{\"id\":{},\"title\":{},\"goal\":{}}}", json_str(id), json_str(title), json_str(goal),
         )).collect::<Vec<_>>().join(",");

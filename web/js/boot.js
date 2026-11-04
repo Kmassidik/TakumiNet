@@ -6,7 +6,7 @@ async function boot() {
   if (!data || !data.tabs || !Array.isArray(data.devices) || !Array.isArray(data.links)) {
     status('Workspace could not be loaded', true);
     sfx('errorMsg');
-    renderGallery({ error: 'Workspace could not be loaded. Start a blank workspace or open a native .tnet file.' });
+    renderGallery({ error: 'Workspace could not be loaded. Start a blank workspace or open an .xml file.' });
     wireMenus();
     wireActions();
     return;

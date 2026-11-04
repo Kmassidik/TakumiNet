@@ -537,7 +537,7 @@ fn e2e_save_and_load_round_trips_configuration() {
 
     let (status, _, _) = s.post("/api/save?name=e2e");
     assert_eq!(status, 200);
-    let saved = std::fs::read_to_string(repo_root().join("topologies/e2e.tnet")).unwrap();
+    let saved = std::fs::read_to_string(repo_root().join("topologies/e2e.xml")).unwrap();
     assert!(saved.starts_with("<takuminet version=\"1\">"));
     let (_, _, saves) = s.get("/api/saves");
     assert!(saves.contains("\"e2e\""), "{saves}");
@@ -853,7 +853,7 @@ fn e2e_lesson_templates_blank_new_and_checks() {
     let template = exported.replace("</takuminet>", &format!("{lesson}</takuminet>"));
     let directory = repo_root().join("web/templates");
     std::fs::create_dir_all(&directory).unwrap();
-    let path = directory.join("p1-e2e.tnet");
+    let path = directory.join("p1-e2e.xml");
     std::fs::write(&path, template).unwrap();
     let _fixture = Fixture(path);
 
@@ -1040,4 +1040,52 @@ fn e2e_notes_add_edit_move_and_delete_over_http() {
     assert!(!body.contains("\"text\":\"Changed\""), "{body}");
     let (_, _, body) = s.post("/api/notes/add?x=1&y=1&text=%20%20");
     assert!(body.contains("error"), "blank note must be refused: {body}");
+}
+
+#[test]
+fn e2e_xml_is_the_file_type_and_old_tnet_files_still_open() {
+    struct Fixture(std::path::PathBuf);
+    impl Drop for Fixture {
+        fn drop(&mut self) { let _ = std::fs::remove_file(&self.0); }
+    }
+
+    let s = spawn(38_243);
+    let (status, head, exported) = s.get("/api/export");
+    assert_eq!(status, 200);
+    assert!(head.contains("application/xml"), "{head}");
+    assert!(exported.starts_with("<takuminet "), "{exported}");
+
+    // New saves are .xml and never .tnet.
+    let xml = repo_root().join("topologies/fresh-e2e.xml");
+    let _xml_fixture = Fixture(xml.clone());
+    let _tnet_fixture = Fixture(repo_root().join("topologies/fresh-e2e.tnet"));
+    assert_eq!(s.post("/api/save?name=fresh-e2e").0, 200);
+    assert!(xml.exists(), "save must write .xml");
+    assert!(!repo_root().join("topologies/fresh-e2e.tnet").exists(), "save must not write .tnet");
+
+    // A .tnet file from an earlier version is listed once and opens.
+    let legacy = repo_root().join("topologies/legacy-e2e.tnet");
+    std::fs::write(&legacy, &exported).unwrap();
+    let _legacy_fixture = Fixture(legacy);
+    let (_, _, saves) = s.get("/api/saves");
+    assert_eq!(saves.matches("\"legacy-e2e\"").count(), 1, "{saves}");
+    assert_eq!(saves.matches("\"fresh-e2e\"").count(), 1, "{saves}");
+    let (status, _, loaded) = s.post("/api/load?name=legacy-e2e");
+    assert_eq!(status, 200);
+    assert!(!loaded.contains("\"error\""), "{loaded}");
+    let (_, _, missing) = s.post("/api/load?name=no-such-e2e");
+    assert!(missing.contains("no such topology"), "{missing}");
+
+    // Any other XML is refused with a clear message and changes nothing.
+    for (body, expect) in [
+        ("<other version=\"1\"></other>", "takuminet"),
+        ("<takuminet version=\"1\"", ""),
+        ("", ""),
+        ("not xml at all", ""),
+    ] {
+        let (status, _, reply) = s.post_body("/api/import", body.as_bytes());
+        assert_eq!(status, 200);
+        assert!(reply.contains("\"error\""), "{body:?} -> {reply}");
+        assert!(expect.is_empty() || reply.contains(expect), "{body:?} -> {reply}");
+    }
 }

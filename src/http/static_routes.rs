@@ -35,7 +35,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
         ("GET", "/sw.js") => ("text/javascript; charset=utf-8", file_bytes(&ctx.web_root, "sw.js")?),
         ("GET", p) if p.starts_with("/templates/") => {
             let name = &p["/templates/".len()..];
-            let safe = name.ends_with(".tnet") && !name.contains('/') && !name.contains("..");
+            let safe = name.ends_with(".xml") && !name.contains('/') && !name.contains("..");
             if safe {
                 ("application/xml; charset=utf-8", file_bytes(&ctx.web_root, &format!("templates/{name}"))?)
             } else {

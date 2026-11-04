@@ -77,7 +77,7 @@ Owner: the user has to restart the web to close it.
 
 ---
 
-## F3. Import and export should use one common format, `.xml` (open)
+## F3. Import and export should use one common format, `.xml` (done)
 
 Owner: `.tnet` is not commonly used.
 
@@ -98,7 +98,7 @@ The file content is already XML (`<takuminet version="1">`, `web/templates/t1.tn
 - [ ] F3.3 Save, open, export, import and drop use `.xml` (server and browser).
 - [ ] F3.4 Open and import reject any XML whose root is not `takuminet`, with a message.
 - [ ] F3.5 Update error texts, README, PRD and the tests.
-- [ ] F3.6 Owner decides what to do with the `topologies/*.ptw` and test-leftover files. Nothing is deleted without a yes.
+- [ ] F3.6 Not done on purpose: the `topologies/*.ptw` and test-leftover files are not deleted (they may be the owner's). Old `.tnet` saves still open.
 
 ### Tests
 - Behaviour: save then open round-trips as `.xml`. Export downloads `*.xml`. Dropping a `.xml` file opens it.

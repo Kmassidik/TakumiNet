@@ -30,7 +30,7 @@ The server listens on `127.0.0.1:3000` by default. Set `HOST`, `PORT`, or
 
 ## Start a lab or build a network
 
-The opening gallery includes five guided `.tnet` templates:
+The opening gallery includes five guided lessons and five ready-to-run example templates, all `.xml` files:
 
 | Template | Lab |
 | --- | --- |
@@ -73,7 +73,7 @@ optimization, LTO, and aborting panics—no npm, wasm-pack, or bindings generato
 
 ## Native files
 
-**File → Export** downloads the workspace as UTF-8 `.tnet` XML. **Open** and
+**File → Export** downloads the workspace as a UTF-8 `.xml` file. **Open** and
 workspace drag-and-drop import the same format atomically: invalid input leaves
 the current workspace intact. Save/Open also manage named browser saves when
 WASM is active.
@@ -81,7 +81,7 @@ WASM is active.
 See **[docs/format.md](docs/format.md)** for the native XML schema, record and
 attribute reference, validation rules, resource limits, and extension
 preservation. The older `.ptw` text format has a read-only compatibility loader;
-new exports are always `.tnet`.
+new exports are always `.xml`. A `.tnet` file from an earlier version still opens.
 
 ## Project map
 
