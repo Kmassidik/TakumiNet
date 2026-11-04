@@ -61,3 +61,9 @@ test("only the Connections category keeps cable mode on", () => {
   for (const group of Object.keys(GROUP_KINDS)) if (group !== CONNECTIONS) expect(keepsCableMode(group), group).toBe(false);
   expect(keepsCableMode("Nope")).toBe(false);
 });
+
+test("the IoT category icon is its own, not the note tool's", () => {
+  const iot = groupsSrc.match(/\("IoT", "([^"]+)"\)/);
+  expect(iot?.[1]).toBe("/art3d/devices/thing.webp");
+  expect(iot?.[1]).not.toContain("notes.webp");
+});

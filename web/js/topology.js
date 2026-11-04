@@ -93,6 +93,7 @@ let lastNoteClick = { id: null, t: 0 };
 
 async function placeNote(ev) {
   noteMode = false;
+  renderPalette();
   const p = toSvg(ev);
   const text = await askText('Note text', '');
   if (!text || !text.trim()) { status('Note cancelled'); return; }

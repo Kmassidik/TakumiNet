@@ -95,6 +95,28 @@ function renderPalette() {
   meshTool.onclick = () => ACTIONS.mesh(true);
   if (showConnections) pal.appendChild(meshTool);
 
+  const noteTool = document.createElement('button');
+  noteTool.id = 'note-tool';
+  noteTool.className = 'dev-tile note-tool' + (noteMode ? ' active' : '');
+  noteTool.setAttribute('aria-pressed', String(noteMode));
+  noteTool.title = 'Write a text note on the canvas.';
+  const nimg = document.createElement('img');
+  nimg.src = icon3d('groups/notes');
+  const nlabel = document.createElement('span');
+  nlabel.textContent = 'Note';
+  noteTool.appendChild(nimg);
+  noteTool.appendChild(nlabel);
+  noteTool.onclick = () => {
+    if (noteMode) {
+      noteMode = false;
+      status('Selection mode');
+    } else {
+      ACTIONS['add-note']();
+    }
+    renderPalette();
+  };
+  if (showConnections) pal.appendChild(noteTool);
+
   const tiles = paletteTiles(paletteGroup, data.palette);
   if (!tiles.length && !showConnections) {
     const empty = document.createElement('p');

@@ -54,7 +54,7 @@ function harness({ linkError = null } = {}) {
       devices: [{ id: 'd1', name: 'PC0' }, { id: 'd2', name: 'Phone0' }],
     },
     CABLE_TYPES: [['eCopper', 'Copper', 'straight', 'Copper']],
-    cableMode: false, cableKind: 'eCopper', cableFrom: null, pduMode: false,
+    cableMode: false, cableKind: 'eCopper', cableFrom: null, pduMode: false, noteMode: false,
     status: (m) => statuses.push(m),
     icon3d: (n) => n, renderTopology() {}, ACTIONS: {},
     setSelection() {}, sfx() {},
@@ -65,6 +65,10 @@ function harness({ linkError = null } = {}) {
     PALETTE_CONNECTIONS: 'Connections',
   });
   vm.runInContext(source, context);
+  vm.runInContext(
+    "ACTIONS['add-note'] = () => { noteMode = true; status('Click the canvas to place a note'); };",
+    context,
+  );
   return { context, els, statuses, apiCalls };
 }
 
@@ -192,4 +196,46 @@ test('Escape leaves cable mode: pending end gone, tile released, chip hidden', a
   assert.equal(vm.runInContext('cableFrom', context), null);
   assert.equal(cableTile(els).attrs['aria-pressed'], 'false');
   assert.equal(els['cable-chip'].hidden, true);
+});
+
+const noteTile = (els) => els.palette.children.find((c) => c.className.includes('note-tool'));
+
+test('the Note tool is the last tile in the Connections tool row', () => {
+  const { context, els } = harness();
+  context.renderPalette();
+  tab(els, 'Connections').onclick();
+  const tile = noteTile(els);
+  assert.ok(tile);
+  assert.equal(els.palette.children.at(-1), tile);
+  assert.equal(tile.children[1].textContent, 'Note');
+  assert.equal(tile.title, 'Write a text note on the canvas.');
+  assert.equal(tile.attrs['aria-pressed'], 'false');
+});
+
+test('the Note tool is absent outside Connections', () => {
+  const { context, els } = harness();
+  context.renderPalette();
+  assert.equal(noteTile(els), undefined);
+});
+
+test('clicking the Note tile arms note mode and presses the tile', () => {
+  const { context, els, statuses } = harness();
+  context.renderPalette();
+  tab(els, 'Connections').onclick();
+  noteTile(els).onclick();
+  assert.equal(vm.runInContext('noteMode', context), true);
+  assert.equal(noteTile(els).attrs['aria-pressed'], 'true');
+  assert.ok(noteTile(els).className.includes('active'));
+  assert.equal(statuses.at(-1), 'Click the canvas to place a note');
+});
+
+test('clicking the armed Note tile again releases it', () => {
+  const { context, els, statuses } = harness();
+  context.renderPalette();
+  tab(els, 'Connections').onclick();
+  noteTile(els).onclick();
+  noteTile(els).onclick();
+  assert.equal(vm.runInContext('noteMode', context), false);
+  assert.equal(noteTile(els).attrs['aria-pressed'], 'false');
+  assert.equal(statuses.at(-1), 'Selection mode');
 });

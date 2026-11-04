@@ -84,7 +84,7 @@ pub(super) const GROUPS: &[(&str, &str)] = &[
     ("Security and servers", "/art3d/groups/security.webp"),
     ("End devices", "/art3d/misc/devices.webp"),
     ("Connections", "/art3d/misc/cable.webp"),
-    ("IoT", "/art3d/groups/notes.webp"),
+    ("IoT", "/art3d/devices/thing.webp"),
 ];
 
 pub(super) const FILTERS: &[&str] = &[
