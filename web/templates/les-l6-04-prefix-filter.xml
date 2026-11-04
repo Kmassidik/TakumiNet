@@ -34,7 +34,7 @@
   <bgpnet dev="upb0" net="192.168.0.0" prefix="16"/>
   <lesson id="les-l6-04-prefix-filter" title="Refuse the bogus announcement" level="6" minutes="15" goal="BorderISP keeps 192.168.0.0/16 out of its routing table while both provider sessions stay up"/>
   <step n="1" text="Run show ip route on BorderISP. UpstreamSouth announces 192.168.0.0/16, a private range that must never come from the internet, and the border router accepted it."/>
-  <step n="2" text="Add 192.168.0.0/16 to BorderISP's deny list so the bogus announcement is refused from every peer." check="c1"/>
+  <step n="2" text="Refuse it on BorderISP: router bgp 64500, then deny 192.168.0.0/16. The bgp deny list keeps that prefix out, whichever peer announces it." check="c1"/>
   <step n="3" text="Check show ip route again: the bogus prefix is gone, and both provider sessions are still established." check="c2"/>
   <check id="c1" kind="route" from="border0" to="" url="absent" expect="192.168.0.0/16" label="BorderISP's table has no route to 192.168.0.0/16"/>
   <check id="c2" kind="bgp" from="border0" to="10.1.1.2" url="" expect="established" label="The session with UpstreamNorth is established"/>

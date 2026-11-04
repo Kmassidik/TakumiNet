@@ -32,7 +32,7 @@
   <page id="server0" body="Shared files"/>
   <lesson id="les-l3-05-port-security" title="Lock a desk port to one computer" level="3" minutes="10" goal="The port for Desk0 accepts only one address"/>
   <step n="1" text="Open the settings of OfficeSwitch and find FastEthernet0/2, the port for Desk0."/>
-  <step n="2" text="Turn on port security on that port and allow 1 address." check="c1"/>
+  <step n="2" text="Lock it to one address: enter interface FastEthernet0/2 and type switchport port-security maximum 1." check="c1"/>
   <step n="3" text="Ping Desk1 from Desk0. The known computer must still work." check="c2"/>
   <check id="c1" kind="config" from="switch0" to="portsec:FastEthernet0/2" url="" expect="1" label="FastEthernet0/2 allows one address"/>
   <check id="c2" kind="ping" from="pc0" to="pc1" url="" expect="ok" label="Desk0 still reaches Desk1"/>

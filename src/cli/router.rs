@@ -1,6 +1,9 @@
 use super::*;
 
 pub(super) fn router_mode(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
+    if s.router.as_deref() == Some("bgp") {
+        return config_bgp::bgp_mode(ws, id, s, line, lower);
+    }
     if lower.starts_with("version") {
         if s.router.as_deref() == Some("rip") && lower == "version 2" {
             return String::new();

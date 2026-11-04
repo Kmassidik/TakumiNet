@@ -22,9 +22,9 @@
   <net id="printer0" gw="192.168.30.1" dns=""/>
   <page id="server0" body="Shared files"/>
   <lesson id="les-l3-01-three-vlans" title="Split the office into three VLANs" level="3" minutes="12" goal="Staff, servers and devices each live in their own VLAN and still reach each other through the router"/>
-  <step n="1" text="On OfficeSwitch create VLAN 10 named staff, VLAN 20 named servers and VLAN 30 named devices."/>
-  <step n="2" text="Put FastEthernet0/2 and FastEthernet0/3 in VLAN 10, FastEthernet0/4 and FastEthernet0/5 in VLAN 20, and FastEthernet0/6 in VLAN 30." check="c1"/>
-  <step n="3" text="Make FastEthernet0/1, the cable to the router, a trunk so it carries all three VLANs." check="c4"/>
+  <step n="1" text="On OfficeSwitch, in configuration mode, create the VLANs: vlan 10 staff, vlan 20 servers and vlan 30 devices."/>
+  <step n="2" text="Enter interface FastEthernet0/2 and type switchport access vlan 10; do the same on FastEthernet0/3, use switchport access vlan 20 on FastEthernet0/4 and FastEthernet0/5, and switchport access vlan 30 on FastEthernet0/6." check="c1"/>
+  <step n="3" text="Make FastEthernet0/1, the cable to the router, carry all three VLANs: enter that interface and type switchport mode trunk." check="c4"/>
   <step n="4" text="Ping FileServer from Desk0." check="c5"/>
   <check id="c1" kind="vlan" from="switch0" to="FastEthernet0/2" url="" expect="10" label="Desk0 is in VLAN 10"/>
   <check id="c2" kind="vlan" from="switch0" to="FastEthernet0/4" url="" expect="20" label="Desk2 is in VLAN 20"/>

@@ -41,7 +41,7 @@ fn completes_commands_and_interfaces() {
     assert!(!show.contains(&"write memory".to_string()), "{show:?}");
 
     let ip = complete(&ws, "router0", &priv_s, "show ip ");
-    assert_eq!(ip, vec!["show ip interface brief", "show ip route"]);
+    assert_eq!(ip, vec!["show ip bgp", "show ip interface brief", "show ip route"]);
 
     let cfg = Session { mode: Mode::Config, iface: None, router: None };
     let gi = complete(&ws, "router0", &cfg, "int g");

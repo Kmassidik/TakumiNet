@@ -30,10 +30,10 @@
   <bgpnet dev="upb0" net="192.168.50.0" prefix="24"/>
   <lesson id="les-l6-02-first-bgp" title="Your first BGP sessions" level="6" minutes="15" goal="BorderISP peers with both upstream providers and CustomerPC reaches FarServer"/>
   <step n="1" text="Both providers already point a neighbor entry at BorderISP, but BorderISP says nothing back. Ping FarServer from CustomerPC and read the failure."/>
-  <step n="2" text="On BorderISP set the local autonomous system to 64500."/>
-  <step n="3" text="Add the neighbor 10.1.1.2 in autonomous system 64601. The session to UpstreamNorth comes up." check="c1"/>
-  <step n="4" text="Add the neighbor 10.1.2.2 in autonomous system 64602. The session to UpstreamSouth comes up." check="c2"/>
-  <step n="5" text="Announce your own customer network 192.168.50.0/24, then ping FarServer from CustomerPC." check="c3"/>
+  <step n="2" text="On BorderISP open the CLI and start BGP: router bgp 64500."/>
+  <step n="3" text="Name the first provider: neighbor 10.1.1.2 remote-as 64601. The session to UpstreamNorth comes up." check="c1"/>
+  <step n="4" text="Name the second provider: neighbor 10.1.2.2 remote-as 64602. The session to UpstreamSouth comes up." check="c2"/>
+  <step n="5" text="Announce your own customer network: network 192.168.50.0 mask 255.255.255.0. Then ping FarServer from CustomerPC." check="c3"/>
   <check id="c1" kind="bgp" from="border0" to="10.1.1.2" url="" expect="established" label="The session to UpstreamNorth is established"/>
   <check id="c2" kind="bgp" from="border0" to="10.1.2.2" url="" expect="established" label="The session to UpstreamSouth is established"/>
   <check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="CustomerPC reaches FarServer"/>

@@ -32,8 +32,8 @@
   <net id="server3" gw="10.100.2.1" dns=""/>
   <lesson id="les-l5-01-leaf-spine" title="Two hops to any rack" level="5" minutes="20" goal="Servers in different racks reach each other over leaf and spine"/>
   <step n="1" text="Every leaf connects to both spines, so every server is two switch hops from every other. The point-to-point links are already addressed."/>
-  <step n="2" text="Turn on OSPF process 1 on LeafA, LeafB, Spine1 and Spine2."/>
-  <step n="3" text="On each one, announce the networks it touches: the rack network on the leaves and the four point-to-point links." check="c1"/>
+  <step n="2" text="On LeafA, LeafB, Spine1 and Spine2 type router ospf 1."/>
+  <step n="3" text="On each one announce the networks it touches: the rack network on the leaves, like network 10.100.1.0 0.0.0.255 area 0, and its two point-to-point links, like network 10.200.11.0 0.0.0.3 area 0." check="c1"/>
   <step n="4" text="Ping RackB-1 from RackA-1 and read the path in the capture." check="c2"/>
   <check id="c1" kind="route" from="l1" to="" url="" expect="10.100.2.0/24" label="LeafA knows rack B"/>
   <check id="c2" kind="ping" from="server0" to="server2" url="" expect="ok" label="RackA-1 reaches RackB-1"/>

@@ -373,3 +373,10 @@ pub fn routes_packets(kind: &str) -> bool {
             | "backbone-pop" | "internet-exchange" | "national-gateway"
     )
 }
+
+/// Device kinds that answer a console cable or telnet with an IOS-style CLI:
+/// every routing kind plus the plain switch. Hosts drive a console, never
+/// answer one.
+pub fn has_console(kind: &str) -> bool {
+    kind == "switch" || routes_packets(kind)
+}

@@ -51,7 +51,7 @@ impl Workspace {
             .unwrap_or(false)
     }
 
-    /// The router or switch a console cable connects `id` to.
+    /// The console-bearing device a console cable connects `id` to.
     pub fn console_peer(&self, id: &str) -> Option<&str> {
         let l = self
             .links
@@ -60,7 +60,7 @@ impl Workspace {
         let peer = if l.a == id { &l.b } else { &l.a };
         self.devices
             .iter()
-            .find(|d| d.id == *peer && matches!(d.kind.as_str(), "router" | "switch"))
+            .find(|d| d.id == *peer && crate::model::has_console(&d.kind))
             .map(|d| d.id.as_str())
     }
 
@@ -149,7 +149,11 @@ impl Workspace {
         match kind {
             "eConsole" => {
                 if !(self.console_capable(a) ^ self.console_capable(b)) {
-                    return Err("a console cable joins a PC to a router or switch".into());
+                    return Err("a console cable joins a PC to a device with a console".into());
+                }
+                let gear = if self.console_capable(a) { &kb } else { &ka };
+                if !crate::model::has_console(gear) {
+                    return Err("a console cable joins a PC to a device with a console".into());
                 }
             }
             "eSerial" => {

@@ -401,10 +401,10 @@ impl Workspace {
         }
     }
 
-    /// Default gateway of a host; routers and switches route instead.
+    /// Default gateway of a host; anything with a console routes instead.
     pub fn gateway_of(&self, id: &str) -> Option<u32> {
         let dev = self.devices.iter().find(|d| d.id == id)?;
-        if matches!(dev.kind.as_str(), "router" | "switch" | "rtrw-gateway" | "switch-l3") {
+        if crate::model::has_console(dev.kind.as_str()) {
             return None;
         }
         dev.gateway

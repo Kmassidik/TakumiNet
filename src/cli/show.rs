@@ -8,6 +8,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
         _ if what.len() >= 4 && command_matches(what, "startup-config") => startup_config(ws, id),
         _ if command_matches(what, "ip interface brief") => ip_brief(ws, id),
         _ if command_matches(what, "ip route") => ws.show_routes(id),
+        _ if command_matches(what, "ip bgp") => bgp_table(ws, id),
         "version" | "ver" => version(ws, id),
         "mac address-table" | "mac-address-table" | "mac addr" => mac_table(ws, id),
         "arp" => arp_table(ws, id),

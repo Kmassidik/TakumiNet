@@ -71,6 +71,21 @@ fn telnet_opens_on_a_router_and_fails_on_a_host() {
 }
 
 #[test]
+fn telnet_reaches_every_kind_with_a_console() {
+    let mut ws = Workspace::empty();
+    let pc = ws.add("PC", 80.0, 80.0).unwrap();
+    let pop = ws.add("Backbone POP", 240.0, 80.0).unwrap();
+    assert_eq!(pop, "backbone-pop0");
+    ws.link(&pc, &pop).unwrap();
+    ws.set_config(&pc, "10.0.0.10", "255.255.255.0", "10.0.0.1", "").unwrap();
+    ws.set_port_ip(&pop, "GigabitEthernet0/0", "10.0.0.1", 24).unwrap();
+
+    let (out, peer) = telnet(&mut ws, &pc, "10.0.0.1");
+    assert!(out.contains("Open"), "{out}");
+    assert_eq!(peer.as_deref(), Some(pop.as_str()));
+}
+
+#[test]
 fn nslookup_uses_the_dns_records() {
     let mut ws = Workspace::new();
     ws.set_config(
