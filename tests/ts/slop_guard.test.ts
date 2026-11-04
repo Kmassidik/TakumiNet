@@ -162,3 +162,16 @@ test("play: a second press while Play waits cannot start a second timer", () => 
   expect(actions).toMatch(/if \(playStarting\) return;/);
   expect(actions.match(/playTimer = setInterval/g)?.length).toBe(1);
 });
+
+test("palette: hiding the cable tiles always leaves cable mode", () => {
+  const palette = sources.find((s) => s.name === "palette.js")!.text;
+  expect(palette).toMatch(/paletteKeepsCableMode\(g\.label\)\) leaveCableMode\(\)/);
+  const chrome = sources.find((s) => s.name === "chrome.js")!.text;
+  expect(chrome).toContain("leaveCableMode();");
+});
+
+test("menus: the menu bar lets go of the keyboard while a dialog is open", () => {
+  const bar = readFileSync(join(import.meta.dir, "../../web/ts/ui/menubar.ts"), "utf8");
+  expect(bar).toContain('.overlay:not([hidden])');
+  expect(bar).toContain("new AltTracker()");
+});

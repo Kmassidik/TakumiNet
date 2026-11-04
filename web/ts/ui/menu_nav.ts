@@ -28,6 +28,28 @@ export function stepItem(enabled: readonly boolean[], from: number | null, dir: 
 export const firstItem = (enabled: readonly boolean[]): number | null => stepItem(enabled, null, 1);
 export const lastItem = (enabled: readonly boolean[]): number | null => stepItem(enabled, null, -1);
 
+/* "Alt on its own" means Alt went down and up with nothing in between: no other
+   key, no mouse press (Alt+click must not wake the menu bar). */
+export class AltTracker {
+  private alone = false;
+
+  down(): void {
+    this.alone = true;
+  }
+
+  /* Any other key or mouse press while Alt is held. */
+  other(): void {
+    this.alone = false;
+  }
+
+  /* True when this Alt release was an Alt press on its own. */
+  up(): boolean {
+    const was = this.alone;
+    this.alone = false;
+    return was;
+  }
+}
+
 export class MenuController {
   open: number | null = null;
   active: number | null = null;

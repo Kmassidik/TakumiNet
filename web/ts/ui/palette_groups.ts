@@ -35,6 +35,13 @@ export function tilesFor(group: string, palette: readonly PaletteDevice[]): Pale
   return palette.filter((device) => kinds.includes(device.kind));
 }
 
+/* The cable tool only exists in the Connections category. Leaving that category
+   must also leave cable mode, or clicks keep drawing cables that nothing on
+   screen offers any more. */
+export function keepsCableMode(group: string): boolean {
+  return group === CONNECTIONS;
+}
+
 /* The category to open on: the saved one if it still exists. */
 export function startGroup(saved: string | null | undefined, groups: readonly string[]): string {
   if (saved && groups.includes(saved)) return saved;

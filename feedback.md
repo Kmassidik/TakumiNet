@@ -432,7 +432,7 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
   - Bend: `tests/bend/play_once.bend`, any number of presses before the answer yields one run.
   - Slop guard: no `setInterval` assignment without a guard.
 
-### F16. After picking a cable, switching category hides it but leaves cable mode on (open, reproduced)
+### F16. After picking a cable, switching category hides it but leaves cable mode on (done)
 
 - **What you see:** in Connections choose Copper, then click the End devices tab. The cable tile disappears, but clicks on the canvas still try to draw a cable and the cursor stays a crosshair. Nothing on screen says why.
 - **Measured in Chrome:** after the switch, `cableMode` was still `true`, no `.cable-tool` tile was in the page, and the canvas still had the `cable-mode` class.
@@ -447,7 +447,7 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
   - Bend: `tests/bend/cable_mode.bend`, a state change away from Connections always ends with mode off.
   - Slop guard: any code that hides a cable tile must also clear the mode.
 
-### F17. Alt held during another action can still pull the keyboard to the menu bar (open, from the code)
+### F17. Alt held during another action can still pull the keyboard to the menu bar (done)
 
 - **What you see (expected):** hold Alt (Option on a Mac), click something with the mouse, release Alt. The menu bar takes the keyboard even though you did not press Alt on its own.
 - **Where:** `web/ts/ui/menubar.ts:85`. "Alt alone" is only cancelled by another key press, not by a mouse click.
@@ -456,7 +456,7 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
   - [ ] F17.2 Ignore Alt and F10 while a dialog is open.
 - **Tests:** behaviour (Alt, click, Alt-up does nothing), error (Alt while a dialog is open does nothing), Bend (the Alt rule: toggles only with no other event between), slop guard none.
 
-### F18. With a menu open and a dialog open, Escape needs three presses (open, reproduced)
+### F18. With a menu open and a dialog open, Escape needs three presses (done)
 
 - **What you see:** open Preferences, then press Alt or open a menu (reachable by keyboard behind the dialog). Escape closes the menu, the next Escape leaves the menu bar, and only the third Escape closes the dialog.
 - **Measured in Chrome:** after two Escapes the dialog was still open.

@@ -888,6 +888,21 @@
   var firstItem = (enabled) => stepItem(enabled, null, 1);
   var lastItem = (enabled) => stepItem(enabled, null, -1);
 
+  class AltTracker {
+    alone = false;
+    down() {
+      this.alone = true;
+    }
+    other() {
+      this.alone = false;
+    }
+    up() {
+      const was = this.alone;
+      this.alone = false;
+      return was;
+    }
+  }
+
   class MenuController {
     view;
     open = null;
@@ -1068,13 +1083,21 @@
         controller.closeAll();
     });
     window.addEventListener("blur", () => controller.closeAll());
-    let altAlone = false;
+    const dialogOpen = () => !!root.querySelector(".overlay:not([hidden])");
+    const alt = new AltTracker;
+    root.addEventListener("mousedown", () => alt.other(), true);
     root.addEventListener("keydown", (ev) => {
-      if (ev.key === "Alt") {
-        altAlone = true;
+      if (dialogOpen()) {
+        alt.other();
+        if (controller.engaged)
+          controller.closeAll();
         return;
       }
-      altAlone = false;
+      if (ev.key === "Alt") {
+        alt.down();
+        return;
+      }
+      alt.other();
       if (ev.key === "F10" && !ev.shiftKey) {
         ev.preventDefault();
         controller.toggleBar();
@@ -1084,9 +1107,8 @@
         ev.preventDefault();
     }, true);
     root.addEventListener("keyup", (ev) => {
-      if (ev.key === "Alt" && altAlone)
+      if (ev.key === "Alt" && alt.up() && !dialogOpen())
         controller.toggleBar();
-      altAlone = false;
     });
   }
 
@@ -1294,6 +1316,9 @@
     if (!kinds)
       return [];
     return palette.filter((device) => kinds.includes(device.kind));
+  }
+  function keepsCableMode(group) {
+    return group === CONNECTIONS;
   }
   function startGroup(saved, groups) {
     if (saved && groups.includes(saved))
@@ -1555,6 +1580,7 @@
   globalThis.WorkspaceCanvas = WorkspaceCanvas;
   globalThis.wireMenus = () => wireMenuBar(document);
   globalThis.paletteTiles = tilesFor;
+  globalThis.paletteKeepsCableMode = keepsCableMode;
   globalThis.groupProtocols = groupProtocols;
   globalThis.paletteStartGroup = startGroup;
   globalThis.PALETTE_CONNECTIONS = CONNECTIONS;

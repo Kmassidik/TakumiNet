@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, startGroup, tilesFor, type PaletteDevice } from "../../web/ts/ui/palette_groups";
+import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor, type PaletteDevice } from "../../web/ts/ui/palette_groups";
 
 const catalog = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
 const rows = [...catalog.matchAll(/\("([^"]+)", "([^"]+)", "([a-z0-9]+)"\)/g)];
@@ -46,4 +46,10 @@ test("the page opens on a category that exists", () => {
   expect(startGroup("Routers", labels)).toBe("Routers");
   expect(startGroup("Gone", labels)).toBe(DEFAULT_GROUP);
   expect(startGroup(undefined, ["A", "B"])).toBe("A");
+});
+
+test("only the Connections category keeps cable mode on", () => {
+  expect(keepsCableMode(CONNECTIONS)).toBe(true);
+  for (const group of Object.keys(GROUP_KINDS)) if (group !== CONNECTIONS) expect(keepsCableMode(group), group).toBe(false);
+  expect(keepsCableMode("Nope")).toBe(false);
 });

@@ -75,9 +75,10 @@ function wireKeyboard() {
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); ACTIONS.delete(); }
     else if (e.key === 'Escape') {
       if (document.querySelector('.overlay:not([hidden])')) return;
-      pduMode = false; cableMode = false; pduFrom = null; cableFrom = null;
+      pduMode = false; pduFrom = null;
+      leaveCableMode();
       setSelection([]);
-      document.querySelector('.canvas-wrap').classList.remove('cable-mode', 'crosshair');
+      renderPalette();
       renderTopology();
     }
   });

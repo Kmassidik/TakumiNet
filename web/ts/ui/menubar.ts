@@ -1,4 +1,4 @@
-import { MenuController, type MenuView } from "./menu_nav";
+import { AltTracker, MenuController, type MenuView } from "./menu_nav";
 
 /* Connects the menu bar in index.html to the rules in menu_nav.ts. A menu is a
    `.menu` holding a head button and a `.drop` of buttons and links. */
@@ -67,14 +67,23 @@ export function wireMenuBar(root: Document): void {
   });
   window.addEventListener("blur", () => controller.closeAll());
 
+  // A dialog owns the keyboard: the menu bar lets go and ignores every key until it closes.
+  const dialogOpen = () => !!root.querySelector(".overlay:not([hidden])");
+
   // Alt or F10 on its own moves the keyboard to the bar, like Windows.
-  let altAlone = false;
+  const alt = new AltTracker();
+  root.addEventListener("mousedown", () => alt.other(), true);
   root.addEventListener("keydown", (ev) => {
-    if (ev.key === "Alt") {
-      altAlone = true;
+    if (dialogOpen()) {
+      alt.other();
+      if (controller.engaged) controller.closeAll();
       return;
     }
-    altAlone = false;
+    if (ev.key === "Alt") {
+      alt.down();
+      return;
+    }
+    alt.other();
     if (ev.key === "F10" && !ev.shiftKey) {
       ev.preventDefault();
       controller.toggleBar();
@@ -83,7 +92,6 @@ export function wireMenuBar(root: Document): void {
     if (controller.key(ev.key)) ev.preventDefault();
   }, true);
   root.addEventListener("keyup", (ev) => {
-    if (ev.key === "Alt" && altAlone) controller.toggleBar();
-    altAlone = false;
+    if (ev.key === "Alt" && alt.up() && !dialogOpen()) controller.toggleBar();
   });
 }

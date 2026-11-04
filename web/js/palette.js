@@ -1,6 +1,13 @@
 /* ---------------- palette ---------------- */
 let paletteGroup = null;
 
+/* Leaves cable mode: no pending first device, no crosshair. */
+function leaveCableMode() {
+  cableMode = false;
+  cableFrom = null;
+  document.querySelector('.canvas-wrap').classList.remove('cable-mode', 'crosshair');
+}
+
 function renderPalette() {
   const groups = document.getElementById('groups');
   groups.replaceChildren();
@@ -21,6 +28,7 @@ function renderPalette() {
     b.appendChild(text);
     b.onclick = () => {
       paletteGroup = g.label;
+      if (cableMode && !paletteKeepsCableMode(g.label)) leaveCableMode();
       status(g.label);
       renderPalette();
     };

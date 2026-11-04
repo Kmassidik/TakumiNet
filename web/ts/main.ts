@@ -6,7 +6,7 @@ import { wireCollapsibles } from "./ui/collapse";
 import { wireMenuBar } from "./ui/menubar";
 import { wireTooltips } from "./ui/tooltip";
 import { groupProtocols, type ProtocolGroup } from "./ui/protocol_groups";
-import { CONNECTIONS, tilesFor, startGroup, type PaletteDevice } from "./ui/palette_groups";
+import { CONNECTIONS, keepsCableMode, tilesFor, startGroup, type PaletteDevice } from "./ui/palette_groups";
 import { engineLoadingMessage, type EngineProgress } from "./ui/engine_loading";
 import { shouldAutoShowGallery } from "./ui/gallery_once";
 import { renderDeviceList, type ListedDevice } from "./ui/device_list";
@@ -32,6 +32,7 @@ globalThis.renderDeviceList = (list, devices, onSelect) => renderDeviceList(doc,
 globalThis.WorkspaceCanvas = WorkspaceCanvas;
 globalThis.wireMenus = () => wireMenuBar(document);
 globalThis.paletteTiles = tilesFor;
+globalThis.paletteKeepsCableMode = keepsCableMode;
 globalThis.groupProtocols = groupProtocols;
 globalThis.paletteStartGroup = startGroup;
 globalThis.PALETTE_CONNECTIONS = CONNECTIONS;
@@ -69,6 +70,7 @@ declare global {
   var renderDeviceList: (list: HTMLElement, devices: readonly ListedDevice[], onSelect: (id: string) => void) => void;
   var groupProtocols: (labels: readonly string[]) => ProtocolGroup[];
   var wireMenus: () => void;
+  var paletteKeepsCableMode: (group: string) => boolean;
   var paletteTiles: (group: string, palette: readonly PaletteDevice[]) => PaletteDevice[];
   var paletteStartGroup: (saved: string | null | undefined, groups: readonly string[]) => string;
   var PALETTE_CONNECTIONS: string;

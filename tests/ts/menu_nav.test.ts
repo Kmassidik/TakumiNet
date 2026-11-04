@@ -132,3 +132,43 @@ test("keys that are not menu keys are left alone while a menu is open", () => {
   expect(c.key("a")).toBe(false);
   expect(c.key("Tab")).toBe(false);
 });
+
+import { AltTracker } from "../../web/ts/ui/menu_nav";
+
+test("Alt pressed and released on its own counts", () => {
+  const alt = new AltTracker();
+  alt.down();
+  expect(alt.up()).toBe(true);
+});
+
+test("Alt held while another key is pressed does not count", () => {
+  const alt = new AltTracker();
+  alt.down();
+  alt.other();
+  expect(alt.up()).toBe(false);
+});
+
+test("Alt held during a mouse click does not count (the click is reported as another event)", () => {
+  const alt = new AltTracker();
+  alt.down();
+  alt.other(); // mousedown
+  expect(alt.up()).toBe(false);
+});
+
+test("a release with no press, and a second release, do not count", () => {
+  const alt = new AltTracker();
+  expect(alt.up()).toBe(false);
+  alt.down();
+  expect(alt.up()).toBe(true);
+  expect(alt.up()).toBe(false);
+});
+
+test("closing everything leaves nothing engaged, so a dialog can take the keys", () => {
+  const { c } = setup();
+  c.toggleBar();
+  c.key("ArrowDown");
+  expect(c.engaged).toBe(true);
+  c.closeAll();
+  expect(c.engaged).toBe(false);
+  expect(c.key("Escape")).toBe(false);
+});
