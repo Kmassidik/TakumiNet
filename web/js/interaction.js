@@ -7,7 +7,7 @@ function startDrag(ev, d) {
   const now = performance.now();
   if (lastClick && lastClick.id === d.id && now - lastClick.t < 400) {
     lastClick = null;
-    openDeviceWindow(d);
+    if (!(typeof openWindowForKind === 'function' && openWindowForKind(d, data))) openDeviceWindow(d);
     return;
   }
   lastClick = { id: d.id, t: now };
