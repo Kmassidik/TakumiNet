@@ -98,6 +98,54 @@ fn every_link_endpoint_exists() {
 }
 
 #[test]
+fn an_explicit_port_pair_lands_the_cable_exactly_there() {
+    let mut ws = Workspace::empty();
+    let r1 = ws.add("2911", 200.0, 100.0).unwrap();
+    let sw = ws.add("2960", 450.0, 100.0).unwrap();
+    ws.link_ports(&r1, &sw, "eCopper", Some("GigabitEthernet0/2"), Some("Fa0/7"))
+        .unwrap();
+    let link = ws.links.last().unwrap();
+    assert_eq!(link.a_port, "GigabitEthernet0/2");
+    assert_eq!(link.b_port, "FastEthernet0/7", "abbreviations expand");
+
+    let pc = ws.add("PC-PT", 200.0, 400.0).unwrap();
+    ws.link_ports(&pc, &sw, "eCopper", None, Some("FastEthernet0/3")).unwrap();
+    let link = ws.links.last().unwrap();
+    assert_eq!(link.a_port, "Fa0", "the unnamed end keeps the auto-pick");
+    assert_eq!(link.b_port, "FastEthernet0/3");
+}
+
+#[test]
+fn an_occupied_or_wrong_family_port_is_refused_plainly() {
+    let mut ws = Workspace::empty();
+    let r1 = ws.add("2911", 200.0, 100.0).unwrap();
+    let r2 = ws.add("2911", 700.0, 100.0).unwrap();
+    let sw = ws.add("2960", 450.0, 100.0).unwrap();
+    ws.link_ports(&r1, &sw, "eCopper", Some("GigabitEthernet0/0"), None).unwrap();
+
+    let err = ws
+        .link_ports(&r2, &sw, "eCopper", None, Some("FastEthernet0/1"))
+        .unwrap_err();
+    assert_eq!(err, "FastEthernet0/1 is already connected");
+
+    let err = ws
+        .link_ports(&r1, &r2, "eSerial", Some("GigabitEthernet0/1"), None)
+        .unwrap_err();
+    assert_eq!(err, "this cable cannot plug into GigabitEthernet0/1");
+
+    let err = ws
+        .link_ports(&r1, &r2, "eCopper", Some("Serial0/0/0"), None)
+        .unwrap_err();
+    assert_eq!(err, "this cable cannot plug into Serial0/0/0");
+
+    let err = ws
+        .link_ports(&r1, &r2, "eCopper", Some("GigabitEthernet9/9"), None)
+        .unwrap_err();
+    assert!(err.contains("no such interface"), "{err}");
+    assert_eq!(ws.links.len(), 1, "every refusal leaves the wiring unchanged");
+}
+
+#[test]
 fn console_cable_joins_only_a_host_to_a_network_device() {
     let mut ws = Workspace::new();
     ws.link_kind("pc0", "router0", "eConsole").unwrap();

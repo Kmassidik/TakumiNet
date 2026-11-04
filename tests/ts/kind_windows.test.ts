@@ -176,9 +176,9 @@ test("a failed firewall load shows the error state with a working retry", async 
 const l3 = { id: "sw1", name: "Core", kind: "switch-l3" };
 const l3Ports = JSON.stringify({
   ports: [
-    { name: "GigabitEthernet0/1", ip: "10.0.10.1", prefix: 24, up: true },
-    { name: "GigabitEthernet0/2", ip: null, prefix: 0, up: true },
-    { name: "GigabitEthernet0/3", ip: null, prefix: 0, up: true },
+    { name: "GigabitEthernet0/1", ip: "10.0.10.1", prefix: 24, up: true, peer: { id: "r1", name: "Edge", port: "GigabitEthernet0/0" } },
+    { name: "GigabitEthernet0/2", ip: null, prefix: 0, up: true, peer: null },
+    { name: "GigabitEthernet0/3", ip: null, prefix: 0, up: true, peer: null },
   ],
 });
 const l3Export = [
@@ -200,9 +200,9 @@ test("the layer 3 switch window shows VLAN tags and the routing table", async ()
   };
   await renderL3SwitchWindow(doc, body, l3, getText, post);
   const text = allText(body);
-  expect(text).toContain("GigabitEthernet0/1 — 10.0.10.1/24 · VLAN 10");
-  expect(text).toContain("GigabitEthernet0/2 — no address yet · trunk");
-  expect(text).toContain("GigabitEthernet0/3 — no address yet · VLAN 1");
+  expect(text).toContain("GigabitEthernet0/1 10.0.10.1/24 VLAN 10 connected to Edge GigabitEthernet0/0");
+  expect(text).toContain("GigabitEthernet0/2 trunk free");
+  expect(text).toContain("GigabitEthernet0/3 VLAN 1 free");
   expect(text).toContain("C 10.0.10.0/24 is directly connected");
   expect(calls).toContain("/api/cli?id=sw1&line=en");
   expect(calls).toContain("/api/cli?id=sw1&line=show%20ip%20route");

@@ -11,6 +11,7 @@ function armCableFrom(d, kind) {
   cableKind = kind;
   pduMode = false;
   cableFrom = d.id;
+  cableFromPort = null;
   setSelection([d.id]);
   document.querySelector('.canvas-wrap').classList.add('cable-mode');
   updateCableChip();

@@ -5,6 +5,7 @@ let paletteGroup = null;
 function leaveCableMode() {
   cableMode = false;
   cableFrom = null;
+  cableFromPort = null;
   document.querySelector('.canvas-wrap').classList.remove('cable-mode', 'crosshair');
   updateCableChip();
 }
@@ -58,6 +59,7 @@ function renderPalette() {
       cableKind = kind;
       pduMode = false;
       cableFrom = null;
+      cableFromPort = null;
       document.querySelector('.canvas-wrap').classList.toggle('cable-mode', cableMode);
       updateCableChip();
       status(cableMode ? `${tip}: click two devices` : 'Selection mode');

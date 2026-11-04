@@ -389,3 +389,38 @@ fn e2e_vlan_config_and_spanning_tree_blocking() {
     }
     assert!(blocked, "no blocking port anywhere in the switch loop");
 }
+
+#[test]
+fn e2e_explicit_link_ports_and_the_port_toggle() {
+    let s = spawn(38_247);
+    s.post("/api/reset");
+
+    // The named ports win over the auto-pick, abbreviations included.
+    let (status, _, body) = s.post("/api/links?a=switch0&b=switch1&kind=eCopper&aport=Fa0/10&bport=FastEthernet0/11");
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("\"aPort\":\"FastEthernet0/10\""), "{body}");
+    assert!(body.contains("\"bPort\":\"FastEthernet0/11\""), "{body}");
+
+    // The ports listing names the far end, so the UI can grey used ports.
+    let (_, _, body) = s.get("/api/devices/ports?id=switch0");
+    assert!(
+        body.contains("\"name\":\"FastEthernet0/10\",\"ip\":null,\"prefix\":24,\"up\":true,\"peer\":{\"id\":\"switch1\",\"name\":\"Switch1\",\"port\":\"FastEthernet0/11\"}"),
+        "{body}"
+    );
+
+    // An occupied port refuses plainly and leaves the wiring unchanged.
+    let (_, _, body) = s.post("/api/links?a=switch0&b=switch1&kind=eCopper&aport=Fa0/10");
+    assert!(body.contains("FastEthernet0/10 is already connected"), "{body}");
+
+    // A copper cable cannot land on a serial interface.
+    let (_, _, body) = s.post("/api/links?a=router0&b=pc2&kind=eCopper&aport=Serial0/0/0");
+    assert!(body.contains("this cable cannot plug into Serial0/0/0"), "{body}");
+
+    // The toggle flips the admin state the listing reports.
+    let (status, _, body) = s.post("/api/devices/port?id=switch0&port=FastEthernet0/10&up=0");
+    assert_eq!(status, 200, "{body}");
+    let (_, _, body) = s.get("/api/devices/ports?id=switch0");
+    assert!(body.contains("\"name\":\"FastEthernet0/10\",\"ip\":null,\"prefix\":24,\"up\":false"), "{body}");
+    let (_, _, body) = s.post("/api/devices/port?id=switch0&port=NoSuchPort&up=1");
+    assert!(body.contains("no such interface"), "{body}");
+}

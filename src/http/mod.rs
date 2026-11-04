@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 mod device_routes;
+mod port_routes;
 mod note_routes;
 mod file_routes;
 mod radio_routes;
@@ -197,6 +198,7 @@ fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
 pub fn dispatch(ctx: &Ctx, method: &str, target: &str, body: &[u8]) -> (u16, &'static str, Vec<u8>) {
     let (path, query) = target.split_once('?').unwrap_or((target, ""));
     let api = || device_routes::route(ctx, method, path, query)
+        .or_else(|| port_routes::route(ctx, method, path, query))
         .or_else(|| note_routes::route(ctx, method, path, query))
         .or_else(|| service_routes::route(ctx, method, path, query))
         .or_else(|| radio_routes::route(ctx, method, path, query))

@@ -1,7 +1,7 @@
 function startDrag(ev, d) {
   ev.preventDefault();
   if (pduMode) { pduClick(d); return; }
-  if (cableMode) { cablePress(d); return; }
+  if (cableMode) { cablePress(d, ev); return; }
 
   // pointerdown+preventDefault suppresses the native dblclick, so detect it.
   const now = performance.now();
@@ -75,23 +75,33 @@ function startDrag(ev, d) {
    anchors the cable (never moves the device); releasing over another device
    completes the link exactly like a second click would. Releasing over empty
    canvas keeps the pending end, so click-click wiring still works. */
-function cablePress(d) {
+function cablePress(d, ev) {
   const wasPending = !!cableFrom;
-  cableClick(d);
+  cableClick(d, ev);
   if (wasPending) return;
   const onUp = (e) => {
     if (!cableFrom || cableFrom !== d.id) return;
     const hit = workspaceCanvas.deviceAt(e);
     if (!hit || hit.id === d.id) return;
     const far = data.devices.find((x) => x.id === hit.id);
-    if (far) cableClick(far);
+    if (far) cableClick(far, e);
   };
   window.addEventListener('pointerup', onUp, { once: true });
 }
 
-async function cableClick(d) {
+/* Where the port chooser opens: at the pointer, or mid-screen without one. */
+function cablePoint(ev) {
+  return ev && typeof ev.clientX === 'number'
+    ? { x: ev.clientX, y: ev.clientY }
+    : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+}
+
+async function cableClick(d, ev) {
   if (!cableFrom) {
+    const pick = await choosePort(d, cableKind, cablePoint(ev));
+    if (pick.cancelled) { status(cableStatusText()); return; }
     cableFrom = d.id;
+    cableFromPort = pick.port;
     setSelection([d.id]);
     status(cableStatusText());
     updateCableChip();
@@ -100,15 +110,24 @@ async function cableClick(d) {
   }
   if (cableFrom === d.id) {
     cableFrom = null;
+    cableFromPort = null;
     status(cableStatusText());
     updateCableChip();
     renderTopology();
     return;
   }
+  const pick = await choosePort(d, cableKind, cablePoint(ev));
+  // Escape in the chooser keeps the pending first end for another try.
+  if (pick.cancelled) { status(cableStatusText()); return; }
   const a = cableFrom;
+  const aport = cableFromPort;
   cableFrom = null;
+  cableFromPort = null;
   updateCableChip();
-  const r = await api('/api/links', { a, b: d.id, kind: cableKind });
+  const params = { a, b: d.id, kind: cableKind };
+  if (aport) params.aport = aport;
+  if (pick.port) params.bport = pick.port;
+  const r = await api('/api/links', params);
   if (r.error) showLinkToast(r.error);
   else {
     status(cableStatusText());

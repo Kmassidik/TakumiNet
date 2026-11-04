@@ -878,6 +878,32 @@ html, body {
   font: 11px/1.5 var(--font-mono); color: var(--screen-text);
   background: var(--screen-bg); border: 1px solid var(--screen-edge); border-radius: var(--r-s);
 }
+/* ---------- ports: the picker menu and the per-device panel ---------- */
+.port-picker button { font-variant-numeric: tabular-nums; }
+.port-list { padding-left: 0; list-style: none; }
+.port-row {
+  display: flex; align-items: center; gap: 8px; padding: 3px 4px;
+  border-bottom: 1px solid var(--line-soft); font-size: 11px;
+}
+.port-dot {
+  flex: none; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--faint);
+}
+.port-dot.is-up { background: var(--ok); }
+.port-dot.is-down { background: var(--danger); }
+.port-name { font-family: var(--font-mono); color: var(--text); }
+.port-addr { font-family: var(--font-mono); color: var(--ink-2); }
+.port-extra { color: var(--muted); }
+.port-peer { margin-left: auto; color: var(--text-2); }
+.port-peer.is-free { color: var(--muted); }
+.port-row .port-toggle { flex: none; padding: 1px 7px; font-size: 11px; }
+.dw-ports .ui-button {
+  font: inherit; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-s);
+}
+.dw-ports .ui-button:hover { background: var(--brand-soft); border-color: var(--brand); }
+.dw-ports .ui-button:focus-visible { outline: 2px solid var(--brand-strong); outline-offset: 1px; }
+
 .stat-line.ok { color: var(--ok); font-weight: 600; }
 .stat-line.off { color: var(--muted); }
 .wifi-list {

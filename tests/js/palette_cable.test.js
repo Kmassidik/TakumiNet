@@ -40,6 +40,7 @@ function harness({ linkError = null } = {}) {
     console,
     setTimeout: () => 0,
     clearTimeout: () => {},
+    window: { innerWidth: 1024, innerHeight: 768, addEventListener() {}, removeEventListener() {} },
     document: {
       createElement: (t) => new Element(t),
       getElementById: (id) => els[id],
@@ -59,6 +60,8 @@ function harness({ linkError = null } = {}) {
     icon3d: (n) => n, renderTopology() {}, ACTIONS: {},
     setSelection() {}, sfx() {},
     api: async (p, params) => { apiCalls.push({ p, params }); return linkError ? { error: linkError } : {}; },
+    /* The picker is its own file; here every device resolves to the auto-pick. */
+    choosePort: async () => ({ port: null }),
     paletteStartGroup: (saved, labels) => (saved && labels.includes(saved) ? saved : labels[0]),
     paletteTiles: (group, palette) => (group === 'End devices' ? palette : []),
     paletteKeepsCableMode: (group) => group === 'Connections',

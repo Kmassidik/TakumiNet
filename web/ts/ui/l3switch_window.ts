@@ -1,12 +1,11 @@
 import type { DocLike, ElementLike } from "./dom";
-import { parsePortRows, portText } from "./firewall_window";
+import { parsePortsInfo, renderPortsPanel } from "./ports_panel";
 import {
   asText,
   asyncSection,
   el,
   errorOf,
   note,
-  rowList,
   type GetText,
   type KindDevice,
   type Post,
@@ -31,22 +30,29 @@ export function vlanTags(saved: string, deviceId: string): Map<string, VlanTag> 
   return tags;
 }
 
-export function portLine(text: string, tag: VlanTag | undefined): string {
-  if (tag?.trunk) return `${text} · trunk`;
-  return `${text} · VLAN ${tag?.vlan ?? "1"}`;
+export function portTagText(tag: VlanTag | undefined): string {
+  if (tag?.trunk) return "trunk";
+  return `VLAN ${tag?.vlan ?? "1"}`;
 }
 
-function portsSection(doc: DocLike, root: ElementLike, device: KindDevice, getText: GetText): Promise<void> {
-  return asyncSection(doc, root, "Ports", "Could not load the ports.", async (box) => {
+function portsSection(doc: DocLike, root: ElementLike, device: KindDevice, getText: GetText, post: Post): Promise<void> {
+  return asyncSection(doc, root, "Ports", "Could not load the ports.", async function fill(box): Promise<void> {
     const [portsText, saved] = await Promise.all([
       getText(`/api/devices/ports?id=${enc(device.id)}`),
       getText("/api/export"),
     ]);
-    const ports = parsePortRows(portsText);
+    const ports = parsePortsInfo(portsText);
     const tags = vlanTags(saved, device.id);
     box.replaceChildren();
     if (ports.length === 0) box.appendChild(note(doc, "empty", "This switch has no ports."));
-    else box.appendChild(rowList(doc, ports.map((p) => portLine(portText(p), tags.get(p.name)))));
+    else {
+      renderPortsPanel(doc, box, ports, {
+        deviceId: device.id,
+        post,
+        refresh: () => void fill(box),
+        extra: (name) => portTagText(tags.get(name)),
+      });
+    }
   });
 }
 
@@ -76,7 +82,7 @@ export function renderL3SwitchWindow(
 ): Promise<void> {
   body.replaceChildren();
   return Promise.all([
-    portsSection(doc, body, device, getText),
+    portsSection(doc, body, device, getText, post),
     routesSection(doc, body, device, post),
   ]).then(() => undefined);
 }

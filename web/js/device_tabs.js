@@ -126,6 +126,37 @@ function tabPhysical(pane, d) {
   return;
 }
 
+/* One row per interface: state dot, name, address, far end and a toggle.
+   The rows come from /api/devices/ports; the panel renderer is shared with
+   the per-kind windows through the ui.js bundle. */
+function portsFieldset(box, d) {
+  const wrap = document.createElement('fieldset');
+  wrap.className = 'ip-group dw-ports';
+  const legend = document.createElement('legend');
+  legend.textContent = 'Ports';
+  wrap.appendChild(legend);
+  const holder = document.createElement('div');
+  wrap.appendChild(holder);
+  box.appendChild(wrap);
+  const post = async (path) => {
+    const [p, q] = path.split('?');
+    return api(p, Object.fromEntries(new URLSearchParams(q)));
+  };
+  const fill = async () => {
+    const res = await getJson(`/api/devices/ports?id=${encodeURIComponent(d.id)}`);
+    holder.replaceChildren();
+    if (!res || res.error || !Array.isArray(res.ports) || !res.ports.length) {
+      const empty = document.createElement('p');
+      empty.className = 'meta';
+      empty.textContent = 'This device has no ports.';
+      holder.appendChild(empty);
+      return;
+    }
+    renderPortsPanel(holder, res.ports, { deviceId: d.id, post, refresh: fill });
+  };
+  fill();
+}
+
 function tabConfig(pane, d) {
   const box = document.createElement('div');
   box.className = 'dw-config';
@@ -137,6 +168,7 @@ function tabConfig(pane, d) {
       <div class="ip-actions"><button class="btn" id="cfg-apply">Apply</button>
       <span id="cfg-note" class="meta"></span></div>
     </fieldset>`;
+  portsFieldset(box, d);
   pane.appendChild(box);
   document.getElementById('cfg-name').value = d.name;
   document.getElementById('cfg-gw').value = d.gateway || '0.0.0.0';

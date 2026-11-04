@@ -20,6 +20,7 @@ import { renderKindWindow, windowIdForKind } from "./ui/kind_windows";
 import { makeGroupPress, renderGroupCard, type GroupLike, type GroupPressDeps } from "./ui/group_card";
 import { placeMenu, placeSubmenu } from "./ui/menu_place";
 import { renderFlowsWindow } from "./ui/flows_window";
+import { renderPortsPanel, type PortInfo, type PortsPanelDeps } from "./ui/ports_panel";
 import type { KindDevice, KindWorkspace } from "./ui/kind_parts";
 
 const doc = document as unknown as DocLike;
@@ -92,6 +93,7 @@ globalThis.openFlowsWindow = (workspace) => {
 globalThis.makeGroupPress = makeGroupPress;
 globalThis.placeMenu = placeMenu;
 globalThis.placeSubmenu = placeSubmenu;
+globalThis.renderPortsPanel = (box, ports, deps) => renderPortsPanel(doc, box as unknown as ElementLike, ports, deps);
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
 } else {
@@ -143,4 +145,5 @@ declare global {
   var askText: (message: string, value?: string) => Promise<string | null>;
   var placeMenu: typeof import("./ui/menu_place").placeMenu;
   var placeSubmenu: typeof import("./ui/menu_place").placeSubmenu;
+  var renderPortsPanel: (box: HTMLElement, ports: readonly PortInfo[], deps: PortsPanelDeps) => void;
 }

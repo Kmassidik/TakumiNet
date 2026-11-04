@@ -24,7 +24,6 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/module") => Some(handle_devices_module(ctx, query)),
         ("POST", "/api/devices/dhcp") => Some(handle_devices_dhcp(ctx, query)),
         ("POST", "/api/dhcp/acquire") => Some(handle_dhcp_acquire(ctx, query)),
-        ("GET", "/api/devices/ports") => Some(handle_devices_ports(ctx, query)),
         ("POST", "/api/bus") => Some(handle_bus(ctx, query)),
         ("POST", "/api/links") => Some(handle_links(ctx, query)),
         ("POST", "/api/links/delete") => Some(handle_links_delete(ctx, query)),
@@ -284,36 +283,6 @@ fn handle_dhcp_acquire(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     (json, out.into_bytes())
 }
 
-fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
-    let json = "application/json";
-    let id = query_value(query, "id").unwrap_or_default();
-    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
-    match ws.devices.iter().find(|d| d.id == id) {
-        None => (json, json_error("no such device").into_bytes()),
-        Some(dev) => {
-            let ports = dev
-                .ports
-                .iter()
-                .map(|p| {
-                    let ip = match p.ip {
-                        Some(a) => json_str(&crate::model::ipv4_string(a)),
-                        None => "null".to_string(),
-                    };
-                    format!(
-                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{}}}",
-                        json_str(&p.name),
-                        ip,
-                        p.prefix,
-                        p.up
-                    )
-                })
-                .collect::<Vec<_>>()
-                .join(",");
-            (json, format!("{{\"ports\":[{ports}]}}").into_bytes())
-        }
-    }
-}
-
 fn handle_bus(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let json = "application/json";
     let count = query_value(query, "count")
@@ -328,7 +297,11 @@ fn handle_links(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let a = query_value(query, "a").unwrap_or_default();
     let b = query_value(query, "b").unwrap_or_default();
     let kind = query_value(query, "kind").unwrap_or_else(|| "eCopper".into());
-    let (out, _) = apply(ctx, |ws| ws.link_kind(&a, &b, &kind));
+    let aport = query_value(query, "aport").filter(|p| !p.trim().is_empty());
+    let bport = query_value(query, "bport").filter(|p| !p.trim().is_empty());
+    let (out, _) = apply(ctx, |ws| {
+        ws.link_ports(&a, &b, &kind, aport.as_deref(), bport.as_deref())
+    });
     (json, out.into_bytes())
 }
 

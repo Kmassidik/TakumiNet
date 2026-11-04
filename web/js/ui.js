@@ -2329,6 +2329,70 @@
     });
   }
 
+  // web/ts/ui/ports_panel.ts
+  function parsePortsInfo(text) {
+    const parsed = JSON.parse(text);
+    const err = errorOf(parsed);
+    if (err)
+      throw new Error(err);
+    const raw = Array.isArray(parsed["ports"]) ? parsed["ports"] : [];
+    return raw.map((p) => {
+      const peer = p["peer"];
+      return {
+        name: asText(p["name"]),
+        ip: typeof p["ip"] === "string" ? p["ip"] : null,
+        prefix: Number(p["prefix"]) || 0,
+        up: p["up"] !== false,
+        peer: peer ? { id: asText(peer["id"]), name: asText(peer["name"]), port: asText(peer["port"]) } : null
+      };
+    });
+  }
+  function portDotClass(port) {
+    if (!port.up)
+      return "port-dot is-down";
+    return port.peer ? "port-dot is-up" : "port-dot is-idle";
+  }
+  function portPeerText(port) {
+    return port.peer ? `connected to ${port.peer.name} ${port.peer.port}` : "free";
+  }
+  function portRow(doc, port, deps) {
+    const row = el(doc, "li", "kw-row port-row");
+    const dot = el(doc, "span", portDotClass(port));
+    dot.setAttribute("aria-hidden", "true");
+    row.appendChild(dot);
+    row.appendChild(el(doc, "span", "port-name", port.name));
+    if (port.ip)
+      row.appendChild(el(doc, "span", "port-addr", `${port.ip}/${port.prefix}`));
+    const tag = deps.extra?.(port.name);
+    if (tag)
+      row.appendChild(el(doc, "span", "port-extra", tag));
+    row.appendChild(el(doc, "span", port.peer ? "port-peer" : "port-peer is-free", portPeerText(port)));
+    const post = deps.post;
+    if (post) {
+      row.appendChild(createButton(doc, {
+        label: port.up ? "Shut down" : "Bring up",
+        title: port.up ? `Shut down ${port.name}` : `Bring up ${port.name}`,
+        className: "port-toggle",
+        onClick: () => {
+          const enc = encodeURIComponent;
+          post(`/api/devices/port?id=${enc(deps.deviceId)}&port=${enc(port.name)}&up=${port.up ? "0" : "1"}`).then((res) => {
+            if (typeof res["error"] !== "string")
+              deps.refresh?.();
+          }).catch(() => {
+            return;
+          });
+        }
+      }));
+    }
+    return row;
+  }
+  function renderPortsPanel(doc, box, ports, deps) {
+    const list = el(doc, "ul", "kw-list port-list");
+    for (const port of ports)
+      list.appendChild(portRow(doc, port, deps));
+    box.appendChild(list);
+  }
+
   // web/ts/ui/l3switch_window.ts
   var enc3 = encodeURIComponent;
   function vlanTags(saved, deviceId) {
@@ -2340,24 +2404,30 @@
     }
     return tags;
   }
-  function portLine(text, tag) {
+  function portTagText(tag) {
     if (tag?.trunk)
-      return `${text} · trunk`;
-    return `${text} · VLAN ${tag?.vlan ?? "1"}`;
+      return "trunk";
+    return `VLAN ${tag?.vlan ?? "1"}`;
   }
-  function portsSection(doc, root, device, getText) {
-    return asyncSection(doc, root, "Ports", "Could not load the ports.", async (box) => {
+  function portsSection(doc, root, device, getText, post) {
+    return asyncSection(doc, root, "Ports", "Could not load the ports.", async function fill(box) {
       const [portsText, saved] = await Promise.all([
         getText(`/api/devices/ports?id=${enc3(device.id)}`),
         getText("/api/export")
       ]);
-      const ports = parsePortRows(portsText);
+      const ports = parsePortsInfo(portsText);
       const tags = vlanTags(saved, device.id);
       box.replaceChildren();
       if (ports.length === 0)
         box.appendChild(note(doc, "empty", "This switch has no ports."));
-      else
-        box.appendChild(rowList(doc, ports.map((p) => portLine(portText(p), tags.get(p.name)))));
+      else {
+        renderPortsPanel(doc, box, ports, {
+          deviceId: device.id,
+          post,
+          refresh: () => void fill(box),
+          extra: (name) => portTagText(tags.get(name))
+        });
+      }
     });
   }
   function routesSection(doc, root, device, post) {
@@ -2381,7 +2451,7 @@
   function renderL3SwitchWindow(doc, body, device, getText, post) {
     body.replaceChildren();
     return Promise.all([
-      portsSection(doc, body, device, getText),
+      portsSection(doc, body, device, getText, post),
       routesSection(doc, body, device, post)
     ]).then(() => {
       return;
@@ -2429,24 +2499,29 @@
     const ms = max / 1000;
     return Number.isInteger(ms) ? String(ms) : String(Math.round(ms * 10) / 10);
   }
-  function cableSection(doc, body, device, workspace) {
-    const box = section(doc, body, "Cabled links");
-    const ends = linkEnds(workspace, device.id);
-    if (ends.length === 0)
-      box.appendChild(note(doc, "empty", "No cable is connected yet."));
-    else
-      box.appendChild(rowList(doc, ends));
-  }
-  function renderRadioWindow(doc, body, device, workspace, getText) {
-    body.replaceChildren();
-    cableSection(doc, body, device, workspace);
-    if (device.kind !== "client-radio")
-      return Promise.resolve();
-    return asyncSection(doc, body, "Radio delay", "Could not read the radio delay.", async (box) => {
-      const saved = await getText("/api/export");
-      const ms = portDelayMs(saved, device.id);
+  function portsSection2(doc, body, device, getText, post) {
+    return asyncSection(doc, body, "Ports", "Could not load the ports.", async function fill(box) {
+      const ports = parsePortsInfo(await getText(`/api/devices/ports?id=${encodeURIComponent(device.id)}`));
       box.replaceChildren();
-      box.appendChild(note(doc, "plain", `This radio link adds ${ms} ms.`));
+      if (ports.length === 0)
+        box.appendChild(note(doc, "empty", "This radio has no ports."));
+      else
+        renderPortsPanel(doc, box, ports, { deviceId: device.id, post, refresh: () => void fill(box) });
+    });
+  }
+  function renderRadioWindow(doc, body, device, getText, post) {
+    body.replaceChildren();
+    const sections = [portsSection2(doc, body, device, getText, post)];
+    if (device.kind === "client-radio") {
+      sections.push(asyncSection(doc, body, "Radio delay", "Could not read the radio delay.", async (box) => {
+        const saved = await getText("/api/export");
+        const ms = portDelayMs(saved, device.id);
+        box.replaceChildren();
+        box.appendChild(note(doc, "plain", `This radio link adds ${ms} ms.`));
+      }));
+    }
+    return Promise.all(sections).then(() => {
+      return;
     });
   }
 
@@ -2475,7 +2550,7 @@
         return renderGatewayWindow(doc, pane, device, deps.post);
       case "client-radio":
       case "sector-radio":
-        return renderRadioWindow(doc, pane, device, workspace, deps.getText);
+        return renderRadioWindow(doc, pane, device, deps.getText, deps.post);
       case "provider-link":
         renderProviderWindow(doc, pane, device, workspace);
         return Promise.resolve();
@@ -2762,6 +2837,7 @@
   globalThis.makeGroupPress = makeGroupPress;
   globalThis.placeMenu = placeMenu;
   globalThis.placeSubmenu = placeSubmenu;
+  globalThis.renderPortsPanel = (box, ports, deps) => renderPortsPanel(doc, box, ports, deps);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
   } else {
