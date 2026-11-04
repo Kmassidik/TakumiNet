@@ -99,6 +99,39 @@ impl Workspace {
         self.pppoe.get(client).cloned()
     }
 
+    /// Connect a home to the gateway with a customer login. The account must
+    /// exist on the device that owns the server address.
+    pub fn pppoe_connect(&mut self, client: &str, server: &str, user: &str, pass: &str) -> Result<(), String> {
+        if !self.devices.iter().any(|d| d.id == client) {
+            return Err("no such device".into());
+        }
+        let addr = crate::model::parse_ipv4(server);
+        let owner = self.devices.iter()
+            .find(|d| d.ip == addr || d.ports.iter().any(|p| p.ip == addr))
+            .map(|d| d.id.clone())
+            .ok_or_else(|| format!("no device at {server}"))?;
+        let known = self.aaa_users.get(&owner)
+            .is_some_and(|users| users.iter().any(|(u, p)| u == user && p == pass));
+        if !known {
+            return Err("Login refused: name or password is wrong".into());
+        }
+        self.pppoe.insert(client.to_string(), (server.to_string(), user.to_string()));
+        Ok(())
+    }
+
+    /// The customer sessions a gateway holds, as (client, login name).
+    pub fn pppoe_sessions(&self, gateway: &str) -> Vec<(String, String)> {
+        let owns = |addr: Option<u32>| self.devices.iter()
+            .find(|d| d.id == gateway)
+            .is_some_and(|d| d.ip == addr || d.ports.iter().any(|p| addr.is_some() && p.ip == addr));
+        let mut out: Vec<(String, String)> = self.pppoe.iter()
+            .filter(|(_, (server, _))| owns(crate::model::parse_ipv4(server)))
+            .map(|(client, (_, user))| (client.clone(), user.clone()))
+            .collect();
+        out.sort();
+        out
+    }
+
     /// The provider drops private source addresses: traffic crossing a
     /// provider-link needs a masquerade (NAT) rule on the gateway beside it.
     pub(super) fn provider_blocked(&self, src: &str, dst: &str) -> Option<String> {

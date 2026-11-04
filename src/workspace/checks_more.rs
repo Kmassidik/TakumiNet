@@ -14,6 +14,7 @@ impl Workspace {
             "login" => self.check_login(check),
             "outage" => self.check_outage(check),
             "wifi" => self.check_wifi(check),
+            "session" => self.check_session(check),
             "nat" => self.check_forward(check),
             _ => return None,
         })
@@ -94,7 +95,15 @@ impl Workspace {
     fn check_login(&mut self, check: &Check) -> Verdict {
         let hint = "Use the user name and password from the sticker, or the ones you set.".to_string();
         let (user, pass) = check.url.split_once(':').unwrap_or((check.url.as_str(), ""));
-        let outcome = self.router_login(&check.from, &check.to, user, pass);
+        let target_kind = crate::model::parse_ipv4(&check.to)
+            .and_then(|addr| self.devices.iter().find(|d| d.ip == Some(addr) || d.ports.iter().any(|p| p.ip == Some(addr))))
+            .map(|d| d.kind.clone());
+        let outcome = if target_kind.as_deref() == Some("rtrw-gateway") {
+            let probe = self.clone().pppoe_connect(&check.from, &check.to, user, pass);
+            probe.map_err(|e| format!("401 {e}"))
+        } else {
+            self.router_login(&check.from, &check.to, user, pass)
+        };
         let want_ok = check.expect != "refused";
         match (&outcome, want_ok) {
             (Ok(()), true) => (true, "login accepted".into(), hint),
@@ -156,6 +165,16 @@ impl Workspace {
             Some((target, inside)) => (false, format!("port {port} leads to {target}:{inside}"), hint),
             None => (false, format!("port {port} is not forwarded"), hint),
         }
+    }
+
+    /// `from` is the gateway; `expect` the number of customer sessions it must hold.
+    fn check_session(&self, check: &Check) -> Verdict {
+        let hint = "Connect each home with its own login from the home router's provider page.".to_string();
+        let Ok(least) = check.expect.parse::<usize>() else {
+            return (false, format!("invalid session count '{}'", check.expect), "Use a whole number.".into());
+        };
+        let sessions = self.pppoe_sessions(&check.from);
+        (sessions.len() >= least, format!("{} sessions up, {least} needed", sessions.len()), hint)
     }
 
     fn check_count(&self, check: &Check) -> Verdict {

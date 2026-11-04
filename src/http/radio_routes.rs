@@ -14,6 +14,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/vpn/config") => Some(handle_vpn_config(ctx, query)),
         ("POST", "/api/vpn/status") => Some(handle_vpn_status(ctx, query)),
         ("POST", "/api/pppoe/config") => Some(handle_pppoe_config(ctx, query)),
+        ("POST", "/api/pppoe/connect") => Some(handle_pppoe_connect(ctx, query)),
+        ("POST", "/api/pppoe/sessions") => Some(handle_pppoe_sessions(ctx, query)),
         ("POST", "/api/pppoe/status") => Some(handle_pppoe_status(ctx, query)),
         ("POST", "/api/phone/register") => Some(handle_phone_register(ctx, query)),
         ("POST", "/api/phone/status") => Some(handle_phone_status(ctx, query)),
@@ -340,4 +342,25 @@ fn handle_wifi_guest(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let on = !matches!(query_value(query, "on").as_deref(), Some("0") | Some("false"));
     let (out, _) = apply(ctx, |ws| ws.wlan_set_guest(&id, &ssid, on));
     (json, out.into_bytes())
+}
+
+fn handle_pppoe_connect(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let server = query_value(query, "server").unwrap_or_default();
+    let user = query_value(query, "user").unwrap_or_default();
+    let pass = query_value(query, "pass").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| ws.pppoe_connect(&id, &server, &user, &pass));
+    (json, out.into_bytes())
+}
+
+fn handle_pppoe_sessions(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let rows = ws.pppoe_sessions(&id).iter()
+        .map(|(client, user)| format!("{{\"client\":{},\"user\":{}}}", json_str(client), json_str(user)))
+        .collect::<Vec<_>>()
+        .join(",");
+    (json, format!("{{\"sessions\":[{rows}]}}").into_bytes())
 }

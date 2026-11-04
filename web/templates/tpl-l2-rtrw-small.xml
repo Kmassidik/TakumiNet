@@ -32,6 +32,9 @@
   <natrole dev="gw0" iface="Ether2" dir="inside"/>
   <natrole dev="gw0" iface="Ether1" dir="outside"/>
   <natrule dev="gw0" num="1" iface="Ether1"/>
+  <aaa server="gw0" user="rumah0" pass="paket10-a"/>
+  <aaa server="gw0" user="rumah1" pass="paket10-b"/>
+  <aaa server="gw0" user="rumah2" pass="paket10-c"/>
   <pppoe client="home0" server="10.10.0.1" user="rumah0"/>
   <pppoe client="home1" server="10.10.0.1" user="rumah1"/>
   <pppoe client="home2" server="10.10.0.1" user="rumah2"/>

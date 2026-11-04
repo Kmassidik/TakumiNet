@@ -62,6 +62,7 @@ T = {
             ("Lock a desk port to one computer", "The port for Desk0 accepts only one address"),
             ("Reach the office from home", "OwnerLaptop reaches FileServer through a tunnel over the internet"),
             ("Bring the neighbourhood online", "A laptop in a home opens an outside page through the gateway"),
+            ("One login per home", "All three homes hold a session, and a wrong password is refused"),
             ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
@@ -151,6 +152,7 @@ T = {
             ("Kunci port meja ke satu komputer", "Port untuk Desk0 hanya menerima satu alamat"),
             ("Jangkau kantor dari rumah", "OwnerLaptop menjangkau FileServer lewat terowongan di internet"),
             ("Bawa lingkungan ke internet", "Laptop di rumah membuka halaman luar lewat gateway"),
+            ("Satu login untuk tiap rumah", "Ketiga rumah memegang sesi, dan kata sandi yang salah ditolak"),
             ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [

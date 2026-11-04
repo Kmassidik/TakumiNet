@@ -1,0 +1,44 @@
+<takumi version="1">
+  <device id="server0" kind="server" model="Server" x="120" y="60" name="ExampleSite" ip="203.0.113.10" prefix="24"/>
+  <device id="provider0" kind="provider-link" model="Provider Link" x="320" y="60" name="Upstream0" ip="" prefix="24"/>
+  <device id="gw0" kind="rtrw-gateway" model="Gateway RT/RW" x="520" y="140" name="GatewayRTRW" ip="" prefix="24"/>
+  <device id="sector0" kind="sector-radio" model="Sector Radio" x="520" y="280" name="PoleRadio" ip="" prefix="24"/>
+  <device id="radio0" kind="client-radio" model="Client Radio" x="280" y="400" name="HouseRadio0" ip="" prefix="24"/>
+  <device id="radio1" kind="client-radio" model="Client Radio" x="520" y="400" name="HouseRadio1" ip="" prefix="24"/>
+  <device id="radio2" kind="client-radio" model="Client Radio" x="760" y="400" name="HouseRadio2" ip="" prefix="24"/>
+  <device id="home0" kind="homerouter" model="Home Router" x="280" y="500" name="Rumah0" ip="10.10.0.11" prefix="24"/>
+  <device id="home1" kind="homerouter" model="Home Router" x="520" y="500" name="Rumah1" ip="10.10.0.12" prefix="24"/>
+  <device id="home2" kind="homerouter" model="Home Router" x="760" y="500" name="Rumah2" ip="10.10.0.13" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="280" y="600" name="Laptop0" ip="10.10.0.20" prefix="24"/>
+  <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
+  <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>
+  <link a="gw0" a_port="Ether2" b="sector0" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa1" b="radio0" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa2" b="radio1" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa3" b="radio2" b_port="Fa0" kind="eCopper"/>
+  <link a="radio0" a_port="Fa1" b="home0" b_port="Fa0" kind="eCopper"/>
+  <link a="radio1" a_port="Fa1" b="home1" b_port="Fa0" kind="eCopper"/>
+  <link a="radio2" a_port="Fa1" b="home2" b_port="Fa0" kind="eCopper"/>
+  <link a="home0" a_port="Fa1" b="laptop0" b_port="Fa0" kind="eCopper"/>
+  <port id="gw0" name="Ether1" up="1" ip="203.0.113.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="gw0" name="Ether2" up="1" ip="10.10.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <net id="laptop0" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home0" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home1" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home2" gw="10.10.0.1" dns="203.0.113.10"/>
+  <dns id="server0" name="www.example.lab" ip="203.0.113.10"/>
+  <page id="server0" body="A page on the internet"/>
+  <acl dev="gw0" num="1" action="permit" src="10.10.0.0" swc="0.0.0.255" dip="-" dwc="-"/>
+  <natrole dev="gw0" iface="Ether2" dir="inside"/>
+  <natrole dev="gw0" iface="Ether1" dir="outside"/>
+  <natrule dev="gw0" num="1" iface="Ether1"/>
+  <aaa server="gw0" user="rumah1" pass="paket10-b"/>
+  <aaa server="gw0" user="rumah2" pass="paket10-c"/>
+  <lesson id="les-l2-02-customer-login" title="One login per home" level="2" minutes="15" goal="All three homes hold a session, and a wrong password is refused"/>
+  <step n="1" text="On GatewayRTRW two customer accounts exist: rumah1 and rumah2. Add the third, rumah0, with its own password."/>
+  <step n="2" text="On each home router open the provider page and connect with that home's name and password."/>
+  <step n="3" text="Try a wrong password on one home and read the refusal." check="c2"/>
+  <step n="4" text="Look at the session list on the gateway: all three homes must be up." check="c1"/>
+  <check id="c1" kind="session" from="gw0" to="" url="" expect="3" label="All three homes hold a session"/>
+  <check id="c2" kind="login" from="home0" to="10.10.0.1" url="rumah0:wrong-pass" expect="refused" label="A wrong password is refused"/>
+</takumi>

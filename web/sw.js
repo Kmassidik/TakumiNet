@@ -177,6 +177,7 @@ const PRECACHE_URLS = Object.freeze([
   '/templates/les-l3-06-remote-owner.xml',
   '/templates/tpl-l2-rtrw-small.xml',
   '/templates/les-l2-01-first-gateway.xml',
+  '/templates/les-l2-02-customer-login.xml',
   '/templates/les-l1-07-find-the-fault.xml',
   '/templates/tpl-l3-office-vlans.xml',
   '/templates/les-l3-01-three-vlans.xml',
