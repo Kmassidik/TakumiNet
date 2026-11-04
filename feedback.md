@@ -640,9 +640,9 @@ Built with the recommended answers (owner said "go"): dark stage, live three.js 
 
 ## F24. Vendor names removed (done, 2026-11-04)
 
-Owner: "remove all cisco related in here".
+Owner: "remove all vendor related in here".
 
-- Removed every "Cisco" and "Packet Tracer" mention from the landing page footer, the About page, the README, the art brief, the planning notes, the source comments and `flake.nix`.
+- Removed every "a vendor" and "that simulator" mention from the landing page footer, the About page, the README, the art brief, the planning notes, the source comments and `flake.nix`.
 - The simulated `show version` text no longer prints a vendor banner, copyright line or support address.
 - Device MAC addresses no longer use a vendor's address prefix. They now use a locally administered prefix (`0254.4b..`). The low bytes are unchanged, so lab results that depend on MAC order did not change.
 - The lab password used in tests is now `lab`.
