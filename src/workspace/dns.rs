@@ -64,7 +64,7 @@ impl Workspace {
             .unwrap_or_else(|| vec![client.to_string(), server.clone()]);
         self.next_event += 1;
         self.sim_time += 0.001;
-        self.events.push(Event {
+        self.push_event(Event {
             id: self.next_event,
             time: self.sim_time,
             last: self.name_of(client),

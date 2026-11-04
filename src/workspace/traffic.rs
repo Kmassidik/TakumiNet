@@ -102,7 +102,7 @@ impl Workspace {
         }
         self.next_event += 1;
         self.sim_time = delivery.finished_at as f32;
-        self.events.push(Event {
+        self.push_event(Event {
             id: self.next_event,
             time: self.sim_time,
             last: self.name_of(src),
@@ -129,7 +129,7 @@ impl Workspace {
             let size = captured.bytes.len();
             self.next_event += 1;
             self.sim_time = captured.finished_at as f32;
-            self.events.push(Event {
+            self.push_event(Event {
                 id: self.next_event,
                 time: self.sim_time,
                 last: self.name_of(&captured.src),
@@ -168,7 +168,7 @@ impl Workspace {
         note.push_str(&reason);
         let bytes = error.frame.map(|frame| frame.to_bytes()).unwrap_or_default();
         let size = if bytes.is_empty() { error.size } else { bytes.len() };
-        self.events.push(Event {
+        self.push_event(Event {
             id: self.next_event,
             time: self.sim_time,
             last: self.name_of(src),

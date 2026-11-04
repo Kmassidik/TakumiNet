@@ -30,6 +30,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/links/delete") => Some(handle_links_delete(ctx, query)),
         ("POST", "/api/pdu") => Some(handle_pdu(ctx, query)),
         ("POST", "/api/sim/reset") => Some(handle_sim_reset(ctx)),
+        ("POST", "/api/sim/tick") => Some(handle_sim_tick(ctx, query)),
         ("POST", "/api/demo") => Some(handle_demo(ctx)),
         ("POST", "/api/undo") => Some(handle_undo(ctx)),
         ("POST", "/api/redo") => Some(handle_redo(ctx)),
@@ -362,6 +363,18 @@ fn handle_sim_reset(ctx: &Ctx) -> (&'static str, Vec<u8>) {
         Ok(())
     });
     (json, out.into_bytes())
+}
+
+/// Advancing the clock is not an edit: it bypasses the undo history so a
+/// 2-second heartbeat cannot wash the user's real changes out of it.
+fn handle_sim_tick(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let seconds = query_value(query, "seconds")
+        .and_then(|v| v.parse::<f32>().ok())
+        .unwrap_or(2.0);
+    let mut ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    ws.advance(seconds);
+    (json, ws.json().into_bytes())
 }
 
 fn handle_undo(ctx: &Ctx) -> (&'static str, Vec<u8>) {

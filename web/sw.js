@@ -40,6 +40,7 @@ const PRECACHE_URLS = Object.freeze([
   '/js/packet_details.js',
   '/js/palette.js',
   '/js/physical.js',
+  '/js/realtime.js',
   '/js/recovery.js',
   '/js/services_sections.js',
   '/js/services_tab.js',

@@ -16,6 +16,7 @@ mod l9_l11;
 mod l9_l11_more;
 mod notes;
 mod persistence;
+mod realtime;
 mod routing;
 mod robustness;
 mod services;
