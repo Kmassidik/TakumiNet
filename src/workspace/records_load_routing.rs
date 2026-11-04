@@ -27,6 +27,9 @@ impl Workspace {
                     area.parse::<u32>().unwrap_or(0),
                 );
             }
+            ["lbpool", dev, member] => {
+                let _ = self.lb_add_member(dev, member);
+            }
             ["sharedgw", dev, vip, priority] => {
                 if let Ok(p) = priority.parse() {
                     let _ = self.set_shared_gateway(dev, vip, p);

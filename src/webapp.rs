@@ -63,6 +63,20 @@ pub fn fetch(ws: &mut Workspace, client: &str, url: &str) -> Result<Page, String
             text: format!("Sign in to manage {}.\nThe user name and password are on the sticker.", server.1),
         });
     }
+    if server.2 == "load-balancer" {
+        let member = ws.lb_pick(&server.0).map_err(|e| format!("Connection refused by {host}: {e}"))?;
+        let custom = ws.http_pages.get(&member).cloned();
+        let served = ws.devices.iter().find(|d| d.id == member).map(|d| d.name.clone()).unwrap_or_default();
+        ws.send_http(client, &member, host)
+            .map_err(|_| format!("Request timed out while reaching {host}"))?;
+        return Ok(Page {
+            status: 200,
+            reason: "OK",
+            host: host.to_string(),
+            title: server.1.clone(),
+            text: custom.unwrap_or_else(|| format!("Welcome to {}.", server.1)) + &format!("\n\nServed by {served}."),
+        });
+    }
     if server.2 != "server" {
         return Err(format!("Connection refused by {host} (no HTTP service)"));
     }

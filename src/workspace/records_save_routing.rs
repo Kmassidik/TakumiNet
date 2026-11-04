@@ -3,6 +3,13 @@ use super::*;
 impl Workspace {
     /// Routing protocols, NAT, ACL bindings, DNS, HTTP pages and DHCP reservations.
     pub(super) fn write_routing_and_names(&self, out: &mut String) {
+        let mut pools: Vec<_> = self.lb_pools.iter().collect();
+        pools.sort_by_key(|(id, _)| id.as_str());
+        for (balancer, members) in pools {
+            for member in members {
+                out.push_str(&format!("lbpool\t{}\t{}\n", balancer, member));
+            }
+        }
         let mut shared: Vec<_> = self.shared_gateways.iter().collect();
         shared.sort();
         for (vip, members) in shared {

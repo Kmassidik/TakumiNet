@@ -265,7 +265,9 @@ impl Workspace {
             "reservations" => self.dhcp_reservations.get(&check.to).map_or(0, Vec::len),
             "queues" => self.queues.get(&check.to).map_or(0, Vec::len),
             "capwap" => self.capwap.values().filter(|wlc| **wlc == check.to).count(),
-            other => return (false, format!("unknown count scope '{other}'"), "Use devices, leases, routes, reservations, queues or capwap.".into()),
+            "pool-members" => self.lb_rows(&check.to).len(),
+            "served" => self.lb_served_count(&check.to),
+            other => return (false, format!("unknown count scope '{other}'"), "Use devices, leases, routes, reservations, queues, capwap, pool-members or served.".into()),
         };
         (found >= least, format!("{found} found, {least} needed"), hint)
     }

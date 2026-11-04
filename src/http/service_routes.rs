@@ -25,6 +25,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/queue") => Some(handle_queue(ctx, query)),
         ("POST", "/api/queues/list") => Some(handle_queue_list(ctx, query)),
         ("POST", "/api/voucher") => Some(handle_voucher(ctx, query)),
+        ("POST", "/api/devices/lbpool") => Some(handle_lb_pool(ctx, query)),
+        ("POST", "/api/lb/list") => Some(handle_lb_list(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -346,4 +348,29 @@ fn handle_voucher(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         }
     });
     (json, out.into_bytes())
+}
+
+fn handle_lb_pool(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let member = query_value(query, "member").unwrap_or_default();
+    let remove = matches!(query_value(query, "remove").as_deref(), Some("1") | Some("true"));
+    let (out, _) = apply(ctx, |ws| {
+        if remove {
+            return if ws.lb_remove_member(&id, &member) { Ok(()) } else { Err(format!("{member} is not in the pool")) };
+        }
+        ws.lb_add_member(&id, &member)
+    });
+    (json, out.into_bytes())
+}
+
+fn handle_lb_list(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let rows = ws.lb_rows(&id).iter()
+        .map(|(member, hits)| format!("{{\"member\":{},\"served\":{hits}}}", json_str(member)))
+        .collect::<Vec<_>>()
+        .join(",");
+    (json, format!("{{\"pool\":[{rows}]}}").into_bytes())
 }

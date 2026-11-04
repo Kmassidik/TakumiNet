@@ -1,0 +1,30 @@
+<takumi version="1">
+  <device id="pc0" kind="pc" model="PC" x="80" y="200" name="Visitor" ip="198.51.100.10" prefix="24"/>
+  <device id="router0" kind="router" model="Router 300" x="280" y="200" name="EdgeRouter" ip="" prefix="24"/>
+  <device id="lb0" kind="load-balancer" model="Load Balancer" x="480" y="200" name="WebFront" ip="203.0.113.80" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="680" y="80" name="Web1" ip="203.0.113.11" prefix="24"/>
+  <device id="server1" kind="server" model="Server" x="680" y="200" name="Web2" ip="203.0.113.12" prefix="24"/>
+  <device id="server2" kind="server" model="Server" x="680" y="320" name="Web3" ip="203.0.113.13" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="router0" b_port="Gig0/0" kind="eCross"/>
+  <link a="router0" a_port="Gig0/1" b="lb0" b_port="Fa0" kind="eCopper"/>
+  <link a="lb0" a_port="Fa1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="lb0" a_port="Fa2" b="server1" b_port="Fa0" kind="eCopper"/>
+  <link a="lb0" a_port="Fa3" b="server2" b_port="Fa0" kind="eCopper"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="198.51.100.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/1" up="1" ip="203.0.113.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc0" gw="198.51.100.1" dns=""/>
+  <net id="server0" gw="203.0.113.1" dns=""/>
+  <net id="server1" gw="203.0.113.1" dns=""/>
+  <net id="server2" gw="203.0.113.1" dns=""/>
+  <page id="server0" body="The shop"/>
+  <page id="server1" body="The shop"/>
+  <page id="server2" body="The shop"/>
+  <lesson id="les-l5-03-load-balancer" title="Three servers behind one name" level="5" minutes="15" goal="The page opens through WebFront and every server takes a turn"/>
+  <step n="1" text="Open http://203.0.113.80/ from Visitor and read the refusal: WebFront's pool is empty."/>
+  <step n="2" text="Add Web1, Web2 and Web3 to the pool." check="c1"/>
+  <step n="3" text="Open the page three times from Visitor. WebFront hands each request to the next server." check="c2"/>
+  <step n="4" text="Think about Web1 going dark: the health check skips it and the page keeps opening." check="c3"/>
+  <check id="c1" kind="count" from="pool-members" to="lb0" url="" expect="3" label="Three servers are in the pool"/>
+  <check id="c2" kind="count" from="served" to="lb0" url="" expect="3" label="Every server took a turn"/>
+  <check id="c3" kind="http" from="pc0" to="" url="http://203.0.113.80/" expect="WebFront" label="The page opens through WebFront"/>
+</takumi>

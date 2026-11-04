@@ -18,6 +18,7 @@ mod queues;
 mod vouchers;
 mod shared_gateway;
 mod stp_state;
+mod balancer;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -75,6 +76,9 @@ impl Workspace {
                 queue_parent: HashMap::new(),
                 vouchers: HashMap::new(),
                 shared_gateways: HashMap::new(),
+                lb_pools: HashMap::new(),
+                lb_hits: HashMap::new(),
+                lb_next: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
@@ -287,6 +291,9 @@ impl Workspace {
                 queue_parent: HashMap::new(),
                 vouchers: HashMap::new(),
                 shared_gateways: HashMap::new(),
+                lb_pools: HashMap::new(),
+                lb_hits: HashMap::new(),
+                lb_next: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),

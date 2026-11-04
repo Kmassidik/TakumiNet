@@ -10,7 +10,7 @@ const groupsSrc = readFileSync(join(import.meta.dir, "../../src/workspace/palett
 const groupLabels = [...groupsSrc.slice(groupsSrc.indexOf("GROUPS")).matchAll(/\("([A-Za-z ]+)", "\/art3d/g)].map((m) => m[1]!);
 
 test("the catalog is read from the engine source (sanity)", () => {
-  expect(palette.length).toBe(32);
+  expect(palette.length).toBe(33);
 });
 
 test("every device in the palette belongs to exactly one category", () => {

@@ -1,0 +1,26 @@
+<takumi version="1">
+  <device id="pc0" kind="pc" model="PC" x="80" y="200" name="Visitor" ip="198.51.100.10" prefix="24"/>
+  <device id="router0" kind="router" model="Router 300" x="280" y="200" name="EdgeRouter" ip="" prefix="24"/>
+  <device id="lb0" kind="load-balancer" model="Load Balancer" x="480" y="200" name="WebFront" ip="203.0.113.80" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="680" y="80" name="Web1" ip="203.0.113.11" prefix="24"/>
+  <device id="server1" kind="server" model="Server" x="680" y="200" name="Web2" ip="203.0.113.12" prefix="24"/>
+  <device id="server2" kind="server" model="Server" x="680" y="320" name="Web3" ip="203.0.113.13" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="router0" b_port="Gig0/0" kind="eCross"/>
+  <link a="router0" a_port="Gig0/1" b="lb0" b_port="Fa0" kind="eCopper"/>
+  <link a="lb0" a_port="Fa1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="lb0" a_port="Fa2" b="server1" b_port="Fa0" kind="eCopper"/>
+  <link a="lb0" a_port="Fa3" b="server2" b_port="Fa0" kind="eCopper"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="198.51.100.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="GigabitEthernet0/1" up="1" ip="203.0.113.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc0" gw="198.51.100.1" dns=""/>
+  <net id="server0" gw="203.0.113.1" dns=""/>
+  <net id="server1" gw="203.0.113.1" dns=""/>
+  <net id="server2" gw="203.0.113.1" dns=""/>
+  <page id="server0" body="The shop"/>
+  <page id="server1" body="The shop"/>
+  <page id="server2" body="The shop"/>
+  <lbpool dev="lb0" member="server0"/>
+  <lbpool dev="lb0" member="server1"/>
+  <lbpool dev="lb0" member="server2"/>
+  <demo kind="http" from="pc0" to="" url="http://203.0.113.80/"/>
+</takumi>

@@ -39,3 +39,37 @@ fn losing_either_spine_keeps_the_fabric_alive() {
     ws.set_port_up("s2", "GigabitEthernet0/1", false);
     assert!(ws.send_pdu("server0", "server2").is_err(), "losing both uplinks of a leaf cuts the rack off");
 }
+
+#[test]
+fn the_balancer_rotates_skips_the_dead_and_reports_an_empty_pool() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l5-03-load-balancer.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false, false]);
+    let refusal = crate::webapp::fetch(&mut ws, "pc0", "http://203.0.113.80/").unwrap_err();
+    assert!(refusal.contains("pool is empty"), "{refusal}");
+    for member in ["server0", "server1", "server2"] {
+        ws.lb_add_member("lb0", member).unwrap();
+    }
+    for _ in 0..3 {
+        let page = crate::webapp::fetch(&mut ws, "pc0", "http://203.0.113.80/").unwrap();
+        assert_eq!(page.title, "WebFront");
+    }
+    assert!(ws.lb_rows("lb0").iter().all(|(_, hits)| *hits == 1), "round robin shares the three requests");
+    assert_eq!(passes(&mut ws), vec![true, true, true]);
+    let before = ws.lb_rows("lb0");
+    ws.set_port_up("server0", "FastEthernet0", false);
+    for _ in 0..2 {
+        crate::webapp::fetch(&mut ws, "pc0", "http://203.0.113.80/").unwrap();
+    }
+    let after = ws.lb_rows("lb0");
+    assert_eq!(after[0], before[0], "the dead server took no new request");
+    assert_eq!(after[1].1 + after[2].1, before[1].1 + before[2].1 + 2, "the living pair shared the work");
+    assert!(ws.lb_add_member("lb0", "server0").is_err(), "no duplicates");
+    assert!(ws.lb_add_member("lb0", "pc0").is_err(), "members are servers");
+    assert!(ws.lb_add_member("pc0", "server0").is_err(), "pools live on balancers");
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.lb_rows("lb0").len(), 3, "the pool survives save and open");
+    for member in ["server0", "server1", "server2"] {
+        ws.lb_remove_member("lb0", member);
+    }
+    assert!(crate::webapp::fetch(&mut ws, "pc0", "http://203.0.113.80/").is_err());
+}

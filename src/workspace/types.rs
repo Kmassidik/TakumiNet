@@ -333,6 +333,10 @@ pub struct Workspace {
     pub vouchers: HashMap<String, Vec<Voucher>>,
     /// Shared gateway addresses: address -> (member device, priority).
     pub shared_gateways: HashMap<u32, Vec<(String, u8)>>,
+    /// Load balancer pools, served counts and the round robin cursor.
+    pub lb_pools: HashMap<String, Vec<String>>,
+    pub lb_hits: HashMap<String, HashMap<String, u32>>,
+    pub(super) lb_next: HashMap<String, usize>,
     /// Further pools on the same server, one per extra network.
     pub dhcp_more: HashMap<String, Vec<Pool>>,
     /// Addresses already handed out, by server id.

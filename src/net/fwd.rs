@@ -438,6 +438,11 @@ fn find<'a>(ws: &'a Workspace, id: &str) -> Result<&'a Device, String> {
 }
 
 /// Shortest path whose every interface is administratively up.
+/// True while live cabling (every port up) joins the two devices.
+pub fn reachable(ws: &Workspace, src: &str, dst: &str) -> bool {
+    usable_path(ws, src, dst).is_some()
+}
+
 fn usable_path(ws: &Workspace, src: &str, dst: &str) -> Option<DataPath> {
     bfs(ws, src, dst, true, None)
 }

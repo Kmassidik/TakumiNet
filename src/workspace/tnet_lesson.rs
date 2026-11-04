@@ -98,7 +98,7 @@ pub(super) fn validate_lesson_records(
                         }
                     }
                     "count" => {
-                        if !matches!(from, "devices" | "leases" | "routes" | "reservations" | "queues" | "capwap") {
+                        if !matches!(from, "devices" | "leases" | "routes" | "reservations" | "queues" | "capwap" | "pool-members" | "served") {
                             invalidate(valid, problems, index, element, "from", "count scope must be devices, leases, routes, reservations, queues or capwap");
                         }
                         if element.get("expect").unwrap_or("").parse::<usize>().is_err() {

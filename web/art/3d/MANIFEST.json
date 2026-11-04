@@ -27,6 +27,7 @@
         "homerouter",
         "rtrw-gateway",
         "switch-l3",
+        "load-balancer",
         "provider-link",
         "sector-radio",
         "client-radio",
