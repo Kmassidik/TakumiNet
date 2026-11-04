@@ -10,3 +10,6 @@
 /node_modules
 /web/landing/poster-raw.png
 /web/landing/poster.png
+
+# working documents, kept local
+/internal

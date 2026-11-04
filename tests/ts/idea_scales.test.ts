@@ -1,14 +1,17 @@
 import { expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-/* End-to-end model test for IDEA-scales.md (section 3.4).
+/* End-to-end model test for internal/plans/IDEA-scales.md (section 3.4).
    It parses every ```spec block, checks the structure and references in
    TypeScript, then writes a Bend program that recomputes the same rules with
    its own recursion. Bend must print 0. This is a model test, not a proof. */
 
-const doc = readFileSync(join(import.meta.dir, "../../IDEA-scales.md"), "utf8");
+const file = join(import.meta.dir, "../../internal/plans/IDEA-scales.md");
+// internal/ is kept local and is not in the public repo, so the suite is skipped when it is absent
+const present = existsSync(file);
+const doc = present ? readFileSync(file, "utf8") : "";
 const bend = Bun.which("bend");
 
 const KINDS = new Set([
@@ -154,29 +157,29 @@ function runBend(src: string): { out: string; err: string; code: number } {
 const model = parseBlocks(doc);
 if (process.env.DUMP_BEND) writeFileSync(process.env.DUMP_BEND, bendProgram(modelFailures(model)));
 
-test("the document is at least 1000 lines", () => {
+test.skipIf(!present)("the document is at least 1000 lines", () => {
   expect(doc.split("\n").length).toBeGreaterThanOrEqual(1000);
 });
 
-test("every spec block parses", () => {
+test.skipIf(!present)("every spec block parses", () => {
   expect(model.errors).toEqual([]);
   expect(model.templates.length).toBeGreaterThan(20);
   expect(model.lessons.length).toBeGreaterThan(50);
 });
 
-test("ids are unique", () => {
+test.skipIf(!present)("ids are unique", () => {
   const ids = [...model.templates.map((t) => t.id), ...model.lessons.map((l) => l.id)];
   expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
 });
 
-test("every level has 2 templates and 3 lessons", () => {
+test.skipIf(!present)("every level has 2 templates and 3 lessons", () => {
   for (let lv = 1; lv <= 11; lv++) {
     expect(model.templates.filter((t) => t.level === lv).length >= 2).toBe(true);
     expect(model.lessons.filter((l) => l.level === lv).length >= 3).toBe(true);
   }
 });
 
-test("every lesson uses a known template and a known or empty prerequisite", () => {
+test.skipIf(!present)("every lesson uses a known template and a known or empty prerequisite", () => {
   const t = new Set(model.templates.map((x) => x.id));
   const l = new Set(model.lessons.map((x) => x.id));
   for (const x of model.lessons) {
@@ -185,7 +188,7 @@ test("every lesson uses a known template and a known or empty prerequisite", () 
   }
 });
 
-test("a lesson never needs a later level and the prerequisites have no cycle", () => {
+test.skipIf(!present)("a lesson never needs a later level and the prerequisites have no cycle", () => {
   const byId = new Map(model.lessons.map((x) => [x.id, x]));
   for (const x of model.lessons) {
     const seen = new Set<string>();
@@ -200,7 +203,7 @@ test("a lesson never needs a later level and the prerequisites have no cycle", (
   }
 });
 
-test("every lesson has steps and checks of a known kind", () => {
+test.skipIf(!present)("every lesson has steps and checks of a known kind", () => {
   for (const x of model.lessons) {
     expect(x.steps.length, x.id).toBeGreaterThan(0);
     expect(x.checks.length, x.id).toBeGreaterThan(0);
@@ -208,7 +211,7 @@ test("every lesson has steps and checks of a known kind", () => {
   }
 });
 
-test("each level has its own section with the fourteen subsections", () => {
+test.skipIf(!present)("each level has its own section with the fourteen subsections", () => {
   for (let lv = 1; lv <= 11; lv++) {
     for (let n = 1; n <= 14; n++) {
       expect(doc.includes(`### L${lv}.${n} `), `L${lv}.${n}`).toBe(true);
@@ -216,17 +219,17 @@ test("each level has its own section with the fourteen subsections", () => {
   }
 });
 
-test("no vendor names appear in the plan", () => {
+test.skipIf(!present)("no vendor names appear in the plan", () => {
   expect(/cisco|packet tracer|tp-?link|huawei|juniper|arista/i.test(doc)).toBe(false);
 });
 
-test.skipIf(!bend)("bend recomputes the rules and reports 0 failures", () => {
+test.skipIf(!bend || !present)("bend recomputes the rules and reports 0 failures", () => {
   const r = runBend(bendProgram(modelFailures(model)));
   expect(r.err.includes("Error")).toBe(false);
   expect(r.out).toBe("0");
 }, 120_000);
 
-test.skipIf(!bend)("bend reports failures when the plan is broken", () => {
+test.skipIf(!bend || !present)("bend reports failures when the plan is broken", () => {
   const m = modelFailures(model);
   m.pairs.push([1, 5, 1, 0, 0]); // a level 1 lesson that needs a level 5 lesson, with no steps or checks
   const r = runBend(bendProgram(m));
