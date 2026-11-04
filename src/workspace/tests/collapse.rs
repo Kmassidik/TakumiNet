@@ -82,6 +82,6 @@ fn the_log_check_reads_the_device_syslog() {
     });
     assert!(!ws.run_checks().remove(0).passed);
     ws.syslog_enable("gw0", true).unwrap();
-    ws.syslog_record("gw0", "warning", "login refused for rumah9");
+    ws.syslog_record("gw0", "warning", "login refused for home9");
     assert!(ws.run_checks().remove(0).passed);
 }

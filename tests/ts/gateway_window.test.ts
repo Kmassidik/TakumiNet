@@ -105,14 +105,14 @@ test("the parent limit form posts with parent=1", async () => {
 test("a voucher failure shows the server's error text verbatim", async () => {
   const { body, done } = rendered({
     ...fullResponses,
-    "/api/voucher": { error: "voucher WARUNG1 already exists" },
+    "/api/voucher": { error: "voucher CAFE1 already exists" },
   });
   await done;
-  inputUnder(body, "Code").value = "WARUNG1";
+  inputUnder(body, "Code").value = "CAFE1";
   inputUnder(body, "Minutes").value = "60";
   button(body, "Create voucher").click();
   await flush();
-  expect(allText(body)).toContain("voucher WARUNG1 already exists");
+  expect(allText(body)).toContain("voucher CAFE1 already exists");
 });
 
 test("adding an account posts the user and reloads the account list", async () => {

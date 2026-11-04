@@ -2,12 +2,12 @@
 <device id="pop1" kind="backbone-pop" model="Backbone POP" x="240" y="140" name="PopMakassar" ip="" prefix="24"/>
 <port id="pop1" name="GigabitEthernet0/0" up="1" ip="10.9.200.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="pop1" name="GigabitEthernet0/1" up="1" ip="10.9.61.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="2000"/>
-<device id="server0" kind="server" model="Server" x="80" y="60" name="KontenSulawesi" ip="10.9.200.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="80" y="60" name="SulawesiContent" ip="10.9.200.10" prefix="24"/>
 <net id="server0" gw="10.9.200.1" dns=""/>
-<device id="tetangga" kind="backbone-pop" model="Backbone POP" x="520" y="260" name="GerbangTenggara" ip="" prefix="24"/>
+<device id="tetangga" kind="backbone-pop" model="Backbone POP" x="520" y="260" name="SoutheastGateway" ip="" prefix="24"/>
 <port id="tetangga" name="GigabitEthernet0/0" up="1" ip="10.9.61.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="2000"/>
 <port id="tetangga" name="GigabitEthernet0/1" up="1" ip="10.60.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="pc0" kind="pc" model="PC" x="700" y="400" name="WargaTenggara" ip="10.60.1.20" prefix="24"/>
+<device id="pc0" kind="pc" model="PC" x="700" y="400" name="SoutheastResident" ip="10.60.1.20" prefix="24"/>
 <net id="pc0" gw="10.60.1.1" dns=""/>
 <link a="pop1" a_port="Gig0/0" b="server0" b_port="Fa0" kind="eCross"/>
 <link a="pop1" a_port="Gig0/1" b="tetangga" b_port="Gig0/0" kind="eCopper"/>
@@ -15,13 +15,13 @@
 <bgprouter dev="pop1" as="64701"/>
 <bgpneighbor dev="pop1" peer="10.9.61.2" as="64702"/>
 <bgpnet dev="pop1" net="10.9.200.0" prefix="24"/>
-<lesson id="les-l9-04-sell-transit" title="Sell transit to the neighbour" level="9" minutes="12" goal="GerbangTenggara buys transit from PopMakassar and WargaTenggara reaches KontenSulawesi"/>
+<lesson id="les-l9-04-sell-transit" title="Sell transit to the neighbour" level="9" minutes="12" goal="SoutheastGateway buys transit from PopMakassar and SoutheastResident reaches SulawesiContent"/>
 <step n="1" text="The neighbouring province signed a transit contract. PopMakassar already runs BGP in system 64701, names 10.9.61.2 as its customer in system 64702, and announces the content network 10.9.200.0/24. The customer side is still blank."/>
-<step n="2" text="On GerbangTenggara, open the console and start BGP: router bgp 64702."/>
+<step n="2" text="On SoutheastGateway, open the console and start BGP: router bgp 64702."/>
 <step n="3" text="Point it at the seller: neighbor 10.9.61.1 remote-as 64701. Both ends now name each other, so the session comes up." check="c1"/>
 <step n="4" text="A session alone moves nothing. The seller's announcement must land in your table: run show ip route and find 10.9.200.0/24 learned over BGP." check="c2"/>
-<step n="5" text="The seller must also learn the way back. Announce your own customers: network 10.60.1.0 mask 255.255.255.0. Then ping KontenSulawesi from WargaTenggara." check="c3"/>
+<step n="5" text="The seller must also learn the way back. Announce your own customers: network 10.60.1.0 mask 255.255.255.0. Then ping SulawesiContent from SoutheastResident." check="c3"/>
 <check id="c1" kind="bgp" from="tetangga" to="10.9.61.1" url="" expect="established" label="The transit session with PopMakassar is established"/>
-<check id="c2" kind="route" from="tetangga" to="" url="" expect="10.9.200.0/24" label="GerbangTenggara learned the content network over BGP"/>
-<check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="WargaTenggara reaches KontenSulawesi"/>
+<check id="c2" kind="route" from="tetangga" to="" url="" expect="10.9.200.0/24" label="SoutheastGateway learned the content network over BGP"/>
+<check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="SoutheastResident reaches SulawesiContent"/>
 </takumi>

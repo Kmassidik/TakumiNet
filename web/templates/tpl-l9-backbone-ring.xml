@@ -18,7 +18,7 @@
 <device id="ix0" kind="internet-exchange" model="Internet Exchange" x="60" y="280" name="IXMakassar" ip="" prefix="24"/>
 <port id="ix0" name="GigabitEthernet0/0" up="1" ip="10.9.100.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
 <port id="ix0" name="GigabitEthernet0/1" up="1" ip="10.9.200.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="server0" kind="server" model="Server" x="60" y="440" name="KontenSulawesi" ip="10.9.200.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="60" y="440" name="SulawesiContent" ip="10.9.200.10" prefix="24"/>
 <net id="server0" gw="10.9.200.1" dns=""/>
 <link a="pop1" a_port="Gig0/0" b="pop2" b_port="Gig0/0" kind="eCopper"/>
 <link a="pop2" a_port="Gig0/1" b="pop3" b_port="Gig0/0" kind="eCopper"/>

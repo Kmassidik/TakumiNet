@@ -53,8 +53,8 @@ fn the_ring_lesson_fails_open_and_passes_once_the_ring_closes() {
 #[test]
 fn the_national_template_serves_the_overseas_page() {
     let mut ws = Workspace::from_tnet(NATIONAL).unwrap();
-    let page = crate::webapp::fetch(&mut ws, "laptop0", "http://www.dunia.lab/").unwrap();
-    assert_eq!(page.title, "ServerLuarNegeri");
+    let page = crate::webapp::fetch(&mut ws, "laptop0", "http://www.world.lab/").unwrap();
+    assert_eq!(page.title, "OverseasServer");
     let ms = ws.path_latency_ms("laptop0", "server0").unwrap();
     assert!((50.0..120.0).contains(&ms), "{ms} ms: the submarine cable must dominate the delay");
 }

@@ -6,9 +6,9 @@
   <device id="radio0" kind="client-radio" model="Client Radio" x="280" y="400" name="HouseRadio0" ip="" prefix="24"/>
   <device id="radio1" kind="client-radio" model="Client Radio" x="520" y="400" name="HouseRadio1" ip="" prefix="24"/>
   <device id="radio2" kind="client-radio" model="Client Radio" x="760" y="400" name="HouseRadio2" ip="" prefix="24"/>
-  <device id="home0" kind="homerouter" model="Home Router" x="280" y="500" name="Rumah0" ip="10.10.0.11" prefix="24"/>
-  <device id="home1" kind="homerouter" model="Home Router" x="520" y="500" name="Rumah1" ip="10.10.0.12" prefix="24"/>
-  <device id="home2" kind="homerouter" model="Home Router" x="760" y="500" name="Rumah2" ip="10.10.0.13" prefix="24"/>
+  <device id="home0" kind="homerouter" model="Home Router" x="280" y="500" name="Home0" ip="10.10.0.11" prefix="24"/>
+  <device id="home1" kind="homerouter" model="Home Router" x="520" y="500" name="Home1" ip="10.10.0.12" prefix="24"/>
+  <device id="home2" kind="homerouter" model="Home Router" x="760" y="500" name="Home2" ip="10.10.0.13" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="280" y="600" name="Laptop0" ip="10.10.0.20" prefix="24"/>
   <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
   <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>
@@ -28,9 +28,9 @@
   <net id="home2" gw="10.10.0.1" dns="203.0.113.10"/>
   <dns id="server0" name="www.example.lab" ip="203.0.113.10"/>
   <page id="server0" body="A page on the internet"/>
-  <pppoe client="home0" server="10.10.0.1" user="rumah0"/>
-  <pppoe client="home1" server="10.10.0.1" user="rumah1"/>
-  <pppoe client="home2" server="10.10.0.1" user="rumah2"/>
+  <pppoe client="home0" server="10.10.0.1" user="home0"/>
+  <pppoe client="home1" server="10.10.0.1" user="home1"/>
+  <pppoe client="home2" server="10.10.0.1" user="home2"/>
   <lesson id="les-l2-01-first-gateway" title="Bring the neighbourhood online" level="2" minutes="15" goal="A laptop in a home opens an outside page through the gateway"/>
   <step n="1" text="The provider gave you 203.0.113.2. On GatewayRTRW give Ether1, the upstream port, that address with mask 255.255.255.0." check="c1"/>
   <step n="2" text="The homes use 10.10.0.0/24 on Ether2. That side is already addressed; check it in the port list."/>

@@ -13,7 +13,7 @@ fn the_small_rtrw_template_serves_a_home_laptop() {
     let mut ws = Workspace::from_tnet(SMALL).unwrap();
     let page = crate::webapp::fetch(&mut ws, "laptop0", "http://www.example.lab/").unwrap();
     assert_eq!(page.title, "ExampleSite");
-    assert_eq!(ws.pppoe_status("home1").map(|(_, user)| user), Some("rumah1".into()));
+    assert_eq!(ws.pppoe_status("home1").map(|(_, user)| user), Some("home1".into()));
 }
 
 #[test]
@@ -45,16 +45,16 @@ fn the_gateway_speaks_the_terminal_and_shows_its_routes() {
 fn customer_login_lesson_counts_real_sessions_and_refuses_wrong_passwords() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-02-customer-login.xml")).unwrap();
     assert_eq!(passes(&mut ws), vec![false, true]);
-    let refusal = ws.pppoe_connect("home0", "10.10.0.1", "rumah0", "anything").unwrap_err();
+    let refusal = ws.pppoe_connect("home0", "10.10.0.1", "home0", "anything").unwrap_err();
     assert!(refusal.contains("Login refused"), "{refusal}");
-    ws.aaa_add_user("gw0", "rumah0", "paket10-a").unwrap();
-    ws.pppoe_connect("home0", "10.10.0.1", "rumah0", "paket10-a").unwrap();
-    ws.pppoe_connect("home1", "10.10.0.1", "rumah1", "paket10-b").unwrap();
+    ws.aaa_add_user("gw0", "home0", "plan10-a").unwrap();
+    ws.pppoe_connect("home0", "10.10.0.1", "home0", "plan10-a").unwrap();
+    ws.pppoe_connect("home1", "10.10.0.1", "home1", "plan10-b").unwrap();
     assert_eq!(passes(&mut ws), vec![false, true], "two sessions are not three");
-    ws.pppoe_connect("home2", "10.10.0.1", "rumah2", "paket10-c").unwrap();
+    ws.pppoe_connect("home2", "10.10.0.1", "home2", "plan10-c").unwrap();
     assert_eq!(passes(&mut ws), vec![true, true]);
     assert_eq!(ws.pppoe_sessions("gw0").len(), 3);
-    assert!(ws.pppoe_connect("home0", "10.10.0.9", "rumah0", "paket10-a").is_err(), "no device at that address");
+    assert!(ws.pppoe_connect("home0", "10.10.0.9", "home0", "plan10-a").is_err(), "no device at that address");
     let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.pppoe_sessions("gw0").len(), 3, "sessions survive save and open");
 }
@@ -71,33 +71,33 @@ fn busy() -> Workspace {
 fn rates_follow_demand_then_the_customer_limit_then_the_fair_share() {
     let mut ws = busy();
     let rate = |ws: &Workspace, user: &str| ws.measured_rates("gw0").into_iter().find(|(_, u, _)| u == user).unwrap().2;
-    assert_eq!(rate(&ws, "rumah0"), 95.0);
+    assert_eq!(rate(&ws, "home0"), 95.0);
     assert!(ws.line_load("gw0", "Ether1").unwrap() > 100.0, "the hog pushes the line past full");
-    ws.set_queue("gw0", "rumah0", 10).unwrap();
-    assert_eq!(rate(&ws, "rumah0"), 10.0);
-    assert_eq!(rate(&ws, "rumah1"), 8.0, "a limit above the demand changes nothing");
+    ws.set_queue("gw0", "home0", 10).unwrap();
+    assert_eq!(rate(&ws, "home0"), 10.0);
+    assert_eq!(rate(&ws, "home1"), 8.0, "a limit above the demand changes nothing");
     ws.set_queue_parent("gw0", 12).unwrap();
-    assert_eq!(rate(&ws, "rumah1"), 4.0, "a fair share of 12 across three is 4");
-    assert_eq!(rate(&ws, "rumah0"), 4.0);
+    assert_eq!(rate(&ws, "home1"), 4.0, "a fair share of 12 across three is 4");
+    assert_eq!(rate(&ws, "home0"), 4.0);
     ws.set_queue_parent("gw0", 24).unwrap();
-    assert_eq!(rate(&ws, "rumah1"), 8.0, "whoever wants less hands the rest back");
-    assert_eq!(rate(&ws, "rumah0"), 8.0);
+    assert_eq!(rate(&ws, "home1"), 8.0, "whoever wants less hands the rest back");
+    assert_eq!(rate(&ws, "home0"), 8.0);
 }
 
 #[test]
 fn queue_input_is_validated_at_the_edges() {
     let mut ws = busy();
     assert!(ws.set_queue("gw0", "nobody", 10).is_err());
-    assert!(ws.set_queue("gw0", "rumah0", 100_001).is_err());
+    assert!(ws.set_queue("gw0", "home0", 100_001).is_err());
     assert!(ws.set_demand("ghost", 5).is_err());
     assert!(ws.set_demand("home0", 100_001).is_err());
-    ws.set_queue("gw0", "rumah0", 10).unwrap();
-    ws.set_queue("gw0", "rumah0", 0).unwrap();
+    ws.set_queue("gw0", "home0", 10).unwrap();
+    ws.set_queue("gw0", "home0", 0).unwrap();
     assert_eq!(ws.queues.get("gw0").map(Vec::len), Some(0));
     assert_eq!(ws.line_load("gw0", "NoSuchPort"), None);
     let mut back = Workspace::from_tnet(&busy().to_tnet()).unwrap();
     assert_eq!(back.measured_rates("gw0").len(), 3, "demands survive save and open");
-    back.set_queue("gw0", "rumah0", 10).unwrap();
+    back.set_queue("gw0", "home0", 10).unwrap();
     let again = Workspace::from_tnet(&back.to_tnet()).unwrap();
     assert!(again.queues.get("gw0").is_some_and(|l| l.len() == 1), "queues survive save and open");
 }
@@ -106,7 +106,7 @@ fn queue_input_is_validated_at_the_edges() {
 fn speed_limit_lesson_fails_while_the_hog_runs_free() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-03-speed-limits.xml")).unwrap();
     assert_eq!(passes(&mut ws), vec![false, false]);
-    for user in ["rumah0", "rumah1", "rumah2", "rumah3"] {
+    for user in ["home0", "home1", "home2", "home3"] {
         ws.set_queue("gw0", user, 10).unwrap();
     }
     ws.set_queue_parent("gw0", 100).unwrap();
@@ -117,11 +117,11 @@ fn speed_limit_lesson_fails_while_the_hog_runs_free() {
 fn find_the_hog_lesson_wants_every_customer_limited() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-06-find-the-hog.xml")).unwrap();
     assert_eq!(passes(&mut ws), vec![false, true]);
-    for user in ["rumah0", "rumah1", "rumah2"] {
+    for user in ["home0", "home1", "home2"] {
         ws.set_queue("gw0", user, 10).unwrap();
     }
     assert_eq!(passes(&mut ws), vec![false, true], "three limits are not four");
-    ws.set_queue("gw0", "rumah3", 10).unwrap();
+    ws.set_queue("gw0", "home3", 10).unwrap();
     assert_eq!(passes(&mut ws), vec![true, true]);
 }
 
@@ -129,12 +129,12 @@ fn find_the_hog_lesson_wants_every_customer_limited() {
 fn voucher_lesson_accepts_the_first_phone_and_refuses_the_second() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-04-voucher-hotspot.xml")).unwrap();
     assert_eq!(passes(&mut ws), vec![false, false], "an unknown voucher is refused for both");
-    ws.voucher_create("gw0", "MAKAN-4821", 60).unwrap();
+    ws.voucher_create("gw0", "LUNCH-4821", 60).unwrap();
     assert_eq!(passes(&mut ws), vec![false, false], "a fresh voucher is not yet a login");
-    ws.voucher_redeem("gw0", "phone0", "MAKAN-4821").unwrap();
+    ws.voucher_redeem("gw0", "phone0", "LUNCH-4821").unwrap();
     assert_eq!(passes(&mut ws), vec![true, true]);
-    assert_eq!(ws.voucher_redeem("gw0", "phone1", "MAKAN-4821").unwrap_err(), "Voucher already used");
-    ws.voucher_redeem("gw0", "phone0", "MAKAN-4821").unwrap();
+    assert_eq!(ws.voucher_redeem("gw0", "phone1", "LUNCH-4821").unwrap_err(), "Voucher already used");
+    ws.voucher_redeem("gw0", "phone0", "LUNCH-4821").unwrap();
     let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.voucher_rows("gw0")[0].2.as_deref(), Some("phone0"), "the used voucher survives save and open");
 }
@@ -147,8 +147,8 @@ fn voucher_input_is_validated() {
     assert!(ws.voucher_create("gw0", "HAS SPACE", 60).is_err());
     assert!(ws.voucher_create("gw0", "ABCD", 0).is_err());
     assert!(ws.voucher_create("gw0", "ABCD", 10_081).is_err());
-    assert!(ws.voucher_create("gw0", "MAKAN-4821", 60).is_err(), "no duplicate codes");
-    assert!(ws.voucher_redeem("gw0", "ghost", "MAKAN-4821").is_err());
+    assert!(ws.voucher_create("gw0", "LUNCH-4821", 60).is_err(), "no duplicate codes");
+    assert!(ws.voucher_redeem("gw0", "ghost", "LUNCH-4821").is_err());
     assert!(ws.voucher_redeem("gw0", "phone0", "WRONG").unwrap_err().contains("unknown voucher"));
 }
 

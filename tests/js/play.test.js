@@ -153,7 +153,7 @@ test('a half-failed demo renders the events it captured and shows the error', as
   const rendered = [];
   const statusBar = { textContent: '' };
   const statusIcon = { hidden: true };
-  const reply = { error: 'Built-in ping from WargaTerpencil failed', devices: [{ id: 'pc0' }], events: [{ id: 1 }] };
+  const reply = { error: 'Built-in ping from RemoteResident failed', devices: [{ id: 'pc0' }], events: [{ id: 1 }] };
   const context = vm.createContext({
     console,
     URLSearchParams,

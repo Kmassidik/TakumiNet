@@ -6,9 +6,9 @@
   <device id="radio0" kind="client-radio" model="Client Radio" x="280" y="400" name="HouseRadio0" ip="" prefix="24"/>
   <device id="radio1" kind="client-radio" model="Client Radio" x="520" y="400" name="HouseRadio1" ip="" prefix="24"/>
   <device id="radio2" kind="client-radio" model="Client Radio" x="760" y="400" name="HouseRadio2" ip="" prefix="24"/>
-  <device id="home0" kind="homerouter" model="Home Router" x="280" y="500" name="Rumah0" ip="10.10.0.11" prefix="24"/>
-  <device id="home1" kind="homerouter" model="Home Router" x="520" y="500" name="Rumah1" ip="10.10.0.12" prefix="24"/>
-  <device id="home2" kind="homerouter" model="Home Router" x="760" y="500" name="Rumah2" ip="10.10.0.13" prefix="24"/>
+  <device id="home0" kind="homerouter" model="Home Router" x="280" y="500" name="Home0" ip="10.10.0.11" prefix="24"/>
+  <device id="home1" kind="homerouter" model="Home Router" x="520" y="500" name="Home1" ip="10.10.0.12" prefix="24"/>
+  <device id="home2" kind="homerouter" model="Home Router" x="760" y="500" name="Home2" ip="10.10.0.13" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="280" y="600" name="Laptop0" ip="10.10.0.20" prefix="24"/>
   <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
   <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>
@@ -32,13 +32,13 @@
   <natrole dev="gw0" iface="Ether2" dir="inside"/>
   <natrole dev="gw0" iface="Ether1" dir="outside"/>
   <natrule dev="gw0" num="1" iface="Ether1"/>
-  <aaa server="gw0" user="rumah1" pass="paket10-b"/>
-  <aaa server="gw0" user="rumah2" pass="paket10-c"/>
+  <aaa server="gw0" user="home1" pass="plan10-b"/>
+  <aaa server="gw0" user="home2" pass="plan10-c"/>
   <lesson id="les-l2-02-customer-login" title="One login per home" level="2" minutes="15" goal="All three homes hold a session, and a wrong password is refused"/>
-  <step n="1" text="On GatewayRTRW two customer accounts exist: rumah1 and rumah2. Add the third, rumah0, with its own password."/>
+  <step n="1" text="On GatewayRTRW two customer accounts exist: home1 and home2. Add the third, home0, with its own password."/>
   <step n="2" text="On each home router open the provider page and connect with that home's name and password."/>
   <step n="3" text="Try a wrong password on one home and read the refusal." check="c2"/>
   <step n="4" text="Look at the session list on the gateway: all three homes must be up." check="c1"/>
   <check id="c1" kind="session" from="gw0" to="" url="" expect="3" label="All three homes hold a session"/>
-  <check id="c2" kind="login" from="home0" to="10.10.0.1" url="rumah0:wrong-pass" expect="refused" label="A wrong password is refused"/>
+  <check id="c2" kind="login" from="home0" to="10.10.0.1" url="home0:wrong-pass" expect="refused" label="A wrong password is refused"/>
 </takumi>

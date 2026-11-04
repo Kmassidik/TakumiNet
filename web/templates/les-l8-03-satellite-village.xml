@@ -1,28 +1,28 @@
 <takumi version="1">
-<device id="rh0" kind="regency-hub" model="Regency Hub" x="360" y="80" name="HubKabupaten" ip="" prefix="24"/>
+<device id="rh0" kind="regency-hub" model="Regency Hub" x="360" y="80" name="RegencyHub" ip="" prefix="24"/>
 <port id="rh0" name="GigabitEthernet0/0" up="1" ip="192.168.80.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="rh0" name="GigabitEthernet0/1" up="1" ip="10.80.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="rh0" name="GigabitEthernet0/2" up="1" ip="10.80.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="server0" kind="server" model="Server" x="600" y="80" name="LayananKabupaten" ip="192.168.80.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="600" y="80" name="RegencyServices" ip="192.168.80.10" prefix="24"/>
 <net id="server0" gw="192.168.80.1" dns=""/>
-<device id="mw0" kind="microwave-link" model="Microwave Link" x="220" y="200" name="RadioKabupaten" ip="" prefix="24"/>
+<device id="mw0" kind="microwave-link" model="Microwave Link" x="220" y="200" name="RegencyRadio" ip="" prefix="24"/>
 <port id="mw0" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
 <port id="mw0" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
-<device id="mw1" kind="microwave-link" model="Microwave Link" x="120" y="300" name="RadioMakmur" ip="" prefix="24"/>
+<device id="mw1" kind="microwave-link" model="Microwave Link" x="120" y="300" name="ProsperRadio" ip="" prefix="24"/>
 <port id="mw1" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
 <port id="mw1" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
-<device id="pop0" kind="village-pop" model="Village POP" x="120" y="420" name="PopDesaMakmur" ip="" prefix="24"/>
+<device id="pop0" kind="village-pop" model="Village POP" x="120" y="420" name="PopProsperVillage" ip="" prefix="24"/>
 <port id="pop0" name="GigabitEthernet0/0" up="1" ip="192.168.81.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="pop0" name="GigabitEthernet0/1" up="1" ip="10.80.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="pc0" kind="pc" model="PC" x="120" y="540" name="WargaMakmur" ip="192.168.81.10" prefix="24"/>
+<device id="pc0" kind="pc" model="PC" x="120" y="540" name="ProsperResident" ip="192.168.81.10" prefix="24"/>
 <net id="pc0" gw="192.168.81.1" dns=""/>
-<device id="sat0" kind="satellite-terminal" model="Satellite Terminal" x="560" y="280" name="TerminalLangit" ip="" prefix="24"/>
+<device id="sat0" kind="satellite-terminal" model="Satellite Terminal" x="560" y="280" name="SkyTerminal" ip="" prefix="24"/>
 <port id="sat0" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="10000" delay_us="250000"/>
 <port id="sat0" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="10000" delay_us="250000"/>
-<device id="pop1" kind="village-pop" model="Village POP" x="560" y="420" name="PopDesaTerpencil" ip="" prefix="24"/>
+<device id="pop1" kind="village-pop" model="Village POP" x="560" y="420" name="PopRemoteVillage" ip="" prefix="24"/>
 <port id="pop1" name="GigabitEthernet0/0" up="1" ip="192.168.82.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="pop1" name="GigabitEthernet0/1" up="1" ip="10.80.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="pc1" kind="pc" model="PC" x="560" y="540" name="WargaTerpencil" ip="192.168.82.10" prefix="24"/>
+<device id="pc1" kind="pc" model="PC" x="560" y="540" name="RemoteResident" ip="192.168.82.10" prefix="24"/>
 <net id="pc1" gw="192.168.82.1" dns=""/>
 <link a="rh0" a_port="Gig0/0" b="server0" b_port="Fa0" kind="eCross"/>
 <link a="rh0" a_port="Gig0/1" b="mw0" b_port="Fa0" kind="eCopper"/>
@@ -35,12 +35,12 @@
 <route id="rh0" net="192.168.82.0" prefix="24" via="10.80.2.2" admin_distance="1"/>
 <route id="pop0" net="0.0.0.0" prefix="0" via="10.80.1.1" admin_distance="1"/>
 <route id="pop1" net="0.0.0.0" prefix="0" via="10.80.2.1" admin_distance="1"/>
-<lesson id="les-l8-03-satellite-village" title="The satellite village" level="8" minutes="12" goal="DesaTerpencil joins by satellite and answers between 400 and 600 milliseconds"/>
-<step n="1" text="DesaTerpencil has no road for fibre and no line of sight for radio. A satellite terminal already points at the sky, but its cable to the hub was never plugged in. Ping LayananKabupaten from WargaTerpencil and read the failure."/>
-<step n="2" text="Cable TerminalLangit FastEthernet0 to HubKabupaten GigabitEthernet0/2. The village joins by satellite." check="c1"/>
+<lesson id="les-l8-03-satellite-village" title="The satellite village" level="8" minutes="12" goal="RemoteVillage joins by satellite and answers between 400 and 600 milliseconds"/>
+<step n="1" text="RemoteVillage has no road for fibre and no line of sight for radio. A satellite terminal already points at the sky, but its cable to the hub was never plugged in. Ping RegencyServices from RemoteResident and read the failure."/>
+<step n="2" text="Cable SkyTerminal FastEthernet0 to RegencyHub GigabitEthernet0/2. The village joins by satellite." check="c1"/>
 <step n="3" text="Ping again and read the time. The signal climbs 36000 kilometres and comes back down: around half a second is normal, and nothing you cable will change that." check="c2"/>
-<step n="4" text="Compare DesaMakmur over its radios: well under 20 milliseconds. Pages and messages are fine over satellite; a phone call or a game suffers. Choose what runs where accordingly." check="c3"/>
-<check id="c1" kind="ping" from="pc1" to="server0" url="" expect="ok" label="DesaTerpencil reaches LayananKabupaten"/>
-<check id="c2" kind="latency" from="pc1" to="server0" url="" expect="600" label="DesaTerpencil answers in under 600 milliseconds"/>
-<check id="c3" kind="latency" from="pc0" to="server0" url="" expect="20" label="DesaMakmur, over the radios, answers in under 20 milliseconds"/>
+<step n="4" text="Compare ProsperVillage over its radios: well under 20 milliseconds. Pages and messages are fine over satellite; a phone call or a game suffers. Choose what runs where accordingly." check="c3"/>
+<check id="c1" kind="ping" from="pc1" to="server0" url="" expect="ok" label="RemoteVillage reaches RegencyServices"/>
+<check id="c2" kind="latency" from="pc1" to="server0" url="" expect="600" label="RemoteVillage answers in under 600 milliseconds"/>
+<check id="c3" kind="latency" from="pc0" to="server0" url="" expect="20" label="ProsperVillage, over the radios, answers in under 20 milliseconds"/>
 </takumi>

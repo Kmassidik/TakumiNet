@@ -1,24 +1,24 @@
 <takumi version="1">
-<device id="rh0" kind="regency-hub" model="Regency Hub" x="360" y="80" name="HubKabupaten" ip="" prefix="24"/>
+<device id="rh0" kind="regency-hub" model="Regency Hub" x="360" y="80" name="RegencyHub" ip="" prefix="24"/>
 <port id="rh0" name="GigabitEthernet0/0" up="1" ip="192.168.80.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="rh0" name="GigabitEthernet0/1" up="1" ip="10.80.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="rh0" name="GigabitEthernet0/2" up="1" ip="10.80.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="server0" kind="server" model="Server" x="600" y="80" name="LayananKabupaten" ip="192.168.80.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="600" y="80" name="RegencyServices" ip="192.168.80.10" prefix="24"/>
 <net id="server0" gw="192.168.80.1" dns=""/>
-<device id="mw0" kind="microwave-link" model="Microwave Link" x="220" y="200" name="RadioKabupaten" ip="" prefix="24"/>
+<device id="mw0" kind="microwave-link" model="Microwave Link" x="220" y="200" name="RegencyRadio" ip="" prefix="24"/>
 <port id="mw0" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
 <port id="mw0" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
-<device id="mw1" kind="microwave-link" model="Microwave Link" x="120" y="300" name="RadioMakmur" ip="" prefix="24"/>
+<device id="mw1" kind="microwave-link" model="Microwave Link" x="120" y="300" name="ProsperRadio" ip="" prefix="24"/>
 <port id="mw1" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
 <port id="mw1" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
-<device id="mw2" kind="microwave-link" model="Microwave Link" x="320" y="260" name="RadioBukit" ip="" prefix="24"/>
+<device id="mw2" kind="microwave-link" model="Microwave Link" x="320" y="260" name="HillRadio" ip="" prefix="24"/>
 <port id="mw2" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
 <port id="mw2" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="3000"/>
-<device id="pop0" kind="village-pop" model="Village POP" x="120" y="420" name="PopDesaMakmur" ip="" prefix="24"/>
+<device id="pop0" kind="village-pop" model="Village POP" x="120" y="420" name="PopProsperVillage" ip="" prefix="24"/>
 <port id="pop0" name="GigabitEthernet0/0" up="1" ip="192.168.81.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="pop0" name="GigabitEthernet0/1" up="1" ip="10.80.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
 <port id="pop0" name="GigabitEthernet0/2" up="1" ip="10.80.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="pc0" kind="pc" model="PC" x="120" y="540" name="WargaMakmur" ip="192.168.81.10" prefix="24"/>
+<device id="pc0" kind="pc" model="PC" x="120" y="540" name="ProsperResident" ip="192.168.81.10" prefix="24"/>
 <net id="pc0" gw="192.168.81.1" dns=""/>
 <link a="rh0" a_port="Gig0/0" b="server0" b_port="Fa0" kind="eCross"/>
 <link a="rh0" a_port="Gig0/1" b="mw0" b_port="Fa0" kind="eCopper"/>
@@ -27,11 +27,11 @@
 <link a="pop0" a_port="Gig0/0" b="pc0" b_port="Fa0" kind="eCross"/>
 <route id="rh0" net="192.168.81.0" prefix="24" via="10.80.1.2" admin_distance="1"/>
 <route id="pop0" net="0.0.0.0" prefix="0" via="10.80.1.1" admin_distance="1"/>
-<lesson id="les-l8-02-rain-fade" title="Rain on the long hop" level="8" minutes="12" goal="DesaMakmur stays under 20 milliseconds in heavy rain and survives losing the valley pair"/>
-<step n="1" text="The wet season arrives, and rain fades the long valley hop between RadioKabupaten and RadioMakmur. Model the fade: open the port settings of RadioKabupaten FastEthernet1 and of RadioMakmur FastEthernet0, and raise the delay of each to 30000 microseconds."/>
-<step n="2" text="Ping LayananKabupaten from WargaMakmur and read the time: the faded hop pushes it past 30 milliseconds."/>
-<step n="3" text="A relay tower on the hill splits the distance into two short hops that hold in the rain. Cable RadioBukit FastEthernet0 to HubKabupaten GigabitEthernet0/2, and RadioBukit FastEthernet1 to PopDesaMakmur GigabitEthernet0/2." check="c1"/>
+<lesson id="les-l8-02-rain-fade" title="Rain on the long hop" level="8" minutes="12" goal="ProsperVillage stays under 20 milliseconds in heavy rain and survives losing the valley pair"/>
+<step n="1" text="The wet season arrives, and rain fades the long valley hop between RegencyRadio and ProsperRadio. Model the fade: open the port settings of RegencyRadio FastEthernet1 and of ProsperRadio FastEthernet0, and raise the delay of each to 30000 microseconds."/>
+<step n="2" text="Ping RegencyServices from ProsperResident and read the time: the faded hop pushes it past 30 milliseconds."/>
+<step n="3" text="A relay tower on the hill splits the distance into two short hops that hold in the rain. Cable HillRadio FastEthernet0 to RegencyHub GigabitEthernet0/2, and HillRadio FastEthernet1 to PopProsperVillage GigabitEthernet0/2." check="c1"/>
 <step n="4" text="Even if the faded valley pair drops out entirely, the hill relay must keep the village on." check="c2"/>
-<check id="c1" kind="latency" from="pc0" to="server0" url="" expect="20" label="DesaMakmur answers in under 20 milliseconds, rain or not"/>
-<check id="c2" kind="outage" from="pc0" to="server0" url="rh0:GigabitEthernet0/1" expect="ok" label="DesaMakmur still reaches LayananKabupaten with the valley pair cut"/>
+<check id="c1" kind="latency" from="pc0" to="server0" url="" expect="20" label="ProsperVillage answers in under 20 milliseconds, rain or not"/>
+<check id="c2" kind="outage" from="pc0" to="server0" url="rh0:GigabitEthernet0/1" expect="ok" label="ProsperVillage still reaches RegencyServices with the valley pair cut"/>
 </takumi>

@@ -2,21 +2,21 @@
   <device id="up0" kind="router" model="Router 300" x="620" y="80" name="UpstreamNorth" ip="" prefix="24"/>
   <port id="up0" name="GigabitEthernet0/0" up="1" ip="10.0.0.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
   <port id="up0" name="GigabitEthernet0/1" up="1" ip="203.0.113.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-  <device id="web0" kind="server" model="Server" x="840" y="80" name="SitusBerita" ip="203.0.113.10" prefix="24"/>
+  <device id="web0" kind="server" model="Server" x="840" y="80" name="NewsSite" ip="203.0.113.10" prefix="24"/>
   <net id="web0" gw="203.0.113.1" dns=""/>
-  <page id="web0" body="Berita hari ini dari seberang jaringan."/>
-  <device id="border0" kind="router" model="Router 300" x="380" y="220" name="GerbangPoP" ip="" prefix="24"/>
+  <page id="web0" body="Today's news from across the network."/>
+  <device id="border0" kind="router" model="Router 300" x="380" y="220" name="BorderPoP" ip="" prefix="24"/>
   <port id="border0" name="GigabitEthernet0/0" up="1" ip="10.0.0.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
   <port id="border0" name="GigabitEthernet0/1" up="1" ip="198.51.100.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
   <port id="border0" name="GigabitEthernet0/2" up="1" ip="100.64.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-  <device id="switch0" kind="switch" model="Switch 24" x="620" y="300" name="SwitchLayanan" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="620" y="300" name="ServiceSwitch" ip="" prefix="24"/>
   <device id="login0" kind="server" model="Server" x="840" y="260" name="ServerLogin" ip="198.51.100.20" prefix="24"/>
   <net id="login0" gw="198.51.100.1" dns=""/>
-  <aaa server="login0" user="pelanggan1" pass="rahasia1"/>
+  <aaa server="login0" user="customer1" pass="rahasia1"/>
   <device id="resolver0" kind="server" model="Server" x="840" y="400" name="Resolver" ip="198.51.100.53" prefix="24"/>
   <net id="resolver0" gw="198.51.100.1" dns=""/>
-  <dns id="resolver0" name="www.berita.lab" ip="203.0.113.10"/>
-  <device id="gw0" kind="rtrw-gateway" model="Gateway RT/RW" x="180" y="380" name="PelangganNet" ip="" prefix="24"/>
+  <dns id="resolver0" name="www.news.lab" ip="203.0.113.10"/>
+  <device id="gw0" kind="rtrw-gateway" model="Gateway RT/RW" x="180" y="380" name="CustomerNet" ip="" prefix="24"/>
   <port id="gw0" name="Ether1" up="1" ip="100.64.0.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
   <port id="gw0" name="Ether2" up="1" ip="192.168.10.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
   <route id="gw0" net="0.0.0.0" prefix="0" via="100.64.0.1" admin_distance="1"/>
@@ -24,7 +24,7 @@
   <natrole dev="gw0" iface="Ether2" dir="inside"/>
   <natrole dev="gw0" iface="Ether1" dir="outside"/>
   <natrule dev="gw0" num="1" iface="Ether1"/>
-  <device id="laptop0" kind="laptop" model="Laptop" x="60" y="500" name="LaptopPelanggan" ip="192.168.10.21" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="60" y="500" name="CustomerLaptop" ip="192.168.10.21" prefix="24"/>
   <net id="laptop0" gw="192.168.10.1" dns="198.51.100.53"/>
   <link a="border0" a_port="Gig0/0" b="up0" b_port="Gig0/0" kind="eCopper"/>
   <link a="up0" a_port="Gig0/1" b="web0" b_port="Fa0" kind="eCross"/>
@@ -40,7 +40,7 @@
   <bgprouter dev="up0" as="64601"/>
   <bgpneighbor dev="up0" peer="10.0.0.1" as="64500"/>
   <bgpnet dev="up0" net="203.0.113.0" prefix="24"/>
-  <demo kind="http" from="laptop0" to="" url="http://www.berita.lab/"/>
+  <demo kind="http" from="laptop0" to="" url="http://www.news.lab/"/>
   <demo kind="ping" from="laptop0" to="resolver0" url=""/>
   <demo kind="ping" from="login0" to="web0" url=""/>
   <demo kind="ping" from="web0" to="resolver0" url=""/>

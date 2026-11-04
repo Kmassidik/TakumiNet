@@ -18,7 +18,7 @@
 <device id="ix0" kind="internet-exchange" model="Internet Exchange" x="60" y="280" name="IXMakassar" ip="" prefix="24"/>
 <port id="ix0" name="GigabitEthernet0/0" up="1" ip="10.9.100.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="1000"/>
 <port id="ix0" name="GigabitEthernet0/1" up="1" ip="10.9.200.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
-<device id="server0" kind="server" model="Server" x="60" y="440" name="KontenSulawesi" ip="10.9.200.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="60" y="440" name="SulawesiContent" ip="10.9.200.10" prefix="24"/>
 <net id="server0" gw="10.9.200.1" dns=""/>
 <link a="pop1" a_port="Gig0/0" b="pop2" b_port="Gig0/0" kind="eCopper"/>
 <link a="pop2" a_port="Gig0/1" b="pop3" b_port="Gig0/0" kind="eCopper"/>
@@ -75,15 +75,15 @@
 <routenet dev="ix0" net="10.9.51.0" prefix="24" area="0"/>
 <routenet dev="ix0" net="10.9.100.0" prefix="24" area="0"/>
 <routenet dev="ix0" net="10.9.200.0" prefix="24" area="0"/>
-<lesson id="les-l9-01-ring-cut" title="Close the provincial ring" level="9" minutes="15" goal="Any single backbone cable can break and PopPalu still reaches KontenSulawesi"/>
+<lesson id="les-l9-01-ring-cut" title="Close the provincial ring" level="9" minutes="15" goal="Any single backbone cable can break and PopPalu still reaches SulawesiContent"/>
 <step n="1" text="Five backbone POPs circle the province, but the cable between PopManado and PopMakassar is plugged in with both ports turned off. The ring is really a line."/>
 <step n="2" text="On PopManado, turn port GigabitEthernet0/1 on. Do the same for GigabitEthernet0/1 on PopMakassar. The ring closes and OSPF learns the second way around."/>
 <step n="3" text="Break the Makassar side in your head: if the PopMakassar to PopParepare cable is cut, traffic must travel the long way around the ring." check="c1"/>
 <step n="4" text="Now the middle: a cut between PopParepare and PopPalu must also heal." check="c2"/>
 <step n="5" text="And the cable you just brought up may break too." check="c3"/>
 <step n="6" text="The long way around is allowed to be slower, but the far POP must stay under 30 milliseconds from the content server." check="c4"/>
-<check id="c1" kind="outage" from="pop3" to="server0" url="pop1:GigabitEthernet0/0" expect="ok" label="PopPalu still reaches KontenSulawesi with the PopMakassar to PopParepare cable cut"/>
-<check id="c2" kind="outage" from="pop3" to="server0" url="pop2:GigabitEthernet0/1" expect="ok" label="PopPalu still reaches KontenSulawesi with the PopParepare to PopPalu cable cut"/>
-<check id="c3" kind="outage" from="pop3" to="server0" url="pop5:GigabitEthernet0/1" expect="ok" label="PopPalu still reaches KontenSulawesi with the PopManado to PopMakassar cable cut"/>
-<check id="c4" kind="latency" from="pop3" to="server0" url="" expect="30" label="PopPalu reaches KontenSulawesi in under 30 milliseconds"/>
+<check id="c1" kind="outage" from="pop3" to="server0" url="pop1:GigabitEthernet0/0" expect="ok" label="PopPalu still reaches SulawesiContent with the PopMakassar to PopParepare cable cut"/>
+<check id="c2" kind="outage" from="pop3" to="server0" url="pop2:GigabitEthernet0/1" expect="ok" label="PopPalu still reaches SulawesiContent with the PopParepare to PopPalu cable cut"/>
+<check id="c3" kind="outage" from="pop3" to="server0" url="pop5:GigabitEthernet0/1" expect="ok" label="PopPalu still reaches SulawesiContent with the PopManado to PopMakassar cable cut"/>
+<check id="c4" kind="latency" from="pop3" to="server0" url="" expect="30" label="PopPalu reaches SulawesiContent in under 30 milliseconds"/>
 </takumi>
