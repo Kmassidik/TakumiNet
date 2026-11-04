@@ -131,6 +131,8 @@
       <div class="canvas-wrap">
         <canvas id="topology" class="workspace-canvas" aria-label="Network workspace"></canvas>
         <ul id="device-list" class="sr-only" aria-label="Devices in this workspace"></ul>
+        <div id="link-toast" class="link-toast" role="status" hidden></div>
+        <div id="cable-chip" class="cable-chip" role="status" hidden></div>
       </div>
 
       <div class="modebar">
@@ -552,6 +554,7 @@
 <script src="/js/phone.js"></script>
 <script src="/js/engine.js"></script>
 <script src="/js/state.js"></script>
+<script src="/js/cable_feedback.js"></script>
 <script src="/js/capture_filter.js"></script>
 <script src="/js/flow.js"></script>
 <script src="/js/packet_details.js"></script>

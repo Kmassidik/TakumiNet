@@ -19,6 +19,7 @@ const PRECACHE_URLS = Object.freeze([
   '/engine.wasm',
 
   '/js/actions.js',
+  '/js/cable_feedback.js',
   '/js/capture_filter.js',
   '/js/capture_table.js',
   '/js/chrome.js',

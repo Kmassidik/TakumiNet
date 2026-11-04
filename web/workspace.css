@@ -111,7 +111,23 @@ html, body {
 .link-led[data-state="red"] { fill: var(--danger-hot); }
 .dev.cable-src rect.sel { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent); stroke-width: 1.6; }
 .canvas-wrap.cable-mode { cursor: crosshair; }
-.cable-tool.active { border-color: var(--accent); background: var(--accent-bg); }
+.cable-tool.active, .devices .dev-tile.cable-tool.active {
+  border-color: var(--brand-strong);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+.cable-chip {
+  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
+  padding: 5px 12px; border: 1px solid var(--brand-strong); border-radius: var(--r-xl);
+  background: var(--brand-soft); color: var(--ink-block);
+  font-size: 12px; white-space: nowrap; pointer-events: none; z-index: 5;
+}
+.link-toast {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%);
+  max-width: min(520px, 90%); padding: 7px 14px; border: 1px solid var(--danger-line);
+  border-radius: var(--r-l); background: var(--danger-bg); color: var(--danger-ink);
+  font-size: 12.5px; cursor: pointer; z-index: 6; box-shadow: 0 2px 8px var(--scrim);
+}
 .port {
   fill: var(--text-2);
   font-size: 9.5px;
