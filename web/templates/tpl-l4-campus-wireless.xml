@@ -1,0 +1,28 @@
+<takumi version="1">
+  <device id="wlc0" kind="wlc" model="WLC" x="520" y="80" name="CampusWLC" ip="172.16.0.5" prefix="24"/>
+  <device id="switch1" kind="switch" model="3650" x="520" y="220" name="CoreSwitch" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="300" y="340" name="FloorSwitch" ip="" prefix="24"/>
+  <device id="ap0" kind="ap" model="Access Point" x="120" y="460" name="AP-Lobby" ip="" prefix="24"/>
+  <device id="ap1" kind="ap" model="Access Point" x="300" y="460" name="AP-Floor1" ip="" prefix="24"/>
+  <device id="ap2" kind="ap" model="Access Point" x="480" y="460" name="AP-Floor2" ip="" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="120" y="580" name="StaffLaptop" ip="172.16.0.20" prefix="24"/>
+  <device id="phone0" kind="tablet" model="Tablet PC" x="300" y="580" name="GuestPhone" ip="172.16.0.21" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="740" y="340" name="FileServer" ip="172.16.0.2" prefix="24"/>
+  <link a="wlc0" a_port="Fa0" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/2" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/3" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="ap0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="ap1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/4" b="ap2" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/5" b="laptop0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/6" b="phone0" b_port="Fa0" kind="eCopper"/>
+  <page id="server0" body="Campus files"/>
+  <wlan wlc="wlc0" ssid="CampusStaff" psk="staff-pass-1" security="WPA2-PSK"/>
+  <wlan wlc="wlc0" ssid="CampusGuest" psk="" security="Open"/>
+  <guestnet wlc="wlc0" ssid="CampusGuest"/>
+  <capwap ap="ap0" wlc="wlc0"/>
+  <capwap ap="ap1" wlc="wlc0"/>
+  <capwap ap="ap2" wlc="wlc0"/>
+  <wifi client="laptop0" ssid="CampusStaff" wlc="wlc0"/>
+  <demo kind="ping" from="laptop0" to="server0" url=""/>
+</takumi>

@@ -1,0 +1,33 @@
+<takumi version="1">
+  <device id="cloud0" kind="cloud" model="Cloud" x="140" y="80" name="Internet" ip="" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC-PT" x="140" y="200" name="OutsidePC" ip="198.51.100.10" prefix="24"/>
+  <device id="asa0" kind="asa" model="ASA 5505" x="420" y="140" name="EdgeFirewall" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="640" y="80" name="DmzSwitch" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="840" y="80" name="PublicWeb" ip="203.0.113.10" prefix="24"/>
+  <device id="switch1" kind="switch" model="2960" x="640" y="320" name="InsideSwitch" ip="" prefix="24"/>
+  <device id="server1" kind="server" model="Server" x="840" y="320" name="FileServer" ip="172.16.10.2" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="640" y="440" name="StaffPC" ip="172.16.10.20" prefix="24"/>
+  <link a="cloud0" a_port="Fa0" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="cloud0" a_port="Fa1" b="asa0" b_port="Gig1/1" kind="eCopper"/>
+  <link a="asa0" a_port="Gig1/2" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="asa0" a_port="Gig1/3" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/2" b="server1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/3" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <port id="asa0" name="GigabitEthernet1/1" up="1" ip="198.51.100.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="asa0" name="GigabitEthernet1/2" up="1" ip="203.0.113.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="asa0" name="GigabitEthernet1/3" up="1" ip="172.16.10.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc1" gw="198.51.100.1" dns=""/>
+  <net id="server0" gw="203.0.113.1" dns=""/>
+  <net id="server1" gw="172.16.10.1" dns=""/>
+  <net id="pc0" gw="172.16.10.1" dns=""/>
+  <page id="server0" body="The public site"/>
+  <lesson id="les-l4-06-dmz" title="A safe shelf for the public server" level="4" minutes="20" goal="Outside opens the public page and the DMZ cannot reach the inside"/>
+  <step n="1" text="Three zones hang on EdgeFirewall: outside (Gig1/1), the DMZ shelf (Gig1/2) and inside (Gig1/3)."/>
+  <step n="2" text="From StaffPC ping PublicWeb, and from PublicWeb ping FileServer. Today both work, and the second one should not."/>
+  <step n="3" text="Make list 120: deny 203.0.113.0/24 to 172.16.10.0/24, then permit everything else. Apply it inbound on Gig1/2." check="c2"/>
+  <step n="4" text="Open http://203.0.113.10/ from OutsidePC. The public page must still answer." check="c1"/>
+  <check id="c1" kind="http" from="pc1" to="" url="http://203.0.113.10/" expect="PublicWeb" label="Outside opens the public page"/>
+  <check id="c2" kind="noreach" from="server0" to="server1" url="" expect="" label="The DMZ cannot reach the inside"/>
+  <check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="The inside still reaches the DMZ"/>
+</takumi>

@@ -61,6 +61,16 @@ impl Workspace {
     /// Private traffic does not cross the internet cloud without a tunnel between
     /// the routers on both sides of it.
     pub(super) fn tunnel_blocked(&self, src: &str, dst: &str) -> Option<String> {
+        let private = |id: &str| {
+            self.devices.iter().find(|d| d.id == id).and_then(|d| d.ip).is_some_and(|ip| {
+                let a = (ip >> 24) & 255;
+                let b = (ip >> 16) & 255;
+                a == 10 || (a == 192 && b == 168) || (a == 172 && (16..=31).contains(&b))
+            })
+        };
+        if !private(src) || !private(dst) {
+            return None;
+        }
         let path = self.path(src, dst)?;
         let kind = |id: &String| self.devices.iter().find(|d| &d.id == id).map(|d| d.kind.clone()).unwrap_or_default();
         let at = path.iter().position(|id| kind(id) == "cloud")?;
