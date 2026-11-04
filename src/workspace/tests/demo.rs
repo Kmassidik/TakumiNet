@@ -146,18 +146,20 @@ fn reset_sim_clears_the_capture_but_keeps_dhcp_leases() {
 }
 
 #[test]
-fn the_two_step_regency_demo_captures_both_pairs_in_order() {
+fn the_regency_demo_captures_every_step_in_template_order() {
     let (_, text) = TEMPLATES.iter().find(|(name, _)| *name == "tpl-l8-regency-radio").unwrap();
     let mut ws = Workspace::from_tnet(text).unwrap();
-    assert_eq!(ws.run_demo().unwrap(), 2);
-    let starts_at = |id: &str| {
-        ws.events.iter().position(|e| e.proto == "ICMP" && e.path.first().map(String::as_str) == Some(id))
-    };
-    let first = starts_at("pc0").expect("pc0 ping captured");
-    let second = starts_at("pc1").expect("pc1 ping captured");
-    assert!(first < second, "steps are captured in template order");
-    for index in [first, second] {
-        assert_eq!(ws.events[index].path.last().map(String::as_str), Some("server0"));
+    let steps = ws.demo.clone();
+    assert_eq!(ws.run_demo().unwrap(), steps.len());
+    let mut last_position = 0;
+    for step in steps.iter().filter(|step| step.kind == "ping") {
+        let position = ws.events.iter().position(|e| {
+            e.proto == "ICMP"
+                && e.path.first().map(String::as_str) == Some(step.from.as_str())
+                && e.path.last().map(String::as_str) == Some(step.to.as_str())
+        }).unwrap_or_else(|| panic!("{} -> {} not captured", step.from, step.to));
+        assert!(position >= last_position, "steps are captured in template order");
+        last_position = position;
     }
 }
 
