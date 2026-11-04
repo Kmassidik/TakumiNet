@@ -692,7 +692,7 @@ Owner: "dont forget SEO en/id, lets go build proper landing pages".
 
 Owner: "when I click router, printer and so on I see the same modal as the PC; audit and research what is missing; report by 18:30".
 
-Full report: **`AUDIT-device-windows.md`** (research only, nothing changed).
+Full report: **`AUDIT-device-windows.md`** (research only, nothing changed). Version 2 (same day) adds the owner's idea: each device opens the way the real device is used (a home router opens a web admin page reached from a PC's browser, a PC opens as Windows-style or Linux, a phone opens a Wi-Fi settings screen), with a first vertical slice, skins and recommendations. The first audit is Appendix A.
 
 Headline findings:
 - Every device kind opens the same four tabs and the same seven PC apps.
