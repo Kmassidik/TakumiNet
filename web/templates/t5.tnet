@@ -10,7 +10,7 @@
   <step n="1" text="Set Server0 to 192.168.1.100/24. Address PC0 as 192.168.1.10/24 and PC1 as 192.168.1.11/24."/>
   <step n="2" text="On Server0, add a DNS A record for www.takumi.lab pointing to 192.168.1.100."/>
   <step n="3" text="Set the DNS server on both PCs to 192.168.1.100."/>
-  <step n="4" text="Run nslookup www.takumi.lab on PC0, then open http://www.takumi.lab/ in its browser."/>
+  <step n="4" text="Run nslookup www.takumi.lab on PC0, then open http://www.takumi.lab/ in its browser." check="c1"/>
   <check id="c1" kind="http" from="pc0" to="" url="http://www.takumi.lab/" expect="Server0" label="PC0 opens the website by name"/>
   <check id="c2" kind="nslookup" from="pc0" to="www.takumi.lab" url="" expect="192.168.1.100" label="nslookup resolves www.takumi.lab to the server"/>
 </takuminet>

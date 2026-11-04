@@ -8,8 +8,8 @@
   <link a="switch0" a_port="Fa0/3" b="pc2" b_port="Fa0" kind="eCopper"/>
   <lesson id="t2" title="A star network with a switch" level="1" minutes="8" goal="All three PCs communicate and Switch0 learns their MAC addresses"/>
   <step n="1" text="Set PC0 to 192.168.1.10, PC1 to 192.168.1.11, and PC2 to 192.168.1.12, all with mask 255.255.255.0."/>
-  <step n="2" text="Ping PC1 from PC0, PC2 from PC1, and PC0 from PC2."/>
-  <step n="3" text="On Switch0, run show mac address-table and find one learned entry for each PC."/>
+  <step n="2" text="Ping PC1 from PC0, PC2 from PC1, and PC0 from PC2." check="c1"/>
+  <step n="3" text="On Switch0, run show mac address-table and find one learned entry for each PC." check="c4"/>
   <check id="c1" kind="ping" from="pc0" to="pc1" url="" expect="ok" label="PC0 reaches PC1"/>
   <check id="c2" kind="ping" from="pc1" to="pc2" url="" expect="ok" label="PC1 reaches PC2"/>
   <check id="c3" kind="ping" from="pc0" to="pc2" url="" expect="ok" label="PC0 reaches PC2"/>

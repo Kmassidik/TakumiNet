@@ -9,8 +9,8 @@
   <lesson id="t3" title="Home network with automatic addresses" level="1" minutes="10" goal="Laptop0 and PC0 lease addresses and Laptop0 opens Server0's web page"/>
   <step n="1" text="Set Server0 to 192.168.1.2 with mask 255.255.255.0 and gateway 192.168.1.1."/>
   <step n="2" text="On Server0, enable DHCP for 192.168.1.0/24 with gateway 192.168.1.1 and DNS server 192.168.1.2."/>
-  <step n="3" text="Select DHCP on Laptop0 and PC0, then renew both leases with ipconfig /renew."/>
-  <step n="4" text="Open http://192.168.1.2/ in Laptop0's browser."/>
+  <step n="3" text="Select DHCP on Laptop0 and PC0, then renew both leases with ipconfig /renew." check="c1"/>
+  <step n="4" text="Open http://192.168.1.2/ in Laptop0's browser." check="c3"/>
   <check id="c1" kind="lease" from="laptop0" to="" url="" expect="" label="Laptop0 has a DHCP lease"/>
   <check id="c2" kind="lease" from="pc0" to="" url="" expect="" label="PC0 has a DHCP lease"/>
   <check id="c3" kind="http" from="laptop0" to="" url="http://192.168.1.2/" expect="Server0" label="Laptop0 opens the home server page"/>

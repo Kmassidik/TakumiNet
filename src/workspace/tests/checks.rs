@@ -7,7 +7,7 @@ fn lesson(check: Check) -> Option<Lesson> {
         level: 1,
         minutes: 5,
         goal: "Use real network state".into(),
-        steps: vec![LessonStep { n: 1, text: "Run the command".into() }],
+        steps: vec![LessonStep { n: 1, text: "Run the command".into(), check: String::new() }],
         checks: vec![check],
     })
 }

@@ -116,6 +116,23 @@ function renderLessonResults(results) {
   renderLesson();
 }
 
+/* Each step is done when its check passes (check steps) or when the user ticks
+   it (manual steps). The first step not yet done is the current one; the rest
+   stay locked until it is done. */
+function stepStates(steps, results, completed) {
+  const passed = new Set(results.filter((r) => r.passed).map((r) => r.id));
+  let currentFound = false;
+  return steps.map((step) => {
+    const done = step.check ? passed.has(step.check) : completed.has(step.n);
+    if (done) return { n: step.n, state: 'done' };
+    if (!currentFound) {
+      currentFound = true;
+      return { n: step.n, state: 'current' };
+    }
+    return { n: step.n, state: 'locked' };
+  });
+}
+
 function renderLesson() {
   const panel = document.getElementById('lesson-panel');
   if (!panel) return;
@@ -129,20 +146,31 @@ function renderLesson() {
   document.getElementById('lesson-meta').textContent = `Level ${lesson.level} · ${lesson.minutes} min`;
   if (!lessonRunning && !lessonResults.length) setLessonMascot('wave');
 
-  const steps = (lesson.steps || []).map((step) => {
+  const states = stepStates(lesson.steps || [], lessonResults, completedSteps);
+  const steps = (lesson.steps || []).map((step, index) => {
+    const state = states[index].state;
     const item = document.createElement('li');
+    item.className = `lesson-step ${state}`;
     const label = document.createElement('label');
     const tick = document.createElement('input');
     tick.type = 'checkbox';
-    tick.checked = completedSteps.has(step.n);
+    tick.checked = state === 'done';
+    tick.disabled = state === 'locked' || Boolean(step.check);
     tick.onchange = () => {
       if (tick.checked) completedSteps.add(step.n);
       else completedSteps.delete(step.n);
+      renderLesson();
     };
     label.appendChild(tick);
     const text = document.createElement('span');
-    text.textContent = step.text;
+    text.textContent = state === 'locked' ? 'Locked: finish the step above first' : step.text;
     label.appendChild(text);
+    if (step.check && state !== 'locked') {
+      const proof = document.createElement('small');
+      const check = (lesson.checks || []).find((c) => c.id === step.check);
+      proof.textContent = `Done when: ${check ? check.label : step.check}`;
+      label.appendChild(proof);
+    }
     item.appendChild(label);
     return item;
   });

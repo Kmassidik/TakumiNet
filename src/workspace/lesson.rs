@@ -20,6 +20,14 @@ impl Workspace {
                 self.lesson.as_mut()?.steps.push(LessonStep {
                     n: n.parse().ok()?,
                     text: unescape_field(text),
+                    check: String::new(),
+                });
+            }
+            ["step", n, text, check] => {
+                self.lesson.as_mut()?.steps.push(LessonStep {
+                    n: n.parse().ok()?,
+                    text: unescape_field(text),
+                    check: unescape_field(check),
                 });
             }
             ["check", id, kind, from, to, url, expect, label] => {
@@ -55,7 +63,7 @@ impl Workspace {
             escape_field(&lesson.goal),
         ));
         for step in &lesson.steps {
-            out.push_str(&format!("step\t{}\t{}\n", step.n, escape_field(&step.text)));
+            out.push_str(&format!("step\t{}\t{}\t{}\n", step.n, escape_field(&step.text), escape_field(&step.check)));
         }
         for check in &lesson.checks {
             out.push_str(&format!(
@@ -82,7 +90,7 @@ impl Workspace {
         ));
         for (index, step) in lesson.steps.iter().enumerate() {
             if index > 0 { out.push(','); }
-            out.push_str(&format!("{{\"n\":{},\"text\":{}}}", step.n, s(&step.text)));
+            out.push_str(&format!("{{\"n\":{},\"text\":{},\"check\":{}}}", step.n, s(&step.text), s(&step.check)));
         }
         out.push_str("],\"checks\":[");
         for (index, check) in lesson.checks.iter().enumerate() {

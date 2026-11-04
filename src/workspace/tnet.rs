@@ -11,7 +11,7 @@ const RECORDS: &[(&str, &[&str])] = &[
     ("net", &["id", "gw", "dns"]),
     ("route", &["id", "net", "prefix", "via", "admin_distance"]),
     ("lesson", &["id", "title", "level", "minutes", "goal"]),
-    ("step", &["n", "text"]),
+    ("step", &["n", "text", "check"]),
     ("check", &["id", "kind", "from", "to", "url", "expect", "label"]),
     ("port", &["id", "name", "up", "ip", "prefix", "vlan", "trunk", "dot1q", "bandwidth_kbps", "delay_us"]),
     ("vlan", &["id", "vlan", "name"]),

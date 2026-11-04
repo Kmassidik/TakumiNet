@@ -18,7 +18,7 @@
   <step n="1" text="Address PC0 as 192.168.1.10/24 and PC1 as 192.168.1.11/24; set both gateways to 192.168.1.1."/>
   <step n="2" text="Address PC2 as 192.168.2.10/24 and PC3 as 192.168.2.11/24; set both gateways to 192.168.2.1."/>
   <step n="3" text="On Router0, set GigabitEthernet0/0 to 192.168.1.1/24 and GigabitEthernet0/1 to 192.168.2.1/24."/>
-  <step n="4" text="Run no shutdown on both router interfaces, then ping 192.168.2.11 from PC0 and inspect the connected routes."/>
+  <step n="4" text="Run no shutdown on both router interfaces, then ping 192.168.2.11 from PC0 and inspect the connected routes." check="c1"/>
   <check id="c1" kind="ping" from="pc0" to="pc3" url="" expect="ok" label="PC0 reaches PC3 through Router0"/>
   <check id="c2" kind="ttl" from="pc0" to="pc3" url="" expect="127" label="The router decrements the delivered TTL to 127"/>
   <check id="c3" kind="route" from="router0" to="" url="" expect="192.168.1.0/24" label="Router0 has the left connected prefix"/>

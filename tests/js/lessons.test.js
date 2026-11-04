@@ -131,3 +131,19 @@ test('check action refreshes captures and uses success and failure mascot sounds
   assert.deepEqual(failure.sounds, ['errorMsg']);
   assert.equal(failure.elements['lesson-hint'].textContent, 'Set a gateway');
 });
+
+test('steps unlock one at a time: a check-backed step is done when its check passes', () => {
+  const { context } = harness();
+  const steps = [
+    { n: 1, text: 'Set PC0', check: '' },
+    { n: 2, text: 'Ping PC1', check: 'c1' },
+    { n: 3, text: 'Read the table', check: '' },
+  ];
+  const states = (results, completed) =>
+    vm.runInContext('stepStates', context)(steps, results, new Set(completed)).map((s) => s.state);
+  assert.deepEqual(states([], []), ['current', 'locked', 'locked']);
+  assert.deepEqual(states([], [1]), ['done', 'current', 'locked']);
+  assert.deepEqual(states([{ id: 'c1', passed: true }], []), ['current', 'done', 'locked']);
+  assert.deepEqual(states([{ id: 'c1', passed: false }], [1]), ['done', 'current', 'locked']);
+  assert.deepEqual(states([{ id: 'c1', passed: true }], [1]), ['done', 'done', 'current']);
+});

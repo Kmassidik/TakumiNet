@@ -352,6 +352,8 @@ pub struct Lesson {
 pub struct LessonStep {
     pub n: u16,
     pub text: String,
+    /// Id of the check that proves this step; empty means the user ticks it by hand.
+    pub check: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

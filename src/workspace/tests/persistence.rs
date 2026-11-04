@@ -271,8 +271,8 @@ fn l15_loading_a_template_twice_is_deterministic() {
         minutes: 15,
         goal: "Line one\nLine two 🦀".into(),
         steps: vec![
-            LessonStep { n: 2, text: "Second & final".into() },
-            LessonStep { n: 1, text: "First <step>".into() },
+            LessonStep { n: 2, text: "Second & final".into(), check: String::new() },
+            LessonStep { n: 1, text: "First <step>".into(), check: String::new() },
         ],
         checks: vec![Check {
             id: "ping-1".into(),
@@ -308,4 +308,34 @@ fn lesson_records_validate_uniqueness_kinds_and_device_references() {
     let problems = Workspace::from_tnet(missing).err().expect("unknown devices rejected");
     assert!(problems.iter().any(|p| p.attribute == "from"));
     assert!(problems.iter().any(|p| p.attribute == "to"));
+}
+
+#[test]
+fn lesson_step_names_its_proving_check_and_keeps_it_through_tnet() {
+    let mut ws = Workspace::new();
+    ws.lesson = Some(Lesson {
+        id: "unlock".into(),
+        title: "Unlock by check".into(),
+        level: 1,
+        minutes: 3,
+        goal: "Ping works".into(),
+        steps: vec![
+            LessonStep { n: 1, text: "Address PC0".into(), check: String::new() },
+            LessonStep { n: 2, text: "Ping PC1".into(), check: "ping-1".into() },
+        ],
+        checks: vec![Check {
+            id: "ping-1".into(),
+            kind: "ping".into(),
+            from: "pc0".into(),
+            to: "pc1".into(),
+            url: String::new(),
+            expect: "ok".into(),
+            label: "PC0 reaches PC1".into(),
+        }],
+    });
+    let loaded = Workspace::from_tnet(&ws.to_tnet()).expect("round trip");
+    let steps = &loaded.lesson.as_ref().unwrap().steps;
+    assert_eq!(steps[0].check, "");
+    assert_eq!(steps[1].check, "ping-1");
+    assert!(loaded.json().contains("\"check\":\"ping-1\""));
 }
