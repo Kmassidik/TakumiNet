@@ -560,7 +560,7 @@ html, body {
 .ip-split input:first-child { width: 250px !important; }
 
 /* ---------- device window ---------- */
-.devwin { max-width: 760px; padding: 0; overflow: hidden; background: var(--window); }
+.devwin { max-width: 760px; padding: 0; overflow: hidden; display: flex; flex-direction: column; background: var(--window); }
 .devwin-title {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 6px; background: var(--titlebar); border-bottom: 1px solid var(--line-win);
@@ -581,7 +581,7 @@ html, body {
   border-radius: var(--r-s) 3px 0 0;
 }
 .devwin-tabs button.active { background: var(--white); font-weight: 600; }
-.devwin-body { background: var(--white); border-top: 1px solid var(--line-win); padding: 0; }
+.devwin-body { flex: 1 1 auto; min-height: 0; overflow: auto; background: var(--white); border-top: 1px solid var(--line-win); padding: 0; }
 .dw-pane { min-height: 380px; }
 .dw-top { display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-2); border-top: 1px solid var(--line-soft); }
 
@@ -654,12 +654,7 @@ html, body {
   font: inherit;
 }
 
-/* The IP dialog opens from a device window, so it must paint above it. */
-#ip-dialog { z-index: 95; }
-#cmd-window, #term-window { z-index: 94; }
-
 /* Simulated HTTP browser: URL bar plus a rendered page surface. */
-#web-dialog { z-index: 95; }
 .webwin { max-width: 720px; padding: 0; }
 .web-bar {
   display: flex; align-items: center; gap: 6px; padding: 8px 12px;
@@ -700,10 +695,6 @@ html, body {
 .termwin #term-prompt { color: var(--accent-light); white-space: pre; }
 .termwin .cmd-line input:disabled { color: var(--faint); }
 
-/* Text editor, traffic generator and MIB browser open from a device window,
-   so they paint above it like the other desktop apps. */
-#editor-dialog, #traffic-dialog, #mib-dialog { z-index: 95; }
-
 .editorwin, .trafficwin, .mibwin { max-width: 720px; padding: 0; }
 .editor-bar {
   display: flex; align-items: center; gap: 10px; padding: 8px 12px;
@@ -719,7 +710,6 @@ html, body {
 }
 
 /* Email client: account settings, the server inbox and the compose form. */
-#mail-dialog { z-index: 95; }
 .mailwin { max-width: 560px; padding: 0; }
 .mail-body {
   background: var(--white); padding: 0 12px 12px; max-height: 64vh; overflow: auto;

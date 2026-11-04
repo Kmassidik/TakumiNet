@@ -28,6 +28,7 @@ function openIpDialog(d) {
 
   const dialog = $('ip-dialog');
   dialog.hidden = false;
+  bringToFront(dialog);
 
   const setV4Mode = (dhcp) => {
     $('ip-dhcp').checked = dhcp;

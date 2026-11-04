@@ -188,3 +188,16 @@ test("unsaved: every way of starting from a clean workspace marks it clean, and 
   expect(sources.find((s) => s.name === "lessons.js")!.text).toContain("markClean();");
   expect(sources.find((s) => s.name === "boot.js")!.text).toContain("beforeunload");
 });
+
+test("windows: stacking comes from bringToFront, not from fixed z-index numbers", () => {
+  const css = readFileSync(join(web, "workspace.css"), "utf8");
+  expect(css).not.toMatch(/#(ip|web|editor|traffic|mib|mail)-dialog[^{]*\{\s*z-index/);
+  expect(css).not.toMatch(/#cmd-window, #term-window \{ z-index/);
+  expect(sources.find((s) => s.name === "ip_dialog.js")!.text).toContain("bringToFront(dialog)");
+});
+
+test("windows: the device window body scrolls instead of clipping tall tabs", () => {
+  const css = readFileSync(join(web, "workspace.css"), "utf8");
+  expect(css).toMatch(/\.devwin \{[^}]*display: flex; flex-direction: column/);
+  expect(css).toMatch(/\.devwin-body \{[^}]*min-height: 0; overflow: auto/);
+});
