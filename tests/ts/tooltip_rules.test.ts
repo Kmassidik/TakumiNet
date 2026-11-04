@@ -44,6 +44,7 @@ test("a label that only repeats the button's own text is not shown", () => {
 
 function rig() {
   let clock = 0;
+  const gone = new Set<unknown>();
   const timers: Array<{ fn: () => void; at: number; id: number; live: boolean }> = [];
   const log: string[] = [];
   const deps: TipDeps = {
@@ -52,12 +53,13 @@ function rig() {
     setTimer: (fn, ms) => { const t = { fn, at: clock + ms, id: timers.length, live: true }; timers.push(t); return t.id; },
     clearTimer: (h) => { timers[h as number]!.live = false; },
     now: () => clock,
+    connected: (a) => !gone.has(a),
   };
   const advance = (ms: number) => {
     clock += ms;
     for (const t of timers) if (t.live && t.at <= clock) { t.live = false; t.fn(); }
   };
-  return { c: new TipController(deps), log, advance };
+  return { c: new TipController(deps), log, advance, gone };
 }
 
 test("the first label waits, and does not appear if the pointer leaves first", () => {
@@ -113,4 +115,31 @@ test("an empty label shows nothing, and the same button is not shown twice", () 
   advance(SHOW_DELAY_MS);
   c.enter("new", "New");
   expect(log.filter((l) => l.startsWith("show")).length).toBe(1);
+});
+
+test("a label hides when its button is replaced while it shows", () => {
+  const { c, log, advance, gone } = rig();
+  c.enter("save", "Save");
+  advance(SHOW_DELAY_MS);
+  gone.add("save");
+  c.check();
+  expect(log.at(-1)).toBe("hide");
+  expect(c.visible).toBe(false);
+  c.check(); // checking again changes nothing
+  expect(log.filter((l) => l === "hide").length).toBe(1);
+});
+
+test("a button replaced while the label is still waiting never shows one", () => {
+  const { c, log, advance, gone } = rig();
+  c.enter("save", "Save");
+  gone.add("save");
+  advance(SHOW_DELAY_MS + 100);
+  expect(log).toEqual([]);
+  expect(c.visible).toBe(false);
+});
+
+test("checking with nothing shown does nothing", () => {
+  const { c, log } = rig();
+  c.check();
+  expect(log).toEqual([]);
 });

@@ -60,6 +60,8 @@ export interface TipDeps {
   setTimer(fn: () => void, ms: number): unknown;
   clearTimer(handle: unknown): void;
   now(): number;
+  /* Is the button still in the page? A redrawn toolbar replaces its buttons. */
+  connected(anchor: unknown): boolean;
 }
 
 export const SHOW_DELAY_MS = 300;
@@ -85,11 +87,17 @@ export class TipController {
     const quick = this.visible || this.deps.now() - this.lastHidden < GRACE_MS;
     const run = () => {
       this.pending = null;
+      if (!this.deps.connected(anchor)) return; // the button was replaced while we waited
       this.shownFor = anchor;
       this.deps.show(anchor, text, shortcut);
     };
     if (quick) run();
     else this.pending = this.deps.setTimer(run, SHOW_DELAY_MS);
+  }
+
+  /* Called when the page changes under a visible label. */
+  check(): void {
+    if (this.shownFor !== null && !this.deps.connected(this.shownFor)) this.leave();
   }
 
   leave(): void {

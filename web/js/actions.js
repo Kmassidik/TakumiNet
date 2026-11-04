@@ -52,6 +52,7 @@ async function importTnetFile(file) {
     if (!res.ok || response.error) throw new Error(importProblemMessage(response));
     setData(response);
     currentName = file.name.replace(/\.(xml|tnet)$/i, '');
+    markClean();
     currentTemplate = null;
     simCursor = -1;
     if (typeof resetLessonState === 'function') resetLessonState();
@@ -74,6 +75,7 @@ const ACTIONS = {
     const r = await api('/api/new');
     if (!r.error) {
       currentName = 'untitled';
+      markClean();
       currentTemplate = null;
       simCursor = -1;
       selectedLink = null;
@@ -93,6 +95,7 @@ const ACTIONS = {
     if (await confirmOpenAnyway(r)) r = await api('/api/load', { name, openAnyway: 'true' });
     if (!r.error) {
       currentName = name;
+      markClean();
       currentTemplate = null;
       simCursor = -1;
       if (typeof resetLessonState === 'function') resetLessonState();
@@ -106,7 +109,7 @@ const ACTIONS = {
     const name = await askText('Save topology as', currentName);
     if (!name) return;
     const r = await api('/api/save', { name });
-    if (!r.error) { currentName = name; status(`Saved ${name}.xml`); sfx('newScenarioButton'); }
+    if (!r.error) { currentName = name; markClean(); status(`Saved ${name}.xml`); sfx('newScenarioButton'); }
   },
   async import() {
     const input = document.createElement('input');

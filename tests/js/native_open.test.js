@@ -15,6 +15,7 @@ test('open lists located problems and retries only after confirmation', async ()
   const confirmations = [];
   const context = vm.createContext({
     console,
+    markClean() {},
     async getJson() { return { names: ['broken'] }; },
     async askText() { return 'broken'; },
     async askConfirm(message) { confirmations.push(message); return true; },

@@ -1170,6 +1170,8 @@
       const quick = this.visible || this.deps.now() - this.lastHidden < GRACE_MS;
       const run = () => {
         this.pending = null;
+        if (!this.deps.connected(anchor))
+          return;
         this.shownFor = anchor;
         this.deps.show(anchor, text, shortcut);
       };
@@ -1177,6 +1179,10 @@
         run();
       else
         this.pending = this.deps.setTimer(run, SHOW_DELAY_MS);
+    }
+    check() {
+      if (this.shownFor !== null && !this.deps.connected(this.shownFor))
+        this.leave();
     }
     leave() {
       this.cancel();
@@ -1204,6 +1210,7 @@
     tip.hidden = true;
     doc.body.appendChild(tip);
     let current = null;
+    const watcher = new MutationObserver(() => controller.check());
     const controller = new TipController({
       show(anchor, text, shortcut) {
         const el = anchor;
@@ -1222,15 +1229,18 @@
         tip.style.top = `${Math.round(place.y)}px`;
         current = el;
         el.setAttribute("aria-describedby", "tooltip");
+        watcher.observe(doc.body, { childList: true, subtree: true });
       },
       hide() {
         tip.hidden = true;
+        watcher.disconnect();
         current?.removeAttribute("aria-describedby");
         current = null;
       },
       setTimer: (fn, ms) => window.setTimeout(fn, ms),
       clearTimer: (h) => window.clearTimeout(h),
-      now: () => performance.now()
+      now: () => performance.now(),
+      connected: (anchor) => anchor.isConnected
     });
     const anchorOf = (target) => {
       const el = target?.closest?.("[title], [data-tip]") ?? null;
@@ -1273,6 +1283,26 @@
     }, true);
     doc.addEventListener("scroll", () => controller.leave(), true);
     window.addEventListener("blur", () => controller.leave());
+  }
+
+  // web/ts/ui/unsaved.ts
+  function fingerprint(ws) {
+    if (!ws)
+      return "";
+    const pick = (list, keys) => (list ?? []).map((item) => keys.map((key) => item[key] ?? null));
+    return JSON.stringify({
+      d: pick(ws.devices, ["id", "name", "model", "x", "y", "ip", "prefix", "gw"]),
+      l: pick(ws.links, ["a", "aPort", "b", "bPort", "kind"]),
+      n: pick(ws.notes, ["id", "x", "y", "color", "text"])
+    });
+  }
+  function isEmpty(ws) {
+    return !ws || (ws.devices?.length ?? 0) === 0 && (ws.notes?.length ?? 0) === 0;
+  }
+  function hasUnsaved(ws, clean) {
+    if (clean === null || isEmpty(ws))
+      return false;
+    return fingerprint(ws) !== clean;
   }
 
   // web/ts/ui/protocol_groups.ts
@@ -1579,6 +1609,8 @@
   globalThis.renderDeviceList = (list, devices, onSelect) => renderDeviceList(doc, list, devices, onSelect);
   globalThis.WorkspaceCanvas = WorkspaceCanvas;
   globalThis.wireMenus = () => wireMenuBar(document);
+  globalThis.workspaceFingerprint = fingerprint;
+  globalThis.workspaceHasUnsaved = hasUnsaved;
   globalThis.paletteTiles = tilesFor;
   globalThis.paletteKeepsCableMode = keepsCableMode;
   globalThis.groupProtocols = groupProtocols;

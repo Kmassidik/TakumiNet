@@ -58,3 +58,50 @@ test('every page load starts from a blank workspace, before the workspace is rea
   assert.equal(calls[0], '/api/new');
   assert.equal(calls[1], '/api/workspace');
 });
+
+function unloadHarness(unsaved) {
+  const handlers = {};
+  const context = vm.createContext({
+    data: null,
+    api: async () => ({}),
+    getJson: async () => ({ tabs: { physical: 'P' }, devices: [], links: [] }),
+    status() {}, sfx() {}, renderGallery() {}, renderAll() {}, renderPalette() {}, renderFilters() {},
+    renderToolbar() {}, initWorkspaceCanvas() {}, wireMenus() {}, wireActions() {}, wireKeyboard() {},
+    wireCanvasDrop() {}, wireWorkspaceCanvas() {}, showGallery: async () => {},
+    document: anyElement(),
+    workspaceCanvas: { fit() {} },
+    window: { addEventListener: (type, fn) => { handlers[type] = fn; } },
+    markClean() {},
+    hasUnsavedWork: () => unsaved,
+    setView() {}, makeWindowMovable() {}, renderTopology() {}, renderRunLog() {}, renderEvents() {}, renderLesson() {}, PRIMARY: [], SECONDARY: [],
+  });
+  vm.runInContext(source, context);
+  return { context, handlers };
+}
+
+test('leaving the page with unsaved work asks the browser to confirm', async () => {
+  const { context, handlers } = unloadHarness(true);
+  await context.boot().catch(() => {});
+  let prevented = false;
+  const event = { preventDefault() { prevented = true; }, returnValue: undefined };
+  handlers.beforeunload(event);
+  assert.equal(prevented, true);
+  assert.equal(event.returnValue, '');
+});
+
+test('leaving a page with nothing unsaved is silent', async () => {
+  const { context, handlers } = unloadHarness(false);
+  await context.boot().catch(() => {});
+  let prevented = false;
+  handlers.beforeunload({ preventDefault() { prevented = true; } });
+  assert.equal(prevented, false);
+});
+
+test('a fresh load is marked clean before anything else can change', async () => {
+  const order = [];
+  const { context } = unloadHarness(false);
+  context.markClean = () => order.push('clean');
+  context.renderAll = () => order.push('render');
+  await context.boot().catch(() => {});
+  assert.equal(order[0], 'clean');
+});

@@ -466,7 +466,7 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
   - [ ] F18.2 Owner decides: should the second Escape (leaving the bar) exist, or should one Escape close the menu and return the keyboard at once.
 - **Tests:** behaviour (dialog plus menu: first Escape closes the menu, next closes the dialog), error (no dialog: unchanged), Bend (Escape count to close everything equals the number of open layers), slop guard none.
 
-### F19. A hover label can stay on screen after its button is replaced (open, reproduced)
+### F19. A hover label can stay on screen after its button is replaced (done)
 
 - **What you see:** the label for Save stays visible after the toolbar is redrawn under the pointer, until the pointer moves onto something else.
 - **Measured in Chrome:** after re-rendering the toolbar while the Save label was showing, the tooltip element was still visible.
@@ -475,7 +475,7 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
   - [ ] F19.1 Hide the label when its button is no longer in the page (check before each show and when the toolbar redraws).
 - **Tests:** behaviour (remove the button while shown: label hides), error (hide twice is harmless), Bend (none needed), slop guard none.
 
-### F20. Everything built is wiped on refresh (open, a decision, not a defect in the code)
+### F20. Everything built is wiped on refresh (done: browser leave warning only when there is unsaved work, no restore prompt)
 
 - **What you see:** any work on the canvas disappears when you refresh. This was a requested behaviour (blank workspace every load), but it is easy to lose work with a stray F5.
 - **Where:** `web/js/boot.js` calls `/api/new` first.
@@ -491,6 +491,12 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
 - The canvas drawing colours in `web/ts/canvas/*.ts` are still raw hex values, not tokens (F1 left-over).
 - All layout checks are done by reading CSS text, not by a real browser test. A repeatable browser test (for F14 and similar) needs a tool such as Playwright installed. I will not install it without asking.
 - Two exceptions in the browser console at 8:44 and 8:51 (`openTemplate ... reading 'title'`) came from the old unguarded code. The current code is guarded and no new errors appeared.
+
+## Round 2 build result (2026-11-04)
+
+F14 to F20 are all fixed and pushed. Decisions taken: F16 leaves cable mode on a category change and on Escape (no chip); F18 keeps the two-step Escape only when no dialog is open (a dialog now takes the keys at once); F20 uses the browser's own leave warning only when the canvas has unsaved changes, with no restore prompt.
+
+Checked in Chrome after each fix: buffer matches box after every panel change (F14), double Play sends once and Pause works (F15), cable mode off after changing category or Escape (F16), Alt+click leaves the bar alone (F17), one Escape closes a dialog (F18), the label hides when its button is redrawn (F19), the leave warning fires only after an edit (F20).
 
 ## Build order proposed for Round 2
 

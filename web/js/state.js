@@ -123,6 +123,15 @@ function syncSelectionClasses() {
 
 function selectionCount() { return [...selection].length; }
 
+/* The workspace as it was when last blank, opened, imported or saved. */
+let cleanPrint = null;
+function markClean() {
+  cleanPrint = typeof workspaceFingerprint === 'function' ? workspaceFingerprint(data) : null;
+}
+function hasUnsavedWork() {
+  return typeof workspaceHasUnsaved === 'function' && workspaceHasUnsaved(data, cleanPrint);
+}
+
 function setData(json) {
   data = json;
   const known = new Set(data.devices.map((d) => d.id));

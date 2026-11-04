@@ -11,7 +11,13 @@ async function boot() {
     wireActions();
     return;
   }
+  if (typeof markClean === 'function') markClean(); // a fresh load is blank: nothing to lose yet
   document.getElementById('physical-tab').textContent = data.tabs.physical;
+  window.addEventListener('beforeunload', (event) => {
+    if (typeof hasUnsavedWork !== 'function' || !hasUnsavedWork()) return;
+    event.preventDefault();
+    event.returnValue = ''; // the browser shows its own "leave site?" question
+  });
   initWorkspaceCanvas();
   renderToolbar(document.getElementById('toolbar-primary'), PRIMARY);
   renderToolbar(document.getElementById('toolbar-secondary'), SECONDARY);

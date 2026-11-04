@@ -12,6 +12,8 @@ export function wireTooltips(doc: Document): void {
   tip.hidden = true;
   doc.body.appendChild(tip);
   let current: HTMLElement | null = null;
+  // While a label shows, watch the page: if its button is replaced, the label goes too.
+  const watcher = new MutationObserver(() => controller.check());
 
   const controller = new TipController({
     show(anchor, text, shortcut) {
@@ -31,15 +33,18 @@ export function wireTooltips(doc: Document): void {
       tip.style.top = `${Math.round(place.y)}px`;
       current = el;
       el.setAttribute("aria-describedby", "tooltip");
+      watcher.observe(doc.body, { childList: true, subtree: true });
     },
     hide() {
       tip.hidden = true;
+      watcher.disconnect();
       current?.removeAttribute("aria-describedby");
       current = null;
     },
     setTimer: (fn, ms) => window.setTimeout(fn, ms),
     clearTimer: (h) => window.clearTimeout(h as number),
     now: () => performance.now(),
+    connected: (anchor) => (anchor as HTMLElement).isConnected,
   });
 
   const anchorOf = (target: EventTarget | null): HTMLElement | null => {

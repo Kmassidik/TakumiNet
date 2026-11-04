@@ -175,3 +175,16 @@ test("menus: the menu bar lets go of the keyboard while a dialog is open", () =>
   expect(bar).toContain('.overlay:not([hidden])');
   expect(bar).toContain("new AltTracker()");
 });
+
+test("tooltips: the hover label watches for its button being replaced", () => {
+  const tip = readFileSync(join(import.meta.dir, "../../web/ts/ui/tooltip.ts"), "utf8");
+  expect(tip).toContain("MutationObserver");
+  expect(tip).toContain("isConnected");
+});
+
+test("unsaved: every way of starting from a clean workspace marks it clean, and the page warns before leaving", () => {
+  const actions = sources.find((s) => s.name === "actions.js")!.text;
+  expect(actions.match(/markClean\(\);/g)?.length).toBeGreaterThanOrEqual(4); // import, new, open, save
+  expect(sources.find((s) => s.name === "lessons.js")!.text).toContain("markClean();");
+  expect(sources.find((s) => s.name === "boot.js")!.text).toContain("beforeunload");
+});

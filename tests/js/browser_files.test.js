@@ -29,7 +29,7 @@ function actionsHarness() {
     sfx() {},
     setLessonMascot(name) { mascots.push(name); },
     setData(value) { changes.push(value); },
-    resetLessonState() {}, renderLesson() {}, hideGallery() {},
+    resetLessonState() {}, renderLesson() {}, hideGallery() {}, markClean() {},
     currentTemplate: null, currentName: 'lab1', simCursor: -1,
     async fetch(...args) { fetches.push(args); throw new Error('unexpected fetch'); },
   });

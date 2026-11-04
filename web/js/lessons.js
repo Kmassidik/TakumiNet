@@ -257,6 +257,7 @@ async function openTemplate(id, resetting = false) {
   if (response.error) return response;
   currentTemplate = id;
   currentName = id;
+  markClean();
   simCursor = -1;
   selectedLink = null;
   setSelection([]);
