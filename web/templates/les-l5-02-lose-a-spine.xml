@@ -1,0 +1,53 @@
+<takumi version="1">
+  <device id="s1" kind="switch-l3" model="Switch L3" x="320" y="60" name="Spine1" ip="" prefix="24"/>
+  <device id="s2" kind="switch-l3" model="Switch L3" x="620" y="60" name="Spine2" ip="" prefix="24"/>
+  <device id="l1" kind="switch-l3" model="Switch L3" x="320" y="240" name="LeafA" ip="" prefix="24"/>
+  <device id="l2" kind="switch-l3" model="Switch L3" x="620" y="240" name="LeafB" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="220" y="400" name="RackA-1" ip="10.100.1.11" prefix="24"/>
+  <device id="server1" kind="server" model="Server" x="420" y="400" name="RackA-2" ip="10.100.1.12" prefix="24"/>
+  <device id="server2" kind="server" model="Server" x="520" y="400" name="RackB-1" ip="10.100.2.11" prefix="24"/>
+  <device id="server3" kind="server" model="Server" x="720" y="400" name="RackB-2" ip="10.100.2.12" prefix="24"/>
+  <link a="l1" a_port="Gig0/1" b="s1" b_port="Gig0/1" kind="eCopper"/>
+  <link a="l1" a_port="Gig0/2" b="s2" b_port="Gig0/1" kind="eCopper"/>
+  <link a="l2" a_port="Gig0/1" b="s1" b_port="Gig0/2" kind="eCopper"/>
+  <link a="l2" a_port="Gig0/2" b="s2" b_port="Gig0/2" kind="eCopper"/>
+  <link a="l1" a_port="Gig0/3" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="l1" a_port="Gig0/4" b="server1" b_port="Fa0" kind="eCopper"/>
+  <link a="l2" a_port="Gig0/3" b="server2" b_port="Fa0" kind="eCopper"/>
+  <link a="l2" a_port="Gig0/4" b="server3" b_port="Fa0" kind="eCopper"/>
+  <port id="l1" name="GigabitEthernet0/1" up="1" ip="10.200.11.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="l1" name="GigabitEthernet0/2" up="1" ip="10.200.12.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="l1" name="GigabitEthernet0/3" up="1" ip="10.100.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="l1" name="GigabitEthernet0/4" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="l2" name="GigabitEthernet0/1" up="1" ip="10.200.21.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="l2" name="GigabitEthernet0/2" up="1" ip="10.200.22.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="l2" name="GigabitEthernet0/3" up="1" ip="10.100.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="s1" name="GigabitEthernet0/1" up="1" ip="10.200.11.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="s1" name="GigabitEthernet0/2" up="1" ip="10.200.21.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="s2" name="GigabitEthernet0/1" up="1" ip="10.200.12.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="s2" name="GigabitEthernet0/2" up="1" ip="10.200.22.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="server0" gw="10.100.1.1" dns=""/>
+  <net id="server1" gw="10.100.1.1" dns=""/>
+  <net id="server2" gw="10.100.2.1" dns=""/>
+  <net id="server3" gw="10.100.2.1" dns=""/>
+  <routing dev="l1" proto="ospf" process_id="1"/>
+  <routenet dev="l1" net="10.100.1.0" prefix="24" area="0"/>
+  <routenet dev="l1" net="10.200.11.0" prefix="30" area="0"/>
+  <routenet dev="l1" net="10.200.12.0" prefix="30" area="0"/>
+  <routing dev="l2" proto="ospf" process_id="1"/>
+  <routenet dev="l2" net="10.100.2.0" prefix="24" area="0"/>
+  <routenet dev="l2" net="10.200.21.0" prefix="30" area="0"/>
+  <routenet dev="l2" net="10.200.22.0" prefix="30" area="0"/>
+  <routing dev="s1" proto="ospf" process_id="1"/>
+  <routenet dev="s1" net="10.200.11.0" prefix="30" area="0"/>
+  <routenet dev="s1" net="10.200.21.0" prefix="30" area="0"/>
+  <routing dev="s2" proto="ospf" process_id="1"/>
+  <routenet dev="s2" net="10.200.12.0" prefix="30" area="0"/>
+  <routenet dev="s2" net="10.200.22.0" prefix="30" area="0"/>
+  <lesson id="les-l5-02-lose-a-spine" title="Lose a spine and keep running" level="5" minutes="12" goal="Cross-rack traffic survives the loss of either spine"/>
+  <step n="1" text="The fabric runs. Ping RackB-1 from RackA-1 and note the spine the capture crossed."/>
+  <step n="2" text="Think about Spine1 going dark: every leaf still has Spine2." check="c1"/>
+  <step n="3" text="Think about Spine2 going dark instead." check="c2"/>
+  <check id="c1" kind="outage" from="server0" to="server2" url="s1:GigabitEthernet0/1" expect="ok" label="Traffic survives losing Spine1"/>
+  <check id="c2" kind="outage" from="server0" to="server2" url="s2:GigabitEthernet0/1" expect="ok" label="Traffic survives losing Spine2"/>
+</takumi>

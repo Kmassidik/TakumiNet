@@ -46,7 +46,8 @@ T = {
             ("Hotspot at the warung", "Visitors join an open hotspot and pay with vouchers"),
             ("Campus wireless", "One controller, three access points, a staff network and a fenced guest network"),
             ("Campus with a DMZ", "The public web server sits on its own shelf and cannot reach the inside"),
-            ("Three-layer campus", "Access, distribution and core carry two buildings to one server")],
+            ("Three-layer campus", "Access, distribution and core carry two buildings to one server"),
+            ("Leaf and spine", "Two racks, two spines, and every server two hops from any other")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("A star network with a switch", "Three PCs talk and Switch0 learns their MAC addresses"),
@@ -77,6 +78,8 @@ T = {
             ("Three layers for one campus", "A floor computer reaches the campus server through access, distribution and core"),
             ("Put the root where it belongs", "CoreLeft is the spanning tree root and the two core cables act as one bundle"),
             ("A gateway that survives", "The floor keeps its gateway when the preferred switch goes down"),
+            ("Two hops to any rack", "Servers in different racks reach each other over leaf and spine"),
+            ("Lose a spine and keep running", "Cross-rack traffic survives the loss of either spine"),
             ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
@@ -150,7 +153,8 @@ T = {
             ("Hotspot di warung", "Pengunjung masuk ke hotspot terbuka dan membayar dengan voucher"),
             ("Nirkabel kampus", "Satu pengendali, tiga access point, jaringan staf, dan jaringan tamu yang dipagari"),
             ("Kampus dengan DMZ", "Server web publik duduk di raknya sendiri dan tidak bisa menjangkau bagian dalam"),
-            ("Kampus tiga lapis", "Akses, distribusi, dan inti membawa dua gedung ke satu server")],
+            ("Kampus tiga lapis", "Akses, distribusi, dan inti membawa dua gedung ke satu server"),
+            ("Leaf dan spine", "Dua rak, dua spine, dan setiap server dua lompatan dari yang lain")],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
@@ -181,6 +185,8 @@ T = {
             ("Tiga lapis untuk satu kampus", "Komputer lantai menjangkau server kampus lewat akses, distribusi, dan inti"),
             ("Taruh root di tempatnya", "CoreLeft menjadi root spanning tree dan dua kabel inti bekerja sebagai satu bundel"),
             ("Gateway yang bertahan", "Lantai tetap punya gateway saat switch utama mati"),
+            ("Dua lompatan ke rak mana pun", "Server di rak berbeda saling menjangkau lewat leaf dan spine"),
+            ("Kehilangan spine dan tetap jalan", "Lalu lintas antar-rak bertahan saat salah satu spine mati"),
             ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
