@@ -1,0 +1,21 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="300" y="220" name="Switch0" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="Switch 24" x="620" y="220" name="ClosetSwitch" ip="" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="80" y="320" name="AdminLaptop" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="220" y="420" name="Desk0" ip="192.168.8.20" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="780" y="400" name="ClosetServer" ip="192.168.8.2" prefix="24"/>
+  <link a="switch0" a_port="Fa0/1" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/24" b="switch1" b_port="Fa0/24" kind="eCross"/>
+  <link a="switch1" a_port="Fa0/1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <port id="switch0" name="FastEthernet0/1" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <note id="note1" x="60" y="60" color="#fff3b0" text="A console cable manages the switch; it never carries the network's data. That is why it can reach a switch that has no address at all."/>
+  <lesson id="les-l2-07-console-port" title="Manage it through the console port" level="2" minutes="12" goal="The new switch is set right through its console and Desk0 reaches ClosetServer"/>
+  <step n="1" text="Ping ClosetServer (192.168.8.2) from Desk0 and watch it fail: the new switch left the desk's port in VLAN 20, away from everyone else."/>
+  <step n="2" text="The switch has no address, so the network cannot reach it. Run a console cable from AdminLaptop to Switch0."/>
+  <step n="3" text="Open the laptop's terminal: the console drops you on the switch. Name it: configure terminal, then hostname Closet1." check="c1"/>
+  <step n="4" text="Bring the port home: interface Fa0/1, then switchport access vlan 1." check="c2"/>
+  <step n="5" text="Ping ClosetServer from Desk0 again." check="c3"/>
+  <check id="c1" kind="config" from="switch0" to="name" url="" expect="Closet1" label="The switch is named Closet1"/>
+  <check id="c2" kind="vlan" from="switch0" to="FastEthernet0/1" url="" expect="1" label="The desk's port is back in VLAN 1"/>
+  <check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="Desk0 reaches ClosetServer"/>
+</takumi>
