@@ -1,0 +1,39 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="2911" x="340" y="60" name="OfficeRouter" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="2960" x="340" y="200" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="60" y="360" name="Desk0" ip="192.168.10.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC-PT" x="230" y="360" name="Desk1" ip="192.168.10.11" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC-PT" x="400" y="360" name="Desk2" ip="192.168.20.10" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="570" y="360" name="FileServer" ip="192.168.20.2" prefix="24"/>
+  <device id="printer0" kind="printer" model="Printer" x="740" y="360" name="Printer0" ip="192.168.30.10" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/4" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/5" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/6" b="printer0" b_port="Fa0" kind="eCopper"/>
+  <vlan id="switch0" vlan="10" name="staff"/>
+  <vlan id="switch0" vlan="20" name="servers"/>
+  <vlan id="switch0" vlan="30" name="devices"/>
+  <port id="switch0" name="FastEthernet0/1" up="1" ip="" prefix="24" vlan="1" trunk="1" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/2" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/3" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/4" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/5" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="switch0" name="FastEthernet0/6" up="1" ip="" prefix="24" vlan="30" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <net id="pc0" gw="192.168.10.1" dns=""/>
+  <net id="pc1" gw="192.168.10.1" dns=""/>
+  <net id="pc2" gw="192.168.20.1" dns=""/>
+  <net id="server0" gw="192.168.20.1" dns=""/>
+  <net id="printer0" gw="192.168.30.1" dns=""/>
+  <page id="server0" body="Shared files"/>
+  <lesson id="les-l3-02-inter-vlan" title="Let the VLANs talk through the router" level="3" minutes="12" goal="Desk0 reaches FileServer and the printer through one router cable"/>
+  <step n="1" text="On OfficeRouter create a subinterface for each VLAN on GigabitEthernet0/0: .10, .20 and .30, each with its VLAN number."/>
+  <step n="2" text="Give the subinterfaces 192.168.10.1, 192.168.20.1 and 192.168.30.1, all with mask 255.255.255.0." check="c1"/>
+  <step n="3" text="Ping FileServer from Desk0." check="c3"/>
+  <step n="4" text="Ping the printer from Desk0." check="c4"/>
+  <check id="c1" kind="route" from="router0" to="" url="" expect="192.168.10.0/24" label="The router knows the staff network"/>
+  <check id="c2" kind="route" from="router0" to="" url="" expect="192.168.20.0/24" label="The router knows the servers network"/>
+  <check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="Desk0 reaches FileServer"/>
+  <check id="c4" kind="ping" from="pc0" to="printer0" url="" expect="ok" label="Desk0 reaches the printer"/>
+</takumi>

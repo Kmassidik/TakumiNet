@@ -14,8 +14,9 @@ REPO = "https://github.com/Kmassidik/TakumiNet"
 X = "https://x.com/KMassidik"
 
 EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed", 3), ("tpl-web", 4),
-            ("tpl-l1-wifi-home", 5), ("tpl-l1-two-rooms", 6), ("tpl-l1-broken-wifi", 7)]
-LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-07-find-the-fault"]
+            ("tpl-l1-wifi-home", 5), ("tpl-l1-two-rooms", 6), ("tpl-l1-broken-wifi", 7),
+            ("tpl-l3-office-vlans", 8)]
+LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan"]
 
 T = {
     "en": {
@@ -54,7 +55,8 @@ T = {
             ("Website by name", "PC0 looks up www.takumi.lab and opens the site"),
             ("Family home", "A modem, a router and five devices, ready to share one page"),
             ("Two rooms", "A second access point carries the signal to the far room"),
-            ("Broken home network", "The laptop cannot reach the phone. Find the wrong gateway")],
+            ("Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
+            ("Office with three VLANs", "Staff, servers and a printer on three VLANs, joined by one router cable")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("A star network with a switch", "Three PCs talk and Switch0 learns their MAC addresses"),
@@ -62,7 +64,9 @@ T = {
             ("Two networks joined by a router", "Reach PC3 through Router0 with TTL 127"),
             ("Visit a website by name", "Resolve www.takumi.lab and open the website"),
             ("Sign in to the home router", "Laptop0 signs in with the sticker, and a wrong password is refused"),
-            ("Find the fault at home", "Laptop0 reaches Phone0 after you fix its address")],
+            ("Find the fault at home", "Laptop0 reaches Phone0 after you fix its address"),
+            ("Split the office into three VLANs", "Staff, servers and devices each get their own VLAN"),
+            ("Let the VLANs talk through the router", "Desk0 reaches the server and printer through one router cable")],
         "faq_h": "Questions people ask",
         "faq": [
             ("Is Takumi free?", "Yes. It is free to use and open source under the MIT licence."),
@@ -126,7 +130,8 @@ T = {
             ("Website lewat nama", "PC0 mencari www.takumi.lab lalu membuka situsnya"),
             ("Rumah keluarga", "Modem, router, dan lima perangkat, siap berbagi satu halaman"),
             ("Dua ruangan", "Access point kedua membawa sinyal ke ruangan yang jauh"),
-            ("Jaringan rumah yang rusak", "Laptop tidak bisa menjangkau ponsel. Cari gateway yang salah")],
+            ("Jaringan rumah yang rusak", "Laptop tidak bisa menjangkau ponsel. Cari gateway yang salah"),
+            ("Kantor dengan tiga VLAN", "Staf, server, dan printer di tiga VLAN, dihubungkan satu kabel router")],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
@@ -134,7 +139,9 @@ T = {
             ("Dua jaringan dihubungkan router", "Jangkau PC3 lewat Router0 dengan TTL 127"),
             ("Buka website lewat nama", "Cari www.takumi.lab lalu buka websitenya"),
             ("Masuk ke router rumah", "Laptop0 masuk dengan stiker, dan kata sandi yang salah ditolak"),
-            ("Cari kesalahan di rumah", "Laptop0 menjangkau Phone0 setelah alamatnya kamu perbaiki")],
+            ("Cari kesalahan di rumah", "Laptop0 menjangkau Phone0 setelah alamatnya kamu perbaiki"),
+            ("Bagi kantor menjadi tiga VLAN", "Staf, server, dan perangkat masing-masing punya VLAN"),
+            ("Biarkan VLAN berbicara lewat router", "Desk0 menjangkau server dan printer lewat satu kabel router")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
             ("Apakah Takumi gratis?", "Ya. Takumi gratis dipakai dan open source dengan lisensi MIT."),
