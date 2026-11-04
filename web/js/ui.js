@@ -1337,7 +1337,7 @@
     Wireless: ["ap", "wlc", "hotspot-ap", "sector-radio", "client-radio", "celltower"],
     Security: ["asa"],
     WAN: ["cloud", "provider-link", "homerouter", "cablemodem", "dsl"],
-    "End devices": ["pc", "laptop", "server", "printer", "phone", "analogphone", "tv", "tablet", "sniffer"],
+    "End devices": ["pc", "laptop", "server", "load-balancer", "printer", "phone", "analogphone", "tv", "tablet", "sniffer"],
     [CONNECTIONS]: [],
     IoE: ["ioe", "thing", "plc"]
   };
