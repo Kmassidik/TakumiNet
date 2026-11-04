@@ -1089,3 +1089,4 @@ html, body {
 .cli-help-row code { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; }
 .cli-help-row span { color: var(--text-2); }
 div.cli-help-row { padding: 2px 0; }
+.devwin-title .dw-btns button.btn { width: auto; padding: 0 8px; }
