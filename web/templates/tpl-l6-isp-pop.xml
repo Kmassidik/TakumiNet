@@ -41,4 +41,7 @@
   <bgpneighbor dev="up0" peer="10.0.0.1" as="64500"/>
   <bgpnet dev="up0" net="203.0.113.0" prefix="24"/>
   <demo kind="http" from="laptop0" to="" url="http://www.berita.lab/"/>
+  <demo kind="ping" from="laptop0" to="resolver0" url=""/>
+  <demo kind="ping" from="login0" to="web0" url=""/>
+  <demo kind="ping" from="web0" to="resolver0" url=""/>
 </takumi>

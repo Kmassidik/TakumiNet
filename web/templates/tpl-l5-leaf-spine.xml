@@ -45,4 +45,7 @@
   <routenet dev="s2" net="10.200.12.0" prefix="30" area="0"/>
   <routenet dev="s2" net="10.200.22.0" prefix="30" area="0"/>
   <demo kind="ping" from="server0" to="server2" url=""/>
+  <demo kind="ping" from="server3" to="server1" url=""/>
+  <demo kind="ping" from="server1" to="server0" url=""/>
+  <demo kind="ping" from="server2" to="server3" url=""/>
 </takumi>

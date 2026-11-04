@@ -50,5 +50,10 @@
   <demand client="home1" mbit="5"/>
   <demand client="home2" mbit="5"/>
   <demand client="home3" mbit="5"/>
+  <demo kind="http" from="laptop0" to="" url="http://www.example.lab/"/>
   <demo kind="ping" from="pc0" to="server0" url=""/>
+  <demo kind="ping" from="home0" to="gw0" url=""/>
+  <demo kind="ping" from="home1" to="gw0" url=""/>
+  <demo kind="ping" from="home2" to="gw0" url=""/>
+  <demo kind="ping" from="home3" to="gw0" url=""/>
 </takumi>

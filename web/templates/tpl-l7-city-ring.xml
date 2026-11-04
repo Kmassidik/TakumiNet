@@ -68,4 +68,7 @@
 <routenet dev="cx0" net="192.168.70.0" prefix="24" area="0"/>
 <routenet dev="cx0" net="192.168.73.0" prefix="24" area="0"/>
 <demo kind="ping" from="pc0" to="server0" url=""/>
+<demo kind="ping" from="server0" to="pc0" url=""/>
+<demo kind="ping" from="pc0" to="timur" url=""/>
+<demo kind="ping" from="pc0" to="barat" url=""/>
 </takumi>

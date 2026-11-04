@@ -10,7 +10,7 @@ fn the_city_ring_template_routes_and_plays_its_demo() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l7-city-ring.xml")).unwrap();
     assert!(ws.send_pdu("pc0", "server0").is_ok(), "across the ring to the exchange");
     assert!(ws.send_pdu("pc0", "cx0").is_ok());
-    assert_eq!(ws.run_demo().unwrap(), 1);
+    assert_eq!(ws.run_demo().unwrap(), ws.demo.len());
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn the_regency_template_routes_both_villages_and_plays_its_demo() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l8-regency-radio.xml")).unwrap();
     assert!(ws.send_pdu("pc0", "server0").is_ok(), "over the microwave pair");
     assert!(ws.send_pdu("pc1", "server0").is_ok(), "over the satellite terminal");
-    assert_eq!(ws.run_demo().unwrap(), 2);
+    assert_eq!(ws.run_demo().unwrap(), ws.demo.len());
 }
 
 #[test]

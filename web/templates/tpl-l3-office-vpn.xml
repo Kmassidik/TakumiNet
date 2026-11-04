@@ -25,4 +25,7 @@
   <tunnel dev="router1" peer="203.0.113.2" key="office-key-1"/>
   <tunnel dev="router0" peer="203.0.113.1" key="office-key-1"/>
   <demo kind="ping" from="laptop0" to="server0" url=""/>
+  <demo kind="http" from="laptop0" to="" url="http://192.168.20.2/"/>
+  <demo kind="ping" from="pc0" to="laptop0" url=""/>
+  <demo kind="ping" from="server0" to="pc0" url=""/>
 </takumi>

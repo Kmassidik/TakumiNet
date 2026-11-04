@@ -19,4 +19,7 @@
   <net id="pc2" gw="192.168.2.1" dns=""/>
   <net id="pc3" gw="192.168.2.1" dns=""/>
   <demo kind="ping" from="pc0" to="pc3" url=""/>
+  <demo kind="ping" from="pc2" to="pc1" url=""/>
+  <demo kind="ping" from="pc1" to="pc0" url=""/>
+  <demo kind="ping" from="pc3" to="pc2" url=""/>
 </takumi>

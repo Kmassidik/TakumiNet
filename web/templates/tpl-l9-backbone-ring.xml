@@ -76,4 +76,7 @@
 <routenet dev="ix0" net="10.9.100.0" prefix="24" area="0"/>
 <routenet dev="ix0" net="10.9.200.0" prefix="24" area="0"/>
 <demo kind="ping" from="pop3" to="server0" url=""/>
+<demo kind="ping" from="pop5" to="server0" url=""/>
+<demo kind="ping" from="server0" to="pop3" url=""/>
+<demo kind="ping" from="pop2" to="pop4" url=""/>
 </takumi>

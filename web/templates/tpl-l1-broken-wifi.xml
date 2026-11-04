@@ -7,4 +7,6 @@
   <net id="laptop0" gw="192.168.9.1" dns="192.168.1.1"/>
   <net id="phone0" gw="192.168.1.1" dns="192.168.1.1"/>
   <demo kind="ping" from="phone0" to="laptop0" url=""/>
+  <demo kind="ping" from="laptop0" to="phone0" url=""/>
+  <demo kind="ping" from="phone0" to="homerouter0" url=""/>
 </takumi>

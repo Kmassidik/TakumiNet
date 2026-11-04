@@ -26,4 +26,7 @@
   <acl dev="asa0" num="120" action="permit" src="0.0.0.0" swc="255.255.255.255" dip="0.0.0.0" dwc="255.255.255.255"/>
   <aclbind dev="asa0" iface="GigabitEthernet1/2" num="120" dir="in"/>
   <demo kind="http" from="pc1" to="" url="http://203.0.113.10/"/>
+  <demo kind="http" from="pc0" to="" url="http://203.0.113.10/"/>
+  <demo kind="ping" from="pc0" to="server1" url=""/>
+  <demo kind="ping" from="server1" to="pc0" url=""/>
 </takumi>

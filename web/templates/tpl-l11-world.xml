@@ -58,4 +58,7 @@
 <routenet dev="gwc" net="10.30.3.0" prefix="24" area="0"/>
 <dns id="server0" name="dns.dunia.lab" ip="203.0.115.10"/>
 <demo kind="ping" from="laptopc" to="server0" url=""/>
+<demo kind="ping" from="laptopb" to="server0" url=""/>
+<demo kind="ping" from="laptopb" to="laptopc" url=""/>
+<demo kind="ping" from="server0" to="laptopb" url=""/>
 </takumi>

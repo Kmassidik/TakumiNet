@@ -11,4 +11,6 @@
   <dns id="server0" name="www.takumi.lab" ip="192.168.1.100"/>
   <page id="server0" body="Server0 website"/>
   <demo kind="http" from="pc0" to="" url="http://www.takumi.lab/"/>
+  <demo kind="ping" from="pc1" to="server0" url=""/>
+  <demo kind="ping" from="server0" to="pc0" url=""/>
 </takumi>

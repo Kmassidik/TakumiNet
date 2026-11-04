@@ -49,4 +49,7 @@
   <vnet2 dev="server1" vni="200"/>
   <vnet2 dev="server3" vni="200"/>
   <demo kind="ping" from="server0" to="server2" url=""/>
+  <demo kind="ping" from="server2" to="server0" url=""/>
+  <demo kind="ping" from="server1" to="server3" url=""/>
+  <demo kind="ping" from="server3" to="server1" url=""/>
 </takumi>

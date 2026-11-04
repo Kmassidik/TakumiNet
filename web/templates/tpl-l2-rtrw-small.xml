@@ -39,4 +39,7 @@
   <pppoe client="home1" server="10.10.0.1" user="rumah1"/>
   <pppoe client="home2" server="10.10.0.1" user="rumah2"/>
   <demo kind="http" from="laptop0" to="" url="http://www.example.lab/"/>
+  <demo kind="ping" from="home0" to="gw0" url=""/>
+  <demo kind="ping" from="home1" to="gw0" url=""/>
+  <demo kind="ping" from="home2" to="gw0" url=""/>
 </takumi>

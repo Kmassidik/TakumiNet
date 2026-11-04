@@ -25,4 +25,7 @@
   <capwap ap="ap2" wlc="wlc0"/>
   <wifi client="laptop0" ssid="CampusStaff" wlc="wlc0"/>
   <demo kind="ping" from="laptop0" to="server0" url=""/>
+  <demo kind="ping" from="phone0" to="server0" url=""/>
+  <demo kind="ping" from="server0" to="laptop0" url=""/>
+  <demo kind="ping" from="laptop0" to="wlc0" url=""/>
 </takumi>

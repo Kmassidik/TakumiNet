@@ -23,4 +23,7 @@
   <lbpool dev="lb0" member="server1"/>
   <lbpool dev="lb0" member="server2"/>
   <demo kind="http" from="pc0" to="" url="http://203.0.113.80/"/>
+  <demo kind="http" from="pc0" to="" url="http://203.0.113.80/"/>
+  <demo kind="http" from="pc0" to="" url="http://203.0.113.80/"/>
+  <demo kind="ping" from="server1" to="pc0" url=""/>
 </takumi>

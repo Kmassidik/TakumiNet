@@ -7,4 +7,6 @@
   <link a="switch0" a_port="Fa0/2" b="pc1" b_port="Fa0" kind="eCopper"/>
   <link a="switch0" a_port="Fa0/3" b="pc2" b_port="Fa0" kind="eCopper"/>
   <demo kind="ping" from="pc0" to="pc2" url=""/>
+  <demo kind="ping" from="pc1" to="pc0" url=""/>
+  <demo kind="ping" from="pc2" to="pc1" url=""/>
 </takumi>

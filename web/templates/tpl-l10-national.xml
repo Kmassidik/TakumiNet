@@ -66,4 +66,7 @@
 <dns id="server0" name="www.dunia.lab" ip="203.0.114.10"/>
 <page id="server0" body="A page from across the sea"/>
 <demo kind="http" from="laptop0" to="" url="http://www.dunia.lab/"/>
+<demo kind="ping" from="pcjawa" to="server0" url=""/>
+<demo kind="ping" from="laptop0" to="pcjawa" url=""/>
+<demo kind="ping" from="server0" to="laptop0" url=""/>
 </takumi>

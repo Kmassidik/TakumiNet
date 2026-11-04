@@ -52,4 +52,6 @@
 <routenet dev="router3" net="192.168.1.0" prefix="24" area="0"/>
 <routenet dev="router3" net="192.168.2.0" prefix="24" area="0"/>
 <demo kind="ping" from="pc0" to="server0" url=""/>
+<demo kind="ping" from="server0" to="pc0" url=""/>
+<demo kind="ping" from="pc0" to="router3" url=""/>
 </takumi>

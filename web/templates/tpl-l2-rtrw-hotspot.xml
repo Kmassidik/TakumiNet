@@ -28,4 +28,6 @@
   <wifi client="phone1" ssid="WarungNet" wlc="hotspot0"/>
   <voucher dev="gw0" code="MAKAN-4821" minutes="60" used="-"/>
   <demo kind="http" from="phone0" to="" url="http://www.example.lab/"/>
+  <demo kind="ping" from="phone1" to="phone0" url=""/>
+  <demo kind="http" from="laptop0" to="" url="http://www.example.lab/"/>
 </takumi>

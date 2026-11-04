@@ -1,6 +1,6 @@
 use super::super::*;
 
-const TEMPLATES: [(&str, &str); 28] = [
+const TEMPLATES: [(&str, &str); 27] = [
     ("tpl-connect", include_str!("../../../web/templates/tpl-connect.xml")),
     ("tpl-star", include_str!("../../../web/templates/tpl-star.xml")),
     ("tpl-home", include_str!("../../../web/templates/tpl-home.xml")),
@@ -9,38 +9,58 @@ const TEMPLATES: [(&str, &str); 28] = [
     ("tpl-l1-wifi-home", include_str!("../../../web/templates/tpl-l1-wifi-home.xml")),
     ("tpl-l1-two-rooms", include_str!("../../../web/templates/tpl-l1-two-rooms.xml")),
     ("tpl-l1-broken-wifi", include_str!("../../../web/templates/tpl-l1-broken-wifi.xml")),
-    ("tpl-l4-campus-ospf", include_str!("../../../web/templates/tpl-l4-campus-ospf.xml")),
     ("tpl-l2-rtrw-small", include_str!("../../../web/templates/tpl-l2-rtrw-small.xml")),
     ("tpl-l2-rtrw-busy", include_str!("../../../web/templates/tpl-l2-rtrw-busy.xml")),
     ("tpl-l2-rtrw-hotspot", include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")),
+    ("tpl-l3-office-vlans", include_str!("../../../web/templates/tpl-l3-office-vlans.xml")),
+    ("tpl-l3-office-vpn", include_str!("../../../web/templates/tpl-l3-office-vpn.xml")),
+    ("tpl-l4-campus-ospf", include_str!("../../../web/templates/tpl-l4-campus-ospf.xml")),
     ("tpl-l4-campus-three-layer", include_str!("../../../web/templates/tpl-l4-campus-three-layer.xml")),
     ("tpl-l4-campus-wireless", include_str!("../../../web/templates/tpl-l4-campus-wireless.xml")),
     ("tpl-l4-campus-dmz", include_str!("../../../web/templates/tpl-l4-campus-dmz.xml")),
     ("tpl-l5-leaf-spine", include_str!("../../../web/templates/tpl-l5-leaf-spine.xml")),
     ("tpl-l5-load-balanced-web", include_str!("../../../web/templates/tpl-l5-load-balanced-web.xml")),
     ("tpl-l5-overlay", include_str!("../../../web/templates/tpl-l5-overlay.xml")),
-    ("tpl-l6-isp-two-upstreams", include_str!("../../../web/templates/tpl-l6-isp-two-upstreams.xml")),
     ("tpl-l6-isp-pop", include_str!("../../../web/templates/tpl-l6-isp-pop.xml")),
-    ("tpl-l5-overlay", include_str!("../../../web/templates/tpl-l5-overlay.xml")),
+    ("tpl-l6-isp-two-upstreams", include_str!("../../../web/templates/tpl-l6-isp-two-upstreams.xml")),
     ("tpl-l7-city-ring", include_str!("../../../web/templates/tpl-l7-city-ring.xml")),
     ("tpl-l8-regency-radio", include_str!("../../../web/templates/tpl-l8-regency-radio.xml")),
     ("tpl-l9-backbone-ring", include_str!("../../../web/templates/tpl-l9-backbone-ring.xml")),
     ("tpl-l10-national", include_str!("../../../web/templates/tpl-l10-national.xml")),
     ("tpl-l11-world", include_str!("../../../web/templates/tpl-l11-world.xml")),
-    ("tpl-l3-office-vpn", include_str!("../../../web/templates/tpl-l3-office-vpn.xml")),
-    ("tpl-l3-office-vlans", include_str!("../../../web/templates/tpl-l3-office-vlans.xml")),
 ];
 
+/// Two devices, one cable: both directions already tell the whole story.
+const SHORT_STORY_OK: [&str; 1] = ["tpl-connect"];
+
+/// Small templates where every addressed end device must take part in the story.
+const EVERYONE_PLAYS: [&str; 5] = ["tpl-connect", "tpl-star", "tpl-home", "tpl-web", "tpl-routed"];
+
+const END_KINDS: [&str; 6] = ["pc", "laptop", "server", "tablet", "tv", "printer"];
+
 #[test]
-fn every_example_template_plays_its_own_traffic() {
+fn every_example_template_plays_a_multi_step_story() {
     for (name, text) in TEMPLATES {
         let mut ws = Workspace::from_tnet(text).unwrap_or_else(|p| panic!("{name}: {p:?}"));
-        assert!(!ws.demo.is_empty(), "{name} must carry built-in traffic");
+        let wanted = if SHORT_STORY_OK.contains(&name) { 2 } else { 3 };
+        assert!(ws.demo.len() >= wanted, "{name} has {} demo steps, wants at least {wanted}", ws.demo.len());
+        assert!(ws.demo.len() <= 6, "{name} rambles: {} demo steps", ws.demo.len());
         assert!(ws.events.is_empty(), "{name} opens quiet");
         let steps = ws.run_demo().unwrap_or_else(|e| panic!("{name}: {e}"));
-        assert_eq!(steps, ws.demo.len());
-        assert!(!ws.events.is_empty(), "{name} must capture something to play");
+        assert_eq!(steps, ws.demo.len(), "{name} must run every step");
+        assert!(ws.events.len() >= steps, "{name} captured {} events for {steps} steps", ws.events.len());
         assert!(ws.json().contains("\"hasDemo\":true"));
+    }
+}
+
+#[test]
+fn small_templates_let_every_addressed_end_device_take_part() {
+    for (name, text) in TEMPLATES.iter().filter(|(name, _)| EVERYONE_PLAYS.contains(name)) {
+        let ws = Workspace::from_tnet(text).unwrap();
+        for device in ws.devices.iter().filter(|d| d.ip.is_some() && END_KINDS.contains(&d.kind.as_str())) {
+            let plays = ws.demo.iter().any(|step| step.from == device.id || step.to == device.id);
+            assert!(plays, "{name}: {} sits out the whole demo", device.id);
+        }
     }
 }
 
@@ -51,8 +71,16 @@ fn lessons_and_blank_workspaces_have_no_built_in_traffic() {
     assert!(blank.json().contains("\"hasDemo\":false"));
     let error = blank.run_demo().unwrap_err();
     assert!(error.contains("no built-in traffic"), "{error}");
-    let lesson = Workspace::from_tnet(include_str!("../../../web/templates/t1.xml")).unwrap();
-    assert!(lesson.demo.is_empty(), "lessons ask the learner to send traffic themselves");
+    for text in [
+        include_str!("../../../web/templates/t1.xml"),
+        include_str!("../../../web/templates/t2.xml"),
+        include_str!("../../../web/templates/t3.xml"),
+        include_str!("../../../web/templates/t4.xml"),
+        include_str!("../../../web/templates/t5.xml"),
+    ] {
+        let lesson = Workspace::from_tnet(text).unwrap();
+        assert!(lesson.demo.is_empty(), "lessons ask the learner to send traffic themselves");
+    }
 }
 
 #[test]
@@ -65,7 +93,7 @@ fn built_in_traffic_survives_save_and_open() {
 
 #[test]
 fn a_step_that_names_a_missing_device_fails_clearly_and_the_template_still_opens() {
-    let broken = TEMPLATES[0].1.replace("from=\"pc0\" to=\"pc1\"", "from=\"pc0\" to=\"pc9\"");
+    let broken = TEMPLATES[0].1.replace("to=\"pc1\"", "to=\"pc9\"");
     let mut ws = Workspace::from_tnet(&broken).expect("the file itself still opens");
     assert_eq!(ws.devices.len(), 2);
     let error = ws.run_demo().unwrap_err();

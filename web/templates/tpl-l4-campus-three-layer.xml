@@ -42,4 +42,7 @@
   <net id="pc2" gw="172.18.10.1" dns=""/>
   <net id="server0" gw="172.16.0.1" dns=""/>
   <demo kind="ping" from="pc0" to="server0" url=""/>
+  <demo kind="ping" from="pc2" to="server0" url=""/>
+  <demo kind="ping" from="pc1" to="pc0" url=""/>
+  <demo kind="ping" from="server0" to="pc2" url=""/>
 </takumi>

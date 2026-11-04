@@ -3,4 +3,5 @@
   <device id="pc1" kind="pc" model="PC" x="500" y="240" name="PC1" ip="192.168.1.11" prefix="24"/>
   <link a="pc0" a_port="Fa0" b="pc1" b_port="Fa0" kind="eCross"/>
   <demo kind="ping" from="pc0" to="pc1" url=""/>
+  <demo kind="ping" from="pc1" to="pc0" url=""/>
 </takumi>

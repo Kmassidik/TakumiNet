@@ -31,4 +31,8 @@
   <net id="printer0" gw="192.168.30.1" dns=""/>
   <page id="server0" body="Shared files"/>
   <demo kind="ping" from="pc0" to="server0" url=""/>
+  <demo kind="ping" from="pc1" to="pc0" url=""/>
+  <demo kind="ping" from="pc2" to="server0" url=""/>
+  <demo kind="ping" from="printer0" to="pc0" url=""/>
+  <demo kind="ping" from="server0" to="printer0" url=""/>
 </takumi>

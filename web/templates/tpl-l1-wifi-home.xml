@@ -22,4 +22,7 @@
   <pool id="server0" network="192.168.1.0" prefix="24" gw="192.168.1.1" dns="192.168.1.2"/>
   <page id="server0" body="Family page"/>
   <demo kind="http" from="laptop0" to="" url="http://192.168.1.2/"/>
+  <demo kind="ping" from="phone0" to="tv0" url=""/>
+  <demo kind="ping" from="printer0" to="server0" url=""/>
+  <demo kind="ping" from="server0" to="laptop0" url=""/>
 </takumi>
