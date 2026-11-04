@@ -68,3 +68,20 @@ fn an_isolated_group_says_so() {
     assert_eq!(card.boundary_links, 0);
     assert_eq!(card.status, "isolated");
 }
+
+#[test]
+fn the_log_check_reads_the_device_syslog() {
+    let mut ws = rtrw();
+    ws.lesson = Some(Lesson {
+        id: "l".into(), title: "t".into(), level: 2, minutes: 1, goal: "g".into(),
+        steps: vec![LessonStep { n: 1, text: "s".into(), check: String::new() }],
+        checks: vec![Check {
+            id: "c".into(), kind: "log".into(), from: "gw0".into(), to: String::new(),
+            url: String::new(), expect: "login refused".into(), label: "log".into(),
+        }],
+    });
+    assert!(!ws.run_checks().remove(0).passed);
+    ws.syslog_enable("gw0", true).unwrap();
+    ws.syslog_record("gw0", "warning", "login refused for rumah9");
+    assert!(ws.run_checks().remove(0).passed);
+}

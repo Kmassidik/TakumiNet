@@ -18,6 +18,7 @@ impl Workspace {
             "limit" => self.check_limit(check),
             "load" => self.check_load(check),
             "latency" => self.check_latency(check),
+            "log" => self.check_log(check),
             "nat" => self.check_forward(check),
             _ => return None,
         })
@@ -250,6 +251,20 @@ impl Workspace {
             Some(ms) if ms <= most => (true, format!("{ms:.1} ms"), hint),
             Some(ms) => (false, format!("{ms:.1} ms, over {most} ms"), hint),
             None => (false, "no path between the two devices".into(), "Connect them first.".into()),
+        }
+    }
+
+    /// A log line containing `expect` must exist on `from`.
+    fn check_log(&self, check: &Check) -> Verdict {
+        let hint = "Turn on logging for the device, then make the event happen.".to_string();
+        if check.expect.trim().is_empty() {
+            return (false, "the check names no text to look for".into(), "Write the words the log line must contain.".into());
+        }
+        let found = self.syslog_list(&check.from).into_iter()
+            .find(|(_, _, text)| text.contains(check.expect.trim()));
+        match found {
+            Some((_, severity, text)) => (true, format!("{severity}: {text}"), hint),
+            None => (false, format!("no log line contains '{}'", check.expect.trim()), hint),
         }
     }
 
