@@ -561,6 +561,8 @@
       const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
       if (link)
         return this.handlers.onLinkDown?.(link, ev);
+      this.panFrom = this.screenAt(ev);
+      this.canvas.setPointerCapture(ev.pointerId);
       this.handlers.onBackgroundDown?.(ev);
     }
     onPointerMove(ev) {

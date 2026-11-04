@@ -33,3 +33,13 @@ test("zoom keeps the point under the cursor fixed and stays within 10% to 400%",
   for (let i = 0; i < 80; i++) camera.zoomAt(cursor, 0.5);
   expect(camera.zoom).toBe(0.1);
 });
+
+test("panning moves the view with the cursor: a point follows the pointer", () => {
+  const camera = new Camera({ x: 0, y: 0, zoom: 2 });
+  const point = { x: 50, y: 40 };
+  const before = camera.toScreen(point);
+  camera.pan(30, -20);
+  const after = camera.toScreen(point);
+  expect(after.x - before.x).toBeCloseTo(30, 9);
+  expect(after.y - before.y).toBeCloseTo(-20, 9);
+});
