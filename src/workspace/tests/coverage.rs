@@ -3,19 +3,12 @@
 
 use super::super::*;
 
-/// Device kinds no template uses yet. Remove a line when a template adopts
-/// the kind; the guard fails on stale entries.
-const ALLOW_UNUSED_KINDS: &[&str] = &[
-    "analogphone",
-    "patchpanel",
-    "sniffer",
-];
+/// Device kinds no template uses yet. Empty today: every palette kind ships
+/// in a template. The guard fails on stale entries, so the list only shrinks.
+const ALLOW_UNUSED_KINDS: &[&str] = &[];
 
-/// Cable kinds no template uses yet. Same rule: shrink-only.
-const ALLOW_UNUSED_CABLES: &[&str] = &[
-    "eConsole",
-    "ePhone",
-];
+/// Cable kinds no template uses yet. Empty today, same shrink-only rule.
+const ALLOW_UNUSED_CABLES: &[&str] = &[];
 
 fn attribute<'a>(element: &'a str, name: &str) -> Option<&'a str> {
     let marker = format!("{name}=\"");

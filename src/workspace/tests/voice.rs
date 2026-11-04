@@ -121,3 +121,17 @@ fn the_access_modems_take_ordinary_cables_and_coax_stays_on_the_street_side() {
     assert!(err.contains("coaxial"), "{err}");
     ws.link(&pc, &dsl).unwrap();
 }
+
+const HOME_PHONE: &str = include_str!("../../../web/templates/tpl-home-phone.xml");
+
+#[test]
+fn the_home_phone_template_registers_the_analog_line_and_calls_over_ip() {
+    let mut ws = Workspace::from_tnet(HOME_PHONE).unwrap();
+    assert_eq!(ws.phone_status("analog0").unwrap(), ("10.30.0.5".into(), 2102));
+    assert_eq!(ws.phone_status("phone1").unwrap(), ("10.30.0.5".into(), 2101));
+    assert_eq!(ws.call_of(2102).unwrap(), (2102, 2101, "established".into()));
+    ws.call(2102, 2101).expect("the analog phone calls the desk phone through its router");
+    assert_eq!(ws.events.last().unwrap().proto, "SIP");
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.call_of(2102).unwrap(), (2102, 2101, "established".into()));
+}

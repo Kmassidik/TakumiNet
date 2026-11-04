@@ -122,3 +122,17 @@ fn new_parts_accept_the_cables_their_semantics_promise() {
     assert!(ws.link_kind(&phone, &switch, "eCopper").is_err(), "an analog phone stays phone-cable only");
     assert!(ws.link_kind(&phone, &switch, "ePhone").is_ok(), "the phone cable still works");
 }
+
+const CLOSET: &str = include_str!("../../../web/templates/tpl-wiring-closet.xml");
+
+#[test]
+fn the_wiring_closet_pings_through_the_panel_and_the_sniffer_records_the_frames() {
+    let mut ws = Workspace::from_tnet(CLOSET).unwrap();
+    assert_eq!(ws.console_peer("laptop0"), Some("switch0"), "the console cable manages the switch");
+    ws.send_addressed_pdu("pc0", "server0").expect("ping from the desk to the server");
+    let event = ws.events.iter().find(|e| e.proto == "ICMP").expect("captured delivery");
+    assert!(event.path.contains(&"panel0".to_string()), "the frame crosses the panel: {:?}", event.path);
+    assert!(event.path.contains(&"sniffer0".to_string()), "the frame crosses the sniffer: {:?}", event.path);
+    assert!(ws.sniffer_match_count("sniffer0", "icmp", "192.168.20.5") >= 1, "the sniffer holds the ping");
+    assert!(!ws.tables.sniffer_rows("sniffer0").is_empty());
+}

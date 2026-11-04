@@ -62,7 +62,9 @@ T = {
             ("Four PCs on a hub", "One shared wire repeats every frame to every port, and a switch keeps the server out of the crowd"),
             ("Two offices on a serial line", "A /30 serial link and a static route each way join DeskA to DeskB"),
             ("Office phones", "Two desk phones registered at CallManager, with a call already up"),
-            ("The last mile", "One home reaches the ISP over the TV cable, the other over the phone line")],
+            ("The last mile", "One home reaches the ISP over the TV cable, the other over the phone line"),
+            ("The wiring closet", "Desks reach the switch through a patch panel, a sniffer taps the server run, and a console cable manages it all"),
+            ("The home phone", "An analog phone on the router's voice port calls the IP desk phone through CallManager")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("Give the Wi-Fi your own name", "Phone0 joins a WPA2 network named FamilyNet with your own password"),
@@ -216,7 +218,9 @@ T = {
             ("Empat PC di satu hub", "Satu kabel bersama mengulang setiap frame ke semua port, dan sebuah switch menjaga server dari keramaian"),
             ("Dua kantor di jalur serial", "Jalur serial /30 dan rute statis dua arah menghubungkan DeskA ke DeskB"),
             ("Telepon kantor", "Dua telepon meja terdaftar di CallManager, dengan satu panggilan sudah tersambung"),
-            ("Mil terakhir", "Satu rumah mencapai ISP lewat kabel TV, rumah lainnya lewat kabel telepon")
+            ("Mil terakhir", "Satu rumah mencapai ISP lewat kabel TV, rumah lainnya lewat kabel telepon"),
+            ("Lemari kabel", "Meja kerja mencapai switch lewat patch panel, sebuah sniffer menyadap jalur server, dan satu kabel konsol mengelola semuanya"),
+            ("Telepon rumah", "Telepon analog di port suara router memanggil telepon meja IP lewat CallManager")
         ],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),

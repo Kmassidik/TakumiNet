@@ -1,6 +1,6 @@
 use super::super::*;
 
-const TEMPLATES: [(&str, &str); 33] = [
+const TEMPLATES: [(&str, &str); 35] = [
     ("tpl-connect", include_str!("../../../web/templates/tpl-connect.xml")),
     ("tpl-star", include_str!("../../../web/templates/tpl-star.xml")),
     ("tpl-home", include_str!("../../../web/templates/tpl-home.xml")),
@@ -34,6 +34,8 @@ const TEMPLATES: [(&str, &str); 33] = [
     ("tpl-branch-wan", include_str!("../../../web/templates/tpl-branch-wan.xml")),
     ("tpl-office-voice", include_str!("../../../web/templates/tpl-office-voice.xml")),
     ("tpl-last-mile", include_str!("../../../web/templates/tpl-last-mile.xml")),
+    ("tpl-wiring-closet", include_str!("../../../web/templates/tpl-wiring-closet.xml")),
+    ("tpl-home-phone", include_str!("../../../web/templates/tpl-home-phone.xml")),
 ];
 
 /// Two devices, one cable: both directions already tell the whole story.

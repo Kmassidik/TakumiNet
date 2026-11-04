@@ -1,0 +1,21 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="Router 300" x="200" y="160" name="HomeOfficeRouter" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="460" y="160" name="VoiceSwitch" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="720" y="160" name="CallManager" ip="10.30.0.5" prefix="24"/>
+  <device id="phone1" kind="phone" model="IP Phone" x="560" y="360" name="DeskPhone" ip="10.30.0.11" prefix="24"/>
+  <device id="analog0" kind="analogphone" model="Analog Phone" x="120" y="360" name="HallPhone" ip="" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="phone1" b_port="Fa0" kind="eCopper"/>
+  <link a="router0" a_port="Voice0" b="analog0" b_port="Phone0" kind="ePhone"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="10.30.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="server0" gw="10.30.0.1" dns=""/>
+  <net id="phone1" gw="10.30.0.1" dns=""/>
+  <phone phone="phone1" cm="10.30.0.5" ext="2101"/>
+  <phone phone="analog0" cm="10.30.0.5" ext="2102"/>
+  <call from="2102" to="2101" state="established"/>
+  <note id="note1" x="380" y="480" color="#fff3b0" text="The hall phone is analog: it has no address of its own, only a two-wire loop to the router's voice port, so the router registers it with CallManager and carries its calls as IP packets. The desk phone speaks IP itself, and one call manager joins the old line and the new one."/>
+  <demo kind="ping" from="phone1" to="server0" url=""/>
+  <demo kind="ping" from="router0" to="server0" url=""/>
+  <demo kind="ping" from="phone1" to="router0" url=""/>
+</takumi>
