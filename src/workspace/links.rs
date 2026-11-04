@@ -132,9 +132,17 @@ impl Workspace {
                     | "phone" | "asa" | "wlc" | "ap" | "hub" | "switch" | "router"
                     | "homerouter" | "cloud" | "rtrw-gateway" | "provider-link"
                     | "sector-radio" | "client-radio" | "hotspot-ap" | "switch-l3" | "load-balancer"
+                    | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
+                    | "microwave-link" | "satellite-terminal"
             )
         };
-        let network = |k: &str| matches!(k, "switch" | "router" | "switch-l3");
+        let network = |k: &str| {
+            matches!(
+                k,
+                "switch" | "router" | "switch-l3"
+                    | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
+            )
+        };
         let iot = |k: &str| matches!(k, "thing" | "plc" | "ioe" | "mcucomponent");
         match kind {
             "eConsole" => {

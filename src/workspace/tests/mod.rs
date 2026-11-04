@@ -9,6 +9,7 @@ mod l3_lessons;
 mod l4_lessons;
 mod l4_campus;
 mod l5_lessons;
+mod l7_l8;
 mod notes;
 mod persistence;
 mod routing;

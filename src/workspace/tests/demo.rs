@@ -1,6 +1,6 @@
 use super::super::*;
 
-const TEMPLATES: [(&str, &str); 19] = [
+const TEMPLATES: [(&str, &str); 21] = [
     ("tpl-connect", include_str!("../../../web/templates/tpl-connect.xml")),
     ("tpl-star", include_str!("../../../web/templates/tpl-star.xml")),
     ("tpl-home", include_str!("../../../web/templates/tpl-home.xml")),
@@ -18,6 +18,8 @@ const TEMPLATES: [(&str, &str); 19] = [
     ("tpl-l4-campus-dmz", include_str!("../../../web/templates/tpl-l4-campus-dmz.xml")),
     ("tpl-l5-leaf-spine", include_str!("../../../web/templates/tpl-l5-leaf-spine.xml")),
     ("tpl-l5-load-balanced-web", include_str!("../../../web/templates/tpl-l5-load-balanced-web.xml")),
+    ("tpl-l7-city-ring", include_str!("../../../web/templates/tpl-l7-city-ring.xml")),
+    ("tpl-l8-regency-radio", include_str!("../../../web/templates/tpl-l8-regency-radio.xml")),
     ("tpl-l3-office-vpn", include_str!("../../../web/templates/tpl-l3-office-vpn.xml")),
     ("tpl-l3-office-vlans", include_str!("../../../web/templates/tpl-l3-office-vlans.xml")),
 ];

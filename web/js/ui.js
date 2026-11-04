@@ -1331,10 +1331,10 @@
   var CONNECTIONS = "Connections";
   var DEFAULT_GROUP = "End devices";
   var GROUP_KINDS = {
-    Routers: ["router", "rtrw-gateway"],
+    Routers: ["router", "rtrw-gateway", "district-hub", "city-exchange", "regency-hub", "village-pop"],
     Switches: ["switch", "switch-l3"],
     Hubs: ["hub", "patchpanel"],
-    Wireless: ["ap", "wlc", "hotspot-ap", "sector-radio", "client-radio", "celltower"],
+    Wireless: ["ap", "wlc", "hotspot-ap", "sector-radio", "client-radio", "celltower", "microwave-link", "satellite-terminal"],
     Security: ["asa"],
     WAN: ["cloud", "provider-link", "homerouter", "cablemodem", "dsl"],
     "End devices": ["pc", "laptop", "server", "load-balancer", "printer", "phone", "analogphone", "tv", "tablet", "sniffer"],

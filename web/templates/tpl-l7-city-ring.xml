@@ -1,0 +1,71 @@
+<takumi version="1">
+<device id="utara" kind="district-hub" model="District Hub" x="240" y="140" name="KecamatanUtara" ip="" prefix="24"/>
+<port id="utara" name="GigabitEthernet0/1" up="1" ip="10.70.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="utara" name="GigabitEthernet0/2" up="1" ip="10.70.4.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="utara" name="GigabitEthernet0/3" up="1" ip="10.70.5.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="timur" kind="district-hub" model="District Hub" x="500" y="220" name="KecamatanTimur" ip="" prefix="24"/>
+<port id="timur" name="GigabitEthernet0/1" up="1" ip="10.70.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="timur" name="GigabitEthernet0/2" up="1" ip="10.70.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="selatan" kind="district-hub" model="District Hub" x="360" y="380" name="KecamatanSelatan" ip="" prefix="24"/>
+<port id="selatan" name="GigabitEthernet0/0" up="1" ip="192.168.73.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="selatan" name="GigabitEthernet0/1" up="1" ip="10.70.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="selatan" name="GigabitEthernet0/2" up="1" ip="10.70.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="barat" kind="district-hub" model="District Hub" x="100" y="300" name="KecamatanBarat" ip="" prefix="24"/>
+<port id="barat" name="GigabitEthernet0/1" up="1" ip="10.70.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="barat" name="GigabitEthernet0/2" up="1" ip="10.70.4.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="cx0" kind="city-exchange" model="City Exchange" x="380" y="40" name="SentralKota" ip="" prefix="24"/>
+<port id="cx0" name="GigabitEthernet0/0" up="1" ip="192.168.70.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="cx0" name="GigabitEthernet0/1" up="1" ip="10.70.5.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="server0" kind="server" model="Server" x="620" y="40" name="LayananKota" ip="192.168.70.10" prefix="24"/>
+<net id="server0" gw="192.168.70.1" dns=""/>
+<device id="pc0" kind="pc" model="PC" x="360" y="520" name="WargaSelatan" ip="192.168.73.10" prefix="24"/>
+<net id="pc0" gw="192.168.73.1" dns=""/>
+<link a="utara" a_port="Gig0/1" b="timur" b_port="Gig0/1" kind="eFiber"/>
+<link a="timur" a_port="Gig0/2" b="selatan" b_port="Gig0/1" kind="eFiber"/>
+<link a="selatan" a_port="Gig0/2" b="barat" b_port="Gig0/1" kind="eFiber"/>
+<link a="barat" a_port="Gig0/2" b="utara" b_port="Gig0/2" kind="eFiber"/>
+<link a="utara" a_port="Gig0/3" b="cx0" b_port="Gig0/1" kind="eFiber"/>
+<link a="cx0" a_port="Gig0/0" b="server0" b_port="Fa0" kind="eCross"/>
+<link a="selatan" a_port="Gig0/0" b="pc0" b_port="Fa0" kind="eCross"/>
+<routing dev="utara" proto="ospf" process_id="1"/>
+<routenet dev="utara" net="10.70.1.0" prefix="24" area="0"/>
+<routenet dev="utara" net="10.70.2.0" prefix="24" area="0"/>
+<routenet dev="utara" net="10.70.3.0" prefix="24" area="0"/>
+<routenet dev="utara" net="10.70.4.0" prefix="24" area="0"/>
+<routenet dev="utara" net="10.70.5.0" prefix="24" area="0"/>
+<routenet dev="utara" net="192.168.70.0" prefix="24" area="0"/>
+<routenet dev="utara" net="192.168.73.0" prefix="24" area="0"/>
+<routing dev="timur" proto="ospf" process_id="1"/>
+<routenet dev="timur" net="10.70.1.0" prefix="24" area="0"/>
+<routenet dev="timur" net="10.70.2.0" prefix="24" area="0"/>
+<routenet dev="timur" net="10.70.3.0" prefix="24" area="0"/>
+<routenet dev="timur" net="10.70.4.0" prefix="24" area="0"/>
+<routenet dev="timur" net="10.70.5.0" prefix="24" area="0"/>
+<routenet dev="timur" net="192.168.70.0" prefix="24" area="0"/>
+<routenet dev="timur" net="192.168.73.0" prefix="24" area="0"/>
+<routing dev="selatan" proto="ospf" process_id="1"/>
+<routenet dev="selatan" net="10.70.1.0" prefix="24" area="0"/>
+<routenet dev="selatan" net="10.70.2.0" prefix="24" area="0"/>
+<routenet dev="selatan" net="10.70.3.0" prefix="24" area="0"/>
+<routenet dev="selatan" net="10.70.4.0" prefix="24" area="0"/>
+<routenet dev="selatan" net="10.70.5.0" prefix="24" area="0"/>
+<routenet dev="selatan" net="192.168.70.0" prefix="24" area="0"/>
+<routenet dev="selatan" net="192.168.73.0" prefix="24" area="0"/>
+<routing dev="barat" proto="ospf" process_id="1"/>
+<routenet dev="barat" net="10.70.1.0" prefix="24" area="0"/>
+<routenet dev="barat" net="10.70.2.0" prefix="24" area="0"/>
+<routenet dev="barat" net="10.70.3.0" prefix="24" area="0"/>
+<routenet dev="barat" net="10.70.4.0" prefix="24" area="0"/>
+<routenet dev="barat" net="10.70.5.0" prefix="24" area="0"/>
+<routenet dev="barat" net="192.168.70.0" prefix="24" area="0"/>
+<routenet dev="barat" net="192.168.73.0" prefix="24" area="0"/>
+<routing dev="cx0" proto="ospf" process_id="1"/>
+<routenet dev="cx0" net="10.70.1.0" prefix="24" area="0"/>
+<routenet dev="cx0" net="10.70.2.0" prefix="24" area="0"/>
+<routenet dev="cx0" net="10.70.3.0" prefix="24" area="0"/>
+<routenet dev="cx0" net="10.70.4.0" prefix="24" area="0"/>
+<routenet dev="cx0" net="10.70.5.0" prefix="24" area="0"/>
+<routenet dev="cx0" net="192.168.70.0" prefix="24" area="0"/>
+<routenet dev="cx0" net="192.168.73.0" prefix="24" area="0"/>
+<demo kind="ping" from="pc0" to="server0" url=""/>
+</takumi>
