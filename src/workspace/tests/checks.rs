@@ -106,3 +106,60 @@ fn route_check_requires_the_exact_prefix_not_a_covering_default() {
     let terminal = crate::cli::run(&mut ws, "router0", &mut session, "show ip route");
     assert!(terminal.contains("10.0.0.0/8"), "{terminal}");
 }
+
+#[test]
+fn noreach_passes_only_when_delivery_really_fails() {
+    let mut ws = Workspace::new();
+    ws.lesson = lesson(check("noreach", "pc0", "pc2", ""));
+    assert!(!passed(&mut ws));
+    ws.set_port_up("router0", "GigabitEthernet0/0", false);
+    assert!(passed(&mut ws));
+}
+
+#[test]
+fn config_check_reads_the_live_setting_and_rejects_unknown_fields() {
+    let mut ws = Workspace::new();
+    ws.lesson = lesson(check("config", "pc0", "prefix", "24"));
+    assert!(passed(&mut ws));
+    ws.lesson = lesson(check("config", "pc0", "prefix", "16"));
+    assert!(!passed(&mut ws));
+    ws.lesson = lesson(check("config", "pc0", "colour", "red"));
+    let result = ws.run_checks().remove(0);
+    assert!(!result.passed && result.actual.contains("unknown setting"));
+    ws.lesson = lesson(check("config", "nope", "name", "x"));
+    assert!(!passed(&mut ws));
+}
+
+#[test]
+fn pool_check_follows_the_dhcp_pool() {
+    let mut ws = Workspace::new();
+    ws.lesson = lesson(check("pool", "server0", "", "192.168.2.0/24"));
+    assert!(!passed(&mut ws));
+    ws.set_dhcp_pool("server0", "192.168.2.0", 24, "192.168.2.1", "192.168.2.20").unwrap();
+    assert!(passed(&mut ws));
+    ws.lesson = lesson(check("pool", "server0", "", "bad"));
+    assert!(!passed(&mut ws));
+}
+
+#[test]
+fn vlan_check_rejects_missing_ports_and_bad_numbers() {
+    let mut ws = Workspace::new();
+    ws.lesson = lesson(check("vlan", "switch0", "NoSuchPort", "10"));
+    assert!(!passed(&mut ws));
+    ws.lesson = lesson(check("vlan", "switch0", "NoSuchPort", "abc"));
+    assert!(!passed(&mut ws));
+}
+
+#[test]
+fn count_check_handles_zero_exact_and_past_the_limit() {
+    let mut ws = Workspace::new();
+    let total = ws.devices.len();
+    ws.lesson = lesson(check("count", "devices", "", "0"));
+    assert!(passed(&mut ws));
+    ws.lesson = lesson(check("count", "devices", "", &total.to_string()));
+    assert!(passed(&mut ws));
+    ws.lesson = lesson(check("count", "devices", "", &(total + 1).to_string()));
+    assert!(!passed(&mut ws));
+    ws.lesson = lesson(check("count", "things", "", "1"));
+    assert!(!passed(&mut ws));
+}

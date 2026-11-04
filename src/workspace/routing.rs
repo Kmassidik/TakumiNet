@@ -1002,7 +1002,7 @@ impl Workspace {
             .min_by(route_order)
     }
 
-    fn selected_routes(&self, id: &str) -> Vec<RouteCandidate> {
+    pub(super) fn selected_routes(&self, id: &str) -> Vec<RouteCandidate> {
         let mut selected: BTreeMap<(u32, u8), RouteCandidate> = BTreeMap::new();
         for route in self.route_candidates(id) {
             let key = (route.network, route.prefix);

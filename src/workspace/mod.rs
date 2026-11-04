@@ -10,6 +10,7 @@ mod acl;
 mod addressing;
 mod apps;
 mod checks;
+mod checks_more;
 mod dhcp;
 mod dns;
 mod hardware;
