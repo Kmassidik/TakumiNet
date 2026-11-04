@@ -447,6 +447,8 @@ pub struct Workspace {
     pub v6_networks: HashMap<String, Vec<String>>,
     /// IP phones: device -> (call-manager address, extension).
     pub phones: HashMap<String, (String, u16)>,
+    /// Live calls: caller extension -> (callee extension, state).
+    pub calls: HashMap<u16, (u16, String)>,
     /// Elements outside the native record schema, retained verbatim on save.
     pub(super) unknown_elements: Vec<crate::storage::xml::Element>,
     /// Unknown attributes on known records, keyed by their stable record ids.

@@ -7,15 +7,12 @@ use super::super::*;
 /// the kind; the guard fails on stale entries.
 const ALLOW_UNUSED_KINDS: &[&str] = &[
     "analogphone",
-    "dsl",
     "patchpanel",
-    "phone",
     "sniffer",
 ];
 
 /// Cable kinds no template uses yet. Same rule: shrink-only.
 const ALLOW_UNUSED_CABLES: &[&str] = &[
-    "eCoax",
     "eConsole",
     "ePhone",
 ];

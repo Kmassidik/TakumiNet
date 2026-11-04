@@ -24,6 +24,7 @@ impl Workspace {
             "capture" => self.check_capture(check),
             "iot" => self.check_iot(check),
             "cell" => self.check_cell(check),
+            "call" => self.check_call(check),
             _ => return None,
         })
     }
@@ -350,6 +351,26 @@ impl Workspace {
             Some(tower) if tower == check.to => (true, format!("joined to {}", self.name_of(&tower)), hint),
             Some(tower) => (false, format!("joined to {}, not {}", self.name_of(&tower), self.name_of(&check.to)), hint),
             None => (false, "not joined to any tower".into(), hint),
+        }
+    }
+
+    /// `from` and `to` are the two phones; `expect` is the call state
+    /// (`established` when empty) the call between their extensions must hold.
+    fn check_call(&self, check: &Check) -> Verdict {
+        let hint = "Register both phones at the call manager, then dial the other extension from the phone window.".to_string();
+        let ext = |id: &str| self.phones.get(id).map(|(_, e)| *e);
+        let Some(from) = ext(&check.from) else {
+            return (false, format!("{} is not registered", self.name_of(&check.from)), hint);
+        };
+        let Some(to) = ext(&check.to) else {
+            return (false, format!("{} is not registered", self.name_of(&check.to)), hint);
+        };
+        let want = if check.expect.is_empty() { "established" } else { check.expect.as_str() };
+        match self.calls.get(&from) {
+            Some((callee, state)) if *callee == to => {
+                (state == want, format!("call from {from} to {to} is {state}"), hint)
+            }
+            _ => (false, format!("no call from {from} to {to}"), hint),
         }
     }
 

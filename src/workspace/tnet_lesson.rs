@@ -69,7 +69,7 @@ pub(super) fn validate_lesson_records(
                     invalidate(valid, problems, index, element, "from", format!("refers to device '{from}' that does not exist"));
                 }
                 let to = element.get("to").unwrap_or("");
-                if matches!(kind, "ping" | "ttl" | "noreach" | "latency") && !device_exists(to) {
+                if matches!(kind, "ping" | "ttl" | "noreach" | "latency" | "call") && !device_exists(to) {
                     invalidate(valid, problems, index, element, "to", format!("refers to device '{to}' that does not exist"));
                 }
                 if kind == "arp" && crate::model::parse_ipv4(to).is_none() && !device_exists(to) {

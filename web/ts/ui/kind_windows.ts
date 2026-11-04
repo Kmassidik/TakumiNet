@@ -5,6 +5,7 @@ import { renderGatewayWindow } from "./gateway_window";
 import { renderL3SwitchWindow } from "./l3switch_window";
 import { renderHotspotWindow } from "./hotspot_window";
 import { renderCellTowerWindow, renderIotWindow } from "./iot_window";
+import { renderPhoneWindow } from "./phone_window";
 import { renderProviderWindow } from "./provider_window";
 import { renderRadioWindow } from "./radio_window";
 import { el, modelBlurbLine, type GetText, type KindDevice, type KindWorkspace, type Post } from "./kind_parts";
@@ -27,6 +28,8 @@ const WINDOW_IDS: Record<string, string> = {
   "thing": "iot-window",
   "ioe": "iot-window",
   "celltower": "celltower-window",
+  "phone": "phone-window",
+  "analogphone": "phone-window",
 };
 
 /* Kinds without an entry here keep the generic PC-style device window. */
@@ -68,6 +71,9 @@ export function renderKindWindow(
       return renderIotWindow(doc, pane, device, workspace, deps.post, deps.getText);
     case "celltower":
       return renderCellTowerWindow(doc, pane, device, workspace, deps.getText);
+    case "phone":
+    case "analogphone":
+      return renderPhoneWindow(doc, pane, device, workspace, deps.post);
     default:
       return Promise.resolve();
   }
