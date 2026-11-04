@@ -94,3 +94,37 @@ test('your own network has no built-in traffic: Play keeps the Send PDU message'
   await vm.runInContext('togglePlay()', context);
   assert.match(statuses.at(-1), /Send a PDU first/);
 });
+
+test('pressing Play twice while the built-in traffic is on its way sends it once and starts one timer', async () => {
+  const events = [];
+  const calls = [];
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const timers = [];
+  const { context, sounds } = playContext(events, {
+    data: { hasDemo: true },
+    api: async (path) => { calls.push(path); await gate; events.push({ id: 1 }); return {}; },
+    setInterval: () => { timers.push(1); return timers.length; },
+  });
+  const first = vm.runInContext('togglePlay()', context);
+  const second = vm.runInContext('togglePlay()', context);
+  release();
+  await Promise.all([first, second]);
+  assert.deepEqual(calls, ['/api/demo']);
+  assert.equal(timers.length, 1);
+  assert.deepEqual(sounds, ['movieControlButton']);
+});
+
+test('a failed built-in traffic run lets the next Play press try again', async () => {
+  let attempts = 0;
+  const events = [];
+  const { context } = playContext(events, {
+    data: { hasDemo: true },
+    api: async () => { attempts += 1; if (attempts === 1) return { error: 'x' }; events.push({ id: 1 }); return {}; },
+  });
+  await vm.runInContext('togglePlay()', context);
+  assert.equal(vm.runInContext('playTimer', context), null);
+  await vm.runInContext('togglePlay()', context);
+  assert.notEqual(vm.runInContext('playTimer', context), null);
+  assert.equal(attempts, 2);
+});

@@ -149,3 +149,16 @@ test("tooltips: the toolbar code gives each icon a title that the hover label sh
   const toolbar = readFileSync(join(import.meta.dir, "../../web/ts/ui/button.ts"), "utf8");
   expect(toolbar).toMatch(/title/);
 });
+
+test("canvas: the drawing buffer follows the canvas box, not just the window", () => {
+  const canvas = readFileSync(join(import.meta.dir, "../../web/ts/canvas/workspace_canvas.ts"), "utf8");
+  expect(canvas).toContain("ResizeObserver");
+  expect(canvas).toContain("bufferSize(");
+});
+
+test("play: a second press while Play waits cannot start a second timer", () => {
+  const actions = sources.find((s) => s.name === "actions.js")!.text;
+  expect(actions).toContain("let playStarting = false;");
+  expect(actions).toMatch(/if \(playStarting\) return;/);
+  expect(actions.match(/playTimer = setInterval/g)?.length).toBe(1);
+});

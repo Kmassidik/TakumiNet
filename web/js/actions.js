@@ -320,6 +320,10 @@ async function sendBuiltInTraffic() {
   return true;
 }
 
+/* True while Play waits for the built-in traffic. A second press in that moment
+   must not send it again or start a second timer that Pause cannot stop. */
+let playStarting = false;
+
 async function togglePlay() {
   if (playTimer) {
     clearInterval(playTimer);
@@ -328,7 +332,14 @@ async function togglePlay() {
     status('Paused');
     return;
   }
-  if (!visibleEvents().length && !(await sendBuiltInTraffic())) return;
+  if (playStarting) return;
+  playStarting = true;
+  try {
+    if (!visibleEvents().length && !(await sendBuiltInTraffic())) return;
+  } finally {
+    playStarting = false;
+  }
+  if (playTimer) return; // started by another path while waiting
   sfx('movieControlButton');
   document.querySelector('#play-btn img').src = icon3d('sim/pause');
   status('Playing events');

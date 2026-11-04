@@ -402,7 +402,7 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
 
 ## Part B. Bugs found
 
-### F14. The canvas picture goes wrong when a panel is minimized or the sidebar is resized (open, reproduced)
+### F14. The canvas picture goes wrong when a panel is minimized or the sidebar is resized (done)
 
 - **What you see:** hide the palette, hide the sidebar, minimize a toolbar, or drag the sidebar splitter. The drawing is stretched (devices look tall, text looks squashed), and clicks no longer land where the pictures are.
 - **Measured in Chrome:** with the palette collapsed the canvas box grew to 1176 x 501 CSS pixels while its drawing buffer stayed 2352 x 826 (it should be 2352 x 1002). Same mismatch for sidebar hide (1512 wide, buffer for 1176) and toolbar collapse.
@@ -417,7 +417,7 @@ Same rules as before: this part is research only. Nothing below is fixed. The wo
   - Bend: `tests/bend/canvas_size.bend`, buffer = css x ratio for sample sizes.
   - Slop guard: `workspace_canvas.ts` must contain a `ResizeObserver`.
 
-### F15. Pressing Play twice quickly makes Pause stop working (open, reproduced)
+### F15. Pressing Play twice quickly makes Pause stop working (done)
 
 - **What you see:** on a template, click Play twice fast (or press Space twice). The traffic is sent twice (3 events become 4) and pressing Pause does not stop the playback; it keeps stepping.
 - **Measured in Chrome:** after a double click, pressing Pause cleared `playTimer`, but the cursor still moved from event 1 to 4 over the next 2.5 seconds, so a second timer was still running.
