@@ -53,7 +53,7 @@ function harness({ portsById = {}, linkError = null } = {}) {
     activeElement: null,
     listeners: {},
     getElementById: (id) => els[id],
-    querySelector: () => null,
+    querySelector: () => ({ classList: { add() {}, remove() {}, toggle() {} } }),
     addEventListener(t, fn) { (doc.listeners[t] = doc.listeners[t] || []).push(fn); },
     removeEventListener(t, fn) { if (doc.listeners[t]) doc.listeners[t] = doc.listeners[t].filter((f) => f !== fn); },
   };
@@ -91,6 +91,11 @@ function harness({ portsById = {}, linkError = null } = {}) {
     context.cableClick(device, ev);
     await flush();
   };
+  const menuArm = async (id, kind) => {
+    const device = context.data.devices.find((d) => d.id === id);
+    context.armCableFrom(device, kind);
+    await flush();
+  };
   const picker = () => doc.body.children.find((c) => c.className.includes('port-picker')) || null;
   const pickerButtons = () => (picker() ? picker().querySelectorAll('button') : []);
   const pressKey = (key) => {
@@ -98,7 +103,7 @@ function harness({ portsById = {}, linkError = null } = {}) {
       fn({ key, target: null, preventDefault() {}, stopPropagation() {} });
     }
   };
-  return { context, els, doc, apiCalls, flush, click, picker, pickerButtons, pressKey };
+  return { context, els, doc, apiCalls, flush, click, menuArm, picker, pickerButtons, pressKey };
 }
 
 const routerPorts = [
@@ -181,4 +186,59 @@ test('a cable that picks its own port never opens the picker', async () => {
   await h.click('d1');
   assert.equal(h.picker(), null);
   assert.equal(vm.runInContext('cableFrom', h.context), 'd1');
+});
+
+test('the context-menu arm asks for a port where the menu stood', async () => {
+  const h = harness({ portsById: { d1: routerPorts, d2: pcPorts } });
+  vm.runInContext('cableMode = false; cableFrom = null; ctxMenuAt = { x: 300, y: 200 };', h.context);
+  await h.menuArm('d1', 'eCopper');
+  assert.notEqual(h.picker(), null, 'two free ports ask which one');
+  assert.equal(h.picker().style.left, '300px', 'the chooser opens at the menu spot');
+  assert.equal(h.picker().style.top, '200px');
+  assert.equal(vm.runInContext('cableFrom', h.context), null, 'nothing arms while the chooser is open');
+
+  h.pickerButtons()[2].onclick({ stopPropagation() {} });
+  await h.flush();
+  assert.equal(vm.runInContext('cableMode', h.context), true);
+  assert.equal(vm.runInContext('cableFrom', h.context), 'd1');
+  assert.equal(vm.runInContext('cableFromPort', h.context), 'GigabitEthernet0/2');
+
+  await h.click('d2');
+  assert.equal(h.apiCalls.length, 1);
+  assert.deepEqual({ ...h.apiCalls[0].params }, {
+    a: 'd1', b: 'd2', kind: 'eCopper',
+    aport: 'GigabitEthernet0/2', bport: 'FastEthernet0',
+  });
+});
+
+test('Escape in the context-menu chooser leaves nothing armed', async () => {
+  const h = harness({ portsById: { d1: routerPorts } });
+  vm.runInContext('cableMode = false; cableFrom = null;', h.context);
+  await h.menuArm('d1', 'eCopper');
+  assert.notEqual(h.picker(), null);
+  h.pressKey('Escape');
+  await h.flush();
+  assert.equal(h.picker(), null);
+  assert.equal(vm.runInContext('cableMode', h.context), false, 'cable mode never arms');
+  assert.equal(vm.runInContext('cableFrom', h.context), null);
+  assert.equal(h.apiCalls.length, 0);
+});
+
+test('the context-menu arm on a single free port arms silently with that port', async () => {
+  const h = harness({ portsById: { d2: pcPorts } });
+  vm.runInContext('cableMode = false; cableFrom = null;', h.context);
+  await h.menuArm('d2', 'eCopper');
+  assert.equal(h.picker(), null, 'one free port never opens the chooser');
+  assert.equal(vm.runInContext('cableMode', h.context), true);
+  assert.equal(vm.runInContext('cableFrom', h.context), 'd2');
+  assert.equal(vm.runInContext('cableFromPort', h.context), 'FastEthernet0');
+});
+
+test('a dedicated-media cable from the menu keeps auto-pick', async () => {
+  const h = harness({ portsById: { d1: routerPorts } });
+  vm.runInContext('cableMode = false; cableFrom = null;', h.context);
+  await h.menuArm('d1', 'eConsole');
+  assert.equal(h.picker(), null);
+  assert.equal(vm.runInContext('cableFrom', h.context), 'd1');
+  assert.equal(vm.runInContext('cableFromPort', h.context), null);
 });

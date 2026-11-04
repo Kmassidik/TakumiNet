@@ -9,14 +9,16 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'web/js/context_menu.js'), 'utf8');
 
-function harness({ selectionIds = [], clipboard = null } = {}) {
-  const calls = { actions: [], api: [], status: [], opened: [], selections: [] };
+function harness({ selectionIds = [], clipboard = null, pick = { port: null } } = {}) {
+  const calls = { actions: [], api: [], status: [], opened: [], selections: [], portAsks: [] };
   const wrap = { classes: new Set() };
   wrap.classList = { add: (c) => wrap.classes.add(c), remove: (c) => wrap.classes.delete(c) };
   let chipUpdates = 0;
   const context = vm.createContext({
     console,
     document: { querySelector: (sel) => (sel === '.canvas-wrap' ? wrap : null) },
+    window: { innerWidth: 1200, innerHeight: 800 },
+    choosePort: async (d, kind, at) => { calls.portAsks.push({ id: d.id, kind, at }); return pick; },
     data: {
       devices: [
         { id: 'd1', name: 'PC0', kind: 'pc' },
@@ -28,7 +30,7 @@ function harness({ selectionIds = [], clipboard = null } = {}) {
       ['eCopper', 'Copper'], ['eCross', 'Cross'], ['eSerial', 'Serial'],
       ['eFiber', 'Fiber'], ['eConsole', 'Console'], ['ePhone', 'Phone'], ['eCoax', 'Coax'],
     ],
-    cableMode: false, cableKind: 'eCopper', cableFrom: null, pduMode: true,
+    cableMode: false, cableKind: 'eCopper', cableFrom: null, cableFromPort: null, pduMode: true,
     selection: new Set(selectionIds),
     selectionCount: () => selectionIds.length,
     selectedLink: null,
@@ -74,19 +76,36 @@ test('a console-capable device also offers Open CLI, wired to the terminal', () 
   assert.deepEqual(calls.opened, ['cli:d2']);
 });
 
-test('the cable submenu lists five cables and arms one with the pressed device as first end', () => {
-  const { context, calls, wrap } = harness();
+test('the cable submenu lists five cables and arms one with the pressed device as first end', async () => {
+  const { context, calls, wrap } = harness({ pick: { port: 'GigabitEthernet0/1' } });
   const items = context.contextMenuFor({ device: context.data.devices[0] });
   const cables = items.find((i) => i.label === 'Connect cable').children;
   assert.deepEqual(labels(cables), ['Copper', 'Cross', 'Serial', 'Fiber', 'Console']);
-  cables.find((c) => c.label === 'Cross').run();
+  await cables.find((c) => c.label === 'Cross').run();
+  assert.equal(calls.portAsks.length, 1);
+  assert.equal(calls.portAsks[0].id, 'd1');
+  assert.equal(calls.portAsks[0].kind, 'eCross');
+  assert.deepEqual({ ...calls.portAsks[0].at }, { x: 600, y: 400 });
   assert.equal(vm.runInContext('cableMode', context), true);
   assert.equal(vm.runInContext('cableKind', context), 'eCross');
   assert.equal(vm.runInContext('cableFrom', context), 'd1');
+  assert.equal(vm.runInContext('cableFromPort', context), 'GigabitEthernet0/1');
   assert.equal(vm.runInContext('pduMode', context), false);
   assert.equal(context.chipUpdates(), 1);
   assert.equal(wrap.classes.has('cable-mode'), true);
   assert.deepEqual(calls.status, ['armed text']);
+});
+
+test('a cancelled port chooser from the menu leaves nothing armed', async () => {
+  const { context, calls, wrap } = harness({ pick: { cancelled: true } });
+  const items = context.contextMenuFor({ device: context.data.devices[0] });
+  const cables = items.find((i) => i.label === 'Connect cable').children;
+  await cables.find((c) => c.label === 'Copper').run();
+  assert.equal(vm.runInContext('cableMode', context), false);
+  assert.equal(vm.runInContext('cableFrom', context), null);
+  assert.equal(context.chipUpdates(), 0);
+  assert.equal(wrap.classes.has('cable-mode'), false);
+  assert.deepEqual(calls.status, []);
 });
 
 test('Delete on a device selects it and fires the shared delete action', () => {

@@ -6,12 +6,17 @@
 /* The cables a device offers from its own menu; the palette keeps the rest. */
 const CONTEXT_CABLE_KINDS = ['eCopper', 'eCross', 'eSerial', 'eFiber', 'eConsole'];
 
-function armCableFrom(d, kind) {
+/* Arming from the menu goes through the same port chooser as a canvas click:
+   it opens where the menu stood, and Escape leaves nothing armed. */
+async function armCableFrom(d, kind) {
+  const at = ctxMenuAt || { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  const pick = await choosePort(d, kind, at);
+  if (pick.cancelled) return;
   cableMode = true;
   cableKind = kind;
   pduMode = false;
   cableFrom = d.id;
-  cableFromPort = null;
+  cableFromPort = pick.port;
   setSelection([d.id]);
   document.querySelector('.canvas-wrap').classList.add('cable-mode');
   updateCableChip();
@@ -114,6 +119,7 @@ function contextMenuFor(hit) {
 
 let ctxMenuEl = null;
 let ctxSubEl = null;
+let ctxMenuAt = null;
 
 function closeContextSubmenu() {
   if (ctxSubEl) { ctxSubEl.remove(); ctxSubEl = null; }
@@ -176,6 +182,7 @@ function showContextMenu(hit, ev) {
   );
   ctxMenuEl.style.left = `${spot.x}px`;
   ctxMenuEl.style.top = `${spot.y}px`;
+  ctxMenuAt = { x: spot.x, y: spot.y };
   const first = ctxMenuEl.querySelector('button:not(:disabled)');
   if (first) first.focus();
 }
