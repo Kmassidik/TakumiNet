@@ -87,3 +87,13 @@ New devices, new protocols, new templates, a different engine. Rust code stays a
 - Canvas loses free browser features (text selection, DOM focus, screen readers). Mitigation: the hidden mirror list and real DOM for text-heavy parts.
 - Large rewrite touches about 15 files and 5 JS test files; tests that read DOM ids will need rewriting. Keep the old tests' intent.
 - Performance numbers are targets until measured.
+
+## Status (2026-11-04)
+- C0: Button, Modal, Toolbar, dialog stacking, device list: done. Topbar menus still static HTML (kept as-is, not a canvas item).
+- C1 and C2: workspace drawn on canvas; select, drag, cable, PDU, link click, hover, pan and zoom: done, checked in Chrome.
+- C3: packet animation on canvas; Play with no events shows a hint and is silent: done, checked in Chrome.
+- C4: sidebar with Events, Lesson, Capture and Log tabs; resizable; hide with the button or the backslash key: done, checked in Chrome.
+- C5: palette stays at the bottom; drag from palette places a device: checked in Chrome.
+- C6: physical rack view drawn on the canvas; HTML rack view removed; old workspace CSS removed: done, checked in Chrome. Remaining: SVG helpers used only by the Flow tab stay (Flow is a separate chart).
+- Laws: L36 to L40, L42, L45, L46 tested in TypeScript or JS tests. L43 (one layout rule) and L44 (200-device redraw timing) are not measured yet.
+- Bend was never installed or run.
