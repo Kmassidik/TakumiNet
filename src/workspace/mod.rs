@@ -16,6 +16,7 @@ mod hardware;
 mod iot;
 mod ipv6;
 mod lesson;
+mod notes;
 mod links;
 mod nat;
 mod palette;
@@ -56,6 +57,7 @@ impl Workspace {
                 dhcp_clients: std::collections::HashSet::new(),
                 startup: None,
                 banners: HashMap::new(),
+                notes: Vec::new(),
                 line_passwords: HashMap::new(),
                 powered_off: std::collections::HashSet::new(),
                 slots: HashMap::new(),
@@ -255,6 +257,7 @@ impl Workspace {
                 dhcp_clients: std::collections::HashSet::new(),
                 startup: None,
                 banners: HashMap::new(),
+                notes: Vec::new(),
                 line_passwords: HashMap::new(),
                 powered_off: std::collections::HashSet::new(),
                 slots: HashMap::new(),
@@ -328,6 +331,8 @@ impl Workspace {
         o.push_str("},\"devices\":[");
 
         self.json_devices(&mut o);
+        o.push_str("],\"notes\":[");
+        self.json_notes(&mut o);
         o.push_str("],\"links\":[");
         self.json_links(&mut o);
         o.push_str("],\"filters\":[");

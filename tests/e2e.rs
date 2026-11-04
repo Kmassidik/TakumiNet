@@ -1010,3 +1010,21 @@ fn e2e_missing_or_refused_static_files_are_404() {
         assert_eq!(status, 404, "{path} must be a 404, not a 200");
     }
 }
+
+#[test]
+fn e2e_notes_add_edit_move_and_delete_over_http() {
+    let s = spawn(38_242);
+    let (status, _, body) = s.post("/api/notes/add?x=40&y=50&color=%23c8f7c5&text=Read%20me%20first");
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("\"text\":\"Read me first\""), "{body}");
+    let id = body.split("\"notes\":[{\"id\":\"").nth(1).and_then(|rest| rest.split('"').next()).unwrap().to_string();
+
+    let (_, _, body) = s.post(&format!("/api/notes/edit?id={id}&text=Changed&color=%23fff3b0"));
+    assert!(body.contains("\"text\":\"Changed\""), "{body}");
+    let (_, _, body) = s.post(&format!("/api/notes/move?id={id}&x=120&y=60"));
+    assert!(body.contains("\"x\":120"), "{body}");
+    let (_, _, body) = s.post(&format!("/api/notes/delete?id={id}"));
+    assert!(!body.contains("\"text\":\"Changed\""), "{body}");
+    let (_, _, body) = s.post("/api/notes/add?x=1&y=1&text=%20%20");
+    assert!(body.contains("error"), "blank note must be refused: {body}");
+}

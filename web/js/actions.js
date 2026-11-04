@@ -164,6 +164,10 @@ const ACTIONS = {
     status('Nothing selected');
   },
 
+  'add-note'() {
+    noteMode = true;
+    status('Click the canvas to place a note');
+  },
   'zoom-in'() { zoom(1.25); },
   'zoom-out'() { zoom(0.8); },
   'zoom-reset'() {

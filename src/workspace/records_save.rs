@@ -125,6 +125,11 @@ impl Workspace {
         for id in clients {
             out.push_str(&format!("dhcpclient\t{id}\n"));
         }
+        let mut notes: Vec<_> = self.notes.iter().collect();
+        notes.sort_by(|a, b| a.id.cmp(&b.id));
+        for note in notes {
+            out.push_str(&format!("note\t{}\t{}\t{}\t{}\t{}\n", note.id, note.x, note.y, escape_field(&note.color), escape_field(&note.text)));
+        }
         let mut banners: Vec<_> = self.banners.iter().collect();
         banners.sort_by_key(|(id, _)| id.as_str());
         for (id, text) in banners {

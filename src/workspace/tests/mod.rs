@@ -2,6 +2,7 @@ mod addressing;
 mod catalog;
 mod checks;
 mod devices;
+mod notes;
 mod persistence;
 mod routing;
 mod robustness;

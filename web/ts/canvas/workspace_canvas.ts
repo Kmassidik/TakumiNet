@@ -3,6 +3,7 @@ import { hitDevice, hitLink } from "./hit";
 import { drawScene, type Canvas2D, type Packet } from "./draw";
 import { packetAt } from "./packets";
 import { drawRacks } from "./rack_draw";
+import { hitNote, type NoteInput } from "./notes";
 import { hitRackBox, layoutRacks, type RackLayout } from "./rack_layout";
 import { buildScene, type Scene, type SceneDevice, type SceneLink, type WorkspaceInput } from "./scene";
 
@@ -14,6 +15,8 @@ export interface CanvasState {
   grid: boolean;
   empty?: { message: string; mascot?: string };
   physical?: boolean;
+  notes?: readonly NoteInput[];
+  selectedNote?: string | null;
 }
 
 export interface PacketRun {
@@ -27,6 +30,7 @@ export interface PointerHandlers {
   onDeviceDown?: (device: { id: string; name: string }, ev: PointerEvent) => void;
   onLinkDown?: (link: SceneLink, ev: PointerEvent) => void;
   onBackgroundDown?: (ev: PointerEvent) => void;
+  onNoteDown?: (note: NoteInput, ev: PointerEvent) => void;
   onHover?: (device: { name: string; model: string } | null, ev: PointerEvent) => void;
 }
 
@@ -165,6 +169,8 @@ export class WorkspaceCanvas {
       linked: state?.linked,
       packets,
       empty: state?.empty,
+      notes: state?.notes,
+      selectedNote: state?.selectedNote,
     });
     if (this.packets.length) this.requestDraw();
   }
@@ -204,6 +210,8 @@ export class WorkspaceCanvas {
       return;
     }
     const world = this.worldAt(ev);
+    const note = hitNote(this.state?.notes ?? [], world);
+    if (note) return this.handlers.onNoteDown?.(note, ev);
     if (this.state?.physical) {
       const device = hitRackBox(this.racks, world);
       if (device) return this.handlers.onDeviceDown?.(device, ev);

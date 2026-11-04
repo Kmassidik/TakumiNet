@@ -6,12 +6,13 @@ import { buildScene } from "../../web/ts/canvas/scene";
 
 interface Paint {
   arcFills: string[];
+  fills: string[];
   texts: string[];
   images: unknown[];
 }
 
 function paintRecorder(): { ctx: Canvas2D; paint: Paint } {
-  const paint: Paint = { arcFills: [], texts: [], images: [] };
+  const paint: Paint = { arcFills: [], fills: [], texts: [], images: [] };
   const ctx = {
     canvas: { width: 800, height: 600 },
     fillStyle: "#000",
@@ -21,7 +22,7 @@ function paintRecorder(): { ctx: Canvas2D; paint: Paint } {
     textAlign: "left",
     clearRect() {},
     strokeRect() {},
-    fillRect() {},
+    fillRect() { paint.fills.push(ctx.fillStyle); },
     beginPath() {},
     moveTo() {},
     lineTo() {},
@@ -77,4 +78,16 @@ test("a packet moves at the playback speed and finishes after its last hop", () 
   const points = [{ x: 100, y: 100 }, { x: 300, y: 100 }];
   expect(packetAt(points, 105, 210)).toEqual({ x: 200, y: 100 });
   expect(packetAt(points, 210, 210)).toBeNull();
+});
+
+test("notes are painted in their colour with their wrapped text", () => {
+  const { ctx, paint } = paintRecorder();
+  drawScene(ctx, buildScene({ devices: [], links: [] }), new Camera({ x: 0, y: 0, zoom: 1 }), {
+    grid: false,
+    width: 800,
+    height: 600,
+    notes: [{ id: "n1", x: 40, y: 50, color: "#c8f7c5", text: "Read me first" }],
+  });
+  expect(paint.texts).toContain("Read me first");
+  expect(paint.fills).toContain("#c8f7c5");
 });

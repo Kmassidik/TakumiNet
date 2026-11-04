@@ -23,6 +23,12 @@ async function boot() {
   viewToggle.setAttribute('aria-pressed', 'false');
   viewToggle.onclick = () => setView(viewMode === 'physical' ? 'logical' : 'physical');
   document.getElementById('toolbar-secondary').appendChild(viewToggle);
+  const noteButton = document.createElement('button');
+  noteButton.type = 'button';
+  noteButton.textContent = 'Note';
+  noteButton.title = 'Add a note to the canvas';
+  noteButton.dataset.action = 'add-note';
+  document.getElementById('toolbar-secondary').appendChild(noteButton);
   document.querySelectorAll('.tabs .tab[data-view]').forEach((b) => {
     b.addEventListener('click', () => setView(b.dataset.view));
   });

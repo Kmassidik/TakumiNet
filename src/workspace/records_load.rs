@@ -195,6 +195,15 @@ impl Workspace {
             ["dhcpclient", id] => {
                 self.dhcp_clients.insert(id.to_string());
             }
+            ["note", id, x, y, color, text] => {
+                self.notes.push(Note {
+                    id: id.to_string(),
+                    x: x.parse().ok()?,
+                    y: y.parse().ok()?,
+                    color: unescape_field(color),
+                    text: unescape_field(text),
+                });
+            }
             ["banner", id, text] => {
                 self.banners.insert(id.to_string(), unescape_field(text));
             }

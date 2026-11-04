@@ -1,5 +1,6 @@
 import type { Camera, Point } from "./camera";
 import type { Scene, SceneLink } from "./scene";
+import { noteBox, type NoteInput } from "./notes";
 
 export interface Canvas2D {
   fillStyle: string;
@@ -35,6 +36,8 @@ export interface DrawOptions {
   linked?: { a: string; b: string } | null;
   packets?: readonly Packet[];
   empty?: { message: string; mascot?: string };
+  notes?: readonly NoteInput[];
+  selectedNote?: string | null;
 }
 
 const LED_COLORS: Record<string, string> = { green: "#0a7a3d", amber: "#c98a00", red: "#c62828" };
@@ -49,6 +52,22 @@ export function drawScene(ctx: Canvas2D, scene: Scene, camera: Camera, options: 
   for (const link of scene.links) drawLink(ctx, link, camera, options);
   for (const device of scene.devices) drawDevice(ctx, device, camera, options);
   for (const packet of options.packets ?? []) drawPacket(ctx, packet, camera);
+  for (const note of options.notes ?? []) drawNote(ctx, note, camera, options.selectedNote ?? null);
+}
+
+function drawNote(ctx: Canvas2D, note: NoteInput, camera: Camera, selected: string | null): void {
+  const box = noteBox(note);
+  const at = camera.toScreen({ x: box.x, y: box.y });
+  const z = camera.zoom;
+  ctx.fillStyle = note.color;
+  ctx.fillRect(at.x, at.y, box.w * z, box.h * z);
+  ctx.strokeStyle = selected === note.id ? SELECT : "#b9c0c7";
+  ctx.lineWidth = selected === note.id ? 2 : 1;
+  ctx.strokeRect(at.x, at.y, box.w * z, box.h * z);
+  ctx.fillStyle = "#1b1f23";
+  ctx.font = `${Math.max(8, 12 * z)}px sans-serif`;
+  ctx.textAlign = "left";
+  box.lines.forEach((line, i) => ctx.fillText(line, at.x + 10 * z, at.y + (22 + i * 16) * z));
 }
 
 function drawGrid(ctx: Canvas2D, camera: Camera, width: number, height: number): void {

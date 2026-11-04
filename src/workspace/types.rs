@@ -376,9 +376,20 @@ pub struct CheckResult {
     pub hint: String,
 }
 
+/// A text note placed on the canvas. Notes are for learners and never affect the network. Notes are for learners and never affect the network.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Note {
+    pub id: String,
+    pub x: f32,
+    pub y: f32,
+    pub color: String,
+    pub text: String,
+}
+
 #[derive(Clone)]
 pub struct Workspace {
     pub devices: Vec<Device>,
+    pub notes: Vec<Note>,
     pub links: Vec<Link>,
     pub lesson: Option<Lesson>,
     pub(super) counters: HashMap<String, u32>,

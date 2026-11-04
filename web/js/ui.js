@@ -123,6 +123,57 @@
     return best;
   }
 
+  // web/ts/canvas/notes.ts
+  var NOTE_WIDTH = 180;
+  var NOTE_CHARS_PER_LINE = 26;
+  var LINE_HEIGHT = 16;
+  var PADDING = 10;
+  function wrapText(text, width) {
+    const lines = [];
+    for (const paragraph of text.split(`
+`)) {
+      let line = "";
+      for (const word of paragraph.split(" ").filter((w) => w.length > 0)) {
+        let piece = word;
+        while (piece.length > width) {
+          if (line) {
+            lines.push(line);
+            line = "";
+          }
+          lines.push(piece.slice(0, width));
+          piece = piece.slice(width);
+        }
+        const candidate = line ? `${line} ${piece}` : piece;
+        if (candidate.length > width && line) {
+          lines.push(line);
+          line = piece;
+        } else {
+          line = candidate;
+        }
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+  function noteBox(note) {
+    const lines = wrapText(note.text, NOTE_CHARS_PER_LINE);
+    return {
+      x: note.x,
+      y: note.y,
+      w: NOTE_WIDTH,
+      h: PADDING * 2 + LINE_HEIGHT * lines.length,
+      lines
+    };
+  }
+  function hitNote(notes, p) {
+    for (let i = notes.length - 1;i >= 0; i--) {
+      const box = noteBox(notes[i]);
+      if (p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h)
+        return notes[i];
+    }
+    return null;
+  }
+
   // web/ts/canvas/draw.ts
   var LED_COLORS = { green: "#0a7a3d", amber: "#c98a00", red: "#c62828" };
   var GRID_WORLD = 25;
@@ -140,6 +191,22 @@
       drawDevice(ctx, device, camera, options);
     for (const packet of options.packets ?? [])
       drawPacket(ctx, packet, camera);
+    for (const note of options.notes ?? [])
+      drawNote(ctx, note, camera, options.selectedNote ?? null);
+  }
+  function drawNote(ctx, note, camera, selected) {
+    const box = noteBox(note);
+    const at = camera.toScreen({ x: box.x, y: box.y });
+    const z = camera.zoom;
+    ctx.fillStyle = note.color;
+    ctx.fillRect(at.x, at.y, box.w * z, box.h * z);
+    ctx.strokeStyle = selected === note.id ? SELECT : "#b9c0c7";
+    ctx.lineWidth = selected === note.id ? 2 : 1;
+    ctx.strokeRect(at.x, at.y, box.w * z, box.h * z);
+    ctx.fillStyle = "#1b1f23";
+    ctx.font = `${Math.max(8, 12 * z)}px sans-serif`;
+    ctx.textAlign = "left";
+    box.lines.forEach((line, i) => ctx.fillText(line, at.x + 10 * z, at.y + (22 + i * 16) * z));
   }
   function drawGrid(ctx, camera, width, height) {
     ctx.strokeStyle = "#e3e8ee";
@@ -509,7 +576,9 @@
         marked: state?.marked,
         linked: state?.linked,
         packets,
-        empty: state?.empty
+        empty: state?.empty,
+        notes: state?.notes,
+        selectedNote: state?.selectedNote
       });
       if (this.packets.length)
         this.requestDraw();
@@ -549,6 +618,9 @@
         return;
       }
       const world = this.worldAt(ev);
+      const note = hitNote(this.state?.notes ?? [], world);
+      if (note)
+        return this.handlers.onNoteDown?.(note, ev);
       if (this.state?.physical) {
         const device = hitRackBox(this.racks, world);
         if (device)
