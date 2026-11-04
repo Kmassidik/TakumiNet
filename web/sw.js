@@ -168,6 +168,8 @@ const PRECACHE_URLS = Object.freeze([
   '/templates/les-l3-01-three-vlans.xml',
   '/templates/les-l3-02-inter-vlan.xml',
   '/templates/les-l3-04-acl-fence.xml',
+  '/templates/tpl-l4-campus-ospf.xml',
+  '/templates/les-l4-03-ospf-campus.xml',
   '/templates/t1.xml',
   '/templates/t2.xml',
   '/templates/t3.xml',

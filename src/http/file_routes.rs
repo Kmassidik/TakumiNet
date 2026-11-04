@@ -203,6 +203,8 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("les-l3-01-three-vlans", include_str!("../../web/templates/les-l3-01-three-vlans.xml")),
     ("les-l3-02-inter-vlan", include_str!("../../web/templates/les-l3-02-inter-vlan.xml")),
     ("les-l3-04-acl-fence", include_str!("../../web/templates/les-l3-04-acl-fence.xml")),
+    ("tpl-l4-campus-ospf", include_str!("../../web/templates/tpl-l4-campus-ospf.xml")),
+    ("les-l4-03-ospf-campus", include_str!("../../web/templates/les-l4-03-ospf-campus.xml")),
 ];
 
 /// Ready-to-run networks: no steps, nothing to set. Titles and goals for the gallery.
@@ -216,6 +218,7 @@ const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
     ("tpl-l1-two-rooms", "Two rooms", "A second access point carries the signal to the far room"),
     ("tpl-l1-broken-wifi", "Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
     ("tpl-l3-office-vlans", "Office with three VLANs", "Staff, servers and a printer on three VLANs, joined by one router cable"),
+    ("tpl-l4-campus-ospf", "Campus with OSPF", "Four routers in a diamond learn each other's networks and survive one cut"),
 ];
 
 fn template_text(ctx: &Ctx, id: &str) -> Result<String, ()> {

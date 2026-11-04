@@ -12,6 +12,7 @@ impl Workspace {
             "vlan" => self.check_vlan(check),
             "count" => self.check_count(check),
             "login" => self.check_login(check),
+            "outage" => self.check_outage(check),
             _ => return None,
         })
     }
@@ -81,6 +82,23 @@ impl Workspace {
             (Err(e), false) if e.starts_with("401") => (true, "login refused".into(), hint),
             (Ok(()), false) => (false, "login accepted, but it should be refused".into(), hint),
             (Err(e), _) => (false, e.clone(), hint),
+        }
+    }
+
+    /// Cut one port on a copy of the network and ask whether `from` still reaches `to`.
+    /// The live network is never touched.
+    fn check_outage(&mut self, check: &Check) -> Verdict {
+        let hint = "Add a second path (another link and routing on it) so one cut does not isolate anyone.".to_string();
+        let Some((device, port)) = check.url.split_once(':') else {
+            return (false, format!("invalid cut '{}'", check.url), "Write the cut as device:port.".into());
+        };
+        let mut copy = self.clone();
+        if !copy.set_port_up(device, port, false) {
+            return (false, format!("no port {port} on {device}"), "Fix the lesson cut.".into());
+        }
+        match copy.send_addressed_pdu(&check.from, &check.to) {
+            Ok(()) => (true, format!("still reachable with {port} on {device} cut"), hint),
+            Err(error) => (false, format!("unreachable with {port} on {device} cut: {error}"), hint),
         }
     }
 

@@ -1,0 +1,55 @@
+<takumi version="1">
+<device id="router0" kind="router" model="2911" x="200" y="120" name="Router0" ip="" prefix="24"/>
+<port id="router0" name="GigabitEthernet0/0" up="1" ip="192.168.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="router0" name="GigabitEthernet0/1" up="1" ip="10.0.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="router0" name="GigabitEthernet0/2" up="1" ip="10.0.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="router1" kind="router" model="2911" x="440" y="120" name="Router1" ip="" prefix="24"/>
+<port id="router1" name="GigabitEthernet0/0" up="1" ip="10.0.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="router1" name="GigabitEthernet0/1" up="1" ip="10.0.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="router2" kind="router" model="2911" x="200" y="280" name="Router2" ip="" prefix="24"/>
+<port id="router2" name="GigabitEthernet0/0" up="1" ip="10.0.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="router2" name="GigabitEthernet0/1" up="1" ip="10.0.4.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="router3" kind="router" model="2911" x="440" y="280" name="Router3" ip="" prefix="24"/>
+<port id="router3" name="GigabitEthernet0/0" up="1" ip="10.0.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="router3" name="GigabitEthernet0/1" up="1" ip="10.0.4.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="router3" name="GigabitEthernet0/2" up="1" ip="192.168.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="pc0" kind="pc" model="PC-PT" x="40" y="120" name="PC0" ip="192.168.1.10" prefix="24"/>
+<net id="pc0" gw="192.168.1.1" dns=""/>
+<device id="server0" kind="server" model="Server" x="700" y="280" name="Server0" ip="192.168.2.10" prefix="24"/>
+<net id="server0" gw="192.168.2.1" dns=""/>
+<link a="router0" a_port="Gig0/0" b="pc0" b_port="Fa0" kind="eCross"/>
+<link a="router0" a_port="Gig0/1" b="router1" b_port="Gig0/0" kind="eCopper"/>
+<link a="router0" a_port="Gig0/2" b="router2" b_port="Gig0/0" kind="eCopper"/>
+<link a="router1" a_port="Gig0/1" b="router3" b_port="Gig0/0" kind="eCopper"/>
+<link a="router2" a_port="Gig0/1" b="router3" b_port="Gig0/1" kind="eCopper"/>
+<link a="router3" a_port="Gig0/2" b="server0" b_port="Fa0" kind="eCross"/>
+<routing dev="router0" proto="ospf" process_id="1"/>
+<routenet dev="router0" net="10.0.1.0" prefix="24" area="0"/>
+<routenet dev="router0" net="10.0.2.0" prefix="24" area="0"/>
+<routenet dev="router0" net="10.0.3.0" prefix="24" area="0"/>
+<routenet dev="router0" net="10.0.4.0" prefix="24" area="0"/>
+<routenet dev="router0" net="192.168.1.0" prefix="24" area="0"/>
+<routenet dev="router0" net="192.168.2.0" prefix="24" area="0"/>
+<routing dev="router1" proto="ospf" process_id="1"/>
+<routenet dev="router1" net="10.0.1.0" prefix="24" area="0"/>
+<routenet dev="router1" net="10.0.2.0" prefix="24" area="0"/>
+<routenet dev="router1" net="10.0.3.0" prefix="24" area="0"/>
+<routenet dev="router1" net="10.0.4.0" prefix="24" area="0"/>
+<routenet dev="router1" net="192.168.1.0" prefix="24" area="0"/>
+<routenet dev="router1" net="192.168.2.0" prefix="24" area="0"/>
+<routing dev="router2" proto="ospf" process_id="1"/>
+<routenet dev="router2" net="10.0.1.0" prefix="24" area="0"/>
+<routenet dev="router2" net="10.0.2.0" prefix="24" area="0"/>
+<routenet dev="router2" net="10.0.3.0" prefix="24" area="0"/>
+<routenet dev="router2" net="10.0.4.0" prefix="24" area="0"/>
+<routenet dev="router2" net="192.168.1.0" prefix="24" area="0"/>
+<routenet dev="router2" net="192.168.2.0" prefix="24" area="0"/>
+<routing dev="router3" proto="ospf" process_id="1"/>
+<routenet dev="router3" net="10.0.1.0" prefix="24" area="0"/>
+<routenet dev="router3" net="10.0.2.0" prefix="24" area="0"/>
+<routenet dev="router3" net="10.0.3.0" prefix="24" area="0"/>
+<routenet dev="router3" net="10.0.4.0" prefix="24" area="0"/>
+<routenet dev="router3" net="192.168.1.0" prefix="24" area="0"/>
+<routenet dev="router3" net="192.168.2.0" prefix="24" area="0"/>
+<demo kind="ping" from="pc0" to="server0" url=""/>
+</takumi>
