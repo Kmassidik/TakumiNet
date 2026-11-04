@@ -113,3 +113,25 @@ test("print: the stylesheet prints the workspace sheet only", () => {
   const actions = sources.find((s) => s.name === "actions.js")!.text;
   expect(actions).not.toMatch(/print\(\) \{ status\('Printing…'\); window\.print\(\); \}/);
 });
+
+test("tokens: every colour is defined once in tokens.css, never written into a rule", () => {
+  const tokens = readFileSync(join(web, "tokens.css"), "utf8");
+  expect(tokens).toMatch(/:root \{/);
+  const hex = /#[0-9a-fA-F]{3,8}\b/;
+  for (const file of ["workspace.css", "about.html"]) {
+    const text = readFileSync(join(web, file), "utf8");
+    // strip selectors: only declaration blocks may be checked for colours
+    const declarations = [...text.matchAll(/\{([^{}]*)\}/g)].map((m) => m[1]!).join("\n");
+    const found = declarations.match(new RegExp(hex.source, "g")) ?? [];
+    expect(found, `${file} holds raw colours`).toEqual([]);
+  }
+  expect(index).toMatch(/href="\/tokens\.css"/);
+  expect(readFileSync(join(web, "about.html"), "utf8")).toMatch(/href="\/tokens\.css"/);
+});
+
+test("tokens: radii and fonts come from the token set", () => {
+  const css = readFileSync(join(web, "workspace.css"), "utf8");
+  expect(css).not.toMatch(/border-radius:\s*(3|4|6|10)px/);
+  expect(css).not.toMatch(/"Segoe UI"/);
+  expect(css).not.toMatch(/ui-monospace/);
+});

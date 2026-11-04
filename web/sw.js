@@ -5,6 +5,7 @@ const CACHE_NAME = `${CACHE_PREFIX}v1`;
 const PRECACHE_URLS = Object.freeze([
   '/',
   '/about',
+  '/tokens.css',
   '/workspace.css',
   '/engine.wasm',
 

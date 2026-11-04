@@ -156,6 +156,11 @@ fn e2e_about_page_is_public_and_linked_from_help() {
     }
     assert!(body.contains(r#"href="/""#), "About page must link back to the workspace");
     assert!(!body.contains(".html"), "About page must not link to a .html address");
+    assert!(body.contains("/tokens.css"), "About page must use the shared tokens");
+    let (status, head, tokens) = s.get("/tokens.css");
+    assert_eq!(status, 200);
+    assert!(head.contains("text/css"), "{head}");
+    assert!(tokens.contains("--accent:"), "tokens.css must define the colours");
 
     // The old address redirects to the clean one; other spellings are not pages.
     let (status, head, _) = s.get("/about.html");

@@ -1,0 +1,16 @@
+:root {
+  /* One place for every colour, radius and type choice. workspace.css and about.html read these; nothing else may hold a raw colour. */
+  --bg: #eef1f4; --panel: #ffffff; --white: #ffffff; --chrome: #f7f8fa; --surface: #f1f4f7; --hover: #eef3fb;
+  --window: #f0f0f0; --titlebar: #e8eef7;
+  --line: #b9c0c7; --line-soft: #d7dde2; --line-win: #b6bfcb;
+  --text: #1b1f23; --text-2: #3f4750; --muted: #667085; --muted-2: #52647a; --faint: #a0a8b0;
+  --ink: #1a1a1a; --ink-2: #4b5563; --navy: #152c49; --black: #000000;
+  --accent: #0a5ed7; --accent-strong: #084eae; --accent-bg: #e8f0fd; --accent-line: #b7d4f5; --accent-ink: #173d68; --accent-light: #7aa8e5;
+  --danger: #b42318; --danger-bg: #fff5f5; --danger-line: #efb4ae; --danger-ink: #8a1c1c; --danger-hot: #d64545;
+  --ok: #0a7a3d; --ok-bg: #f0fbf5; --ok-line: #a9dfc2; --ok-bright: #20a464;
+  --warn: #e6a23c; --warn-bg: #fff3c4; --warn-line: #f0b429; --warn-ink: #a86a00; --warn-fill: #ffe08a; --packet: #e8590c;
+  --screen-bg: #203a2b; --screen-text: #c9f7d4; --screen-dim: #9ed4ae; --screen-ok: #eafff0; --screen-edge: #51705c;
+  --shadow-ink: #19395b; --scrim: rgba(21, 36, 56, .28); --scrim-strong: rgba(16, 24, 40, 0.45);
+  --r-s: 3px; --r-m: 4px; --r-l: 6px; --r-xl: 10px;
+  --font-ui: "Segoe UI", system-ui, sans-serif; --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+}

@@ -30,6 +30,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
                 return None
             }
         }
+        ("GET", "/tokens.css") => ("text/css; charset=utf-8", file_bytes(&ctx.web_root, "tokens.css")?),
         ("GET", "/workspace.css") => ("text/css; charset=utf-8", file_bytes(&ctx.web_root, "workspace.css")?),
         ("GET", "/engine.wasm") => ("application/wasm", file_bytes(&ctx.web_root, "engine.wasm")?),
         ("GET", "/sw.js") => ("text/javascript; charset=utf-8", file_bytes(&ctx.web_root, "sw.js")?),

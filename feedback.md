@@ -25,7 +25,7 @@ Every commit: `cargo test`, JS tests and TS tests pass first. No attribution lin
 
 ---
 
-## F1. The front end looks like generic "slop" (open)
+## F1. The front end looks like generic "slop" (done)
 
 Owner: the front end reads as templated and generic. No screen was named.
 
@@ -324,6 +324,23 @@ Owner: "i use template btw why still show Nothing to play yet".
 - Slop guard: every `tpl-*` file has a traffic record.
 
 ---
+
+## Build result (2026-11-04)
+
+All eleven items were built in this order: F5 (with F2), F6, F7, F8, F10, F9, F3, F11, F4, F1. Each is one commit on `main`.
+
+Decisions taken while building (the owner can change any of them):
+- Bend and "no formal verification": each item has a small Bend test in `tests/bend/` that runs a model of its rule and must print 0. They are tests, not proofs. Nothing was added to `LAWS.md`. `tests/ts/bend.test.ts` runs them and skips them when `bend` is not installed.
+- F1: the three worst screens were not named, so the work was done everywhere. One `web/tokens.css` now holds every colour, radius and font. `workspace.css` and `about.html` hold no raw colours (guarded by a test). The gallery cards were also tidied. Canvas drawing colours inside the TypeScript code are not moved yet.
+- F3.1: old `.tnet` files still open (read only). Saves, export and templates are `.xml`.
+- F3.6: nothing was deleted. The `topologies/*.ptw` and the `e2e.tnet`, `routing_*` leftovers are still there.
+- F6.3: the collapsed state is remembered per browser.
+- F9.5: no licence was chosen, so no LICENSE file was added and the page claims none.
+- F10.4: the welcome gallery stays for the first visit only. It is no longer in a menu.
+- F11: option (a). Each `tpl-*` template carries a `<demo>` record, and Play on a quiet template sends it first.
+
+Not done:
+- Checked in a real browser: dialogs, bars, palette, sidebar widths 240/330/600, Examples menu, template Play, About page, print picture. Not checked: the system print dialog itself (it would block the browser tool), and phone-width layouts.
 
 ## Build order (proposed)
 
