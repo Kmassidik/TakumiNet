@@ -98,11 +98,11 @@ function renderLessonResults(results) {
 
 function renderLesson() {
   const panel = document.getElementById('lesson-panel');
-  if (typeof selectSidebarTab === 'function') selectSidebarTab('lesson');
   if (!panel) return;
   const lesson = data && data.lesson;
   panel.hidden = !lesson;
   if (!lesson) return;
+  if (typeof selectSidebarTab === 'function') selectSidebarTab('lesson');
 
   document.getElementById('lesson-title').textContent = lesson.title;
   document.getElementById('lesson-goal').textContent = lesson.goal;

@@ -3,7 +3,7 @@ function renderAll() {
   renderTopology();
   renderEvents();
   renderLesson();
-  if (viewMode === 'physical') renderPhysical();
+  if (viewMode === 'physical') renderTopology();
 }
 
 function wireMenus() {

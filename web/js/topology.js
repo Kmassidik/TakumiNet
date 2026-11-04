@@ -17,6 +17,7 @@ function renderTopology() {
     marked: new Set([cableFrom, pduFrom].filter(Boolean)),
     linked: selectedLink,
     grid: showGrid,
+    physical: viewMode === 'physical',
     empty: data.devices.length
       ? undefined
       : { message: 'No devices yet. Drop a device here to begin', mascot: '/art3d/mascot/sleep.webp' },
@@ -25,7 +26,11 @@ function renderTopology() {
 
 function wireWorkspaceCanvas() {
   workspaceCanvas.handlers = {
-    onDeviceDown: (device, ev) => startDrag(ev, data.devices.find((d) => d.id === device.id)),
+    onDeviceDown: (device, ev) => {
+      const d = data.devices.find((x) => x.id === device.id);
+      if (viewMode === 'physical') selectPhysical(d);
+      else startDrag(ev, d);
+    },
     onLinkDown: (link) => {
       selectedLink = { a: link.a, b: link.b };
       setSelection([]);

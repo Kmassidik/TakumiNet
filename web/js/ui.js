@@ -235,12 +235,132 @@
     return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
   }
 
+  // web/ts/canvas/rack_draw.ts
+  function drawRacks(ctx, layout, camera, options) {
+    for (const rack of layout.racks) {
+      const origin = camera.toScreen({ x: rack.rect.x, y: rack.rect.y });
+      const zoom = camera.zoom;
+      ctx.strokeStyle = "#b9c0c7";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(origin.x, origin.y, rack.rect.w * zoom, rack.rect.h * zoom);
+      ctx.fillStyle = "#1b1f23";
+      ctx.font = `${Math.max(9, 13 * zoom)}px sans-serif`;
+      ctx.textAlign = "left";
+      ctx.fillText(rack.label, origin.x + 8 * zoom, origin.y + 18 * zoom);
+      for (const box of rack.boxes) {
+        const at = camera.toScreen({ x: box.rect.x, y: box.rect.y + rack.rect.y });
+        const x = at.x;
+        const y = at.y;
+        const w = box.rect.w * zoom;
+        const h = box.rect.h * zoom;
+        const selected = options.selected?.has(box.device.id) ?? false;
+        ctx.fillStyle = selected ? "#e8f0fd" : "#f7f8fa";
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = selected ? "#0a5ed7" : "#b9c0c7";
+        ctx.strokeRect(x, y, w, h);
+        ctx.fillStyle = "#1b1f23";
+        ctx.font = `${Math.max(9, 12 * zoom)}px sans-serif`;
+        ctx.fillText(box.device.name, x + 8 * zoom, y + 22 * zoom);
+        ctx.fillStyle = "#667085";
+        ctx.font = `${Math.max(8, 10 * zoom)}px sans-serif`;
+        ctx.fillText(box.device.model, x + 8 * zoom, y + 40 * zoom);
+      }
+    }
+  }
+
+  // web/ts/canvas/rack_layout.ts
+  var KIND_ORDER = [
+    "router",
+    "switch",
+    "hub",
+    "server",
+    "pc",
+    "laptop",
+    "ap",
+    "homerouter",
+    "asa",
+    "wlc",
+    "phone",
+    "printer",
+    "cloud",
+    "thing"
+  ];
+  var KIND_LABEL = {
+    router: "Routers",
+    switch: "Switches",
+    hub: "Hubs",
+    server: "Servers",
+    pc: "Workstations",
+    laptop: "Laptops",
+    ap: "Access Points",
+    homerouter: "Wireless Routers",
+    asa: "Firewalls",
+    wlc: "Wireless LAN Controllers",
+    phone: "IP Phones",
+    printer: "Printers",
+    cloud: "Clouds",
+    thing: "IoT Devices"
+  };
+  var BOX = { w: 168, h: 72, gap: 12, perRow: 2, title: 28, rackGap: 28 };
+  var rank = (kind) => {
+    const index = KIND_ORDER.indexOf(kind);
+    return index < 0 ? KIND_ORDER.length : index;
+  };
+  function layoutRacks(devices) {
+    const groups = new Map;
+    for (const device of devices) {
+      const list = groups.get(device.kind) ?? [];
+      list.push(device);
+      groups.set(device.kind, list);
+    }
+    const kinds = [...groups.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+    let x = 0;
+    const racks = kinds.map((kind) => {
+      const members = groups.get(kind);
+      const rows = Math.ceil(members.length / BOX.perRow);
+      const width = BOX.perRow * BOX.w + (BOX.perRow + 1) * BOX.gap;
+      const height = BOX.title + rows * (BOX.h + BOX.gap) + BOX.gap;
+      const boxes = members.map((device, i) => {
+        const column = i % BOX.perRow;
+        const row = Math.floor(i / BOX.perRow);
+        return {
+          device,
+          rect: {
+            x: x + BOX.gap + column * (BOX.w + BOX.gap),
+            y: BOX.title + row * (BOX.h + BOX.gap),
+            w: BOX.w,
+            h: BOX.h
+          }
+        };
+      });
+      const rack = {
+        kind,
+        label: `${KIND_LABEL[kind] ?? kind.charAt(0).toUpperCase() + kind.slice(1)} (${members.length})`,
+        rect: { x, y: 0, w: width, h: height },
+        boxes
+      };
+      x += width + BOX.rackGap;
+      return rack;
+    });
+    return { racks };
+  }
+  function hitRackBox(layout, p) {
+    for (const rack of layout.racks) {
+      for (const box of rack.boxes) {
+        const { x, y, w, h } = box.rect;
+        if (p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h)
+          return box.device;
+      }
+    }
+    return null;
+  }
+
   // web/ts/canvas/scene.ts
-  var BOX = { left: 36, top: 34, size: 72 };
+  var BOX2 = { left: 36, top: 34, size: 72 };
   function buildScene(workspace) {
     const devices = workspace.devices.map((d) => ({
       ...d,
-      box: { x: d.x - BOX.left, y: d.y - BOX.top, w: BOX.size, h: BOX.size }
+      box: { x: d.x - BOX2.left, y: d.y - BOX2.top, w: BOX2.size, h: BOX2.size }
     }));
     const byId = new Map(devices.map((d) => [d.id, d]));
     const links = [];
@@ -261,6 +381,7 @@
     camera = new Camera({ x: 0, y: 0, zoom: 1 });
     handlers = {};
     scene = { devices: [], links: [] };
+    racks = { racks: [] };
     state = null;
     ctx;
     images = new Map;
@@ -269,6 +390,7 @@
     frame = 0;
     panFrom = null;
     spaceDown = false;
+    wasPhysical = false;
     constructor(canvas) {
       this.canvas = canvas;
       const ctx = canvas.getContext("2d");
@@ -291,6 +413,14 @@
         if (ev.code === "Space")
           this.spaceDown = false;
       });
+    }
+    fitRacks() {
+      const rects = this.racks.racks.map((r) => r.rect);
+      const right = Math.max(0, ...rects.map((r) => r.x + r.w));
+      const bottom = Math.max(0, ...rects.map((r) => r.y + r.h));
+      this.camera.zoom = Math.max(0.1, Math.min(1, this.cssWidth / (right + 32), this.cssHeight / (bottom + 32)));
+      this.camera.x = -16;
+      this.camera.y = -16;
     }
     worldCenter() {
       return this.camera.toWorld({ x: this.cssWidth / 2, y: this.cssHeight / 2 });
@@ -327,6 +457,11 @@
     setState(state) {
       this.state = state;
       this.scene = buildScene(state.workspace);
+      const enteringPhysical = !!state.physical && !this.wasPhysical;
+      this.wasPhysical = !!state.physical;
+      this.racks = layoutRacks(state.workspace.devices.map((d) => ({ id: d.id, name: d.name, model: d.model, kind: d.kind ?? "other" })));
+      if (enteringPhysical)
+        this.fitRacks();
       this.requestDraw();
     }
     worldAt(ev) {
@@ -358,6 +493,13 @@
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const state = this.state;
       const packets = this.livePackets();
+      if (state?.physical) {
+        this.ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
+        drawRacks(this.ctx, this.racks, this.camera, { selected: state.selected });
+        if (this.packets.length)
+          this.requestDraw();
+        return;
+      }
       drawScene(this.ctx, this.scene, this.camera, {
         width: this.cssWidth,
         height: this.cssHeight,
@@ -407,6 +549,12 @@
         return;
       }
       const world = this.worldAt(ev);
+      if (this.state?.physical) {
+        const device = hitRackBox(this.racks, world);
+        if (device)
+          return this.handlers.onDeviceDown?.(device, ev);
+        return this.handlers.onBackgroundDown?.(ev);
+      }
       const device = hitDevice(this.scene, world);
       if (device)
         return this.handlers.onDeviceDown?.(device, ev);
@@ -417,6 +565,8 @@
     }
     onPointerMove(ev) {
       if (!this.panFrom) {
+        if (this.state?.physical)
+          return;
         this.handlers.onHover?.(hitDevice(this.scene, this.worldAt(ev)), ev);
         return;
       }

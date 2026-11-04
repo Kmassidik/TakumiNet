@@ -771,38 +771,6 @@ html, body {
   background: #e8f0fd; border-color: var(--accent); color: var(--accent); font-weight: 600;
 }
 
-.physical-view {
-  position: absolute; inset: 0; z-index: 2;
-  padding: 14px 16px 22px; overflow: auto; background: #e9edf2;
-}
-.pv-racks { display: flex; flex-direction: column; gap: 14px; }
-.pv-rack {
-  padding: 8px 10px 10px; background: #f7f8fa;
-  border: 1px solid var(--line); border-radius: 6px;
-}
-.pv-rack-title {
-  margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted);
-}
-.pv-boxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 8px; }
-.pv-dev {
-  display: flex; flex-direction: column; gap: 1px; text-align: left; cursor: pointer;
-  padding: 7px 9px; background: #fff; border: 1px solid var(--line);
-  border-radius: 4px; font: inherit; color: var(--text);
-  box-shadow: inset 0 1px 0 #fff, 0 1px 2px #00000010;
-}
-.pv-dev:hover { border-color: var(--accent); }
-.pv-dev.selected {
-  border-color: var(--accent); background: #f2f7ff; box-shadow: 0 0 0 2px #0a5ed733;
-}
-.pv-name { font-size: 12px; font-weight: 600; }
-.pv-model { font-size: 10px; color: var(--muted); }
-.pv-count { font-size: 10.5px; color: #3f4750; }
-.pv-portlist {
-  font: 10px ui-monospace, monospace; color: var(--muted);
-  word-break: break-word;
-}
-
 /* ---------- syslog and NTP service sections ---------- */
 .syslog-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
 .sys-check { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }

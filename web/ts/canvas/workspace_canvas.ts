@@ -2,6 +2,8 @@ import { Camera, type Point } from "./camera";
 import { hitDevice, hitLink } from "./hit";
 import { drawScene, type Canvas2D, type Packet } from "./draw";
 import { packetAt } from "./packets";
+import { drawRacks } from "./rack_draw";
+import { hitRackBox, layoutRacks, type RackLayout } from "./rack_layout";
 import { buildScene, type Scene, type SceneDevice, type SceneLink, type WorkspaceInput } from "./scene";
 
 export interface CanvasState {
@@ -11,6 +13,7 @@ export interface CanvasState {
   linked: { a: string; b: string } | null;
   grid: boolean;
   empty?: { message: string; mascot?: string };
+  physical?: boolean;
 }
 
 export interface PacketRun {
@@ -21,10 +24,10 @@ export interface PacketRun {
 }
 
 export interface PointerHandlers {
-  onDeviceDown?: (device: SceneDevice, ev: PointerEvent) => void;
+  onDeviceDown?: (device: { id: string; name: string }, ev: PointerEvent) => void;
   onLinkDown?: (link: SceneLink, ev: PointerEvent) => void;
   onBackgroundDown?: (ev: PointerEvent) => void;
-  onHover?: (device: SceneDevice | null, ev: PointerEvent) => void;
+  onHover?: (device: { name: string; model: string } | null, ev: PointerEvent) => void;
 }
 
 const LINK_TOLERANCE_PX = 6;
@@ -33,6 +36,7 @@ export class WorkspaceCanvas {
   readonly camera = new Camera({ x: 0, y: 0, zoom: 1 });
   handlers: PointerHandlers = {};
   private scene: Scene = { devices: [], links: [] };
+  private racks: RackLayout = { racks: [] };
   private state: CanvasState | null = null;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly images = new Map<string, HTMLImageElement>();
@@ -41,6 +45,7 @@ export class WorkspaceCanvas {
   private frame = 0;
   private panFrom: Point | null = null;
   private spaceDown = false;
+  private wasPhysical = false;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
@@ -54,6 +59,15 @@ export class WorkspaceCanvas {
     canvas.addEventListener("wheel", (ev) => this.onWheel(ev), { passive: false });
     window.addEventListener("keydown", (ev) => { if (ev.code === "Space") this.spaceDown = true; });
     window.addEventListener("keyup", (ev) => { if (ev.code === "Space") this.spaceDown = false; });
+  }
+
+  private fitRacks(): void {
+    const rects = this.racks.racks.map((r) => r.rect);
+    const right = Math.max(0, ...rects.map((r) => r.x + r.w));
+    const bottom = Math.max(0, ...rects.map((r) => r.y + r.h));
+    this.camera.zoom = Math.max(0.1, Math.min(1, this.cssWidth / (right + 32), this.cssHeight / (bottom + 32)));
+    this.camera.x = -16;
+    this.camera.y = -16;
   }
 
   worldCenter(): Point {
@@ -95,6 +109,10 @@ export class WorkspaceCanvas {
   setState(state: CanvasState): void {
     this.state = state;
     this.scene = buildScene(state.workspace);
+    const enteringPhysical = !!state.physical && !this.wasPhysical;
+    this.wasPhysical = !!state.physical;
+    this.racks = layoutRacks(state.workspace.devices.map((d) => ({ id: d.id, name: d.name, model: d.model, kind: d.kind ?? "other" })));
+    if (enteringPhysical) this.fitRacks();
     this.requestDraw();
   }
 
@@ -131,6 +149,12 @@ export class WorkspaceCanvas {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const state = this.state;
     const packets = this.livePackets();
+    if (state?.physical) {
+      this.ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
+      drawRacks(this.ctx as unknown as Canvas2D, this.racks, this.camera, { selected: state.selected });
+      if (this.packets.length) this.requestDraw();
+      return;
+    }
     drawScene(this.ctx as unknown as Canvas2D, this.scene, this.camera, {
       width: this.cssWidth,
       height: this.cssHeight,
@@ -180,6 +204,11 @@ export class WorkspaceCanvas {
       return;
     }
     const world = this.worldAt(ev);
+    if (this.state?.physical) {
+      const device = hitRackBox(this.racks, world);
+      if (device) return this.handlers.onDeviceDown?.(device, ev);
+      return this.handlers.onBackgroundDown?.(ev);
+    }
     const device = hitDevice(this.scene, world);
     if (device) return this.handlers.onDeviceDown?.(device, ev);
     const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
@@ -189,6 +218,7 @@ export class WorkspaceCanvas {
 
   private onPointerMove(ev: PointerEvent): void {
     if (!this.panFrom) {
+      if (this.state?.physical) return;
       this.handlers.onHover?.(hitDevice(this.scene, this.worldAt(ev)), ev);
       return;
     }

@@ -1,5 +1,6 @@
 export interface DeviceInput {
   id: string;
+  kind?: string;
   name: string;
   model: string;
   icon: string;
