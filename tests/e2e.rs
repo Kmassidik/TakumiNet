@@ -141,9 +141,6 @@ fn e2e_about_page_is_public_and_linked_from_help() {
     assert!(head.contains("text/html"), "{head}");
     for required in [
         "original",
-        "ChatGPT",
-        "tools/build_art.py",
-        "MANIFEST.json",
         "free",
         "No account",
         "https://github.com/Kmassidik/TakumiNet",
@@ -151,8 +148,13 @@ fn e2e_about_page_is_public_and_linked_from_help() {
         "pull request",
         "Open source",
         "MIT licence",
+        "Who makes it",
     ] {
         assert!(body.contains(required), "About page is missing {required:?}");
+    }
+    // The About page is written in plain words: no file paths, hashes or tool names.
+    for banned in ["ChatGPT", "tools/", "MANIFEST", "SHA-256", "provenance", "Vision helper", "—"] {
+        assert!(!body.contains(banned), "About page must not contain {banned:?}");
     }
     assert!(body.contains(r#"href="/workspace""#), "About page must link back to the workspace");
     assert!(!body.contains(".html"), "About page must not link to a .html address");
@@ -1125,7 +1127,7 @@ fn e2e_landing_page_sends_people_into_the_workspace() {
     assert_eq!(status, 200);
     assert!(head.contains("text/html"), "{head}");
     assert!(landing.contains("Build a network and watch it work."), "headline missing");
-    assert!(landing.contains("data-takumi-slot"), "Takumi must have a place on the page");
+    assert!(landing.contains("/landing/takumi-wave.webp"), "Takumi must be on the page");
     assert!(landing.contains(r#"href="/workspace""#), "the main button must open the workspace");
     assert!(!landing.contains("Simulation Panel"), "'/' must be the landing page, not the app");
     assert!(!landing.contains(".html"), "no address may end in .html");
@@ -1143,13 +1145,14 @@ fn e2e_landing_page_sends_people_into_the_workspace() {
     }
 
     // The scene's own files are served with the right types.
-    for (path, kind) in [("/landing/takumi.glb", "model/gltf-binary"), ("/js/landing.js", "javascript")] {
+    for (path, kind) in [("/landing/takumi-idle.webp", "image/webp"), ("/landing/takumi-wave.webp", "image/webp"), ("/landing/takumi-think.webp", "image/webp"), ("/landing/takumi-happy.webp", "image/webp")] {
         let (status, head, _) = s.get_raw(path);
         assert_eq!(status, 200, "{path}");
         assert!(head.contains(kind), "{path}: {head}");
     }
-    assert_eq!(s.get("/landing/other.glb").0, 404);
-    assert_eq!(s.get("/landing/network.glb").0, 404, "the old network model is gone");
+    assert_eq!(s.get("/landing/other.webp").0, 404);
+    assert_eq!(s.get("/landing/takumi-sleep.webp").0, 404, "only the poses the page uses are served");
+    assert_eq!(s.get("/landing/takumi.glb").0, 404, "the 3D model is gone");
 
     // The page's own files are served.
     let (status, head, _) = s.get("/landing.css");

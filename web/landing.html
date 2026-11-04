@@ -10,8 +10,6 @@
 <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
-<canvas id="stage" aria-hidden="true"></canvas>
-
 <header class="top">
   <a class="brand" href="/"><img src="/art3d/mascot/idle.webp" alt="" width="34" height="34">TakumiNet</a>
   <nav aria-label="Site">
@@ -32,7 +30,7 @@
     <p class="phone-note">The workspace needs a computer or a tablet. Open this page there to start building.</p>
 
     <div class="peek">
-      <div class="slot slot-hero" data-takumi-slot data-pose="wave" data-side="center"><img src="/art3d/mascot/wave.webp" alt="Takumi, the TakumiNet mascot, waving" width="256" height="256"></div>
+      <div class="slot slot-hero"><img src="/landing/takumi-wave.webp" alt="Takumi, the TakumiNet mascot, waving hello" width="512" height="512"></div>
       <div class="card hard cap-card">
         <table class="cap" aria-label="Example captured packets">
           <thead><tr><th>Time</th><th>From</th><th>At</th><th>Type</th><th>Info</th></tr></thead>
@@ -61,13 +59,13 @@
           </div>
         </div>
       </div>
-      <div class="slot" data-takumi-slot data-pose="idle" data-side="right"><img src="/art3d/mascot/idle.webp" alt="" width="256" height="256"></div>
+      <div class="slot"><img src="/landing/takumi-idle.webp" alt="" width="512" height="512"></div>
     </div>
   </section>
 
   <section class="block teal" aria-labelledby="follow">
     <div class="block-grid flip">
-      <div class="slot" data-takumi-slot data-pose="think" data-side="left"><img src="/art3d/mascot/think.webp" alt="" width="256" height="256"></div>
+      <div class="slot"><img src="/landing/takumi-think.webp" alt="" width="512" height="512"></div>
       <div class="say">
         <h2 id="follow">Follow the packet</h2>
         <p>Press Play and each device makes its decision in turn: ARP, DNS, ping, a web page. Open any captured frame to read its layers and its bytes, and filter the list by protocol.</p>
@@ -96,7 +94,7 @@
           <li class="todo"><span></span>Router0 has the left connected prefix<small>Not checked yet</small></li>
         </ul>
       </div>
-      <div class="slot" data-takumi-slot data-pose="happy" data-side="right"><img src="/art3d/mascot/happy.webp" alt="" width="256" height="256"></div>
+      <div class="slot"><img src="/landing/takumi-happy.webp" alt="" width="512" height="512"></div>
     </div>
   </section>
 
@@ -137,7 +135,7 @@
           <a class="pill line light" href="https://x.com/KMassidik" rel="noopener noreferrer">Follow the author on X</a>
         </p>
       </div>
-      <div class="slot" data-takumi-slot data-pose="wave" data-side="right"><img src="/art3d/mascot/wave.webp" alt="" width="256" height="256"></div>
+      <div class="slot"><img src="/landing/takumi-wave.webp" alt="" width="512" height="512"></div>
     </div>
   </section>
 </main>
@@ -147,6 +145,5 @@
   <a href="/about">About TakumiNet</a>
   <span>MIT licence, 2026 Kurnia Massidik</span>
 </footer>
-<script src="/js/landing.js" defer></script>
 </body>
 </html>

@@ -129,7 +129,7 @@ test('precache manifest contains every production file and no documentation asse
   for (const filename of fs.readdirSync(path.join(root, 'web/sounds'))) {
     if (filename.endsWith('.wav')) expected.push(`/sounds/${filename}`);
   }
-  expected.push('/landing/takumi.glb'); // the landing page's 3D Takumi
+  for (const pose of ['idle', 'wave', 'think', 'happy']) expected.push(`/landing/takumi-${pose}.webp`); // Takumi on the landing page
   for (const filename of fs.readdirSync(path.join(root, 'web/templates'))) {
     if (filename.endsWith('.xml')) expected.push(`/templates/${filename}`);
   }

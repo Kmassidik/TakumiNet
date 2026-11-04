@@ -43,11 +43,9 @@ test("phones get a note instead of buttons, using the same query as the workspac
   expect(landing).toContain('class="phone-note"');
 });
 
-test("people who ask for less motion get the flat pictures, not the live Takumi", () => {
+test("people who ask for less motion get a still Takumi", () => {
   const block = css.slice(css.indexOf("prefers-reduced-motion"));
-  expect(block).toMatch(/#stage \{ display: none; \}/);
-  expect(block).toMatch(/\.slot img, \.scene-ready \.slot img \{ opacity: 1; \}/);
-  expect(css).toMatch(/\.flat-only #stage \{ display: none; \}/);
+  expect(block).toMatch(/\.slot img, \.slot:hover img \{ animation: none; transform: none; transition: none; \}/);
 });
 
 test("the headline and the main button are present and plain", () => {
@@ -68,25 +66,40 @@ test("the page is white: no dark page background, and the blocks use the token c
   for (const tone of ["ink", "teal", "grey"]) expect(landing).toMatch(new RegExp(`class="block ${tone}`));
 });
 
-test("Takumi has five slots, each with a known pose, a side, and a flat picture that exists", () => {
-  const slots = [...landing.matchAll(/<div class="slot[^"]*" data-takumi-slot data-pose="([a-z]+)" data-side="([a-z]+)"><img src="([^"]+)"/g)];
+test("Takumi has five places on the page, each a picture that exists with its size", () => {
+  const slots = [...landing.matchAll(/<div class="slot[^"]*"><img src="(\/landing\/takumi-([a-z]+)\.webp)" alt="([^"]*)" width="512" height="512">/g)];
   expect(slots.length).toBe(5);
-  for (const [, pose, side, src] of slots) {
+  for (const [, src, pose] of slots) {
     expect(["idle", "wave", "think", "happy"]).toContain(pose!);
-    expect(["left", "right", "center"]).toContain(side!);
-    expect(existsSync(join(web, "art/3d", src!.replace("/art3d/", ""))), src).toBe(true);
+    expect(existsSync(join(web, src!.slice(1))), src).toBe(true);
   }
-  expect(slots[0]![2]).toBe("center"); // the first one is the middle of the hero
-  // each slot's pose name is one the scene can strike
-  const motion = readFileSync(join(import.meta.dir, "../../web/ts/landing/motion.ts"), "utf8");
-  for (const [, pose] of slots) expect(motion).toContain(`"${pose}"`);
+  expect(slots[0]![2]).toBe("wave"); // the first one is the middle of the hero, waving hello
+  expect(slots[0]![3]).toMatch(/Takumi/); // and it has a description, the others are decoration
 });
 
-test("the flat pictures are real pictures with sizes, and the canvas is hidden from screen readers", () => {
-  expect(landing).toContain('<canvas id="stage" aria-hidden="true">');
+test("the page needs no script at all, and no 3D library is left in the project", () => {
+  expect(landing).not.toContain("<script");
+  expect(landing).not.toContain("<canvas");
+  const pkg = JSON.parse(readFileSync(join(import.meta.dir, "../../package.json"), "utf8"));
+  expect(Object.keys(pkg.devDependencies)).toEqual(["typescript"]);
+  expect(existsSync(join(web, "js/landing.js"))).toBe(false);
+});
+
+test("every picture on the page has a size, so nothing jumps while it loads", () => {
   for (const [tag] of landing.matchAll(/<img [^>]*>/g)) {
     expect(tag).toMatch(/\bwidth="\d+"/);
     expect(tag).toMatch(/\bheight="\d+"/);
   }
-  expect(landing).toContain('<script src="/js/landing.js" defer>');
+});
+
+test("the About page uses the same tokens and styles as the landing page, and plain words", () => {
+  const about = readFileSync(join(web, "about.html"), "utf8");
+  expect(about).toContain('href="/tokens.css"');
+  expect(about).toContain('href="/landing.css"');
+  expect(about).not.toContain("<style");
+  for (const banned of ["ChatGPT", "tools/", "MANIFEST", "SHA-256", "provenance", "pipeline", "\u2014"]) expect(about, banned).not.toContain(banned);
+  expect(about.match(/<h1>/g)?.length).toBe(1);
+  for (const id of ["why", "who", "open", "inside"]) expect(about).toContain(`aria-labelledby="${id}"`);
+  for (const tone of ["ink", "teal", "grey"]) expect(about).toMatch(new RegExp(`class="block ${tone}`));
+  expect(about).not.toMatch(/href="[^"]*\.html"/);
 });

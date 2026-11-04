@@ -6,7 +6,15 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
     let reply = match (method, path) {
         ("GET", "/") => (html, file_bytes(&ctx.web_root, "landing.html")?),
         ("GET", "/workspace") => (html, file_bytes(&ctx.web_root, "index.html")?),
-        ("GET", "/landing/takumi.glb") => ("model/gltf-binary", file_bytes(&ctx.web_root, "landing/takumi.glb")?),
+        ("GET", p) if p.starts_with("/landing/takumi-") => {
+            let name = &p["/landing/".len()..];
+            let known = ["takumi-idle.webp", "takumi-wave.webp", "takumi-think.webp", "takumi-happy.webp"];
+            if known.contains(&name) {
+                ("image/webp", file_bytes(&ctx.web_root, &format!("landing/{name}"))?)
+            } else {
+                return None
+            }
+        }
         ("GET", "/landing.css") => ("text/css; charset=utf-8", file_bytes(&ctx.web_root, "landing.css")?),
         ("GET", "/about") => (html, file_bytes(&ctx.web_root, "about.html")?),
         // The old address keeps working: it points to the clean one.
