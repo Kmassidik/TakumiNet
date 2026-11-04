@@ -1,0 +1,45 @@
+<takumi version="1">
+  <device id="core0" kind="switch-l3" model="Switch L3" x="460" y="60" name="Core" ip="" prefix="24"/>
+  <device id="d1" kind="switch-l3" model="Switch L3" x="240" y="220" name="DistA" ip="" prefix="24"/>
+  <device id="d2" kind="switch-l3" model="Switch L3" x="680" y="220" name="DistB" ip="" prefix="24"/>
+  <device id="a1" kind="switch" model="Switch 24" x="240" y="380" name="AccessA" ip="" prefix="24"/>
+  <device id="a2" kind="switch" model="Switch 24" x="680" y="380" name="AccessB" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="620" y="60" name="CampusServer" ip="172.16.0.2" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="120" y="520" name="FloorA-PC0" ip="172.17.10.20" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="320" y="520" name="FloorA-PC1" ip="172.17.20.20" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC" x="680" y="520" name="FloorB-PC0" ip="172.18.10.20" prefix="24"/>
+  <link a="core0" a_port="Gig0/1" b="d1" b_port="Gig0/1" kind="eCopper"/>
+  <link a="core0" a_port="Gig0/2" b="d2" b_port="Gig0/1" kind="eCopper"/>
+  <link a="core0" a_port="Gig0/3" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="d1" a_port="Gig0/2" b="a1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="d2" a_port="Gig0/2" b="a2" b_port="Fa0/1" kind="eCopper"/>
+  <link a="a1" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="a1" a_port="Fa0/3" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="a2" a_port="Fa0/2" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <vlan id="a1" vlan="10" name="floor-a"/>
+  <vlan id="a1" vlan="20" name="floor-a-voice"/>
+  <vlan id="a2" vlan="10" name="floor-b"/>
+  <port id="a1" name="FastEthernet0/1" up="1" ip="" prefix="24" vlan="1" trunk="1" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="a1" name="FastEthernet0/2" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="a1" name="FastEthernet0/3" up="1" ip="" prefix="24" vlan="20" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="a2" name="FastEthernet0/1" up="1" ip="" prefix="24" vlan="1" trunk="1" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="a2" name="FastEthernet0/2" up="1" ip="" prefix="24" vlan="10" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="core0" name="GigabitEthernet0/1" up="1" ip="10.0.12.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="core0" name="GigabitEthernet0/2" up="1" ip="10.0.13.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="core0" name="GigabitEthernet0/3" up="1" ip="172.16.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="d1" name="GigabitEthernet0/1" up="1" ip="10.0.12.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="d2" name="GigabitEthernet0/1" up="1" ip="10.0.13.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc0" gw="172.17.10.1" dns=""/>
+  <net id="pc1" gw="172.17.20.1" dns=""/>
+  <net id="pc2" gw="172.18.10.1" dns=""/>
+  <net id="server0" gw="172.16.0.1" dns=""/>
+  <lesson id="les-l4-01-three-layers" title="Three layers for one campus" level="4" minutes="20" goal="A floor computer reaches the campus server through access, distribution and core"/>
+  <step n="1" text="Read the canvas top to bottom: Core, then DistA and DistB, then AccessA and AccessB with the floor computers."/>
+  <step n="2" text="On DistA create subinterfaces Gig0/2.10 and Gig0/2.20 with 172.17.10.1 and 172.17.20.1, and on DistB create Gig0/2.10 with 172.18.10.1. Every floor VLAN now has a gateway."/>
+  <step n="3" text="Turn on OSPF process 1 on Core, DistA and DistB, and announce every network each one touches." check="c1"/>
+  <step n="4" text="Ping CampusServer from FloorA-PC0." check="c3"/>
+  <check id="c1" kind="route" from="core0" to="" url="" expect="172.17.10.0/24" label="The core knows building A"/>
+  <check id="c2" kind="route" from="core0" to="" url="" expect="172.18.10.0/24" label="The core knows building B"/>
+  <check id="c3" kind="ping" from="pc0" to="server0" url="" expect="ok" label="FloorA-PC0 reaches CampusServer"/>
+  <check id="c4" kind="ping" from="pc0" to="pc2" url="" expect="ok" label="Building A reaches building B"/>
+</takumi>

@@ -45,7 +45,8 @@ T = {
             ("RT/RW Net with a full line", "Four homes share one line and one of them fills it"),
             ("Hotspot at the warung", "Visitors join an open hotspot and pay with vouchers"),
             ("Campus wireless", "One controller, three access points, a staff network and a fenced guest network"),
-            ("Campus with a DMZ", "The public web server sits on its own shelf and cannot reach the inside")],
+            ("Campus with a DMZ", "The public web server sits on its own shelf and cannot reach the inside"),
+            ("Three-layer campus", "Access, distribution and core carry two buildings to one server")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("A star network with a switch", "Three PCs talk and Switch0 learns their MAC addresses"),
@@ -73,6 +74,7 @@ T = {
             ("Reach the far house", "RumahJauh reaches the gateway in under 40 milliseconds"),
             ("One controller for the whole campus", "Every access point joins the controller and a guest cannot reach the file server"),
             ("A safe shelf for the public server", "Outside opens the public page and the DMZ cannot reach the inside"),
+            ("Three layers for one campus", "A floor computer reaches the campus server through access, distribution and core"),
             ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
@@ -145,7 +147,8 @@ T = {
             ("RT/RW Net dengan jalur penuh", "Empat rumah berbagi satu jalur dan satu rumah memenuhinya"),
             ("Hotspot di warung", "Pengunjung masuk ke hotspot terbuka dan membayar dengan voucher"),
             ("Nirkabel kampus", "Satu pengendali, tiga access point, jaringan staf, dan jaringan tamu yang dipagari"),
-            ("Kampus dengan DMZ", "Server web publik duduk di raknya sendiri dan tidak bisa menjangkau bagian dalam")],
+            ("Kampus dengan DMZ", "Server web publik duduk di raknya sendiri dan tidak bisa menjangkau bagian dalam"),
+            ("Kampus tiga lapis", "Akses, distribusi, dan inti membawa dua gedung ke satu server")],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
@@ -173,6 +176,7 @@ T = {
             ("Jangkau rumah yang jauh", "RumahJauh menjangkau gateway dalam waktu kurang dari 40 milidetik"),
             ("Satu pengendali untuk seluruh kampus", "Setiap access point bergabung ke pengendali dan tamu tidak bisa menjangkau file server"),
             ("Rak aman untuk server publik", "Luar membuka halaman publik dan DMZ tidak bisa menjangkau bagian dalam"),
+            ("Tiga lapis untuk satu kampus", "Komputer lantai menjangkau server kampus lewat akses, distribusi, dan inti"),
             ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
