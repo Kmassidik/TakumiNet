@@ -241,3 +241,12 @@ test("the workspace page is kept out of search results, and the sitemap and robo
   expect(routes).toContain("Disallow: /api/");
   expect(routes).toContain('hreflang=\\"x-default\\"');
 });
+
+test("no button on the landing pages turns black or ink on hover", () => {
+  const hovers = [...css.matchAll(/([^{}]+:hover[^{}]*)\{([^{}]*)\}/g)].filter(([, sel]) => /\.(pill|lang|skip)/.test(sel!));
+  expect(hovers.length).toBeGreaterThan(3);
+  for (const [, sel, body] of hovers) {
+    expect(body, sel!.trim()).not.toMatch(/background:\s*var\(--ink-block\)/);
+    expect(body, sel!.trim()).not.toMatch(/background:\s*var\(--black\)/);
+  }
+});

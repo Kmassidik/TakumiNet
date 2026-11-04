@@ -18,7 +18,7 @@ img { max-width: 100%; }
 .skip { position: absolute; left: -999px; top: 8px; z-index: 100; padding: 10px 18px; border-radius: 999px; background: var(--ink-block); color: var(--white); font-weight: 700; text-decoration: none; }
 .skip:focus { left: 12px; }
 .top nav .lang { padding: 4px 11px; border: 2px solid var(--ink-block); border-radius: 999px; color: var(--ink-block); font-size: 13px; font-weight: 800; }
-.top nav .lang:hover { background: var(--ink-block); color: var(--white); }
+.top nav .lang:hover { background: var(--brand-soft); }
 .faq-list { display: grid; gap: 12px; max-width: 820px; margin-top: 36px; }
 .faq details { border: 2px solid var(--ink-block); border-radius: var(--r-xl); background: var(--white); }
 .faq summary { display: flex; justify-content: space-between; gap: 16px; padding: 18px 22px; cursor: pointer; font-size: 18px; font-weight: 800; list-style: none; }
@@ -39,9 +39,9 @@ img { max-width: 100%; }
 .pill.solid { background: var(--brand); color: var(--ink-block); }
 .pill.solid:hover { background: var(--brand-strong); }
 .pill.line { background: transparent; color: var(--ink-block); }
-.pill.line:hover { background: var(--ink-block); color: var(--white); }
+.pill.line:hover { background: var(--brand-soft); }
 .pill.line.light { border-color: var(--white); color: var(--white); }
-.pill.line.light:hover { background: var(--white); color: var(--ink-block); }
+.pill.line.light:hover { background: var(--brand); border-color: var(--brand); color: var(--ink-block); }
 .pill.small { padding: 8px 18px; font-size: 14px; }
 
 .card { border-radius: var(--r-xl); background: var(--white); color: var(--ink-block); }
@@ -55,7 +55,7 @@ h1 { max-width: 19ch; margin-inline: auto; font-size: clamp(2.4rem, 6.4vw, 5.4re
 .lede { max-width: 44ch; margin: 18px auto 0; color: var(--muted-2); font-size: clamp(17px, 1.6vw, 21px); line-height: 1.5; }
 .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
 .actions.left { justify-content: flex-start; }
-.block.teal .pill.line:hover { color: var(--white); }
+.block.teal .pill.line:hover { background: var(--white); }
 .phone-note { display: none; max-width: 34ch; margin: 28px auto 0; padding: 14px 16px; border: 2px solid var(--ink-block); border-radius: var(--r-l); background: var(--brand-soft); text-align: left; }
 
 .peek { position: relative; max-width: 960px; margin: clamp(16px, 3vw, 36px) auto 0; }
