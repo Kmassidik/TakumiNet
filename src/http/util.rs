@@ -127,12 +127,12 @@ pub(super) fn _read_all(mut r: impl Read) -> io::Result<Vec<u8>> {
 }
 
 /// Maps `group/name.webp` to `art/3d/group/name.webp`. Both parts must be lowercase
-/// letters and digits, so nothing can climb out of the art folder.
+/// letters, digits and dashes, so nothing can climb out of the art folder.
 #[cfg(not(target_arch = "wasm32"))]
 pub(super) fn art3d_file(request: &str) -> Option<String> {
     let (group, file) = request.split_once('/')?;
     let name = file.strip_suffix(".webp")?;
-    let plain = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit());
+    let plain = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-');
     (plain(group) && plain(name)).then(|| format!("art/3d/{group}/{name}.webp"))
 }
 
@@ -143,6 +143,8 @@ mod tests {
     #[test]
     fn accepts_group_slash_name_webp() {
         assert_eq!(art3d_file("toolbar/new.webp").as_deref(), Some("art/3d/toolbar/new.webp"));
+        assert_eq!(art3d_file("devices/rtrw-gateway.webp").as_deref(), Some("art/3d/devices/rtrw-gateway.webp"));
+        assert_eq!(art3d_file("devices/../secret.webp"), None);
     }
 
     #[test]
