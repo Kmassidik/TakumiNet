@@ -81,7 +81,7 @@ fn tnet_round_trip_covers_every_edited_field() {
     ws.acquire_dhcp("pc2").unwrap();
     ws.banners
         .insert("router0".into(), "authorised\naccess only".into());
-    ws.line_passwords.insert("router0".into(), "cisco".into());
+    ws.line_passwords.insert("router0".into(), "lab".into());
     ws.set_power("pc0", false);
     ws.set_module("router0", 0, "HWIC-2T").unwrap();
     ws.set_dns_record("server0", "web.lab", "192.168.2.20").unwrap();
@@ -197,7 +197,7 @@ fn tnet_round_trip_covers_every_edited_field() {
         back.banners.get("router0").unwrap(),
         "authorised\naccess only"
     );
-    assert_eq!(back.line_passwords.get("router0").unwrap(), "cisco");
+    assert_eq!(back.line_passwords.get("router0").unwrap(), "lab");
     assert!(back
         .links
         .iter()

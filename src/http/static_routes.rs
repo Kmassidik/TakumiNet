@@ -6,6 +6,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
     let reply = match (method, path) {
         ("GET", "/") => (html, file_bytes(&ctx.web_root, "landing.html")?),
         ("GET", "/workspace") => (html, file_bytes(&ctx.web_root, "index.html")?),
+        ("GET", "/landing/network.glb") => ("model/gltf-binary", file_bytes(&ctx.web_root, "landing/network.glb")?),
+        ("GET", "/landing/poster.webp") => ("image/webp", file_bytes(&ctx.web_root, "landing/poster.webp")?),
         ("GET", "/landing.css") => ("text/css; charset=utf-8", file_bytes(&ctx.web_root, "landing.css")?),
         ("GET", "/about") => (html, file_bytes(&ctx.web_root, "about.html")?),
         // The old address keeps working: it points to the clean one.

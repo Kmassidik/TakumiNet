@@ -4,7 +4,7 @@ Status: landed 2026-11-01.
 
 ## Why
 
-The canvas used Cisco's shipped logical icons from the mounted asset tree. That
+The canvas used a vendor's shipped logical icons from the mounted asset tree. That
 is fine for analysis but not for shipping: the app must have its own art.
 
 ## What shipped

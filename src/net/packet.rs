@@ -27,7 +27,7 @@ impl Mac {
         Some(Mac(out))
     }
 
-    /// Deterministic MAC for a device id, in Cisco's `00:d0:ba` OUI space.
+    /// Deterministic MAC for a device id, in a locally administered `02:54:4b` prefix (no vendor's address space).
     pub fn for_device(id: &str) -> Mac {
         let mut h: u32 = 0x811c9dc5;
         for b in id.as_bytes() {
@@ -35,9 +35,9 @@ impl Mac {
             h = h.wrapping_mul(0x01000193);
         }
         Mac([
-            0x00,
-            0xd0,
-            0xba,
+            0x02,
+            0x54,
+            0x4b,
             (h >> 16) as u8,
             (h >> 8) as u8,
             h as u8,
@@ -231,7 +231,7 @@ impl Packet {
     }
 }
 
-/// Packet Tracer's default ping data: 32 bytes.
+/// Default ping data: 32 bytes.
 const ECHO_DATA: &[u8; 32] = b"abcdefghijklmnopqrstuvwxyz012345";
 
 /// ICMP header + echo body, with the checksum filled in.
@@ -531,13 +531,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn mac_round_trips_cisco_and_colon_forms() {
-        let m = Mac::parse("00D0.BA12.3456").unwrap();
-        assert_eq!(m.0, [0x00, 0xd0, 0xba, 0x12, 0x34, 0x56]);
-        assert_eq!(m.to_string(), "00d0.ba12.3456");
-        assert_eq!(Mac::parse("00:d0:ba:12:34:56"), Some(m));
-        assert_eq!(Mac::parse("00-d0-ba-12-34-56"), Some(m));
-        assert_eq!(Mac::parse("00d0.ba12"), None);
+    fn mac_round_trips_dotted_and_colon_forms() {
+        let m = Mac::parse("0254.4B12.3456").unwrap();
+        assert_eq!(m.0, [0x02, 0x54, 0x4b, 0x12, 0x34, 0x56]);
+        assert_eq!(m.to_string(), "0254.4b12.3456");
+        assert_eq!(Mac::parse("02:54:4b:12:34:56"), Some(m));
+        assert_eq!(Mac::parse("02-54-4b-12-34-56"), Some(m));
+        assert_eq!(Mac::parse("0254.4b12"), None);
         assert_eq!(Mac::parse("zzD0.BA12.3456"), None);
         assert!(Mac::BROADCAST.is_broadcast());
         assert!(Mac::parse("01:00:5e:00:00:01").unwrap().is_multicast());
@@ -548,7 +548,7 @@ mod tests {
     fn device_macs_are_stable_and_unique() {
         assert_eq!(Mac::for_device("pc0"), Mac::for_device("pc0"));
         assert_ne!(Mac::for_device("pc0"), Mac::for_device("pc1"));
-        assert_eq!(Mac::for_device("pc0").0[..3], [0x00, 0xd0, 0xba]);
+        assert_eq!(Mac::for_device("pc0").0[..3], [0x02, 0x54, 0x4b]);
     }
 
     #[test]

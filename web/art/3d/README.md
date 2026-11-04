@@ -2,14 +2,14 @@
 
 This folder holds the 3D-style artwork. The pictures are made by an image
 generator (Codex) from the prompts below; `tools/slice_sheets.py` cuts each
-sheet into single icons. Nothing here is copied or derived from Cisco or any
+sheet into single icons. Nothing here is copied or derived from any
 third-party icon set.
 
 ## Hard rules
 
-1. **Never give the generator a Cisco or Packet Tracer image, icon, screenshot
+1. **Never give the generator any vendor or other simulator image, icon, screenshot
    or file as a reference.** Describe objects in words only.
-2. Do not use the words "Cisco", "Packet Tracer" or any vendor model name in a
+2. Do not use any vendor or product name, or any vendor model name, in a
    prompt. Say "enterprise router", "managed switch", and so on.
 3. One sheet = 6 icons in a **3 columns x 2 rows** grid, every cell the same
    size, 1536 x 1024 px total (each cell 512 x 512), reading order left to

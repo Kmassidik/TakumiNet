@@ -8,6 +8,8 @@ const PRECACHE_URLS = Object.freeze([
   '/about',
   '/tokens.css',
   '/landing.css',
+  '/landing/network.glb',
+  '/landing/poster.webp',
   '/workspace.css',
   '/engine.wasm',
 
@@ -25,6 +27,7 @@ const PRECACHE_URLS = Object.freeze([
   '/js/interaction.js',
   '/js/ip_dialog.js',
   '/js/lessons.js',
+  '/js/landing.js',
   '/js/main.js',
   '/js/phone.js',
   '/js/ui.js',

@@ -90,7 +90,7 @@ fn set_config_stores_mask_gateway_and_dns() {
     assert_eq!(d.gateway, crate::model::parse_ipv4("192.168.1.1"));
     assert_eq!(d.dns, crate::model::parse_ipv4("8.8.8.8"));
 
-    // empty gateway/dns are allowed (Packet Tracer leaves them 0.0.0.0)
+    // empty gateway/dns are allowed (they stay 0.0.0.0)
     ws.set_config("pc1", "192.168.1.11", "255.255.255.0", "", "").unwrap();
     let d = ws.devices.iter().find(|d| d.id == "pc1").unwrap();
     assert_eq!(d.gateway, None);

@@ -1,6 +1,6 @@
 //! Discrete-event scheduling for simulated traffic.
 //!
-//! Packet Tracer advances a simulated clock in 1 ms ticks. One delivery becomes
+//! The simulator advances a simulated clock in 1 ms ticks. One delivery becomes
 //! one arrival per device, each queued at `now + hop * 1 ms`; multiple PDUs in
 //! flight are ordered by their arrival time, not by the order they were sent.
 

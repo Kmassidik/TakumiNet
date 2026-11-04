@@ -5,20 +5,20 @@ Written 2026-11-03 from a read of the repo, not from assumptions.
 
 ## 1. What I found (evidence)
 
-The UI looks like Packet Tracer because most of it **is** Packet Tracer's art,
+The UI looks like that simulator because most of it **is** that simulator's art,
 loaded at runtime from the mounted vendor tree (`/assets/...`), not drawn by us.
 
 | Surface | Where | Source today |
 |---|---|---|
-| Logical device icons | `src/workspace/palette.rs::logical_art` (32 kinds, `art/Workspace/Logical/i*@2x.png`), sent to the browser in the workspace JSON | Cisco PNG |
+| Logical device icons | `src/workspace/palette.rs::logical_art` (32 kinds, `art/Workspace/Logical/i*@2x.png`), sent to the browser in the workspace JSON | a vendor PNG |
 | Logical device icons (own) | `web/art/*.svg`, 31 files, via `logical_icon` | Ours, flat 32px line icons |
-| Toolbar | `web/js/toolbars.js`, 27 buttons (`art/Toolbar/iTB*.png`) | Cisco |
-| Simulation controls | `web/index.html` (8 `<img src="/assets/art/Simulation/...">`) and `web/js/actions.js` | Cisco |
-| Palette tiles | `web/js/palette.js` (`art/ComponentBox/*.png`, driven by `catalog.rs` reading `.ptd` templates) | Cisco |
-| Device window apps | `web/js/device_window.js`, 15 icons (`art/Workstation/*.png`) | Cisco |
-| Physical (rack) view | `web/js/device_tabs.js` (`art/PhysicalView/Devices/*`) | Cisco |
-| Sounds | `web/js/state.js` (`Sounds/*.wav`) | Cisco |
-| App logo and title | `web/index.html` line 13: `/assets/art/app.png` and the text "Cisco Packet Tracer" | Cisco |
+| Toolbar | `web/js/toolbars.js`, 27 buttons (`art/Toolbar/iTB*.png`) | a vendor |
+| Simulation controls | `web/index.html` (8 `<img src="/assets/art/Simulation/...">`) and `web/js/actions.js` | a vendor |
+| Palette tiles | `web/js/palette.js` (`art/ComponentBox/*.png`, driven by `catalog.rs` reading `.ptd` templates) | a vendor |
+| Device window apps | `web/js/device_window.js`, 15 icons (`art/Workstation/*.png`) | a vendor |
+| Physical (rack) view | `web/js/device_tabs.js` (`art/PhysicalView/Devices/*`) | a vendor |
+| Sounds | `web/js/state.js` (`Sounds/*.wav`) | a vendor |
+| App logo and title | `web/index.html` line 13: `/assets/art/app.png` and the text "the commercial simulator" | a vendor |
 
 **Measured in a real browser (Claude in Chrome, 2026-11-03, no vendor tree mounted):**
 loading the page and opening one device window makes **99 distinct `/assets/...`
@@ -33,7 +33,7 @@ Consequences:
    the canvas icons work, because those have own-art fallbacks.
 2. `README.md` and `web/art/README.md` set the project rule: **own art, rebuilt
    from scratch**. The current UI contradicts it.
-3. "Make it 3D" must not mean restyling Cisco's files. A 3D version traced or
+3. "Make it 3D" must not mean restyling a vendor's files. A 3D version traced or
    AI-restyled from their PNGs is still derived from them. **Every 3D asset must
    be drawn from our own geometry.** (This is a project-policy point, not legal advice.)
 
@@ -46,7 +46,7 @@ Goals
 - G4. A repeatable check proves G2 and G3 so they cannot regress.
 
 Non-goals
-- Re-creating Cisco's exact look, name or logo.
+- Re-creating a vendor's exact look, name or logo.
 - Real-time WebGL scenes (see decision D1).
 - Changing simulation behavior. The audit may fix defects it finds, each in its own commit.
 
@@ -67,7 +67,7 @@ Common rules for every sheet:
 - **Camera and light:** same for all sheets: three-quarter view from front-left and above, key light top-left, soft contact shadow under each object (inside its cell, not cropped).
 - **Style:** soft rounded 3D, matte plastic and brushed metal, slightly toy-like, one shared colour palette (base blue-grey, accent teal, warm LED amber).
 - **Centering:** object centered, about 80% of the cell, shadow included.
-- **Provenance rule:** prompts must describe the object in words only. **No Cisco or Packet Tracer screenshot, icon or file may be given to the generator as a reference.** Each sheet is recorded in `web/art/3d/MANIFEST.json` with its prompt, tool, date and who generated it.
+- **Provenance rule:** prompts must describe the object in words only. **No a vendor or that simulator screenshot, icon or file may be given to the generator as a reference.** Each sheet is recorded in `web/art/3d/MANIFEST.json` with its prompt, tool, date and who generated it.
 - **Mascot:** one fluffy creature (design left to the owner), delivered as a 6-pose sheet: idle, wave, thinking, happy, error, sleeping. Its idle pose is the app icon and logo.
 - **Heads-up on rights:** images produced purely by a generator may have weaker copyright protection than hand-made art. That is the owner's call; the manifest keeps the evidence of how each was made.
 
@@ -100,7 +100,7 @@ Size: S under 1 day, M 1 to 3 days, L more.
 ### PR 3: All 31 logical device kinds + model variants (L)
 - [ ] 6 sheets (36 slots, 5 spare) from Codex; the 31 kinds in `web/art/3d/` (router, switch, hub, ap, wlc, asa, homerouter, pc, laptop, server, printer, phone, analogphone, tv, pda, tablet, cloud, sniffer, plc, thing, ioe, linksys, cablemodem, dsl, multiuser, celltower, ie2000, netcontroller, meraki, historian, patchpanel).
 - [ ] Per-model variants only where silhouettes differ (e.g. 2911 vs 1941 share one; 2960 vs 3560 differ in port count).
-- [ ] Stop sending `logical_art` (Cisco PNG paths) in the workspace JSON; remove the function and update `tests/catalog.rs`.
+- [ ] Stop sending `logical_art` (a vendor PNG paths) in the workspace JSON; remove the function and update `tests/catalog.rs`.
 - Done when: `grep -r "Workspace/Logical" src web` is empty and the catalog test checks only own art.
 
 ### PR 4: Toolbar, menus, simulation controls (M)
@@ -175,7 +175,7 @@ that does nothing is a defect.
 
 | Risk | Mitigation |
 |---|---|
-| Sheets from the generator drift in style between runs | Same prompt prefix and palette for every sheet; pilot approved first; reuse the pilot sheet as a style reference (our own image, never a Cisco one) |
+| Sheets from the generator drift in style between runs | Same prompt prefix and palette for every sheet; pilot approved first; reuse the pilot sheet as a style reference (our own image, never a a vendor one) |
 | Generated cells are cropped, uneven or have halo edges | Slicer rejects them with a clear message; regenerate only that sheet |
 | Raster weight grows the page | Per-file budget, WebP, lazy-load palette tiles |
 | Pure-AI images carry weaker copyright than hand-made art | Manifest records prompt, tool and date; owner decides whether that is acceptable |

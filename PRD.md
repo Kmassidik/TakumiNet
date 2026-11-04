@@ -1,6 +1,6 @@
 # TakumiNet PRD: a free network emulator that runs in the browser
 
-Owner's words, kept: a replacement for the account-and-registration-gated Cisco Packet Tracer. Same idea and same kind of functions, our own code, our own art, free for everyone to learn from. Runs in the user's browser. We ship **templates for learning courses**; users build their own and **save / import / export XML like draw.io does**. The browser can cache assets, so it keeps working offline.
+Owner's words, kept: a replacement for the account-and-registration-gated the commercial simulator. Same idea and same kind of functions, our own code, our own art, free for everyone to learn from. Runs in the user's browser. We ship **templates for learning courses**; users build their own and **save / import / export XML like draw.io does**. The browser can cache assets, so it keeps working offline.
 
 Read first: this file, then `task.md` (history, roadmap, audit) and `provness/pt-web/LAWS.md`. Do not read anything else until a task needs it.
 
@@ -8,7 +8,7 @@ Read first: this file, then `task.md` (history, roadmap, audit) and `provness/pt
 1. Every task = failing test first, then code, then `cargo test` green, then commit and push to `main`. **No Co-Authored-By, no attribution line, ever.**
 2. **Install nothing** (no Bend, Kani, Lean, Playwright, npm, further rustup targets; wasm32-unknown-unknown is already installed). Ask the previous session first. Python 3 + Pillow, swift, cargo are present.
 3. **No vendor file formats at all** (decision 2026-11-03). Our only file format is our own XML, saved as `.xml` (earlier `.tnet` files still open).
-3b. **Own art and own code only.** Never copy, download or reference Cisco files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
+3b. **Own art and own code only.** Never copy, download or reference a vendor files, names, icons, text or output. Do not feed any vendor file to an image generator. `tests/assets_free.rs` must stay at 0.
 4. **Fix what you find.** If you see a bug, wrong output, broken image or console error while working: write a failing test, fix it, commit it separately (`fix: ...`), note it in `provness/pt-web/result.md`. Do not skip it, do not ask permission for fixes.
 5. **If you are confused, ask the previous Claude session (`takuminet-d6`), do not stop.** Send one specific question with what you tried (`SendMessage({to: "takuminet-d6", ...})` if your harness has it; otherwise print it on its own line starting `ASK-CLAUDE:` so the user can relay it). Then keep working on any task that is not blocked by the answer. A step that fails twice is also a reason to ask. Never guess a product decision, never wait idle.
 6. Claims need data. "Done" means a test or a measurement, shown. If something is unverified, say so.
@@ -35,7 +35,7 @@ Bend is **not installed and was never run**; the owner said not to install it. T
 - **G3:** works offline after first load (browser cache).
 - **G4:** clean public face: name TakumiNet, mascot, licence/provenance page, no account, no login.
 
-Non-goals now: BGP, HSRP, accounts, cloud sync, collaboration, grading server, mobile layout, any Cisco file format.
+Non-goals now: BGP, HSRP, accounts, cloud sync, collaboration, grading server, mobile layout, any a vendor file format.
 
 ## 4. P0: own XML format (prerequisite for G1 and G2)
 Native file = our own XML, extension `.tnet`, root `<takuminet version="1">`. The plan already agreed:
@@ -96,7 +96,7 @@ Verify each in Chrome and fix what is missing: PDU animation along the real path
 **Research it is based on (checked 2026-11-03):**
 - Wireshark's main window has three linked panes: packet list (one summary line per packet), packet details (the selected packet's fields as a tree) and packet bytes (raw data, with the field selected in the tree highlighted), plus a display-filter bar. Source: [Wireshark User's Guide 3.3](https://www.wireshark.org/docs/wsug_html_chunked/ChUseMainWindowSection.html).
 - Wireshark's Flow Graph is a ladder diagram: one vertical line per host, one arrow per packet, port numbers at the arrow ends, filterable by ICMP/TCP flows. Source: [Wireshark User's Guide 8.20](https://www.wireshark.org/docs/wsug_html_chunked/ChStatFlowGraph.html).
-- Packet Tracer's Simulation mode stops time and shows packets as animated envelopes you step through with Capture/Forward, an Event List with filters, and a PDU window with an **OSI Model tab (In Layers / Out Layers per device)** and Inbound/Outbound PDU Details. Source: Packet Tracer help page mirror [mode_simulation_PDUinfo](https://gemfury.com/koyuawsmbrtn/deb:PacketTracer/-/content/opt/pt/help/default/mode_simulation_PDUinfo.htm) and a CCNA lab handout ([Cisco lab 3.2.4.6 PDF](https://cisco.tu-sofia.bg/wp-content/uploads/courses/CCNA1/course/files/3.2.4.6%20Packet%20Tracer%20-%20Investigating%20the%20TCP-IP%20and%20OSI%20Models%20in%20Action%20Instructions.pdf)). We use these only as a description of *behaviour*; no Cisco text or art is copied.
+- that simulator's Simulation mode stops time and shows packets as animated envelopes you step through with Capture/Forward, an Event List with filters, and a PDU window with an **OSI Model tab (In Layers / Out Layers per device)** and Inbound/Outbound PDU Details. Source: that simulator help page mirror [mode_simulation_PDUinfo](https://gemfury.com/koyuawsmbrtn/deb:PacketTracer/-/content/opt/pt/help/default/mode_simulation_PDUinfo.htm) and a CCNA lab handout ([a vendor lab 3.2.4.6 PDF](https://vendor.tu-sofia.bg/wp-content/uploads/courses/CCNA1/course/files/3.2.4.6%20Packet%20Tracer%20-%20Investigating%20the%20TCP-IP%20and%20OSI%20Models%20in%20Action%20Instructions.pdf)). We use these only as a description of *behaviour*; no a vendor text or art is copied.
 - MiniNAM (Mininet animator): playback speed control to slow packets down, packets colour-coded by type and by source node, show/hide filters, aimed at teaching. Source: [MiniNAM, UCC](https://ucc.ie/en/misl/research/software/mininam).
 - **Not verified:** I found nothing on GNS3 or EVE-NG packet visualisation, and Wireshark's current default colouring-rule table and the Follow TCP Stream dialog were not covered. Do not claim parity with them.
 
@@ -124,7 +124,7 @@ Decision (owner, 2026-11-03): the Rust engine runs **in the browser as WebAssemb
 - **Interim (only if WASM is blocked):** per-session workspaces on the server (session cookie, 30 min idle expiry, max 200 sessions, 5 MB each). Ask the previous session before choosing this.
 
 ## 10. P6: public face and housekeeping
-- About/licence page `web/about.html`: what this is, own code/art, how art was made (ChatGPT sheets + `tools/build_art.py`, `MANIFEST.json`), no Cisco account needed, "not affiliated with Cisco". Link in the Help menu.
+- About/licence page `web/about.html`: what this is, own code/art, how art was made (ChatGPT sheets + `tools/build_art.py`, `MANIFEST.json`), no a vendor account needed, "not affiliated with a vendor". Link in the Help menu.
 - README rewritten around the product (quick start with Docker, templates, file format spec in `docs/format.md` with the XML schema).
 - Rebuild Docker (`docker rm -f pt-web`, build, run on 3000); the current image is stale.
 - Remaining art gaps: the six toolbar glyph fallbacks, the wand sparkles (low priority). Prompts are in `web/art/3d/CHATGPT.md`.
@@ -137,4 +137,4 @@ Decision (owner, 2026-11-03): the Rust engine runs **in the browser as WebAssemb
 
 ## 12. Task order and gates
 P0 -> P0b -> P1 -> P2 (T1..T5) -> P3 -> P4 -> P4b -> P5 -> P6. Milestones (report in one short message, then keep going, do not stop): after P2 the owner can review G1 live; after P4b the engineer view. Every task: laws added, `result.md` updated, `cargo test` green, pushed. Final report to the owner lists: laws and test names, commands, anything unverified, any open `ASK-CLAUDE` questions.
-Owner reference: the real Packet Tracer is installed on the owner's Fedora laptop; use it only if the owner offers access. Otherwise rely on the protocol specs and the existing lab tests, and say what was not compared.
+Owner reference: the real that simulator is installed on the owner's Fedora laptop; use it only if the owner offers access. Otherwise rely on the protocol specs and the existing lab tests, and say what was not compared.

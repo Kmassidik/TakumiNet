@@ -4,8 +4,7 @@ TakumiNet is a free, clean-room network emulator that runs in your browser.
 Build a topology, configure devices, inspect real Ethernet/IP packets, and
 follow guided labs without an account. The Rust simulation engine runs as
 WebAssembly in each tab; the interface is plain HTML and CSS, with the workspace drawn on a canvas by TypeScript modules in `web/ts/` (built by Bun into `web/js/ui.js`).
-All bundled artwork and sounds are original. TakumiNet is not affiliated with
-Cisco.
+All bundled artwork and sounds are original.
 
 ## Quick start with Docker
 

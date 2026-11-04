@@ -531,7 +531,7 @@ Owner: "build a landing page ... this one sends into the workspace ... none slop
 
 Same rules: research and plan only. Nothing below is built. **build** starts it.
 
-## F23. Replace the landing page with a cinematic 3D one (open, plan)
+## F23. Replace the landing page with a cinematic 3D one (done, 2026-11-04)
 
 Owner: "landing page is slop ... learn from motionsites.ai ... you have Blender on this laptop, you have the native macOS API, you can use three.js too".
 
@@ -625,3 +625,25 @@ Recommendation: **A, with B's poster image as the fallback.** Blender models and
 2. **Delivery:** A (live three.js with a poster fallback, recommended) or B (video only)?
 3. **Mascot:** flat picture in the scene (recommended) or a 3D model of it (extra work, extra time)?
 4. **three.js:** confirm adding `three` 0.182.0 as a pinned dev dependency.
+
+### F23 build result (2026-11-04)
+
+Built with the recommended answers (owner said "go"): dark stage, live three.js with a poster fallback, flat mascot art, `three` 0.182.0 and `@types/three` 0.182.0 pinned as dev dependencies.
+
+- **Models:** `tools/landing/build_scene.py` runs in Blender 5.2.1 headless and writes `web/landing/network.glb` (160 KB: router, two switches, two computers, a server, six glowing cables, a floor) and a still render. `tools/landing/make_poster.py` adds a soft glow and writes `web/landing/poster.webp` (105 KB). Every shape is made from boxes, cylinders and curves in the script.
+- **Scene:** `web/ts/landing/` (`path.ts` maths, `scene.ts` three.js, `mode.ts` when to run, `main.ts` start-up), bundled to `web/js/landing.js` (157 KB gzipped). The glow around the packet is a gradient drawn in code. The workspace bundle contains no three.js (tested).
+- **Page:** `web/landing.html`, `web/landing.css`; colours are tokens (a stage palette was added to `tokens.css`). Scrolling flies the camera through five stops: the whole network, the cables, the packet at the router, the checks, and the end. The poster shows first and the live scene fades in over it.
+- **Fallbacks:** phone, "reduce motion", no WebGL, a failed model, or an average frame time over 34 ms for 150 frames all leave the poster.
+- **Measured in Chrome (this Mac, 2x display):** 120 fps, average frame 8.3 ms, worst 9.4 ms.
+- **Tests:** `tests/ts/landing_path.test.ts`, `landing_scene.test.ts` (size budgets, GLB check, route against the model, bundle freshness), `landing.test.ts`, `tests/bend/scroll_path.bend`, the landing e2e test. Budgets: model under 2 MB, poster under 300 KB, script under 300 KB gzipped.
+- **Not done:** the mascot is not in the scene (the flat picture is only the logo), and the secondary packets on the server cables.
+
+## F24. Vendor names removed (done, 2026-11-04)
+
+Owner: "remove all cisco related in here".
+
+- Removed every "Cisco" and "Packet Tracer" mention from the landing page footer, the About page, the README, the art brief, the planning notes, the source comments and `flake.nix`.
+- The simulated `show version` text no longer prints a vendor banner, copyright line or support address.
+- Device MAC addresses no longer use a vendor's address prefix. They now use a locally administered prefix (`0254.4b..`). The low bytes are unchanged, so lab results that depend on MAC order did not change.
+- The lab password used in tests is now `lab`.
+- Open for the owner (not changed): the palette still carries model numbers taken from a vendor's product line (for example 2911, 1941, 2960, ASA 5505, PC-PT). They appear in the palette, in the template files and in lesson text. Renaming them touches the catalog, ten template files, lessons, tests and the art file names. Tell me the naming you want (for example R-100, S-200) and I will do it as one change.

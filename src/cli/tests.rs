@@ -143,7 +143,7 @@ fn write_memory_and_reload_round_trip() {
     run(&mut ws, "router0", &mut s, "banner motd #authorised access only#");
     run(&mut ws, "router0", &mut s, "line con 0");
     assert_eq!(s.mode, Mode::Line);
-    run(&mut ws, "router0", &mut s, "password cisco");
+    run(&mut ws, "router0", &mut s, "password lab");
     run(&mut ws, "router0", &mut s, "login");
     run(&mut ws, "router0", &mut s, "end");
 
@@ -153,12 +153,12 @@ fn write_memory_and_reload_round_trip() {
         "{running}"
     );
     assert!(running.contains("line con 0"), "{running}");
-    assert!(running.contains("password cisco"), "{running}");
+    assert!(running.contains("password lab"), "{running}");
 
     let saved = run(&mut ws, "router0", &mut s, "write memory");
     assert!(saved.contains("[OK]"), "{saved}");
     let startup = run(&mut ws, "router0", &mut s, "show startup-config");
-    assert!(startup.contains("password cisco"), "{startup}");
+    assert!(startup.contains("password lab"), "{startup}");
 
     // Change the config, then reload: the saved configuration returns.
     run(&mut ws, "router0", &mut s, "conf t");
@@ -401,15 +401,15 @@ fn no_password_removes_the_line_password() {
     run(&mut ws, "router0", &mut s, "configure terminal");
     run(&mut ws, "router0", &mut s, "line con 0");
     assert_eq!(s.mode, Mode::Line);
-    run(&mut ws, "router0", &mut s, "password cisco");
-    assert_eq!(ws.line_passwords.get("router0").map(String::as_str), Some("cisco"));
+    run(&mut ws, "router0", &mut s, "password lab");
+    assert_eq!(ws.line_passwords.get("router0").map(String::as_str), Some("lab"));
 
     let out = run(&mut ws, "router0", &mut s, "no password");
     assert!(out.is_empty(), "{out}");
     assert!(!ws.line_passwords.contains_key("router0"));
     run(&mut ws, "router0", &mut s, "end");
     let cfg = run(&mut ws, "router0", &mut s, "show run");
-    assert!(!cfg.contains("password cisco"), "{cfg}");
+    assert!(!cfg.contains("password lab"), "{cfg}");
 }
 
 #[test]

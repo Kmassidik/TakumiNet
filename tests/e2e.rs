@@ -145,8 +145,7 @@ fn e2e_about_page_is_public_and_linked_from_help() {
         "tools/build_art.py",
         "MANIFEST.json",
         "free",
-        "No Cisco account",
-        "not affiliated with Cisco",
+        "No account",
         "https://github.com/Kmassidik/TakumiNet",
         "https://x.com/KMassidik",
         "pull request",
@@ -533,7 +532,7 @@ fn e2e_save_and_load_round_trips_configuration() {
         "conf%20t",
         "banner%20motd%20%23authorised%20access%20only%23",
         "line%20con%200",
-        "password%20cisco",
+        "password%20lab",
         "end",
     ] {
         let (status, _, body) = s.post(&format!("/api/cli?id=router0&line={line}"));
@@ -556,7 +555,7 @@ fn e2e_save_and_load_round_trips_configuration() {
     let (status, _, body) = s.post("/api/cli?id=router0&line=show%20run");
     assert_eq!(status, 200);
     assert!(body.contains("banner motd ^authorised access only^"), "{body}");
-    assert!(body.contains("password cisco"), "{body}");
+    assert!(body.contains("password lab"), "{body}");
 }
 
 #[test]
@@ -1141,6 +1140,14 @@ fn e2e_landing_page_sends_people_into_the_workspace() {
         let (_, _, opened) = s.post(&format!("/api/templates/open?id={id}"));
         assert!(!opened.contains("\"error\""), "{id}: {opened}");
     }
+
+    // The scene's own files are served with the right types.
+    for (path, kind) in [("/landing/network.glb", "model/gltf-binary"), ("/landing/poster.webp", "image/webp"), ("/js/landing.js", "javascript")] {
+        let (status, head, _) = s.get_raw(path);
+        assert_eq!(status, 200, "{path}");
+        assert!(head.contains(kind), "{path}: {head}");
+    }
+    assert_eq!(s.get("/landing/other.glb").0, 404);
 
     // The page's own files are served.
     let (status, head, _) = s.get("/landing.css");

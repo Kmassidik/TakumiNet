@@ -74,7 +74,7 @@ capacity check, so the mesh path can name ports that cannot exist:
   interfaces.
 
 This is deliberate for a canvas demo: links never fail to create, and the PDU
-simulator only needs connectivity, not per-port capacity. A real Packet Tracer
+simulator only needs connectivity, not per-port capacity. A real that simulator
 build would reject the link once the port budget is exhausted (or pick the next
 free port). Any future port model has to keep `next_port`'s names stable so
 saved topologies and the e2e assertions keep matching.

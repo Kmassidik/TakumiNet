@@ -175,7 +175,7 @@ test('new protocol filters preserve existing filter choices', () => {
 test('PDU inspection renders captured layer fields and control-plane details', () => {
   const h = harness([]);
   const layers = [
-    { name: 'Ethernet II', fields: [{ name: 'Destination', value: '00d0.ba00.0002' }] },
+    { name: 'Ethernet II', fields: [{ name: 'Destination', value: '0254.4b00.0002' }] },
     { name: 'IPv4', fields: [{ name: 'Protocol', value: 'TCP (6)' }, { name: 'TTL', value: '127' }] },
     { name: 'TCP', fields: [{ name: 'Destination Port', value: '80' }] },
     { name: 'HTTP', fields: [{ name: 'Request Line', value: 'GET / HTTP/1.1' }] },

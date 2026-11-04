@@ -473,7 +473,7 @@ fn ieee_stp_and_rstp_elect_root_and_reconverge() {
         lab.cli(sw, "en");
         let stp = lab.cli(sw, "show%20spanning-tree");
         assert!(stp.contains("Root ID    Priority    32769"), "{sw}: {stp}");
-        assert!(stp.contains("Address     00d0.ba35.f1c0"), "{sw}: {stp}");
+        assert!(stp.contains("Address     0254.4b35.f1c0"), "{sw}: {stp}");
     }
     let blocked = ["switch0", "switch1", "switch2"]
         .into_iter()
@@ -488,7 +488,7 @@ fn ieee_stp_and_rstp_elect_root_and_reconverge() {
     let stp = lab.cli("switch2", "do%20show%20spanning-tree");
     assert!(stp.contains("protocol rstp"), "{stp}");
     assert!(stp.contains("Root ID    Priority    4097"), "{stp}");
-    assert!(stp.contains("Address     00d0.ba35.f679"), "{stp}");
+    assert!(stp.contains("Address     0254.4b35.f679"), "{stp}");
     let running = lab.cli("switch2", "do%20show%20run");
     assert!(running.contains("spanning-tree mode rapid-pvst"), "{running}");
     assert!(running.contains("spanning-tree vlan 1 priority 4096"), "{running}");

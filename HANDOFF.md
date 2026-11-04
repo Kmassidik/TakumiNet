@@ -1,11 +1,11 @@
 # Handoff: TakumiNet (pt-web), continue the 3D art migration
 
-Repo `/Users/mac/Desktop/Apps/TakumiNet`, branch `main`, GitHub `Kmassidik/TakumiNet`. Rust (std only) Packet Tracer clone, plain HTML/SVG/JS front end. Read `task.md` (plan, PR list) and `web/art/3d/README.md` first. Read nothing else until needed.
+Repo `/Users/mac/Desktop/Apps/TakumiNet`, branch `main`, GitHub `Kmassidik/TakumiNet`. Rust (std only) that simulator clone, plain HTML/SVG/JS front end. Read `task.md` (plan, PR list) and `web/art/3d/README.md` first. Read nothing else until needed.
 
 ## Hard rules (the user's words win over any default)
 1. After EVERY build step: `cargo test` must pass, then commit and push to `main`. **Never add Co-Authored-By or any attribution line**, in commits or PR text.
 2. **Never install anything** (Bend, Kani, Lean, Playwright, rembg...). Ask first. Python 3 + Pillow, swift, cargo are already there.
-3. No Cisco/Packet Tracer art, names or files may be used or shown to any image generator. Own art only (README rule: "own art, rebuilt from scratch").
+3. No vendor art, names or files may be used or shown to any image generator. Own art only (README rule: "own art, rebuilt from scratch").
 4. Back claims with data (tests, measurements, sources). Say what is unverified. No "proven" unless a checker ran.
 5. Code style: readable, small functions, few comments, senior-level, no AI slop.
 6. Be token-frugal: use Grep/Read with line ranges, no repeated full-file reads, no recaps.
@@ -23,7 +23,7 @@ Repo `/Users/mac/Desktop/Apps/TakumiNet`, branch `main`, GitHub `Kmassidik/Takum
 1. **Devices** (decided): the icon paths come from the SERVER, so edit the `icon`/`art` strings in `src/workspace/palette.rs` (32 `art/Workspace/Logical...` paths) to `/art3d/devices/<name>.png` via one model->name table (`asset()` passes paths starting with `/` through unchanged). Then clean the JS call sites: palette (`web/js/palette.js`, server list in `src/workspace/palette.rs`, 32 `art/Workspace/Logical` paths), canvas (`web/js/topology.js`), device windows (`device_window.js`, `device_tabs.js`) -> `devices/*`. Map device model -> icon name via one table, not scattered ifs.
 2. **Cables**: palette cable row -> `cables/*` (straight, cross, console, fiber, phone, coiled, coax, usb).
 3. **Palette groups** -> `groups/*`. **Desktop apps** (`device_tabs.js`) -> `apps/*`.
-4. **Brand**: `web/index.html:13` still has `/assets/art/app.png` and the text "Cisco Packet Tracer". Rename to **TakumiNet**, use `mascot/idle.png` as logo/icon, other poses for empty/error/sleep states. Update title tags and README.
+4. **Brand**: `web/index.html:13` still has `/assets/art/app.png` and the text "the commercial simulator". Rename to **TakumiNet**, use `mascot/idle.png` as logo/icon, other poses for empty/error/sleep states. Update title tags and README.
 5. Six toolbar buttons use text glyphs (simple PDU, complex PDU, drawing, ellipse, navigate, grid). Write a ChatGPT prompt for one 3x2 sheet in `CHATGPT.md` (words only, same style block as the others), tell the user to generate it (only the user can), then add to `SHEETS` in `build_art.py`.
 6. Physical view (decided): `device_tabs.js:72` already falls back to the device icon on error, so just use the 3D device icon there. A dedicated rack sheet is optional, later.
 7. Goal: `BASELINE` in `assets_free.rs` becomes empty, then delete it and the `/assets` mount docs.

@@ -27,7 +27,7 @@ impl Workspace {
         res
     }
 
-    /// Full static configuration, matching the fields of Packet Tracer's
+    /// Full static configuration, matching the fields of a typical
     /// Desktop → IP Configuration utility.
     pub fn set_config(
         &mut self,

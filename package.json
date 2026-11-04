@@ -4,11 +4,13 @@
   "description": "Front-end tooling only. The shipped app has no runtime dependencies.",
   "scripts": {
     "check": "tsc -p tsconfig.json",
-    "build": "bun build web/ts/main.ts --target=browser --format=iife --outfile=web/js/ui.js",
+    "build": "bun build web/ts/main.ts --target=browser --format=iife --outfile=web/js/ui.js && bun build web/ts/landing/main.ts --target=browser --format=iife --minify --outfile=web/js/landing.js",
     "test": "node --test tests/js/*.test.js",
     "test:ts": "bun test tests/ts"
   },
   "devDependencies": {
+    "@types/three": "0.182.0",
+    "three": "0.182.0",
     "typescript": "7.0.2"
   }
 }

@@ -30,7 +30,7 @@ timestamp as `Delivery::finished_at`; `send_pdu` sets the workspace clock to it.
 ```
 event t 0.005
   PC0      0.001
-  Switch0  0.002   flooding (unknown 00d0.ba0a.46dc)
+  Switch0  0.002   flooding (unknown 0254.4b0a.46dc)
   Router0  0.003   routed: TTL 128 -> 127
   Switch1  0.004
   PC2      0.005

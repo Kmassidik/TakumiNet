@@ -452,9 +452,8 @@ pub(super) fn version(ws: &Workspace, id: &str) -> String {
         .map(|d| d.model.clone())
         .unwrap_or_default();
     format!(
-        "Cisco IOS Software, C{model} Software (C{model}-UNIVERSALK9-M), Version 15.1(4)M4\n\
-         Technical Support: http://www.cisco.com/techsupport\n\
-         Copyright (c) 1986-2010 by Cisco Systems, Inc.\n"
+        "TakumiNet Network OS, {model} Software, Version 1.0\n\
+         Copyright (c) 2026 TakumiNet contributors, MIT licence\n"
     )
 }
 

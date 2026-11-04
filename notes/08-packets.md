@@ -33,7 +33,7 @@ link graph. It now hands the job to `fwd::deliver`, which moves one
 ```
 pdu?src=pc0&dst=pc2   →  path pc0,switch0,router0,switch1,pc2   size 74
   PC0      —        → Fa0        ttl 128
-  Switch0  Fa0/2    → Fa0/1       ttl 128  flooding (unknown 00d0.ba0a.46dc)
+  Switch0  Fa0/2    → Fa0/1       ttl 128  flooding (unknown 0254.4b0a.46dc)
   Router0  Gig0/0   → Gig0/1      ttl 127  routed: TTL 128 -> 127
   Switch1  Fa0/1    → Fa0/3       ttl 127
   PC2      Fa0      —             ttl 127

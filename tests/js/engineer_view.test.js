@@ -10,11 +10,11 @@ function packet(id, proto, extra = {}) {
     id, time: id / 1000, last: 'PC0', at: 'PC3', type: proto, proto,
     size: 74, status: 'Successful', path: ['pc0', 'switch0', 'router0', 'switch1', 'pc3'],
     hops: [
-      { id: 'pc0', name: 'PC0', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '00d0.ba00.0001', dstMac: '00d0.ba00.0002', ttl: 128 },
-      { id: 'switch0', name: 'Switch0', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '00d0.ba00.0001', dstMac: '00d0.ba00.0002', ttl: 128 },
-      { id: 'router0', name: 'Router0', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '00d0.ba00.0002', dstMac: '00d0.ba00.0003', ttl: 127 },
-      { id: 'switch1', name: 'Switch1', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '00d0.ba00.0002', dstMac: '00d0.ba00.0003', ttl: 127 },
-      { id: 'pc3', name: 'PC3', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '00d0.ba00.0002', dstMac: '00d0.ba00.0003', ttl: 127 },
+      { id: 'pc0', name: 'PC0', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '0254.4b00.0001', dstMac: '0254.4b00.0002', ttl: 128 },
+      { id: 'switch0', name: 'Switch0', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '0254.4b00.0001', dstMac: '0254.4b00.0002', ttl: 128 },
+      { id: 'router0', name: 'Router0', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '0254.4b00.0002', dstMac: '0254.4b00.0003', ttl: 127 },
+      { id: 'switch1', name: 'Switch1', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '0254.4b00.0002', dstMac: '0254.4b00.0003', ttl: 127 },
+      { id: 'pc3', name: 'PC3', srcIp: '10.0.0.1', dstIp: '10.0.0.3', srcMac: '0254.4b00.0002', dstMac: '0254.4b00.0003', ttl: 127 },
     ],
     ...extra,
   };
@@ -32,16 +32,16 @@ test('capture grammar matches protocols addresses MACs TTL and application layer
   assert.deepEqual(applyCaptureFilter(events, 'icmp').events.map((e) => e.id), [2]);
   assert.deepEqual(applyCaptureFilter(events, 'arp || http').events.map((e) => e.id), [1, 3]);
   assert.deepEqual(applyCaptureFilter(events, 'ip.src == 10.0.0.1 && ip.dst == 10.0.0.3').events.map((e) => e.id), [1, 2, 3]);
-  assert.deepEqual(applyCaptureFilter(events, 'eth.addr == 00d0.ba00.0003 && ttl < 128').events.map((e) => e.id), [1, 2, 3]);
+  assert.deepEqual(applyCaptureFilter(events, 'eth.addr == 0254.4b00.0003 && ttl < 128').events.map((e) => e.id), [1, 2, 3]);
   assert.deepEqual(applyCaptureFilter(events, '!arp && !(http || udp)').events.map((e) => e.id), [2]);
 });
 
 test('L25b conjunction equals intersection over generated packets and filters', () => {
-  const filters = ['icmp', 'arp', 'tcp', 'udp', 'http', 'dns', 'dhcp', 'ip.src == 10.0.0.1', 'ip.dst == 10.0.0.9', 'eth.addr == 00d0.ba00.0002', 'ttl < 128', 'ttl >= 127', '!arp'];
+  const filters = ['icmp', 'arp', 'tcp', 'udp', 'http', 'dns', 'dhcp', 'ip.src == 10.0.0.1', 'ip.dst == 10.0.0.9', 'eth.addr == 0254.4b00.0002', 'ttl < 128', 'ttl >= 127', '!arp'];
   const protocols = ['ICMP', 'ARP', 'TCP', 'UDP', 'HTTP', 'DNS', 'DHCP'];
   const events = Array.from({ length: 70 }, (_, i) => packet(i + 1, protocols[i % protocols.length], {
     hops: [
-      { srcIp: i % 2 ? '10.0.0.1' : '10.0.0.2', dstIp: i % 3 ? '10.0.0.3' : '10.0.0.9', srcMac: '00d0.ba00.0002', dstMac: '00d0.ba00.0003', ttl: i % 4 ? 127 : 128 },
+      { srcIp: i % 2 ? '10.0.0.1' : '10.0.0.2', dstIp: i % 3 ? '10.0.0.3' : '10.0.0.9', srcMac: '0254.4b00.0002', dstMac: '0254.4b00.0003', ttl: i % 4 ? 127 : 128 },
     ],
   }));
   for (const a of filters) for (const b of filters) {

@@ -13,7 +13,7 @@ test("every example and lesson link opens a template that exists, and every temp
   for (const id of ids) expect(templateIds, id).toContain(id);
   expect(new Set(ids)).toEqual(new Set(templateIds));
   // the hero button repeats one example; each template appears once in the lists
-  const inLists = landing.slice(landing.indexOf('<section class="band" aria-labelledby="start">'));
+  const inLists = landing.slice(landing.indexOf('<section class="start" aria-labelledby="start">'));
   const listed = [...inLists.matchAll(/href="\/workspace\?open=([a-z0-9-]+)"/g)].map((m) => m[1]!);
   expect(listed.length).toBe(new Set(listed).size);
   expect(listed.length).toBe(templateIds.length);
@@ -24,7 +24,7 @@ test("the page links only to addresses the server answers", () => {
   for (const [, href] of landing.matchAll(/href="([^"]+)"/g)) {
     if (href!.startsWith("http")) continue;
     const path = href!.split("?")[0]!;
-    if (path.startsWith("/art3d/") || path.endsWith(".css")) continue;
+    if (path.startsWith("/art3d/") || path.startsWith("/landing/") || path.endsWith(".css")) continue;
     expect(known.has(path), href).toBe(true);
   }
   expect(landing).not.toMatch(/href="[^"]*\.html"/);
@@ -43,10 +43,11 @@ test("phones get a note instead of buttons, using the same query as the workspac
   expect(landing).toContain('class="phone-note"');
 });
 
-test("the live demo stops for people who ask for less motion", () => {
+test("people who ask for less motion get the still picture, not the live scene", () => {
   const block = css.slice(css.indexOf("prefers-reduced-motion"));
-  expect(block).toMatch(/\.packet \{ animation: none/);
-  expect(block).toMatch(/\.cap tbody tr \{ animation: none/);
+  expect(block).toMatch(/#stage \{ display: none; \}/);
+  expect(block).toMatch(/\.poster, \.scene-ready \.poster \{ opacity: 1; \}/);
+  expect(css).toMatch(/\.poster-only #stage \{ display: none; \}/);
 });
 
 test("the headline and the main button are present and plain", () => {
@@ -57,5 +58,11 @@ test("the headline and the main button are present and plain", () => {
 
 test("the page has one main heading and each section is named", () => {
   expect(landing.match(/<h1>/g)?.length).toBe(1);
-  for (const id of ["do", "start", "free"]) expect(landing).toContain(`aria-labelledby="${id}"`);
+  for (const id of ["wire", "follow", "check", "start", "free"]) expect(landing).toContain(`aria-labelledby="${id}"`);
+});
+
+test("the still picture is in the page with its size, and the canvas is hidden from screen readers", () => {
+  expect(landing).toMatch(/<img class="poster" src="\/landing\/poster\.webp" alt="" width="1600" height="900"/);
+  expect(landing).toContain('<canvas id="stage" aria-hidden="true">');
+  expect(landing).toContain('<script src="/js/landing.js" defer>');
 });

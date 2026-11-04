@@ -15,7 +15,7 @@
           src = self;
           cargoLock.lockFile = ./Cargo.lock;
           meta = {
-            description = "Browser asset viewer for a Packet Tracer tree";
+            description = "Browser asset viewer for an asset tree";
             mainProgram = "pt-web";
           };
         };
