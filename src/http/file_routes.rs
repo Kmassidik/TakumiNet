@@ -194,6 +194,9 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("tpl-home", include_str!("../../web/templates/tpl-home.xml")),
     ("tpl-routed", include_str!("../../web/templates/tpl-routed.xml")),
     ("tpl-web", include_str!("../../web/templates/tpl-web.xml")),
+    ("tpl-l1-wifi-home", include_str!("../../web/templates/tpl-l1-wifi-home.xml")),
+    ("tpl-l1-two-rooms", include_str!("../../web/templates/tpl-l1-two-rooms.xml")),
+    ("tpl-l1-broken-wifi", include_str!("../../web/templates/tpl-l1-broken-wifi.xml")),
 ];
 
 /// Ready-to-run networks: no steps, nothing to set. Titles and goals for the gallery.
@@ -203,6 +206,9 @@ const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
     ("tpl-home", "Home network", "Laptop0 and PC0 reach Server0's web page"),
     ("tpl-routed", "Two networks and a router", "PC0 reaches PC3 through Router0"),
     ("tpl-web", "Website by name", "PC0 looks up www.takumi.lab and opens the site"),
+    ("tpl-l1-wifi-home", "Family home", "A modem, a router and five devices, ready to share one page"),
+    ("tpl-l1-two-rooms", "Two rooms", "A second access point carries the signal to the far room"),
+    ("tpl-l1-broken-wifi", "Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
 ];
 
 fn template_text(ctx: &Ctx, id: &str) -> Result<String, ()> {

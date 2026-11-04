@@ -1,11 +1,14 @@
 use super::super::*;
 
-const TEMPLATES: [(&str, &str); 5] = [
+const TEMPLATES: [(&str, &str); 8] = [
     ("tpl-connect", include_str!("../../../web/templates/tpl-connect.xml")),
     ("tpl-star", include_str!("../../../web/templates/tpl-star.xml")),
     ("tpl-home", include_str!("../../../web/templates/tpl-home.xml")),
     ("tpl-routed", include_str!("../../../web/templates/tpl-routed.xml")),
     ("tpl-web", include_str!("../../../web/templates/tpl-web.xml")),
+    ("tpl-l1-wifi-home", include_str!("../../../web/templates/tpl-l1-wifi-home.xml")),
+    ("tpl-l1-two-rooms", include_str!("../../../web/templates/tpl-l1-two-rooms.xml")),
+    ("tpl-l1-broken-wifi", include_str!("../../../web/templates/tpl-l1-broken-wifi.xml")),
 ];
 
 #[test]

@@ -13,7 +13,8 @@ WEB = Path(__file__).resolve().parents[2] / "web"
 REPO = "https://github.com/Kmassidik/TakumiNet"
 X = "https://x.com/KMassidik"
 
-EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed", 3), ("tpl-web", 4)]
+EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed", 3), ("tpl-web", 4),
+            ("tpl-l1-wifi-home", 5), ("tpl-l1-two-rooms", 6), ("tpl-l1-broken-wifi", 7)]
 LESSONS = ["t1", "t2", "t3", "t4", "t5"]
 
 T = {
@@ -50,7 +51,10 @@ T = {
             ("Three computers on a switch", "PC0, PC1 and PC2 ready to talk through Switch0"),
             ("Home network", "Laptop0 and PC0 reach Server0's web page"),
             ("Two networks and a router", "PC0 reaches PC3 through Router0"),
-            ("Website by name", "PC0 looks up www.takumi.lab and opens the site")],
+            ("Website by name", "PC0 looks up www.takumi.lab and opens the site"),
+            ("Family home", "A modem, a router and five devices, ready to share one page"),
+            ("Two rooms", "A second access point carries the signal to the far room"),
+            ("Broken home network", "The laptop cannot reach the phone. Find the wrong gateway")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("A star network with a switch", "Three PCs talk and Switch0 learns their MAC addresses"),
@@ -117,7 +121,10 @@ T = {
             ("Tiga komputer pada satu switch", "PC0, PC1, dan PC2 siap saling bicara lewat Switch0"),
             ("Jaringan rumah", "Laptop0 dan PC0 membuka halaman web Server0"),
             ("Dua jaringan dan satu router", "PC0 menjangkau PC3 lewat Router0"),
-            ("Website lewat nama", "PC0 mencari www.takumi.lab lalu membuka situsnya")],
+            ("Website lewat nama", "PC0 mencari www.takumi.lab lalu membuka situsnya"),
+            ("Rumah keluarga", "Modem, router, dan lima perangkat, siap berbagi satu halaman"),
+            ("Dua ruangan", "Access point kedua membawa sinyal ke ruangan yang jauh"),
+            ("Jaringan rumah yang rusak", "Laptop tidak bisa menjangkau ponsel. Cari gateway yang salah")],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
