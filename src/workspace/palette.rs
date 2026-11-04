@@ -135,6 +135,9 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         "submarine-cable" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
         "load-balancer" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         "cablemodem" | "dsl" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
+        // Twelve jacks on the panel; the sniffer taps one cable, so two ports.
+        "patchpanel" => (0..12).map(|i| format!("FastEthernet{i}")).collect(),
+        "sniffer" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
         _ => vec!["FastEthernet0".to_string()],
     };
     names
