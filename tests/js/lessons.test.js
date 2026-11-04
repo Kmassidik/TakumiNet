@@ -7,6 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
+const orderSource = fs.readFileSync(path.join(root, 'web/js/lessons_order.js'), 'utf8');
 const source = fs.readFileSync(path.join(root, 'web/js/lessons.js'), 'utf8');
 
 class Element {
@@ -53,6 +54,7 @@ function harness(responses = {}) {
     markClean() {},
     askConfirm: async () => true,
   });
+  vm.runInContext(orderSource, context);
   vm.runInContext(source, context);
   return { context, elements, sounds, statuses };
 }
@@ -209,3 +211,61 @@ test('the Lesson tab shows its empty message until a lesson is open', () => {
   context.renderLesson();
   assert.equal(elements['lesson-empty'].hidden, false);
 }) ;
+
+test('the gallery groups lessons under one heading per level, in numeric order', () => {
+  const { context, elements } = harness();
+  context.renderGallery({ lessons: [
+    { id: 'les-l10-01-gateway-down', title: 'J', level: 10, minutes: 15, goal: '', stepCount: 1 },
+    { id: 'les-l2-01-first-gateway', title: 'B', level: 2, minutes: 15, goal: '', stepCount: 1 },
+    { id: 'les-l1-02-wifi-name', title: 'A2', level: 1, minutes: 10, goal: '', stepCount: 1 },
+    { id: 't1', title: 'T', level: 1, minutes: 5, goal: '', stepCount: 1 },
+    { id: 'les-l1-01-router-login', title: 'A1', level: 1, minutes: 8, goal: '', stepCount: 1 },
+  ] }, 'lessons');
+  const sections = elements['gallery-cards'].children;
+  assert.deepEqual(sections.map((section) => section.children[0].textContent),
+    ['Level 1 — Home', 'Level 2 — Neighbourhood', 'Level 10 — Nation']);
+  assert.deepEqual(cardIds(elements),
+    ['t1', 'les-l1-01-router-login', 'les-l1-02-wifi-name', 'les-l2-01-first-gateway', 'les-l10-01-gateway-down']);
+});
+
+test('locked steps show a dimmed one-line teaser of their first sentence', () => {
+  const { context, elements } = harness();
+  vm.runInContext(`data = { lesson: {
+    id: 'lab', title: 'A lab', level: 1, minutes: 5, goal: 'Ping',
+    steps: [{ n: 1, text: 'Open the router.' }, { n: 2, text: 'Set the gateway on PC0. Then ping PC1 to prove it.' }],
+    checks: []
+  } }`, context);
+  context.renderLesson();
+  const locked = elements['lesson-steps'].children[1];
+  assert.match(locked.className, /locked/);
+  const label = locked.children[0];
+  assert.equal(label.children[0].disabled, true, 'locked checkbox stays disabled');
+  assert.equal(label.children[1].textContent, 'Set the gateway on PC0.');
+});
+
+test('when every check passes the panel shows a finished banner with the happy mascot', async () => {
+  const { context, elements } = harness({
+    '/api/checks': { allPassed: true, results: [{ id: 'c1', label: 'Check', passed: true, actual: 'ok', hint: '' }] },
+    '/api/workspace': { devices: [], links: [], filters: [], events: [], tabs: {}, lesson: { id: 'lab', title: 'Lab', level: 1, minutes: 5, goal: '', steps: [], checks: [{ id: 'c1', label: 'Check' }] } },
+  });
+  vm.runInContext("data = { lesson: { id: 'lab', title: 'Lab', level: 1, minutes: 5, goal: '', steps: [], checks: [{ id: 'c1', label: 'Check' }] } }", context);
+  await context.checkWork();
+  const rows = elements['lesson-checks'].children;
+  const banner = rows[rows.length - 1];
+  assert.match(banner.className, /lesson-finished/);
+  assert.match(banner.className, /passed/);
+  assert.match(banner.children[0].src, /happy\.webp$/);
+  assert.equal(banner.children[1].children[0].textContent, 'Lesson complete');
+  assert.equal(rows.length, 2, 'the banner sits after the one check row');
+});
+
+test('a failed check leaves no finished banner behind', () => {
+  const { context, elements } = harness();
+  vm.runInContext(`data = { lesson: {
+    id: 'lab', title: 'Lab', level: 1, minutes: 5, goal: '',
+    steps: [], checks: [{ id: 'c1', label: 'One' }, { id: 'c2', label: 'Two' }]
+  } }`, context);
+  context.renderLessonResults([{ id: 'c1', passed: true, actual: 'ok' }, { id: 'c2', passed: false, actual: 'no route' }]);
+  assert.equal(elements['lesson-checks'].children.length, 2);
+  assert.ok(elements['lesson-checks'].children.every((row) => !/lesson-finished/.test(row.className)));
+});

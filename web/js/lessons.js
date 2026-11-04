@@ -82,11 +82,15 @@ function renderGallery(payload = {}, kind = 'all') {
   if (!gallery || !cards) return;
   gallery.hidden = false;
   setGalleryMascot(payload.error ? 'error' : 'wave');
-  const lessons = [...(payload.lessons || [])].sort((a, b) => a.id.localeCompare(b.id));
+  const lessons = [...(payload.lessons || [])];
   const templates = [...(payload.templates || [])];
   const sections = [];
   if (kind !== 'lessons') sections.push(gallerySection('Example templates: ready to run', templates.map((item) => galleryCard('template', item))));
-  if (kind !== 'templates') sections.push(gallerySection('Lessons: you do each step', lessons.map((item) => galleryCard('lesson', item))));
+  if (kind !== 'templates') {
+    for (const group of groupLessonsByLevel(lessons)) {
+      sections.push(gallerySection(group.heading, group.lessons.map((item) => galleryCard('lesson', item))));
+    }
+  }
   cards.replaceChildren(...sections);
   if (note) {
     const shown = kind === 'lessons' ? lessons : kind === 'templates' ? templates : [...lessons, ...templates];
@@ -138,6 +142,27 @@ function stepStates(steps, results, completed) {
   });
 }
 
+/* Shown under the checks once every check passes: the lesson is finished. */
+function finishedBanner() {
+  const banner = document.createElement('div');
+  banner.className = 'lesson-check passed lesson-finished';
+  const mascot = document.createElement('img');
+  mascot.src = LESSON_MASCOTS.happy;
+  mascot.alt = '';
+  mascot.width = 40;
+  mascot.height = 40;
+  banner.appendChild(mascot);
+  const copy = document.createElement('div');
+  const label = document.createElement('strong');
+  label.textContent = 'Lesson complete';
+  copy.appendChild(label);
+  const detail = document.createElement('small');
+  detail.textContent = 'Every check passed. Pick your next lesson from Examples > Lessons.';
+  copy.appendChild(detail);
+  banner.appendChild(copy);
+  return banner;
+}
+
 function renderLesson() {
   const panel = document.getElementById('lesson-panel');
   if (!panel) return;
@@ -170,7 +195,7 @@ function renderLesson() {
     };
     label.appendChild(tick);
     const text = document.createElement('span');
-    text.textContent = state === 'locked' ? 'Locked: finish the step above first' : step.text;
+    text.textContent = state === 'locked' ? firstSentence(step.text) : step.text;
     label.appendChild(text);
     if (step.check && state !== 'locked') {
       const proof = document.createElement('small');
@@ -184,7 +209,8 @@ function renderLesson() {
   document.getElementById('lesson-steps').replaceChildren(...steps);
 
   const byId = new Map(lessonResults.map((result) => [result.id, result]));
-  const checks = (lesson.checks || []).map((check) => {
+  const checkList = lesson.checks || [];
+  const checks = checkList.map((check) => {
     const result = byId.get(check.id);
     const row = document.createElement('div');
     row.className = `lesson-check ${lessonRunning ? 'running' : result ? (result.passed ? 'passed' : 'failed') : 'pending'}`;
@@ -208,6 +234,9 @@ function renderLesson() {
     row.appendChild(copy);
     return row;
   });
+  const finished = !lessonRunning && checkList.length > 0
+    && checkList.every((check) => { const result = byId.get(check.id); return result && result.passed; });
+  if (finished) checks.push(finishedBanner());
   document.getElementById('lesson-checks').replaceChildren(...checks);
   const firstFailure = lessonResults.find((result) => !result.passed);
   document.getElementById('lesson-hint').textContent = lessonRunning ? '' : (firstFailure && firstFailure.hint) || '';
