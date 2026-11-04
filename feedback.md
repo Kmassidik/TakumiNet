@@ -374,3 +374,124 @@ Not done:
 ## Note on the pasted text
 
 The block pasted with F1 is about an AI security-operations product (detection rules, alert triage). It has nothing to do with TakumiNet, so it is not recorded. If it was meant as a style reference, tell me what to take from it.
+
+---
+
+# Round 2 (2026-11-04): bugs found in what was built, and a plain guide
+
+Same rules as before: this part is research only. Nothing below is fixed. The word **build** starts the work. "Reproduced" means I saw it happen in Chrome. "From the code" means I read it and have not seen it fail.
+
+## Part A. What each thing does, in plain words
+
+| Thing | What it does for you | How to try it |
+|---|---|---|
+| **Dialog close (F2, F5)** | Every pop-up window can be closed three ways: the × button, the Escape key, or a click on the dim area outside it. Escape closes only the top window. | Open Options > Preferences, press Escape. |
+| **Minimize handle (F6)** | A small button on each bar (toolbars, device palette, sidebar) shrinks it to a thin strip so the canvas gets more room. The strip has a button to bring it back. The choice is remembered after a refresh. | Click the **−** at the right end of the top toolbar. |
+| **Palette tabs (F7)** | The bottom bar shows one category at a time (Routers, Switches, End devices...). Cables, Bus and Mesh are in the Connections tab. | Click the **Routers** tab, then **Connections**. |
+| **Sidebar (F8)** | The right panel has four tabs. Events lists packets; filters are grouped by layer (Link, Network, Transport...) and each group opens or closes. Capture shows the packet table above the packet details. Lesson shows the guided steps, or a message when no lesson is open. | Open Examples > Example templates > Home network, press Play, then look at each tab. |
+| **Examples menu (F10)** | Two entries. Lessons shows the five guided lessons. Example templates shows five ready-made networks. Both open the same window with only that list. | Examples > Lessons. |
+| **About page (F9)** | `/about` (not `/about.html`). Shows the author, the GitHub and X links, and the MIT licence. | Help > About. |
+| **.xml files (F3)** | Save, Open, Export and Import all use `.xml`. A `.tnet` file from before still opens. | File > Export. |
+| **Built-in traffic (F11)** | Each example template carries one small piece of traffic (a ping or a web request). Pressing Play on a quiet template sends it first, then plays it. Your own networks have none, so Play asks you to send a PDU. | Open Examples > Example templates > Website by name, press Play. |
+| **Print (F4)** | Draws the whole network onto one landscape page, fitted and centred, and prints only that. Menus and panels never reach the paper. | File > Print on a template. |
+| **Colour tokens (F1)** | One file, `web/tokens.css`, holds every colour, corner radius and font. Change a value there and the whole app changes. | Open `web/tokens.css`. |
+| **Menu bar (F12)** | Click a menu to open it, then move over the others to switch. Arrow keys move through items, Enter runs one, Escape closes. Alt or F10 puts the keyboard on the menu bar. | Click File, then move the mouse over Edit. |
+| **Hover label (F13)** | Rest the mouse on an icon for a moment and its name appears, with its shortcut. | Hover the floppy-disk icon. |
+| **Bend tests** | Small programs in `tests/bend/`. Each models one rule (for example "arrow keys never land on a disabled item") and prints how many cases broke. 0 means fine. They are checks, not proofs. | `bend tests/bend/menu_nav.bend` |
+| **Slop guard** | One test file that fails if an old bad habit returns (a second hand-written dialog, a `.html` link, a raw colour, a `.tnet` name...). | `bun test tests/ts/slop_guard.test.ts` |
+
+## Part B. Bugs found
+
+### F14. The canvas picture goes wrong when a panel is minimized or the sidebar is resized (open, reproduced)
+
+- **What you see:** hide the palette, hide the sidebar, minimize a toolbar, or drag the sidebar splitter. The drawing is stretched (devices look tall, text looks squashed), and clicks no longer land where the pictures are.
+- **Measured in Chrome:** with the palette collapsed the canvas box grew to 1176 x 501 CSS pixels while its drawing buffer stayed 2352 x 826 (it should be 2352 x 1002). Same mismatch for sidebar hide (1512 wide, buffer for 1176) and toolbar collapse.
+- **Where:** `web/ts/canvas/workspace_canvas.ts:60` resizes the buffer only on the window `resize` event (`resize()` at line 175). Nothing tells it when its own box changes size. Bars and the sidebar change that box without a window resize. The splitter drag (F8) and the minimize handles (F6) both do this.
+- **Introduced by:** F6 (new) and the existing sidebar toggle/splitter (older, same cause).
+- **Todo:**
+  - [ ] F14.1 Watch the canvas box itself (a `ResizeObserver`), and resize the buffer whenever its size changes.
+  - [ ] F14.2 Keep the camera centred on the same world point when the box changes.
+- **Tests:**
+  - Behaviour: after each of palette collapse, sidebar hide, toolbar collapse and splitter drag, buffer size equals CSS size times the pixel ratio (a browser check script).
+  - Error: a zero-size canvas (hidden tab) does not throw or divide by zero.
+  - Bend: `tests/bend/canvas_size.bend`, buffer = css x ratio for sample sizes.
+  - Slop guard: `workspace_canvas.ts` must contain a `ResizeObserver`.
+
+### F15. Pressing Play twice quickly makes Pause stop working (open, reproduced)
+
+- **What you see:** on a template, click Play twice fast (or press Space twice). The traffic is sent twice (3 events become 4) and pressing Pause does not stop the playback; it keeps stepping.
+- **Measured in Chrome:** after a double click, pressing Pause cleared `playTimer`, but the cursor still moved from event 1 to 4 over the next 2.5 seconds, so a second timer was still running.
+- **Where:** `web/js/actions.js` `togglePlay()` became `async` in F11. While it waits for `/api/demo`, `playTimer` is still null, so a second press starts a second run. Each run creates its own `setInterval` and only the last one is remembered.
+- **Introduced by:** F11.
+- **Todo:**
+  - [ ] F15.1 Mark "starting" at the top of `togglePlay` so a second press while it waits is ignored.
+  - [ ] F15.2 Never start a timer if one is already running.
+- **Tests:**
+  - Behaviour: two calls in a row send the traffic once and leave exactly one timer.
+  - Error: if the traffic request fails, the "starting" mark is cleared so the next press works.
+  - Bend: `tests/bend/play_once.bend`, any number of presses before the answer yields one run.
+  - Slop guard: no `setInterval` assignment without a guard.
+
+### F16. After picking a cable, switching category hides it but leaves cable mode on (open, reproduced)
+
+- **What you see:** in Connections choose Copper, then click the End devices tab. The cable tile disappears, but clicks on the canvas still try to draw a cable and the cursor stays a crosshair. Nothing on screen says why.
+- **Measured in Chrome:** after the switch, `cableMode` was still `true`, no `.cable-tool` tile was in the page, and the canvas still had the `cable-mode` class.
+- **Where:** `web/js/palette.js:47` sets cable mode; the category switch (`palette.js` group-tab click) only re-renders and never clears it. This follows from F7 (cables only appear in Connections).
+- **Introduced by:** F7.
+- **Todo:**
+  - [ ] F16.1 Owner decides: leave cable mode when you change category (recommended), or keep a small "Copper cable: click two devices ✕" chip visible while it is on.
+  - [ ] F16.2 Make Escape also leave cable mode and update the palette.
+- **Tests:**
+  - Behaviour: choosing a cable then another category turns cable mode off and clears the crosshair.
+  - Error: switching category with no cable chosen changes nothing else.
+  - Bend: `tests/bend/cable_mode.bend`, a state change away from Connections always ends with mode off.
+  - Slop guard: any code that hides a cable tile must also clear the mode.
+
+### F17. Alt held during another action can still pull the keyboard to the menu bar (open, from the code)
+
+- **What you see (expected):** hold Alt (Option on a Mac), click something with the mouse, release Alt. The menu bar takes the keyboard even though you did not press Alt on its own.
+- **Where:** `web/ts/ui/menubar.ts:85`. "Alt alone" is only cancelled by another key press, not by a mouse click.
+- **Todo:**
+  - [ ] F17.1 Cancel "Alt alone" on any mouse button press as well.
+  - [ ] F17.2 Ignore Alt and F10 while a dialog is open.
+- **Tests:** behaviour (Alt, click, Alt-up does nothing), error (Alt while a dialog is open does nothing), Bend (the Alt rule: toggles only with no other event between), slop guard none.
+
+### F18. With a menu open and a dialog open, Escape needs three presses (open, reproduced)
+
+- **What you see:** open Preferences, then press Alt or open a menu (reachable by keyboard behind the dialog). Escape closes the menu, the next Escape leaves the menu bar, and only the third Escape closes the dialog.
+- **Measured in Chrome:** after two Escapes the dialog was still open.
+- **Where:** `web/ts/ui/menubar.ts:78` handles keys in the capture phase, before the dialog's Escape (`dialog_close.ts`). `MenuController.key("Escape")` in `menu_nav.ts` consumes it twice (close menu, then leave bar).
+- **Todo:**
+  - [ ] F18.1 While a dialog is open, the menu bar does not take keys at all (same rule as F17.2).
+  - [ ] F18.2 Owner decides: should the second Escape (leaving the bar) exist, or should one Escape close the menu and return the keyboard at once.
+- **Tests:** behaviour (dialog plus menu: first Escape closes the menu, next closes the dialog), error (no dialog: unchanged), Bend (Escape count to close everything equals the number of open layers), slop guard none.
+
+### F19. A hover label can stay on screen after its button is replaced (open, reproduced)
+
+- **What you see:** the label for Save stays visible after the toolbar is redrawn under the pointer, until the pointer moves onto something else.
+- **Measured in Chrome:** after re-rendering the toolbar while the Save label was showing, the tooltip element was still visible.
+- **Where:** `web/ts/ui/tooltip.ts`. The label is hidden by mouse and key events only. Nothing notices that its button left the page.
+- **Todo:**
+  - [ ] F19.1 Hide the label when its button is no longer in the page (check before each show and when the toolbar redraws).
+- **Tests:** behaviour (remove the button while shown: label hides), error (hide twice is harmless), Bend (none needed), slop guard none.
+
+### F20. Everything built is wiped on refresh (open, a decision, not a defect in the code)
+
+- **What you see:** any work on the canvas disappears when you refresh. This was a requested behaviour (blank workspace every load), but it is easy to lose work with a stray F5.
+- **Where:** `web/js/boot.js` calls `/api/new` first.
+- **Todo:**
+  - [ ] F20.1 Owner decides: keep as is, or ask "Leave this page? You have unsaved work" (the browser's own leave warning) only when there are unsaved changes. Recommended: the leave warning, no restore prompt.
+- **Tests:** behaviour (a changed workspace triggers the warning, a blank one does not), error (storage blocked: no crash).
+
+## Part C. Not checked (risks, not bugs)
+
+- Phone-width layout of every screen was never looked at.
+- The system print dialog and the printed page itself (only the picture was checked).
+- Offline use after the file renames (`.xml`, `tokens.css`): the service worker list was updated and tested as text, not run offline.
+- The canvas drawing colours in `web/ts/canvas/*.ts` are still raw hex values, not tokens (F1 left-over).
+- All layout checks are done by reading CSS text, not by a real browser test. A repeatable browser test (for F14 and similar) needs a tool such as Playwright installed. I will not install it without asking.
+- Two exceptions in the browser console at 8:44 and 8:51 (`openTemplate ... reading 'title'`) came from the old unguarded code. The current code is guarded and no new errors appeared.
+
+## Build order proposed for Round 2
+
+F14 (it affects every screen), F15, F16, F18 with F17, F19, then F20 if the owner decides.
