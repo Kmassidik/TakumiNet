@@ -1,4 +1,4 @@
-# TakumiNet 3D art: brief for the image generator
+# Takumi 3D art: brief for the image generator
 
 This folder holds the 3D-style artwork. The pictures are made by an image
 generator (Codex) from the prompts below; `tools/slice_sheets.py` cuts each

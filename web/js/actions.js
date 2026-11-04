@@ -34,7 +34,7 @@ async function importTnetFile(file) {
   if (!file) return false;
   // .xml is the one file type. A .tnet file from an earlier version still opens.
   if (!/\.(xml|tnet)$/i.test(file.name || '')) {
-    fileActionError(`“${file.name || 'This file'}” is not a TakumiNet file. Choose an .xml file.`);
+    fileActionError(`“${file.name || 'This file'}” is not a Takumi file. Choose an .xml file.`);
     return false;
   }
   try {

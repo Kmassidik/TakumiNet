@@ -61,13 +61,13 @@ test('raw loader preserves method, target and body and frees both allocations', 
   });
   const nativeFetch = async () => new Response(new Uint8Array([0, 97, 115, 109]));
   const engine = load(wasm, nativeFetch);
-  const response = await engine.fetch('/api/import?openAnyway=true', { method: 'POST', body: '<takuminet/>' });
+  const response = await engine.fetch('/api/import?openAnyway=true', { method: 'POST', body: '<takumi/>' });
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('content-type'), 'application/json');
   assert.deepEqual(await response.json(), { ok: true });
   assert.equal(seen.method, 'POST');
   assert.equal(seen.target, '/api/import?openAnyway=true');
-  assert.equal(seen.body, '<takuminet/>');
+  assert.equal(seen.body, '<takumi/>');
   assert.equal(wasm.freed.length, 2);
   assert.equal(engine.mode, 'wasm');
 });

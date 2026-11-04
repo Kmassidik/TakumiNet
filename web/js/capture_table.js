@@ -71,7 +71,7 @@
     if (!mascot) return;
     const name = state === 'error' ? 'error' : state === 'think' ? 'think' : 'happy';
     mascot.src = NARRATION_MASCOTS[name];
-    mascot.alt = `TakumiNet mascot ${name}`;
+    mascot.alt = `Takumi mascot ${name}`;
   }
 
   function renderNarration(event) {

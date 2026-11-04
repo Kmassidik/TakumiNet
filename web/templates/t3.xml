@@ -1,4 +1,4 @@
-<takuminet version="1">
+<takumi version="1">
   <device id="homerouter0" kind="homerouter" model="Home Router" x="340" y="120" name="HomeRouter0" ip="" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="100" y="330" name="Laptop0" ip="" prefix="24"/>
   <device id="pc0" kind="pc" model="PC-PT" x="340" y="330" name="PC0" ip="" prefix="24"/>
@@ -14,4 +14,4 @@
   <check id="c1" kind="lease" from="laptop0" to="" url="" expect="" label="Laptop0 has a DHCP lease"/>
   <check id="c2" kind="lease" from="pc0" to="" url="" expect="" label="PC0 has a DHCP lease"/>
   <check id="c3" kind="http" from="laptop0" to="" url="http://192.168.1.2/" expect="Server0" label="Laptop0 opens the home server page"/>
-</takuminet>
+</takumi>

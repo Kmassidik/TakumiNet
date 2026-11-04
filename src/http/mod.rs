@@ -253,10 +253,10 @@ mod tests {
     fn native_open_anyway_reports_drops_and_preserves_strict_transaction() {
         let ctx = context();
         let before = ctx.ws.lock().unwrap().to_tnet();
-        let text = br#"<takuminet version="1">
+        let text = br#"<takumi version="1">
 <device id="bad" kind="pc" model="PC-PT" x="1" y="2" name="Bad" ip="bad" prefix="24"/>
 <device id="good" kind="pc" model="PC-PT" x="3" y="4" name="Good" ip="192.168.1.2" prefix="24"/>
-</takuminet>
+</takumi>
 "#;
         let (_, strict) = file_routes::route(&ctx, "POST", "/api/import", "", text).unwrap();
         let strict = String::from_utf8(strict).unwrap();

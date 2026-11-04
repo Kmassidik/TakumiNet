@@ -42,7 +42,7 @@ function loadWorker() {
   const puts = [];
   const deleted = [];
   const nativeFetches = [];
-  const cacheNames = new Set(['TakumiNet-v1']);
+  const cacheNames = new Set(['Takumi-v1']);
   let skips = 0;
   let claims = 0;
   let matches = 0;
@@ -154,24 +154,35 @@ test('install precaches the complete manifest and activates immediately', async 
   worker.listeners.install({ waitUntil(value) { pending = Promise.resolve(value); } });
   await pending;
 
-  assert.equal(worker.opened[0], 'TakumiNet-v1');
+  assert.equal(worker.opened[0], 'Takumi-v1');
   assert.deepEqual(worker.cache.additions, [worker.urls]);
   assert.equal(worker.stored.size, worker.urls.length);
   assert.equal(worker.skips, 1);
 });
 
-test('activate deletes only old TakumiNet caches and claims clients', async () => {
+test('activate deletes only old Takumi caches and claims clients', async () => {
   const worker = loadWorker();
-  worker.cacheNames.add('TakumiNet-v0');
-  worker.cacheNames.add('TakumiNet-old');
+  worker.cacheNames.add('Takumi-v0');
+  worker.cacheNames.add('Takumi-old');
   worker.cacheNames.add('another-app-v1');
   let pending;
   worker.listeners.activate({ waitUntil(value) { pending = Promise.resolve(value); } });
   await pending;
 
-  assert.deepEqual(worker.deleted.sort(), ['TakumiNet-old', 'TakumiNet-v0']);
-  assert.deepEqual(Array.from(worker.cacheNames).sort(), ['TakumiNet-v1', 'another-app-v1']);
+  assert.deepEqual(worker.deleted.sort(), ['Takumi-old', 'Takumi-v0']);
+  assert.deepEqual(Array.from(worker.cacheNames).sort(), ['Takumi-v1', 'another-app-v1']);
   assert.equal(worker.claims, 1);
+});
+
+test('caches made before the rename (TakumiNet-...) are cleared too', async () => {
+  const worker = loadWorker();
+  worker.cacheNames.add('TakumiNet-v1');
+  worker.cacheNames.add('TakumiNet-v7');
+  let pending;
+  worker.listeners.activate({ waitUntil(value) { pending = Promise.resolve(value); } });
+  await pending;
+  assert.deepEqual(worker.deleted.sort(), ['TakumiNet-v1', 'TakumiNet-v7']);
+  assert.deepEqual(Array.from(worker.cacheNames), ['Takumi-v1']);
 });
 
 test('a reachable network answer wins over a stale cached copy and refreshes the cache', async () => {

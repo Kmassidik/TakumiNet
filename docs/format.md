@@ -1,22 +1,22 @@
-# TakumiNet native XML format (`.xml`)
+# Takumi native XML format (`.xml`)
 
-`.xml` is TakumiNet's writable, UTF-8 workspace format. Version 1 stores a
-flat sequence of XML records beneath one `<takuminet>` root. Each known record
+`.xml` is Takumi's writable, UTF-8 workspace format. Version 1 stores a
+flat sequence of XML records beneath one `<takumi>` root. Each known record
 uses attributes only; there is no significant text content in native records.
 
 ```xml
-<takuminet version="1">
+<takumi version="1">
   <device id="pc0" kind="pc" model="PC-PT" x="100" y="300"
           name="PC0" ip="192.168.1.10" prefix="24"/>
   <device id="pc1" kind="pc" model="PC-PT" x="400" y="300"
           name="PC1" ip="192.168.1.11" prefix="24"/>
   <link a="pc0" a_port="Fa0" b="pc1" b_port="Fa0" kind="eCross"/>
-</takuminet>
+</takumi>
 ```
 
 ## Document schema
 
-- The root is a non-self-closing `<takuminet version="1">` element. Version `0`
+- The root is a non-self-closing `<takumi version="1">` element. Version `0`
   is accepted and migrated to version 1; newer versions are rejected rather
   than partially interpreted. Saving always writes version `1`.
 - Known records are direct children of the root. Attribute names and record
@@ -145,7 +145,7 @@ numeric `vN` attribute names for extensions: they are reserved for positional
 compatibility fields.
 
 Extensions should be placed under a distinct element name or attribute prefix.
-Preservation is not a promise that TakumiNet simulates an unknown extension;
+Preservation is not a promise that Takumi simulates an unknown extension;
 it prevents an unrelated editor round trip from silently discarding it.
 
 The implementation is dependency-free: `src/storage/xml.rs` handles XML syntax

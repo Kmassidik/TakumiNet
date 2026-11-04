@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "takuminet-web",
+      "name": "takumi-web",
       "devDependencies": {
         "typescript": "7.0.2",
       },

@@ -1,5 +1,5 @@
 {
-  "name": "takuminet-web",
+  "name": "takumi-web",
   "private": true,
   "description": "Front-end tooling only. The shipped app has no runtime dependencies.",
   "scripts": {

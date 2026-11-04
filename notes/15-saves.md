@@ -4,7 +4,7 @@ Status: native XML landed 2026-11-03.
 
 ## Format
 
-The root is `<takuminet version="1">`, with one flat self-closing element per
+The root is `<takumi version="1">`, with one flat self-closing element per
 record. `src/workspace/tnet.rs` declares the attribute order for all 49 record
 types. XML attributes escape markup characters and tab/CR/LF; parsing malformed
 input returns no workspace rather than panicking. Unknown elements are retained

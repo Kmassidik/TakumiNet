@@ -1,4 +1,4 @@
-/* TakumiNet needs a large screen and a pointer: phones are not supported. On a
+/* Takumi needs a large screen and a pointer: phones are not supported. On a
    phone the page shows one message and starts nothing (no engine download, no
    offline cache). The same query is written in workspace.css; a test keeps the
    two in step. */

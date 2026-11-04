@@ -1,4 +1,4 @@
-<takuminet version="1">
+<takumi version="1">
   <device id="switch0" kind="switch" model="2960" x="340" y="130" name="Switch0" ip="" prefix="24"/>
   <device id="pc0" kind="pc" model="PC-PT" x="100" y="330" name="PC0" ip="192.168.1.10" prefix="24"/>
   <device id="pc1" kind="pc" model="PC-PT" x="340" y="330" name="PC1" ip="192.168.1.11" prefix="24"/>
@@ -11,4 +11,4 @@
   <dns id="server0" name="www.takumi.lab" ip="192.168.1.100"/>
   <page id="server0" body="Server0 website"/>
   <demo kind="http" from="pc0" to="" url="http://www.takumi.lab/"/>
-</takuminet>
+</takumi>

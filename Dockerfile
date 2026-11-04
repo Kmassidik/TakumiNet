@@ -1,4 +1,4 @@
-# TakumiNet — static Rust binary in a minimal runtime image.
+# Takumi — static Rust binary in a minimal runtime image.
 
 FROM rust:1.97-slim AS build
 WORKDIR /src

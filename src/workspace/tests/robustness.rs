@@ -4,7 +4,7 @@ use std::time::Instant;
 const V1: &str = include_str!("../../../tests/fixtures/native_v1.xml");
 
 fn document(records: &str) -> String {
-    format!("<takuminet version=\"1\">\n{records}\n</takuminet>\n")
+    format!("<takumi version=\"1\">\n{records}\n</takumi>\n")
 }
 
 fn one_device(id: &str) -> String {
@@ -16,14 +16,14 @@ fn l29_thirty_broken_files_have_located_problems() {
     let cases = [
         "".to_string(),
         "<wrong version=\"1\"/>".into(),
-        "<takuminet></takuminet>".into(),
+        "<takumi></takumi>".into(),
         document("").replace("version=\"1\"", "version=\"2\""),
         document("").replace("version=\"1\"", "version=\"next\""),
-        "<!DOCTYPE takuminet><takuminet version=\"1\"></takuminet>".into(),
-        "<!ENTITY x \"y\"><takuminet version=\"1\"></takuminet>".into(),
+        "<!DOCTYPE takumi><takumi version=\"1\"></takumi>".into(),
+        "<!ENTITY x \"y\"><takumi version=\"1\"></takumi>".into(),
         document("<device id=\"&bogus;\"/>") ,
         document("<device id=\"a\" id=\"b\"/>") ,
-        "<takuminet version=\"1\">".into(),
+        "<takumi version=\"1\">".into(),
         document(&(one_device("pc0") + "\n" + &one_device("pc0"))),
         document("<device id=\"pc0\" kind=\"pc\" model=\"No Such Model\" x=\"1\" y=\"2\" name=\"PC\" ip=\"\" prefix=\"24\"/>") ,
         document("<device id=\"pc0\" kind=\"pc\" model=\"PC-PT\" x=\"1\" y=\"2\" name=\"PC\" ip=\"999.1.1.1\" prefix=\"24\"/>") ,
@@ -114,7 +114,7 @@ fn l30_five_thousand_mutations_are_all_or_nothing() {
 #[test]
 fn l31_versions_migrate_and_newer_versions_are_rejected() {
     let migrated = Workspace::from_tnet(&V1.replacen("version=\"1\"", "version=\"0\"", 1)).unwrap();
-    assert!(migrated.to_tnet().starts_with("<takuminet version=\"1\">\n"));
+    assert!(migrated.to_tnet().starts_with("<takumi version=\"1\">\n"));
     assert_eq!(Workspace::from_tnet(&migrated.to_tnet()).unwrap().to_tnet(), migrated.to_tnet());
     let frozen = Workspace::from_tnet(V1).unwrap();
     assert_eq!(frozen.to_tnet(), V1);
@@ -122,7 +122,7 @@ fn l31_versions_migrate_and_newer_versions_are_rejected() {
         Ok(_) => panic!("newer version must be rejected"),
         Err(problems) => problems,
     };
-    assert!(newer.iter().any(|p| p.message.contains("made by a newer TakumiNet")));
+    assert!(newer.iter().any(|p| p.message.contains("made by a newer Takumi")));
 }
 
 #[test]
@@ -156,7 +156,7 @@ fn duplicate_ip_is_a_warning_not_an_error() {
 #[test]
 fn l33_resource_limits_reject_within_200ms() {
     let big = " ".repeat(9 * 1024 * 1024);
-    let deep = format!("<takuminet version=\"1\">{}x{}</takuminet>", "<a>".repeat(10_000), "</a>".repeat(10_000));
+    let deep = format!("<takumi version=\"1\">{}x{}</takumi>", "<a>".repeat(10_000), "</a>".repeat(10_000));
     for (label, text) in [("9 MB", &big), ("10,000-deep", &deep)] {
         let start = Instant::now();
         assert!(Workspace::from_tnet(text).is_err());

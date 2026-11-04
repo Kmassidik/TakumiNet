@@ -1,4 +1,4 @@
-# TakumiNet PRD: a free network emulator that runs in the browser
+# Takumi PRD: a free network emulator that runs in the browser
 
 Owner's words, kept: a replacement for the account-and-registration-gated the commercial simulator. Same idea and same kind of functions, our own code, our own art, free for everyone to learn from. Runs in the user's browser. We ship **templates for learning courses**; users build their own and **save / import / export XML like draw.io does**. The browser can cache assets, so it keeps working offline.
 
@@ -33,12 +33,12 @@ Bend is **not installed and was never run**; the owner said not to install it. T
 - **G1 (first, what the owner wants to see):** 5 beginner templates, each opens in one click and **runs live**: packets animate, link lights change, terminal commands answer, and a "Check my work" button turns green when the lesson goal is met.
 - **G2:** draw.io-style files, XML is the only format and the engine's persistence layer: build anything, **Export** an XML file (download), **Import** one (picker or drag and drop), autosave in the browser. Our own schema.
 - **G3:** works offline after first load (browser cache).
-- **G4:** clean public face: name TakumiNet, mascot, licence/provenance page, no account, no login.
+- **G4:** clean public face: name Takumi, mascot, licence/provenance page, no account, no login.
 
 Non-goals now: BGP, HSRP, accounts, cloud sync, collaboration, grading server, mobile layout, any a vendor file format.
 
 ## 4. P0: own XML format (prerequisite for G1 and G2)
-Native file = our own XML, extension `.tnet`, root `<takuminet version="1">`. The plan already agreed:
+Native file = our own XML, extension `.tnet`, root `<takumi version="1">`. The plan already agreed:
 - `src/storage/xml.rs`: tiny std-only writer/reader for a flat list of self-closing child elements with attributes. Escape `& < > " '` and encode tab/CR/LF as `&#9; &#13; &#10;`. Unescape named and numeric references. Malformed input returns `None`, never panics.
 - `src/workspace/tnet.rs`: **table-driven converter**: `RECORDS: &[(&str, &[&str])]` gives the field names of each of the 49 record types (taken from the longest legacy match patterns; extra trailing fields become `v<N>`; unknown tags are kept losslessly). `to_tnet()` turns each line of the existing record stream into `<device id="pc0" kind="pc" .../>`; `from_tnet()` maps attributes back in table order and reuses the proven loaders. The internal stream lives in `records_save/records_load` and is not a file format. Keep a read-only legacy `.ptw` loader for one version.
 - **Delete all vendor-format code**, including its container readers, workspace importer, converter, corpus tests, asset tree and catalog readers, file APIs and UI actions. Remove `cipher`, `twofish` and `miniz_oxide` from `Cargo.toml` (zero dependencies afterwards: also makes the WASM build trivial). Update README and `task.md`. Never reuse vendor element names in our schema.
@@ -48,7 +48,7 @@ Native file = our own XML, extension `.tnet`, root `<takuminet version="1">`. Th
 
 ## 4b. P0b: robust XML gameplay (the file is the product)
 Players will edit, share and break these files by hand, like draw.io files. Loading must never crash, hang or half-load.
-- **Schema versions + migration:** `version="1"` now; `from_tnet` accepts any version `<= current`, runs migrations in order (`migrate_1_to_2` ...), rejects newer with "made by a newer TakumiNet". Test with a frozen v1 fixture kept forever in `tests/fixtures/`.
+- **Schema versions + migration:** `version="1"` now; `from_tnet` accepts any version `<= current`, runs migrations in order (`migrate_1_to_2` ...), rejects newer with "made by a newer Takumi". Test with a frozen v1 fixture kept forever in `tests/fixtures/`.
 - **Validation with useful errors:** every error names element, attribute and line ("line 14: <link> refers to device 'pc9' that does not exist"). Checks: unique ids, links point to existing devices and free ports, port names valid for the model, addresses/masks parse, VLAN 1..4094, no duplicate IPs on one subnet is a *warning* not an error. Returns `Result<Workspace, Vec<Problem>>`; the UI lists problems and offers "Open anyway without the broken parts" (drops only invalid records, reports what was dropped).
 - **Forward compatibility:** unknown elements and attributes are ignored on load and preserved on re-save (carried in an `extras` list per record), so a newer file edited in an older build does not lose data.
 - **Limits:** max file 8 MB, 2000 devices, 20 000 records, nesting depth 8; exceeding returns an error, never an allocation spike. XML reader is non-recursive (no stack overflow), rejects DTD/entity definitions (no billion-laughs), only the five named and numeric references.

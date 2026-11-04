@@ -24,7 +24,7 @@ fn raw_engine_preserves_method_target_and_body_contracts() {
     let imported = Engine::new().handle_bytes(&request(
         "POST",
         "/api/import?openAnyway=true",
-        br#"<takuminet version="1"><device id="pc9" kind="pc" model="PC-PT" x="1" y="2" name="PC9" ip="192.168.1.9" prefix="24"/></takuminet>"#,
+        br#"<takumi version="1"><device id="pc9" kind="pc" model="PC-PT" x="1" y="2" name="PC9" ip="192.168.1.9" prefix="24"/></takumi>"#,
     ));
     assert!(String::from_utf8(imported.body).unwrap().contains("\"id\":\"pc9\""));
 

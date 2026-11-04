@@ -1,6 +1,7 @@
 'use strict';
 
-const CACHE_PREFIX = 'TakumiNet-';
+const CACHE_PREFIX = 'Takumi-';
+const OLD_CACHE_PREFIXES = ['TakumiNet-']; // caches made before the rename
 const CACHE_NAME = `${CACHE_PREFIX}v1`;
 const PRECACHE_URLS = Object.freeze([
   '/',
@@ -183,7 +184,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const names = await caches.keys();
     await Promise.all(names
-      .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
+      .filter((name) => (name.startsWith(CACHE_PREFIX) || OLD_CACHE_PREFIXES.some((old) => name.startsWith(old))) && name !== CACHE_NAME)
       .map((name) => caches.delete(name)));
     await self.clients.claim();
   })());

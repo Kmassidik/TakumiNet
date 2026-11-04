@@ -1360,7 +1360,7 @@
   var MEGABYTE = 1024 * 1024;
   var megabytes = (bytes) => (bytes / MEGABYTE).toFixed(1);
   function engineLoadingMessage(progress) {
-    const prefix = "Loading the TakumiNet engine…";
+    const prefix = "Loading the Takumi engine…";
     if (!progress)
       return prefix;
     if (progress.total > 0)

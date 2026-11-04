@@ -545,7 +545,7 @@ fn e2e_save_and_load_round_trips_configuration() {
     let (status, _, _) = s.post("/api/save?name=e2e");
     assert_eq!(status, 200);
     let saved = std::fs::read_to_string(repo_root().join("topologies/e2e.xml")).unwrap();
-    assert!(saved.starts_with("<takuminet version=\"1\">"));
+    assert!(saved.starts_with("<takumi version=\"1\">"));
     let (_, _, saves) = s.get("/api/saves");
     assert!(saves.contains("\"e2e\""), "{saves}");
     let (status, _, _) = s.post("/api/reset");
@@ -569,7 +569,7 @@ fn l22_exported_text_import_restores_identical_http_workspace() {
     assert_eq!(status, 200);
     assert!(head.contains("application/xml"), "{head}");
     let text = String::from_utf8(exported).unwrap();
-    assert!(text.starts_with("<takuminet version=\"1\">"));
+    assert!(text.starts_with("<takumi version=\"1\">"));
     s.post("/api/devices/delete?id=pc0");
     let (status, _, imported) = s.post_body("/api/import", text.as_bytes());
     assert_eq!(status, 200, "{imported}");
@@ -588,8 +588,8 @@ fn l23_invalid_http_import_never_changes_the_workspace() {
     let (_, _, before) = s.get("/api/workspace");
 
     for invalid in [
-        &b"<takuminet version=\"1\"><device id=\"pc9\" kind=\"pc\">"[..],
-        &b"<takuminet version=\"1\"><device id=\"pc0\" kind=\"pc\"/><device id=\"pc0\" kind=\"pc\"/></takuminet>"[..],
+        &b"<takumi version=\"1\"><device id=\"pc9\" kind=\"pc\">"[..],
+        &b"<takumi version=\"1\"><device id=\"pc0\" kind=\"pc\"/><device id=\"pc0\" kind=\"pc\"/></takumi>"[..],
         &[0xff, 0xfe, 0x00, 0x9c][..],
     ] {
         let (_, _, response) = s.post_body("/api/import", invalid);
@@ -857,7 +857,7 @@ fn e2e_lesson_templates_blank_new_and_checks() {
     let (status, _, exported) = s.get("/api/export");
     assert_eq!(status, 200);
     let lesson = "<lesson id=\"p1-e2e\" title=\"API lesson\" level=\"1\" minutes=\"5\" goal=\"Ping a peer\"/><step n=\"2\" text=\"Check the result\"/><step n=\"1\" text=\"Ping PC1\"/><check id=\"c1\" kind=\"ping\" from=\"pc0\" to=\"pc1\" url=\"\" expect=\"ok\" label=\"PC0 reaches PC1\"/>";
-    let template = exported.replace("</takuminet>", &format!("{lesson}</takuminet>"));
+    let template = exported.replace("</takumi>", &format!("{lesson}</takumi>"));
     let directory = repo_root().join("web/templates");
     std::fs::create_dir_all(&directory).unwrap();
     let path = directory.join("p1-e2e.xml");
@@ -1060,7 +1060,7 @@ fn e2e_xml_is_the_file_type_and_old_tnet_files_still_open() {
     let (status, head, exported) = s.get("/api/export");
     assert_eq!(status, 200);
     assert!(head.contains("application/xml"), "{head}");
-    assert!(exported.starts_with("<takuminet "), "{exported}");
+    assert!(exported.starts_with("<takumi "), "{exported}");
 
     // New saves are .xml and never .tnet.
     let xml = repo_root().join("topologies/fresh-e2e.xml");
@@ -1085,8 +1085,8 @@ fn e2e_xml_is_the_file_type_and_old_tnet_files_still_open() {
 
     // Any other XML is refused with a clear message and changes nothing.
     for (body, expect) in [
-        ("<other version=\"1\"></other>", "takuminet"),
-        ("<takuminet version=\"1\"", ""),
+        ("<other version=\"1\"></other>", "takumi"),
+        ("<takumi version=\"1\"", ""),
         ("", ""),
         ("not xml at all", ""),
     ] {

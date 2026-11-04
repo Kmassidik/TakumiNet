@@ -1,4 +1,4 @@
-<takuminet version="1">
+<takumi version="1">
   <device id="router0" kind="router" model="2911" x="340" y="100" name="Router0" ip="" prefix="24"/>
   <device id="switch0" kind="switch" model="2960" x="150" y="220" name="Switch0" ip="" prefix="24"/>
   <device id="switch1" kind="switch" model="2960" x="530" y="220" name="Switch1" ip="" prefix="24"/>
@@ -19,4 +19,4 @@
   <net id="pc2" gw="192.168.2.1" dns=""/>
   <net id="pc3" gw="192.168.2.1" dns=""/>
   <demo kind="ping" from="pc0" to="pc3" url=""/>
-</takuminet>
+</takumi>

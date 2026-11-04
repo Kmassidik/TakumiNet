@@ -1,4 +1,4 @@
-# TakumiNet 3D art: copy-paste pack for ChatGPT
+# Takumi 3D art: copy-paste pack for ChatGPT
 
 Copy one block at a time. Each block is one image to generate. Send them in order.
 
@@ -13,7 +13,7 @@ Copy one block at a time. Each block is one image to generate. Send them in orde
 ## Block 0: paste this first
 
 ```text
-You are making original 3D artwork for a network-simulator web app called TakumiNet. I will send you one sheet request at a time. Rules for every sheet:
+You are making original 3D artwork for a network-simulator web app called Takumi. I will send you one sheet request at a time. Rules for every sheet:
 - The sheet is 1536 x 1024 pixels with exactly 6 cells in a 3 columns by 2 rows grid. Every cell is 512 x 512 and holds one object, centered, about 80 percent of the cell.
 - Read order: left to right, top row first, then the bottom row.
 - Transparent background (PNG with alpha). No text, letters, numbers, labels, borders, grid lines or watermarks anywhere.

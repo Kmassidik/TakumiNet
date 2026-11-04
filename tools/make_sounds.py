@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate TakumiNet's UI sounds from scratch (Python standard library only).
+"""Generate Takumi's UI sounds from scratch (Python standard library only).
 
 Every sound is a few sine/noise partials with an envelope, so the files are
 original, tiny, and identical on every run.

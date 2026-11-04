@@ -452,8 +452,8 @@ pub(super) fn version(ws: &Workspace, id: &str) -> String {
         .map(|d| d.model.clone())
         .unwrap_or_default();
     format!(
-        "TakumiNet Network OS, {model} Software, Version 1.0\n\
-         Copyright (c) 2026 TakumiNet contributors, MIT licence\n"
+        "Takumi Network OS, {model} Software, Version 1.0\n\
+         Copyright (c) 2026 Takumi contributors, MIT licence\n"
     )
 }
 

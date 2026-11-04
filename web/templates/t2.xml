@@ -1,4 +1,4 @@
-<takuminet version="1">
+<takumi version="1">
   <device id="switch0" kind="switch" model="2960" x="340" y="130" name="Switch0" ip="" prefix="24"/>
   <device id="pc0" kind="pc" model="PC-PT" x="100" y="330" name="PC0" ip="" prefix="24"/>
   <device id="pc1" kind="pc" model="PC-PT" x="340" y="330" name="PC1" ip="" prefix="24"/>
@@ -14,4 +14,4 @@
   <check id="c2" kind="ping" from="pc1" to="pc2" url="" expect="ok" label="PC1 reaches PC2"/>
   <check id="c3" kind="ping" from="pc0" to="pc2" url="" expect="ok" label="PC0 reaches PC2"/>
   <check id="c4" kind="mac-table" from="switch0" to="" url="" expect="3" label="Switch0 has three learned MAC entries"/>
-</takuminet>
+</takumi>

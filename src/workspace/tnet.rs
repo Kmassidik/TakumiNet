@@ -112,14 +112,14 @@ impl Workspace {
             vec![Problem::fatal(error.line, &error.element, &error.attribute, error.message)]
         })?;
         let mut version = version.parse::<u32>().map_err(|_| {
-            vec![Problem::fatal(1, "takuminet", "version", "schema version must be a non-negative integer")]
+            vec![Problem::fatal(1, "takumi", "version", "schema version must be a non-negative integer")]
         })?;
         if version > CURRENT_TNET_VERSION {
             return Err(vec![Problem::fatal(
                 1,
-                "takuminet",
+                "takumi",
                 "version",
-                format!("version {version} was made by a newer TakumiNet (current version is {CURRENT_TNET_VERSION})"),
+                format!("version {version} was made by a newer Takumi (current version is {CURRENT_TNET_VERSION})"),
             )]);
         }
         while version < CURRENT_TNET_VERSION {

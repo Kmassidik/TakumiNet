@@ -1,6 +1,6 @@
-# TakumiNet
+# Takumi
 
-TakumiNet is a free, clean-room network emulator that runs in your browser.
+Takumi is a free, clean-room network emulator that runs in your browser.
 Build a topology, configure devices, inspect real Ethernet/IP packets, and
 follow guided labs without an account. The Rust simulation engine runs as
 WebAssembly in each tab; the interface is plain HTML and CSS, with the workspace drawn on a canvas by TypeScript modules in `web/ts/` (built by Bun into `web/js/ui.js`).
@@ -9,8 +9,8 @@ All bundled artwork and sounds are original.
 ## Quick start with Docker
 
 ```bash
-docker build -t takuminet .
-docker run --rm --name pt-web -p 3000:3000 takuminet
+docker build -t takumi .
+docker run --rm --name pt-web -p 3000:3000 takumi
 ```
 
 Open **http://127.0.0.1:3000** for the landing page, or **http://127.0.0.1:3000/workspace** to go straight to the workspace. Stop the container with `docker rm -f pt-web`.

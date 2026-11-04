@@ -82,7 +82,7 @@ Owner: the user has to restart the web to close it.
 Owner: `.tnet` is not commonly used.
 
 ### Research
-The file content is already XML (`<takuminet version="1">`, `web/templates/t1.tnet`). The server already answers the export with `application/xml` (`src/http/file_routes.rs:80`). Only the name and the accepted type say `.tnet`. Places that hard-code it:
+The file content is already XML (`<takumi version="1">`, `web/templates/t1.tnet`). The server already answers the export with `application/xml` (`src/http/file_routes.rs:80`). Only the name and the accepted type say `.tnet`. Places that hard-code it:
 
 - Server (`src/http/file_routes.rs`): saves write `{name}.tnet` (`:28`), opens read `{name}.tnet` (`:37`), the save list filters on the `tnet` extension (`:65`), the embedded templates are `include_str!(…tnet)` (`:184` to `193`), the template reader uses `{id}.tnet` (`:208`), and the template list filters on it (`:232`).
 - Engine (`src/workspace/tnet.rs`): `to_tnet`, `from_tnet`, `from_tnet_open_anyway`. The names are internal and can stay, but the doc comments and error text should say XML.
@@ -90,20 +90,20 @@ The file content is already XML (`<takuminet version="1">`, `web/templates/t1.tn
 - Files: `web/templates/*.tnet` (10 files), `topologies/*.tnet` (7 files, some are test leftovers), and `web/sw.js` (precache list, 10 lines).
 - Tests that name it: `tests/e2e.rs` (2), `tests/js/browser_files.test.js` (8), `tests/js/service_worker.test.js` (1). README and PRD mention it too.
 - Leftover: `*.ptw` files in `topologies/` and a reference in `src/workspace/records_load.rs`. These belong to the old format and should go if the owner agrees.
-- Risk: a generic `.xml` file can be any XML. Open must check that the root element is `takuminet` and show a clear error if not.
+- Risk: a generic `.xml` file can be any XML. Open must check that the root element is `takumi` and show a clear error if not.
 
 ### Todo
 - [ ] F3.1 Owner decides: should old `.tnet` files still open? (Recommended: yes, read only. Save and export always write `.xml`.)
 - [ ] F3.2 Rename the 10 template files to `.xml` and update the embedded list, the reader, the listing and `sw.js`.
 - [ ] F3.3 Save, open, export, import and drop use `.xml` (server and browser).
-- [ ] F3.4 Open and import reject any XML whose root is not `takuminet`, with a message.
+- [ ] F3.4 Open and import reject any XML whose root is not `takumi`, with a message.
 - [ ] F3.5 Update error texts, README, PRD and the tests.
 - [ ] F3.6 Not done on purpose: the `topologies/*.ptw` and test-leftover files are not deleted (they may be the owner's). Old `.tnet` saves still open.
 
 ### Tests
 - Behaviour: save then open round-trips as `.xml`. Export downloads `*.xml`. Dropping a `.xml` file opens it.
 - Error: opening `.xml` with the wrong root, broken XML (`<broken`, already tested at `src/http/mod.rs:218`), an empty file, and a wrong extension each show an error and leave the workspace unchanged.
-- Bend check: `tests/bend/format.bend`: the accept rule (extension `xml` and root `takuminet`) accepts exactly the valid names.
+- Bend check: `tests/bend/format.bend`: the accept rule (extension `xml` and root `takumi`) accepts exactly the valid names.
 - Slop guard: no `.tnet` string remains in `web/`, except the legacy-read path if F3.1 says yes.
 
 ---
@@ -253,7 +253,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 - Route: `src/http/static_routes.rs:8` serves exactly `/about.html`. There is no `/about` route.
 - Links to it: `web/index.html:80` (Help menu), `web/sw.js:7` (precache), `README.md:118`, `tests/e2e.rs:136` and `138`, `tests/js/service_worker.test.js:121`.
 - Only two pages exist: `index.html` (served at `/`) and `about.html`. So `about` is the only extension problem.
-- `web/about.html` is 91 lines with its own inline `<style>` (see F1). Title "About & licence — TakumiNet". It has no author profile or repo link.
+- `web/about.html` is 91 lines with its own inline `<style>` (see F1). Title "About & licence — Takumi". It has no author profile or repo link.
 - The repo has no LICENSE file at the root (nothing found by `ls LICENSE*`), but the page and the Help menu say "licence".
 - Repo URL from the git remote: `https://github.com/Kmassidik/TakumiNet`. Owner's X: `https://x.com/KMassidik`.
 
@@ -373,7 +373,7 @@ Not done:
 
 ## Note on the pasted text
 
-The block pasted with F1 is about an AI security-operations product (detection rules, alert triage). It has nothing to do with TakumiNet, so it is not recorded. If it was meant as a style reference, tell me what to take from it.
+The block pasted with F1 is about an AI security-operations product (detection rules, alert triage). It has nothing to do with Takumi, so it is not recorded. If it was meant as a style reference, tell me what to take from it.
 
 ---
 
@@ -538,7 +538,7 @@ Owner: "landing page is slop ... learn from motionsites.ai ... you have Blender 
 ### What went wrong with the first landing page (F22)
 
 - It had no identity: a blue-and-white page with a big bold headline, which looks like most tool pages.
-- The one distinctive thing TakumiNet owns, the 3D mascot and glossy 3D device art, was shrunk to a 30 px logo and small icons.
+- The one distinctive thing Takumi owns, the 3D mascot and glossy 3D device art, was shrunk to a 30 px logo and small icons.
 - It never showed the real product, only small flat tables drawn in code.
 - The hero motion was a small dot inside a card. Nothing made you want to scroll.
 - F22 stays in the repo until F23 replaces it. Its routes, `?open=` links and tests stay, only the look changes.
@@ -562,7 +562,7 @@ Owner: "landing page is slop ... learn from motionsites.ai ... you have Blender 
 
 ### The concept: "follow the packet"
 
-One scroll-driven 3D scene. The hero is a dark, softly lit stage with TakumiNet's devices as glossy 3D objects, joined by glowing cables, with one orange packet travelling through them. Scrolling flies the camera along the packet's path, and the page text changes as it passes each stop:
+One scroll-driven 3D scene. The hero is a dark, softly lit stage with Takumi's devices as glossy 3D objects, joined by glowing cables, with one orange packet travelling through them. Scrolling flies the camera along the packet's path, and the page text changes as it passes each stop:
 
 1. Hero: the whole network, slow drift, the packet crossing it. Headline and one button laid over the scene.
 2. Wire it up: the camera moves in on the cables and ports.
@@ -662,3 +662,13 @@ This replaces the dark network scene from F23 (its model, poster and camera code
 - **Measured in Chrome (this Mac, 2x display):** 120 fps while scrolling the whole page; landing script 154 KB gzipped (budget 300 KB); model under 1 MB.
 - **Tests:** `tests/ts/landing_motion.test.ts`, `landing_scene.test.ts`, `landing.test.ts`, `tests/bend/slot_pick.bend`, and the landing e2e test.
 - **Not done:** the thinking pose raises the arm instead of touching the chin, and Takumi has no mouth animation. The model is simple shapes, not a sculpted fur model, so it is close to the art but not identical.
+
+## F26. The product is called Takumi, not TakumiNet (done, 2026-11-04)
+
+Owner: "change the name into Takumi only, not TakumiNet, check all".
+
+- Renamed in every page title, heading, menu, message, README, doc, test and tool script. The mascot is also called Takumi, so the page no longer says "Takumi, the Takumi mascot": the pictures are described as "Takumi the bear".
+- The workspace file root element is now `<takumi>`. Files saved earlier with `<takuminet>` still open (tested), and saving them again writes the new root.
+- The offline cache is now named `Takumi-v1`. Caches made under the old name are cleared when the new service worker starts.
+- The package is `takumi-web` and the Docker image is `takumi`.
+- Not renamed on purpose: the GitHub address `github.com/Kmassidik/TakumiNet` (that is the real repository name; rename the repository on GitHub first and then the links), the local folder name, the Rust crate (`pt-web`), and the old session handle named in the planning notes.

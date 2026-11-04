@@ -1,6 +1,6 @@
-<takuminet version="1">
+<takumi version="1">
   <device id="pc0" kind="pc" model="PC-PT" x="180" y="240" name="PC0" ip="192.168.1.10" prefix="24"/>
   <device id="pc1" kind="pc" model="PC-PT" x="500" y="240" name="PC1" ip="192.168.1.11" prefix="24"/>
   <link a="pc0" a_port="Fa0" b="pc1" b_port="Fa0" kind="eCross"/>
   <demo kind="ping" from="pc0" to="pc1" url=""/>
-</takuminet>
+</takumi>

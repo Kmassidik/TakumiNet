@@ -62,7 +62,7 @@ for (const [fileName, expectedName] of [['my lab.xml', 'my lab'], ['old lab.tnet
     const app = actionsHarness();
     await vm.runInContext('ACTIONS.import()', app.context);
     app.context.fetch = async (path) => ({ ok: true, async json() { return { devices: [], links: [], path }; } });
-    app.getInput().files = [{ name: fileName, async text() { return '<takuminet version="1"></takuminet>'; } }];
+    app.getInput().files = [{ name: fileName, async text() { return '<takumi version="1"></takumi>'; } }];
     await app.getInput().onchange();
     assert.equal(app.changes.length, 1);
     assert.equal(vm.runInContext('currentName', app.context), expectedName);

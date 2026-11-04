@@ -93,11 +93,11 @@ pub fn unescape(value: &str) -> Option<String> {
 }
 
 pub fn write(version: &str, elements: &[Element]) -> String {
-    let mut out = format!("<takuminet version=\"{}\">\n", escape(version));
+    let mut out = format!("<takumi version=\"{}\">\n", escape(version));
     for element in elements {
         write_element(&mut out, element);
     }
-    out.push_str("</takuminet>\n");
+    out.push_str("</takumi>\n");
     out
 }
 
@@ -126,11 +126,14 @@ fn write_element(out: &mut String, element: &Element) {
     out.push_str(">\n");
 }
 
+/// The root element of a workspace file: the current name first, then the name used before the rename.
+const ROOT_NAMES: [&str; 2] = ["takumi", "takuminet"];
+
 pub fn read(text: &str) -> Result<(String, Vec<Element>), XmlError> {
     if text.len() > MAX_FILE_BYTES {
         return Err(XmlError {
             line: 1,
-            element: "takuminet".into(),
+            element: "takumi".into(),
             attribute: "file".into(),
             message: "file exceeds the 8 MB limit".into(),
         });
@@ -139,7 +142,7 @@ pub fn read(text: &str) -> Result<(String, Vec<Element>), XmlError> {
         let declaration = text[at..].get(..9).unwrap_or(&text[at..]);
         return Err(XmlError {
             line: line_at(text.as_bytes(), at),
-            element: "takuminet".into(),
+            element: "takumi".into(),
             attribute: "DTD".into(),
             message: if declaration.starts_with("<!DOCTYPE") || declaration.starts_with("<!ENTITY") {
                 "DTD and entity definitions are forbidden".into()
@@ -151,24 +154,26 @@ pub fn read(text: &str) -> Result<(String, Vec<Element>), XmlError> {
 
     let mut parser = Parser { bytes: text.as_bytes(), position: 0 };
     parser.whitespace();
-    let root = parser.tag("takuminet")?;
-    if root.name != "takuminet" || root.self_closing {
-        return Err(parser.error_at(root.line, &root.name, "element", "expected a non-empty <takuminet> root"));
+    let root = parser.tag("takumi")?;
+    // Files saved before the rename start with <takuminet>; they still open.
+    if !ROOT_NAMES.contains(&root.name.as_str()) || root.self_closing {
+        return Err(parser.error_at(root.line, &root.name, "element", "expected a non-empty <takumi> root"));
     }
     let Some(version) = root.attributes.iter()
         .find(|(key, _)| key == "version")
         .map(|(_, value)| value.clone())
     else {
-        return Err(parser.error_at(root.line, "takuminet", "version", "missing schema version"));
+        return Err(parser.error_at(root.line, "takumi", "version", "missing schema version"));
     };
 
+    let root_name = root.name.clone();
     let mut elements = Vec::new();
     let mut stack: Vec<Element> = Vec::new();
     let mut records = 0usize;
     loop {
         parser.whitespace();
         if parser.position == parser.bytes.len() {
-            let element = stack.last().map(|e| e.name.as_str()).unwrap_or("takuminet");
+            let element = stack.last().map(|e| e.name.as_str()).unwrap_or("takumi");
             return Err(parser.error(element, "element", "unexpected end of file"));
         }
         if parser.consume(b"</") {
@@ -179,12 +184,12 @@ pub fn read(text: &str) -> Result<(String, Vec<Element>), XmlError> {
                 return Err(parser.error_at(line, &name, "element", "malformed closing tag"));
             }
             if stack.is_empty() {
-                if name != "takuminet" {
+                if name != root_name {
                     return Err(parser.error_at(line, &name, "element", "unexpected closing tag"));
                 }
                 parser.whitespace();
                 if parser.position != parser.bytes.len() {
-                    return Err(parser.error("takuminet", "element", "content after the root element"));
+                    return Err(parser.error("takumi", "element", "content after the root element"));
                 }
                 return Ok((version, elements));
             }
@@ -200,7 +205,7 @@ pub fn read(text: &str) -> Result<(String, Vec<Element>), XmlError> {
             continue;
         }
 
-        let context = stack.last().map(|e| e.name.as_str()).unwrap_or("takuminet");
+        let context = stack.last().map(|e| e.name.as_str()).unwrap_or("takumi");
         let tag = parser.tag(context)?;
         let depth = stack.len() + 2;
         if depth > MAX_DEPTH {

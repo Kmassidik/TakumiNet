@@ -256,7 +256,7 @@ fn legacy_ptw_loads_to_the_same_workspace_as_tnet() {
 
 #[test]
 fn unknown_tnet_elements_survive_load_and_save() {
-    let text = "<takuminet version=\"1\">\n<mystery id=\"l&amp;1\" note=\"漢字&#10;next\"/>\n</takuminet>\n";
+    let text = "<takumi version=\"1\">\n<mystery id=\"l&amp;1\" note=\"漢字&#10;next\"/>\n</takumi>\n";
     let ws = Workspace::from_tnet(text).expect("unknown elements are retained");
     assert_eq!(ws.to_tnet(), text);
 }
@@ -298,13 +298,13 @@ fn l15_loading_a_template_twice_is_deterministic() {
 
 #[test]
 fn lesson_records_validate_uniqueness_kinds_and_device_references() {
-    let duplicate = "<takuminet version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><step n=\"1\" text=\"a\"/><step n=\"1\" text=\"b\"/></takuminet>";
+    let duplicate = "<takumi version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><step n=\"1\" text=\"a\"/><step n=\"1\" text=\"b\"/></takumi>";
     assert!(Workspace::from_tnet(duplicate).err().expect("duplicate steps rejected").iter().any(|p| p.element == "step"));
 
-    let unknown = "<takuminet version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><check id=\"c\" kind=\"made-up\" from=\"pc0\" to=\"\" url=\"\" expect=\"\" label=\"bad\"/></takuminet>";
+    let unknown = "<takumi version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><check id=\"c\" kind=\"made-up\" from=\"pc0\" to=\"\" url=\"\" expect=\"\" label=\"bad\"/></takumi>";
     assert!(Workspace::from_tnet(unknown).err().expect("unknown kind rejected").iter().any(|p| p.attribute == "kind"));
 
-    let missing = "<takuminet version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><check id=\"c\" kind=\"ping\" from=\"missing\" to=\"also-missing\" url=\"\" expect=\"ok\" label=\"bad\"/></takuminet>";
+    let missing = "<takumi version=\"1\"><lesson id=\"x\" title=\"X\" level=\"1\" minutes=\"5\" goal=\"g\"/><check id=\"c\" kind=\"ping\" from=\"missing\" to=\"also-missing\" url=\"\" expect=\"ok\" label=\"bad\"/></takumi>";
     let problems = Workspace::from_tnet(missing).err().expect("unknown devices rejected");
     assert!(problems.iter().any(|p| p.attribute == "from"));
     assert!(problems.iter().any(|p| p.attribute == "to"));
@@ -338,4 +338,27 @@ fn lesson_step_names_its_proving_check_and_keeps_it_through_tnet() {
     assert_eq!(steps[0].check, "");
     assert_eq!(steps[1].check, "ping-1");
     assert!(loaded.json().contains("\"check\":\"ping-1\""));
+}
+
+#[test]
+fn files_saved_before_the_rename_still_open_and_new_files_use_the_new_root() {
+    let mut ws = Workspace::new();
+    ws.add_note(1.0, 2.0, "#fff3b0", "hello");
+    let saved = ws.to_tnet();
+    assert!(saved.starts_with("<takumi version=\"1\">"), "{saved}");
+    assert!(saved.trim_end().ends_with("</takumi>"), "{saved}");
+
+    // The same file with the old root name opens and reads the same.
+    let legacy = saved.replace("<takumi ", "<takuminet ").replace("</takumi>", "</takuminet>");
+    let loaded = Workspace::from_tnet(&legacy).expect("an old file still opens");
+    assert_eq!(loaded.notes.len(), 1);
+    assert_eq!(loaded.notes[0].text, "hello");
+
+    // Saving it again writes the new root, so files move to the new name over time.
+    assert!(loaded.to_tnet().starts_with("<takumi version=\"1\">"));
+
+    // A root that is neither name, or one that does not close, is still refused.
+    assert!(Workspace::from_tnet("<other version=\"1\"></other>").is_err());
+    assert!(Workspace::from_tnet("<takuminet version=\"1\"></takumi>").is_err());
+    assert!(Workspace::from_tnet("<takumi version=\"1\"></takuminet>").is_err());
 }

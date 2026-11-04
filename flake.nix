@@ -1,5 +1,5 @@
 {
-  description = "TakumiNet — clean-room browser network emulator";
+  description = "Takumi — clean-room browser network emulator";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -33,7 +33,7 @@
           packages = [ pkgs.cargo pkgs.rustc pkgs.rustfmt pkgs.clippy ];
           shellHook = ''
             export PORT=3000
-            echo "TakumiNet dev shell — cargo run"
+            echo "Takumi dev shell — cargo run"
           '';
         };
       });

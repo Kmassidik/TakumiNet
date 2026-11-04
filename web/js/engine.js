@@ -106,7 +106,7 @@
     const savePrefix = 'pt-web:saved:';
     const cleanName = (name) => String(name || '').replace(/[^a-z0-9_-]/gi, '_') || 'untitled';
     async function browserRoute(method, target) {
-      const url = new URL(target, 'http://takuminet.local');
+      const url = new URL(target, 'http://takumi.local');
       if (!['/api/save', '/api/load', '/api/saves'].includes(url.pathname)) return null;
       if (!storage) return response('application/json', '{"error":"browser storage unavailable"}');
       if (url.pathname === '/api/saves' && method === 'GET') {
@@ -137,7 +137,7 @@
 
     async function fetch(input, init = {}) {
       const originalUrl = typeof input === 'string' ? input : input.url;
-      const url = new URL(originalUrl, root.location ? root.location.href : 'http://takuminet.local');
+      const url = new URL(originalUrl, root.location ? root.location.href : 'http://takumi.local');
       if (!url.pathname.startsWith('/api/')) return nativeFetch(input, init);
       if (!await ready) return nativeFetch(input, init);
       const method = (init.method || (typeof input === 'object' && input.method) || 'GET').toUpperCase();

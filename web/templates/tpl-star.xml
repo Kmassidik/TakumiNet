@@ -1,4 +1,4 @@
-<takuminet version="1">
+<takumi version="1">
   <device id="switch0" kind="switch" model="2960" x="340" y="130" name="Switch0" ip="" prefix="24"/>
   <device id="pc0" kind="pc" model="PC-PT" x="100" y="330" name="PC0" ip="192.168.1.10" prefix="24"/>
   <device id="pc1" kind="pc" model="PC-PT" x="340" y="330" name="PC1" ip="192.168.1.11" prefix="24"/>
@@ -7,4 +7,4 @@
   <link a="switch0" a_port="Fa0/2" b="pc1" b_port="Fa0" kind="eCopper"/>
   <link a="switch0" a_port="Fa0/3" b="pc2" b_port="Fa0" kind="eCopper"/>
   <demo kind="ping" from="pc0" to="pc2" url=""/>
-</takuminet>
+</takumi>
