@@ -21,6 +21,7 @@ impl Workspace {
             "log" => self.check_log(check),
             "nat" => self.check_forward(check),
             "bgp" => self.check_bgp(check),
+            "call" => self.check_call(check),
             _ => return None,
         })
     }
@@ -287,6 +288,26 @@ impl Workspace {
             other => format!("session with {} is {other}", check.to),
         };
         (state == check.expect, actual, hint)
+    }
+
+    /// `from` and `to` are the two phones; `expect` is the call state
+    /// (`established` when empty) the call between their extensions must hold.
+    fn check_call(&self, check: &Check) -> Verdict {
+        let hint = "Register both phones at the call manager, then dial the other extension from the phone window.".to_string();
+        let ext = |id: &str| self.phones.get(id).map(|(_, e)| *e);
+        let Some(from) = ext(&check.from) else {
+            return (false, format!("{} is not registered", self.name_of(&check.from)), hint);
+        };
+        let Some(to) = ext(&check.to) else {
+            return (false, format!("{} is not registered", self.name_of(&check.to)), hint);
+        };
+        let want = if check.expect.is_empty() { "established" } else { check.expect.as_str() };
+        match self.calls.get(&from) {
+            Some((callee, state)) if *callee == to => {
+                (state == want, format!("call from {from} to {to} is {state}"), hint)
+            }
+            _ => (false, format!("no call from {from} to {to}"), hint),
+        }
     }
 
     fn check_count(&self, check: &Check) -> Verdict {

@@ -106,6 +106,11 @@ impl Workspace {
                     self.phones.insert(phone.to_string(), (cm.to_string(), e));
                 }
             }
+            ["call", from, to, state] => {
+                if let (Ok(f), Ok(t)) = (from.parse::<u16>(), to.parse::<u16>()) {
+                    self.calls.insert(f, (t, state.to_string()));
+                }
+            }
             _ => {}
         }
         Some(())

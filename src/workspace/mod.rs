@@ -53,6 +53,7 @@ mod records_load_wireless;
 mod records_save_routing;
 mod types;
 mod util;
+mod voice;
 mod wan;
 mod wireless;
 
@@ -143,6 +144,7 @@ impl Workspace {
                 vpn: HashMap::new(),
                 pppoe: HashMap::new(),
                 phones: HashMap::new(),
+                calls: HashMap::new(),
                 unknown_elements: Vec::new(),
                 record_extras: Vec::new(),
                 load_problems: Vec::new(),
@@ -364,6 +366,7 @@ impl Workspace {
                 vpn: HashMap::new(),
                 pppoe: HashMap::new(),
                 phones: HashMap::new(),
+                calls: HashMap::new(),
                 unknown_elements: Vec::new(),
                 record_extras: Vec::new(),
                 load_problems: Vec::new(),

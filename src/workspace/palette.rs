@@ -133,6 +133,7 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         "backbone-pop" | "internet-exchange" | "national-gateway" => (0..8).map(|i| format!("GigabitEthernet0/{i}")).collect(),
         "submarine-cable" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
         "load-balancer" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
+        "cablemodem" | "dsl" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
         _ => vec!["FastEthernet0".to_string()],
     };
     names

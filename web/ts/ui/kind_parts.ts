@@ -19,6 +19,8 @@ export interface PaletteEntry {
 export interface WorkspaceDevice {
   id: string;
   name: string;
+  kind?: string;
+  ip?: string | null;
 }
 
 export interface WorkspaceLink {

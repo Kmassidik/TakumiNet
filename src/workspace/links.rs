@@ -130,7 +130,7 @@ impl Workspace {
                 k,
                 "pc" | "laptop" | "server" | "printer" | "tv" | "sniffer" | "tablet" | "pda"
                     | "phone" | "asa" | "wlc" | "ap" | "hub" | "switch" | "router"
-                    | "homerouter" | "cloud" | "rtrw-gateway" | "provider-link"
+                    | "homerouter" | "cloud" | "cablemodem" | "dsl" | "rtrw-gateway" | "provider-link"
                     | "sector-radio" | "client-radio" | "hotspot-ap" | "switch-l3" | "load-balancer"
                     | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
                     | "microwave-link" | "satellite-terminal"
@@ -175,7 +175,7 @@ impl Workspace {
                 }
             }
             "eCoax" => {
-                let endpoint = |k: &str| matches!(k, "homerouter" | "cloud");
+                let endpoint = |k: &str| matches!(k, "homerouter" | "cloud" | "cablemodem");
                 if !endpoint(&ka) && !endpoint(&kb) {
                     return Err("a coaxial cable needs a cable modem or cloud".into());
                 }

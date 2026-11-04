@@ -192,7 +192,8 @@ impl Workspace {
         if !self.devices.iter().any(|d| d.id == phone) {
             return Err("no such device".into());
         }
-        if !self.devices.iter().any(|d| d.ip == crate::model::parse_ipv4(cm)) {
+        let addr = crate::model::parse_ipv4(cm);
+        if addr.is_none() || !self.devices.iter().any(|d| d.ip == addr) {
             return Err(format!("no call manager at {cm}"));
         }
         if ext == 0 {

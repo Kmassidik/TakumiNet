@@ -4,6 +4,7 @@ import { renderFirewallWindow } from "./firewall_window";
 import { renderGatewayWindow } from "./gateway_window";
 import { renderL3SwitchWindow } from "./l3switch_window";
 import { renderHotspotWindow } from "./hotspot_window";
+import { renderPhoneWindow } from "./phone_window";
 import { renderProviderWindow } from "./provider_window";
 import { renderRadioWindow } from "./radio_window";
 import { el, modelBlurbLine, type GetText, type KindDevice, type KindWorkspace, type Post } from "./kind_parts";
@@ -22,6 +23,8 @@ const WINDOW_IDS: Record<string, string> = {
   "asa": "firewall-window",
   "load-balancer": "balancer-window",
   "switch-l3": "l3switch-window",
+  "phone": "phone-window",
+  "analogphone": "phone-window",
 };
 
 /* Kinds without an entry here keep the generic PC-style device window. */
@@ -57,6 +60,9 @@ export function renderKindWindow(
       return renderBalancerWindow(doc, pane, device, workspace, deps.post);
     case "switch-l3":
       return renderL3SwitchWindow(doc, pane, device, deps.getText, deps.post);
+    case "phone":
+    case "analogphone":
+      return renderPhoneWindow(doc, pane, device, workspace, deps.post);
     default:
       return Promise.resolve();
   }

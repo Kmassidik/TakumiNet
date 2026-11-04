@@ -1,0 +1,21 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="Router 300" x="160" y="120" name="OfficeRouter" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="420" y="120" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="680" y="120" name="CallManager" ip="10.20.0.5" prefix="24"/>
+  <device id="phone1" kind="phone" model="IP Phone" x="300" y="320" name="DeskPhone1" ip="10.20.0.11" prefix="24"/>
+  <device id="phone2" kind="phone" model="IP Phone" x="560" y="320" name="DeskPhone2" ip="10.20.0.12" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="phone1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/4" b="phone2" b_port="Fa0" kind="eCopper"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="10.20.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="server0" gw="10.20.0.1" dns=""/>
+  <net id="phone1" gw="10.20.0.1" dns=""/>
+  <net id="phone2" gw="10.20.0.1" dns=""/>
+  <phone phone="phone1" cm="10.20.0.5" ext="2001"/>
+  <phone phone="phone2" cm="10.20.0.5" ext="2002"/>
+  <call from="2001" to="2002" state="established"/>
+  <demo kind="ping" from="phone1" to="server0" url=""/>
+  <demo kind="ping" from="phone2" to="server0" url=""/>
+  <demo kind="ping" from="phone1" to="phone2" url=""/>
+</takumi>

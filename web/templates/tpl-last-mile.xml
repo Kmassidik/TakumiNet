@@ -1,0 +1,23 @@
+<takumi version="1">
+  <device id="pc0" kind="pc" model="PC" x="80" y="120" name="CablePC" ip="203.0.113.10" prefix="24"/>
+  <device id="homerouter0" kind="homerouter" model="Home Router" x="240" y="120" name="CableHome" ip="203.0.113.11" prefix="24"/>
+  <device id="cablemodem0" kind="cablemodem" model="Cable Modem" x="400" y="120" name="Modem0" ip="" prefix="24"/>
+  <device id="cloud0" kind="cloud" model="Cloud" x="560" y="220" name="Internet" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="760" y="220" name="IspServer" ip="203.0.113.2" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="80" y="320" name="DslPC" ip="203.0.113.20" prefix="24"/>
+  <device id="homerouter1" kind="homerouter" model="Home Router" x="240" y="320" name="DslHome" ip="203.0.113.21" prefix="24"/>
+  <device id="dsl0" kind="dsl" model="DSL Modem" x="400" y="320" name="Dsl0" ip="" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="homerouter0" b_port="Fa0" kind="eCopper"/>
+  <link a="homerouter0" a_port="Fa3" b="cablemodem0" b_port="Fa0" kind="eCopper"/>
+  <link a="cablemodem0" a_port="Coax0" b="cloud0" b_port="Coax0" kind="eCoax"/>
+  <link a="pc1" a_port="Fa0" b="homerouter1" b_port="Fa0" kind="eCopper"/>
+  <link a="homerouter1" a_port="Fa3" b="dsl0" b_port="Fa0" kind="eCopper"/>
+  <link a="dsl0" a_port="Fa1" b="cloud0" b_port="Fa2" kind="eCopper"/>
+  <link a="cloud0" a_port="Fa1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <page id="server0" body="The ISP welcome page"/>
+  <note id="note0" x="540" y="40" color="#fff3b0" text="Two last miles: the top house rides the TV cable (DOCSIS, a coaxial line into a cable modem), the bottom house rides the old phone line (DSL). Both modems just turn their line into Ethernet."/>
+  <demo kind="ping" from="pc0" to="server0" url=""/>
+  <demo kind="ping" from="pc1" to="server0" url=""/>
+  <demo kind="http" from="pc0" to="" url="http://203.0.113.2/"/>
+  <demo kind="ping" from="pc0" to="pc1" url=""/>
+</takumi>

@@ -1,0 +1,16 @@
+<takumi version="1">
+  <device id="pc0" kind="pc" model="PC" x="80" y="160" name="HomePC" ip="" prefix="24"/>
+  <device id="homerouter0" kind="homerouter" model="Home Router" x="260" y="160" name="HomeRouter0" ip="203.0.113.1" prefix="24"/>
+  <device id="cablemodem0" kind="cablemodem" model="Cable Modem" x="440" y="160" name="Modem0" ip="" prefix="24"/>
+  <device id="cloud0" kind="cloud" model="Cloud" x="620" y="160" name="Internet" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="800" y="160" name="IspServer" ip="203.0.113.2" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="homerouter0" b_port="Fa0" kind="eCopper"/>
+  <link a="cloud0" a_port="Fa0" b="server0" b_port="Fa0" kind="eCopper"/>
+  <lesson id="les-l1-08-last-mile" title="The last mile into the house" level="1" minutes="12" goal="HomePC reaches IspServer once the TV cable path is cabled and addressed"/>
+  <step n="1" text="The TV cable ends at Modem0, but nothing joins it to the house or the street yet. Run a copper cable from HomeRouter0 to Modem0."/>
+  <step n="2" text="Run the coaxial cable from Modem0 to the Internet cloud. The modem only turns the TV line into a network line."/>
+  <step n="3" text="Give HomePC the address 203.0.113.10 with prefix 24." check="c1"/>
+  <step n="4" text="Ping IspServer at 203.0.113.2 from HomePC." check="c2"/>
+  <check id="c1" kind="config" from="pc0" to="ip" url="" expect="203.0.113.10" label="HomePC holds 203.0.113.10"/>
+  <check id="c2" kind="ping" from="pc0" to="server0" url="" expect="ok" label="HomePC reaches IspServer over the cable"/>
+</takumi>

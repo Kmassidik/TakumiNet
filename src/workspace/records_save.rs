@@ -490,5 +490,6 @@ impl Workspace {
         for (phone, (cm, ext)) in phones {
             out.push_str(&format!("phone\t{}\t{}\t{}\n", phone, cm, ext));
         }
+        self.write_calls(out);
     }
 }

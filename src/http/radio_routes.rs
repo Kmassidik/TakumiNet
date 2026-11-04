@@ -18,7 +18,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/pppoe/sessions") => Some(handle_pppoe_sessions(ctx, query)),
         ("POST", "/api/pppoe/status") => Some(handle_pppoe_status(ctx, query)),
         ("POST", "/api/phone/register") => Some(handle_phone_register(ctx, query)),
-        ("POST", "/api/phone/status") => Some(handle_phone_status(ctx, query)),
+        ("POST", "/api/phone/call") => Some(handle_phone_call(ctx, query)),
+        ("POST" | "GET", "/api/phone/status") => Some(handle_phone_status(ctx, query)),
         ("POST", "/api/iot/read") => Some(handle_iot_read(ctx, query)),
         ("POST", "/api/iot/write") => Some(handle_iot_write(ctx, query)),
         ("POST", "/api/iot/send") => Some(handle_iot_send(ctx, query)),
@@ -217,22 +218,42 @@ fn handle_phone_register(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     (json, out.into_bytes())
 }
 
+fn handle_phone_call(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let ext = |name: &str| {
+        query_value(query, name)
+            .and_then(|e| e.parse::<u16>().ok())
+            .unwrap_or(0)
+    };
+    let (from, to) = (ext("from"), ext("to"));
+    let (out, _) = apply(ctx, |ws| ws.call(from, to).map(|_| ()));
+    (json, out.into_bytes())
+}
+
 fn handle_phone_status(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let json = "application/json";
     let id = query_value(query, "id").unwrap_or_default();
     let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
     match ws.phone_status(&id) {
-        Some((cm, ext)) => (
-            json,
-            format!(
-                "{{\"registered\":true,\"cm\":{},\"extension\":{ext}}}",
-                json_str(&cm)
+        Some((cm, ext)) => {
+            let call = match ws.call_of(ext) {
+                Some((from, to, state)) => {
+                    format!("{{\"from\":{from},\"to\":{to},\"state\":{}}}", json_str(&state))
+                }
+                None => "null".into(),
+            };
+            (
+                json,
+                format!(
+                    "{{\"registered\":true,\"cm\":{},\"extension\":{ext},\"call\":{call}}}",
+                    json_str(&cm)
+                )
+                .into_bytes(),
             )
-            .into_bytes(),
-        ),
+        }
         None => (
             json,
-            b"{\"registered\":false,\"cm\":\"\",\"extension\":0}".to_vec(),
+            b"{\"registered\":false,\"cm\":\"\",\"extension\":0,\"call\":null}".to_vec(),
         ),
     }
 }

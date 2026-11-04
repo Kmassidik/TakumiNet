@@ -18,6 +18,7 @@ mod notes;
 mod persistence;
 mod realtime;
 mod routing;
+mod voice;
 mod robustness;
 mod services;
 mod traffic;

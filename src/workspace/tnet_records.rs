@@ -62,6 +62,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("vpn", &["client", "server", "user"]),
     ("pppoe", &["client", "server", "user"]),
     ("phone", &["phone", "cm", "ext"]),
+    ("call", &["from", "to", "state"]),
     ("routing", &["dev", "proto", "process_id"]),
     ("routenet", &["dev", "net", "prefix", "area"]),
     ("bgprouter", &["dev", "as"]),

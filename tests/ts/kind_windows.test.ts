@@ -24,8 +24,10 @@ test("every new kind opens its own window, never the generic device window", () 
   expect(windowIdForKind("asa")).toBe("firewall-window");
   expect(windowIdForKind("load-balancer")).toBe("balancer-window");
   expect(windowIdForKind("switch-l3")).toBe("l3switch-window");
+  expect(windowIdForKind("phone")).toBe("phone-window");
+  expect(windowIdForKind("analogphone")).toBe("phone-window");
   for (const id of ["rtrw-gateway", "client-radio", "sector-radio", "provider-link", "hotspot-ap",
-    "asa", "load-balancer", "switch-l3"]) {
+    "asa", "load-balancer", "switch-l3", "phone", "analogphone"]) {
     expect(windowIdForKind(id)).not.toBe("device-window");
   }
 });

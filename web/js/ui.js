@@ -2407,6 +2407,138 @@
     return done;
   }
 
+  // web/ts/ui/phone_window.ts
+  var enc4 = encodeURIComponent;
+  function callManagers(workspace) {
+    return (workspace.devices ?? []).filter((d) => d.kind === "server" && typeof d.ip === "string" && d.ip !== "").map((d) => ({ label: `${d.name} (${d.ip})`, address: d.ip }));
+  }
+  function renderPhoneWindow(doc, body, device, workspace, post) {
+    body.replaceChildren();
+    let extension = 0;
+    let statusBox = null;
+    const fillStatus = async (box) => {
+      const res = await post(`/api/phone/status?id=${enc4(device.id)}`);
+      const err = errorOf(res);
+      if (err)
+        throw new Error(err);
+      box.replaceChildren();
+      extension = typeof res["extension"] === "number" ? res["extension"] : 0;
+      if (res["registered"] !== true) {
+        box.appendChild(note(doc, "empty", "Not registered at any call manager yet."));
+        return;
+      }
+      box.appendChild(note(doc, "ok", `Registered at ${asText(res["cm"])} as extension ${extension}.`));
+      const call = res["call"];
+      if (call && typeof call === "object") {
+        const line = call.from === extension ? `In a call to extension ${call.to} (${asText(call.state)}).` : `In a call from extension ${call.from} (${asText(call.state)}).`;
+        box.appendChild(note(doc, "plain", line));
+      }
+    };
+    const done = asyncSection(doc, body, "Line status", "Could not read the phone status.", (box) => {
+      statusBox = box;
+      return fillStatus(box);
+    });
+    const refresh = () => {
+      if (statusBox)
+        fillStatus(statusBox).catch(() => {
+          return;
+        });
+    };
+    registerForm(doc, body, device, workspace, post, refresh);
+    dialPad(doc, body, post, () => extension, refresh);
+    if (device.kind === "analogphone") {
+      body.appendChild(note(doc, "plain", "An analog phone talks through its phone cable; the router carries its calls."));
+    }
+    return done;
+  }
+  function registerForm(doc, root, device, workspace, post, refresh) {
+    const box = section(doc, root, "Register");
+    const managers = callManagers(workspace);
+    if (managers.length === 0) {
+      box.appendChild(note(doc, "empty", "No addressed server to register at. Give a server an address first."));
+      return;
+    }
+    const form = el(doc, "div", "kw-form");
+    const label = el(doc, "label", "kw-field", "Call manager");
+    const picker = el(doc, "select", "kw-input");
+    for (const manager of managers) {
+      const option = el(doc, "option", "", manager.label);
+      option.setAttribute("value", manager.address);
+      picker.appendChild(option);
+    }
+    picker.value = managers[0].address;
+    label.appendChild(picker);
+    form.appendChild(label);
+    const ext = field(doc, form, "Extension", "number");
+    const outcome = el(doc, "div", "kw-outcome");
+    const submit = () => void save();
+    const save = async () => {
+      const number = wholeNumber2(ext.value);
+      if (number === null) {
+        showOutcome(doc, outcome, "error", "Type a whole extension number.");
+        return;
+      }
+      try {
+        const res = await post(`/api/phone/register?id=${enc4(device.id)}&cm=${enc4(picker.value)}&ext=${number}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Registered as extension ${number}.`);
+          refresh();
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(ext, submit);
+    form.appendChild(createButton(doc, { label: "Register", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    box.appendChild(form);
+  }
+  function dialPad(doc, root, post, ownExtension, refresh) {
+    const box = section(doc, root, "Dial");
+    const form = el(doc, "div", "kw-form");
+    const target = field(doc, form, "Extension to call", "number");
+    const outcome = el(doc, "div", "kw-outcome");
+    const submit = () => void dial();
+    const dial = async () => {
+      const to = wholeNumber2(target.value);
+      if (to === null) {
+        showOutcome(doc, outcome, "error", "Type the extension to call.");
+        return;
+      }
+      const from = ownExtension();
+      if (from === 0) {
+        showOutcome(doc, outcome, "error", "Register this phone first.");
+        return;
+      }
+      try {
+        const res = await post(`/api/phone/call?from=${from}&to=${to}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Call to extension ${to} established.`);
+          refresh();
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(target, submit);
+    form.appendChild(createButton(doc, { label: "Call", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    box.appendChild(form);
+  }
+  function wholeNumber2(raw) {
+    const text = raw.trim();
+    if (!/^\d+$/.test(text))
+      return null;
+    const value = Number(text);
+    return value > 0 && value <= 65535 ? value : null;
+  }
+
   // web/ts/ui/provider_window.ts
   function renderProviderWindow(doc, body, device, workspace) {
     body.replaceChildren();
@@ -2459,7 +2591,9 @@
     "hotspot-ap": "hotspot-window",
     asa: "firewall-window",
     "load-balancer": "balancer-window",
-    "switch-l3": "l3switch-window"
+    "switch-l3": "l3switch-window",
+    phone: "phone-window",
+    analogphone: "phone-window"
   };
   function windowIdForKind(kind) {
     return WINDOW_IDS[kind] ?? null;
@@ -2487,6 +2621,9 @@
         return renderBalancerWindow(doc, pane, device, workspace, deps.post);
       case "switch-l3":
         return renderL3SwitchWindow(doc, pane, device, deps.getText, deps.post);
+      case "phone":
+      case "analogphone":
+        return renderPhoneWindow(doc, pane, device, workspace, deps.post);
       default:
         return Promise.resolve();
     }
@@ -2548,7 +2685,7 @@
   }
 
   // web/ts/ui/flows_window.ts
-  var enc4 = encodeURIComponent;
+  var enc5 = encodeURIComponent;
   function parseFlows(xml) {
     const flows = [];
     for (const m of xml.matchAll(/<flow\s+dev="([^"]*)"\s+to="([^"]*)"\s+mbit="([^"]*)"/g)) {
@@ -2609,7 +2746,7 @@
     };
     const setFlow = async (from, to, mbit) => {
       try {
-        const res = await deps.post(`/api/flows/set?from=${enc4(from)}&to=${enc4(to)}&mbit=${mbit}`);
+        const res = await deps.post(`/api/flows/set?from=${enc5(from)}&to=${enc5(to)}&mbit=${mbit}`);
         const err = errorOf(res);
         if (err) {
           showOutcome(doc, outcome, "error", err);
