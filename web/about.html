@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="TakumiNet's licence, independence, and original art provenance.">
-  <title>About &amp; licence — TakumiNet</title>
+  <meta name="description" content="About TakumiNet: who builds it, how to contribute, and where the code and art come from.">
+  <title>About — TakumiNet</title>
   <style>
     :root { color-scheme: light; --ink: #172b3a; --muted: #526979; --teal: #087f78; --paper: #f5f7f8; --line: #d8e2e5; }
     * { box-sizing: border-box; }
@@ -31,6 +31,8 @@
     .pipeline li { position: relative; margin-top: 18px; padding-left: 44px; counter-increment: step; }
     .pipeline li::before { content: counter(step); position: absolute; left: 0; top: 1px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #e5f3f1; color: var(--teal); font-size: 13px; font-weight: 800; }
     code { padding: 2px 5px; border-radius: 4px; background: #edf1f3; font: 14px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+    .links { margin: 12px 0 0; padding: 0; list-style: none; }
+    .links li { margin-top: 6px; }
     .note { margin: 18px 0 0; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
     footer { margin-top: 28px; color: var(--muted); font-size: 13px; text-align: center; }
     @media (max-width: 700px) {
@@ -50,10 +52,10 @@
   <main>
     <section class="hero">
       <img src="/art3d/mascot/happy.webp" alt="The TakumiNet mascot waving">
-      <p class="eyebrow">About &amp; licence</p>
+      <p class="eyebrow">About</p>
       <h1>A network lab that belongs in your browser.</h1>
       <p class="lede">TakumiNet is a clean-room network emulator for learning and teaching. Build a topology, configure real protocol state, follow each packet, and check your work without installing a simulator.</p>
-      <div class="badges"><span>Free to use</span><span>No account</span><span>Works offline</span></div>
+      <div class="badges"><span>Free to use</span><span>Open source</span><span>No account</span><span>Works offline</span></div>
     </section>
 
     <div class="grid">
@@ -66,6 +68,24 @@
         <h2>Independent and original</h2>
         <p>TakumiNet's Rust engine, browser code, generated 3D artwork, and synthesized sounds are original to this project. No Cisco media or third-party icon libraries are bundled.</p>
         <p><strong>TakumiNet is not affiliated with Cisco</strong>, and is not endorsed by or derived from Cisco Packet Tracer.</p>
+      </article>
+    </div>
+
+    <div class="grid">
+      <article id="author">
+        <p class="eyebrow">The author</p>
+        <h2>Kurnia Massidik</h2>
+        <p>TakumiNet is built and maintained by Kurnia Massidik, as a free alternative for people who learn and teach networking.</p>
+        <ul class="links">
+          <li><a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer" target="_blank">GitHub: Kmassidik/TakumiNet</a></li>
+          <li><a href="https://x.com/KMassidik" rel="noopener noreferrer" target="_blank">X: @KMassidik</a></li>
+        </ul>
+      </article>
+      <article id="open-source">
+        <p class="eyebrow">Open source</p>
+        <h2>Send a pull request, or make it your own</h2>
+        <p>The whole project is open. Anyone can read the code, open an issue, send a pull request, or fork it and rebuild it with their own ideas.</p>
+        <p><a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer" target="_blank">Open the repository</a></p>
       </article>
     </div>
 
@@ -82,7 +102,7 @@
     </section>
 
     <section class="wide">
-      <h2>Licence and use</h2>
+      <h2>Use and licence</h2>
       <p>TakumiNet is free to use for learning and teaching. Its original code and assets are supplied together in this repository; running the application requires no separate asset licence, account, or activation. Product and protocol names remain the property of their respective owners and are used only to describe simulated concepts.</p>
     </section>
   </main>

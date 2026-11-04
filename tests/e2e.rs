@@ -133,9 +133,10 @@ fn e2e_about_page_is_public_and_linked_from_help() {
     let s = spawn(38_170);
 
     let (_, _, index) = s.get("/");
-    assert!(index.contains(r#"href="/about.html""#), "Help must link to the About page");
+    assert!(index.contains(r#"href="/about""#), "Help must link to the About page");
+    assert!(!index.contains(".html"), "no page address may end in .html");
 
-    let (status, head, body) = s.get("/about.html");
+    let (status, head, body) = s.get("/about");
     assert_eq!(status, 200, "{body}");
     assert!(head.contains("text/html"), "{head}");
     for required in [
@@ -146,10 +147,22 @@ fn e2e_about_page_is_public_and_linked_from_help() {
         "free",
         "No Cisco account",
         "not affiliated with Cisco",
+        "https://github.com/Kmassidik/TakumiNet",
+        "https://x.com/KMassidik",
+        "pull request",
+        "Open source",
     ] {
         assert!(body.contains(required), "About page is missing {required:?}");
     }
     assert!(body.contains(r#"href="/""#), "About page must link back to the workspace");
+    assert!(!body.contains(".html"), "About page must not link to a .html address");
+
+    // The old address redirects to the clean one; other spellings are not pages.
+    let (status, head, _) = s.get("/about.html");
+    assert_eq!(status, 301, "{head}");
+    assert!(head.contains("Location: /about"), "{head}");
+    assert_eq!(s.get("/about/").0, 404);
+    assert_eq!(s.get("/about.xyz").0, 404);
 }
 
 #[test]

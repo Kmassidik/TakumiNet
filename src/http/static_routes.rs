@@ -5,7 +5,9 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
     let html = "text/html; charset=utf-8";
     let reply = match (method, path) {
         ("GET", "/") => (html, file_bytes(&ctx.web_root, "index.html")?),
-        ("GET", "/about.html") => (html, file_bytes(&ctx.web_root, "about.html")?),
+        ("GET", "/about") => (html, file_bytes(&ctx.web_root, "about.html")?),
+        // The old address keeps working: it points to the clean one.
+        ("GET", "/about.html") => (REDIRECT, b"/about".to_vec()),
         ("GET", p) if p.starts_with("/sounds/") => {
             let name = &p["/sounds/".len()..];
             let safe = name.ends_with(".wav") && !name.contains('/') && !name.contains("..");

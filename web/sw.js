@@ -4,7 +4,7 @@ const CACHE_PREFIX = 'TakumiNet-';
 const CACHE_NAME = `${CACHE_PREFIX}v1`;
 const PRECACHE_URLS = Object.freeze([
   '/',
-  '/about.html',
+  '/about',
   '/workspace.css',
   '/engine.wasm',
 

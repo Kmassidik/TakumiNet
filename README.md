@@ -115,6 +115,6 @@ engine contract change, then replayed in real Chrome with
 LAB_FIXTURE_DIR=tests/fixtures/labs cargo test --test labs -- --test-threads=1
 ```
 
-See [About & licence](web/about.html) for code/art provenance and independence,
+See [About](web/about.html) for code/art provenance and independence,
 `PRD.md` for the roadmap, and `provness/pt-web/LAWS.md` plus `result.md` for
 verification laws and evidence.

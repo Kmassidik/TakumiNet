@@ -163,6 +163,9 @@ fn handle(mut stream: TcpStream, ctx: &Ctx) -> io::Result<()> {
     reader.read_exact(&mut request_body)?;
 
     let (status, ctype, body) = dispatch(ctx, method, target, &request_body);
+    if status == 301 {
+        return respond_redirect(&mut stream, &String::from_utf8_lossy(&body));
+    }
     respond(&mut stream, if status == 404 { "404 Not Found" } else { "200 OK" }, ctype, &body)
 }
 
@@ -183,6 +186,7 @@ pub fn dispatch(ctx: &Ctx, method: &str, target: &str, body: &[u8]) -> (u16, &'s
     let routed = api();
 
     match routed {
+        Some((ctype, body)) if ctype == REDIRECT => (301, ctype, body),
         Some((ctype, body)) => (200, ctype, body),
         None => (404, "text/plain; charset=utf-8", b"not found\n".to_vec()),
     }

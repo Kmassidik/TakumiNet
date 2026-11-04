@@ -13,6 +13,19 @@ pub(super) fn sanitize(name: &str) -> String {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+/// Content type that marks a reply as a permanent redirect; the body is the new path.
+pub(super) const REDIRECT: &str = "text/x-redirect";
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(super) fn respond_redirect(stream: &mut TcpStream, location: &str) -> io::Result<()> {
+    write!(
+        stream,
+        "HTTP/1.1 301 Moved Permanently\r\nLocation: {location}\r\nContent-Length: 0\r\n\
+         Cache-Control: no-store\r\nConnection: close\r\n\r\n"
+    )?;
+    stream.flush()
+}
+
 pub(super) fn respond(stream: &mut TcpStream, status: &str, ctype: &str, body: &[u8]) -> io::Result<()> {
     write!(
         stream,

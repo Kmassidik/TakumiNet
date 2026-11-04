@@ -247,7 +247,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 
 ---
 
-## F9. The About page URL ends in `.html`, and it needs an author and open-source section (open)
+## F9. The About page URL ends in `.html`, and it needs an author and open-source section (done, except the licence)
 
 ### Research
 - Route: `src/http/static_routes.rs:8` serves exactly `/about.html`. There is no `/about` route.
@@ -262,7 +262,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 - [ ] F9.2 Update the Help link, the service-worker precache, README and the tests.
 - [ ] F9.3 Add an author section: name, the GitHub repo link and the X link.
 - [ ] F9.4 Add an open-source section: anyone can open a pull request or rebuild it as their own, with the repo link.
-- [ ] F9.5 Owner picks a licence, and a LICENSE file is added. The page names it. (Until then the page must not claim one.)
+- [ ] F9.5 Owner picks a licence, and a LICENSE file is added. The page names it. (Left open on purpose: choosing a licence is the owner's decision. The page claims none and says it is open source.)
 - [ ] F9.6 Move the page onto the shared styles (F1).
 - [ ] F9.7 Rename the Help item to just "About".
 

@@ -69,3 +69,17 @@ test("menus: File holds only file actions, and Examples has its two sections", (
   expect(examples).toMatch(/Lessons<\/div>/);
   expect(examples).toMatch(/Example templates<\/div>/);
 });
+
+test("routes: no page is served at an address that ends in .html, except as a redirect", () => {
+  const routes = readFileSync(join(import.meta.dir, "../../src/http/static_routes.rs"), "utf8");
+  const pages = [...routes.matchAll(/\("GET", "(\/[a-z./-]*\.html)"\) => \(([A-Za-z_]+),/g)];
+  for (const [, path, kind] of pages) expect(kind, `${path} must redirect`).toBe("REDIRECT");
+  expect(routes).toMatch(/\("GET", "\/about"\)/);
+});
+
+test("routes: no link or cached address in the page ends in .html", () => {
+  const sw = readFileSync(join(web, "sw.js"), "utf8");
+  expect(index).not.toMatch(/href="[^"]*\.html"/);
+  expect(readFileSync(join(web, "about.html"), "utf8")).not.toMatch(/href="[^"]*\.html"/);
+  expect(sw).not.toMatch(/'\/[a-z]+\.html'/);
+});
