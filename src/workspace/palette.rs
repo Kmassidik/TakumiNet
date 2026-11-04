@@ -115,6 +115,7 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
             v
         }
         "switch" => (1..=24).map(|i| format!("FastEthernet0/{i}")).collect(),
+        "hub" => (0..8).map(|i| format!("FastEthernet{i}")).collect(),
         "homerouter" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         "cloud" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         "rtrw-gateway" => (1..=5).map(|i| format!("Ether{i}")).collect(),

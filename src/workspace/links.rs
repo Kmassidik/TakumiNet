@@ -287,6 +287,7 @@ impl Workspace {
         match kind {
             "router" | "backbone-pop" | "internet-exchange" | "national-gateway" => format!("Gig0/{used}"),
             "switch" => format!("Fa0/{}", used + 1),
+            "hub" => format!("Fa{used}"),
             "submarine-cable" => format!("Fa{used}"),
             _ => "Fa0".to_string(),
         }

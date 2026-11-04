@@ -1,0 +1,22 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="Router 300" x="260" y="180" name="OfficeA" ip="" prefix="24"/>
+  <device id="router1" kind="router" model="Router 300" x="640" y="180" name="OfficeB" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="120" y="360" name="DeskA" ip="192.168.1.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="780" y="360" name="DeskB" ip="192.168.2.10" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="pc0" b_port="Fa0" kind="eCross"/>
+  <link a="router1" a_port="Gig0/0" b="pc1" b_port="Fa0" kind="eCross"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="192.168.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router1" name="GigabitEthernet0/0" up="1" ip="192.168.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc0" gw="192.168.1.1" dns=""/>
+  <net id="pc1" gw="192.168.2.1" dns=""/>
+  <lesson id="les-l3-07-serial-line" title="A serial line between offices" level="3" minutes="15" goal="DeskA reaches DeskB over a /30 serial line and a static route each way"/>
+  <step n="1" text="Ping DeskB (192.168.2.10) from DeskA and read why it fails: nothing joins the two offices."/>
+  <step n="2" text="Run a serial cable between OfficeA and OfficeB. It lands on Serial0/0/0 at both ends."/>
+  <step n="3" text="The line gets the /30 network 10.0.0.0/30, which holds exactly two addresses. Give Serial0/0/0 the address 10.0.0.1/30 on OfficeA and 10.0.0.2/30 on OfficeB."/>
+  <step n="4" text="OfficeA still knows nothing about 192.168.2.0/24. Add a static route on OfficeA to 192.168.2.0/24 via 10.0.0.2." check="c1"/>
+  <step n="5" text="Replies need a way back. On OfficeB add the route to 192.168.1.0/24 via 10.0.0.1." check="c2"/>
+  <step n="6" text="Ping DeskB from DeskA again." check="c3"/>
+  <check id="c1" kind="route" from="router0" to="" url="" expect="192.168.2.0/24" label="OfficeA has the route to OfficeB's network"/>
+  <check id="c2" kind="route" from="router1" to="" url="" expect="192.168.1.0/24" label="OfficeB has the route back"/>
+  <check id="c3" kind="ping" from="pc0" to="pc1" url="" expect="ok" label="DeskA reaches DeskB over the serial line"/>
+</takumi>

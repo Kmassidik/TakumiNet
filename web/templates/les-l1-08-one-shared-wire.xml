@@ -1,0 +1,21 @@
+<takumi version="1">
+  <device id="hub0" kind="hub" model="Hub" x="260" y="300" name="Hub0" ip="" prefix="24"/>
+  <device id="hub1" kind="hub" model="Hub" x="520" y="300" name="Hub1" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="120" y="460" name="PC0" ip="192.168.1.11" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="340" y="500" name="PC1" ip="192.168.1.12" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC" x="600" y="460" name="PC2" ip="192.168.1.13" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="390" y="120" name="Switch0" ip="" prefix="24"/>
+  <link a="hub0" a_port="Fa0" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="hub0" a_port="Fa1" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="hub1" a_port="Fa0" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <link a="hub0" a_port="Fa2" b="hub1" b_port="Fa1" kind="eCross"/>
+  <lesson id="les-l1-08-one-shared-wire" title="One wire everyone shares" level="1" minutes="10" goal="The hubs are gone and the switch has learned where all three PCs sit"/>
+  <step n="1" text="Ping PC1 from PC0, then open the events and read the hub's line: the frame is repeated to every port, so everyone hears everything." check="c1"/>
+  <step n="2" text="The two chained hubs make one shared wire, and two frames at once collide on it. Delete both hubs; the spare switch above will take over."/>
+  <step n="3" text="Cable PC0, PC1 and PC2 to free ports on Switch0." check="c2"/>
+  <step n="4" text="Ping around the triangle so every PC speaks once, then run show mac address-table on Switch0: it remembers which port each PC sits behind and repeats nothing it does not have to." check="c4"/>
+  <check id="c1" kind="ping" from="pc0" to="pc1" url="" expect="ok" label="PC0 reaches PC1"/>
+  <check id="c2" kind="ping" from="pc1" to="pc2" url="" expect="ok" label="PC1 reaches PC2 through the switch"/>
+  <check id="c3" kind="ping" from="pc2" to="pc0" url="" expect="ok" label="PC2 reaches PC0 through the switch"/>
+  <check id="c4" kind="mac-table" from="switch0" to="" url="" expect="3" label="Switch0 has learned all three PCs"/>
+</takumi>

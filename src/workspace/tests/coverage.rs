@@ -8,7 +8,6 @@ use super::super::*;
 const ALLOW_UNUSED_KINDS: &[&str] = &[
     "analogphone",
     "dsl",
-    "hub",
     "patchpanel",
     "phone",
     "sniffer",
@@ -19,7 +18,6 @@ const ALLOW_UNUSED_CABLES: &[&str] = &[
     "eCoax",
     "eConsole",
     "ePhone",
-    "eSerial",
 ];
 
 fn attribute<'a>(element: &'a str, name: &str) -> Option<&'a str> {

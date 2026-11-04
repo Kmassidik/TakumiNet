@@ -1,0 +1,21 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="Router 300" x="260" y="180" name="OfficeA" ip="" prefix="24"/>
+  <device id="router1" kind="router" model="Router 300" x="640" y="180" name="OfficeB" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="120" y="360" name="DeskA" ip="192.168.1.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="780" y="360" name="DeskB" ip="192.168.2.10" prefix="24"/>
+  <link a="router0" a_port="Serial0/0/0" b="router1" b_port="Serial0/0/0" kind="eSerial"/>
+  <link a="router0" a_port="Gig0/0" b="pc0" b_port="Fa0" kind="eCross"/>
+  <link a="router1" a_port="Gig0/0" b="pc1" b_port="Fa0" kind="eCross"/>
+  <port id="router0" name="GigabitEthernet0/0" up="1" ip="192.168.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router0" name="Serial0/0/0" up="1" ip="10.0.0.1" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1544" delay_us="20000"/>
+  <port id="router1" name="GigabitEthernet0/0" up="1" ip="192.168.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="router1" name="Serial0/0/0" up="1" ip="10.0.0.2" prefix="30" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1544" delay_us="20000"/>
+  <route id="router0" net="192.168.2.0" prefix="24" via="10.0.0.2" admin_distance="1"/>
+  <route id="router1" net="192.168.1.0" prefix="24" via="10.0.0.1" admin_distance="1"/>
+  <net id="pc0" gw="192.168.1.1" dns=""/>
+  <net id="pc1" gw="192.168.2.1" dns=""/>
+  <note id="note1" x="330" y="40" color="#fff3b0" text="A serial line is a point-to-point WAN link: exactly two routers, so a /30 network with its two usable addresses fits it exactly. Providers number every such link from one block, here 10.0.0.0/30, and waste nothing."/>
+  <demo kind="ping" from="pc0" to="pc1" url=""/>
+  <demo kind="ping" from="pc1" to="pc0" url=""/>
+  <demo kind="ping" from="pc0" to="router1" url=""/>
+</takumi>
