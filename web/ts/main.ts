@@ -4,6 +4,7 @@ import { WorkspaceCanvas } from "./canvas/workspace_canvas";
 import { wireSidebar } from "./ui/sidebar";
 import { wireCollapsibles } from "./ui/collapse";
 import { wireMenuBar } from "./ui/menubar";
+import { wireTooltips } from "./ui/tooltip";
 import { groupProtocols, type ProtocolGroup } from "./ui/protocol_groups";
 import { CONNECTIONS, tilesFor, startGroup, type PaletteDevice } from "./ui/palette_groups";
 import { engineLoadingMessage, type EngineProgress } from "./ui/engine_loading";
@@ -52,6 +53,7 @@ const store = (() => {
   }
 })();
 const wireBars = () => {
+  wireTooltips(document);
   wireSidebar();
   wireCollapsibles(document, store);
 };

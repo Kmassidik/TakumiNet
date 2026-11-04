@@ -335,6 +335,15 @@ Owner: "build hover each menu like computer windows do".
 - Where: `web/ts/ui/menu_nav.ts` (rules, tested without a browser), `web/ts/ui/menubar.ts` (page glue), `tests/ts/menu_nav.test.ts`, `tests/bend/menu_nav.bend`.
 - Not built: submenus and underlined Alt+letter shortcuts (no menu has a submenu yet, and Alt+letter clashes with browser shortcuts).
 
+## F13. Icons should show their name on hover (done)
+
+Owner: "when my mouse is on the image new file, just show the text".
+
+- One hover label for every button with a `title` or `data-tip`: toolbars, palette tiles, collapse handles, play controls. It appears after 0.3 s, at once when sliding to a neighbouring button, also on keyboard focus, and hides on move away, click, scroll or Escape. Shortcuts show beside the name (Save: Ctrl+S).
+- The browser's own tooltip is switched off for these buttons (the title moves to `data-tip`, and an `aria-label` is added to icon-only buttons).
+- Where: `web/ts/ui/tooltip_rules.ts` (rules), `web/ts/ui/tooltip.ts` (page glue), `tests/ts/tooltip_rules.test.ts`, `tests/bend/tooltip_fit.bend`.
+- Not built: the full SVG icon set (the owner has not chosen option 1, 2 or 3 yet).
+
 ## Build result (2026-11-04)
 
 All eleven items were built in this order: F5 (with F2), F6, F7, F8, F10, F9, F3, F11, F4, F1. Each is one commit on `main`.

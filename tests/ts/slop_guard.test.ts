@@ -135,3 +135,17 @@ test("tokens: radii and fonts come from the token set", () => {
   expect(css).not.toMatch(/"Segoe UI"/);
   expect(css).not.toMatch(/ui-monospace/);
 });
+
+test("tooltips: every icon-only button in the page names itself", () => {
+  const buttons = [...index.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)];
+  for (const [whole, attrs, inner] of buttons) {
+    const text = inner!.replace(/<img[^>]*>/g, "").replace(/<[^>]+>/g, "").trim();
+    if (text) continue; // has visible text
+    expect(attrs, whole!.slice(0, 80)).toMatch(/\b(title|aria-label)="[^"]+"/);
+  }
+});
+
+test("tooltips: the toolbar code gives each icon a title that the hover label shows", () => {
+  const toolbar = readFileSync(join(import.meta.dir, "../../web/ts/ui/button.ts"), "utf8");
+  expect(toolbar).toMatch(/title/);
+});

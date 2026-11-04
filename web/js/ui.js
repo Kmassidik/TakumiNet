@@ -1067,6 +1067,169 @@
     });
   }
 
+  // web/ts/ui/tooltip_rules.ts
+  var GAP = 6;
+  var EDGE = 4;
+  function placeTip(anchor, tip, viewport) {
+    const below = anchor.y + anchor.h + GAP;
+    const above = below + tip.h > viewport.h - EDGE && anchor.y - GAP - tip.h >= EDGE;
+    const y = above ? anchor.y - GAP - tip.h : below;
+    const centred = anchor.x + anchor.w / 2 - tip.w / 2;
+    const x = Math.max(EDGE, Math.min(centred, viewport.w - tip.w - EDGE));
+    return { x, y: Math.max(EDGE, y), above };
+  }
+  var SHORTCUTS = {
+    save: "Ctrl+S",
+    undo: "Ctrl+Z",
+    redo: "Ctrl+Y",
+    copy: "Ctrl+C",
+    paste: "Ctrl+V",
+    delete: "Del",
+    play: "Space",
+    play2: "Space",
+    step: "→",
+    forward: "→",
+    back: "←"
+  };
+  function shortcutFor(data) {
+    if (data.collapseFor === "sidebar")
+      return "\\";
+    return SHORTCUTS[data.action ?? data.sim ?? ""] ?? "";
+  }
+  function tipText(label, ownText) {
+    const text = (label ?? "").trim();
+    if (!text)
+      return "";
+    return text === (ownText ?? "").trim() ? "" : text;
+  }
+  var SHOW_DELAY_MS = 300;
+  var GRACE_MS = 500;
+
+  class TipController {
+    deps;
+    pending = null;
+    shownFor = null;
+    lastHidden = -Infinity;
+    constructor(deps) {
+      this.deps = deps;
+    }
+    get visible() {
+      return this.shownFor !== null;
+    }
+    enter(anchor, text, shortcut = "") {
+      if (!text)
+        return;
+      if (this.shownFor === anchor)
+        return;
+      this.cancel();
+      const quick = this.visible || this.deps.now() - this.lastHidden < GRACE_MS;
+      const run = () => {
+        this.pending = null;
+        this.shownFor = anchor;
+        this.deps.show(anchor, text, shortcut);
+      };
+      if (quick)
+        run();
+      else
+        this.pending = this.deps.setTimer(run, SHOW_DELAY_MS);
+    }
+    leave() {
+      this.cancel();
+      if (this.visible) {
+        this.shownFor = null;
+        this.lastHidden = this.deps.now();
+        this.deps.hide();
+      }
+    }
+    cancel() {
+      if (this.pending !== null)
+        this.deps.clearTimer(this.pending);
+      this.pending = null;
+    }
+  }
+
+  // web/ts/ui/tooltip.ts
+  function wireTooltips(doc) {
+    if (!doc.body)
+      return;
+    const tip = doc.createElement("div");
+    tip.id = "tooltip";
+    tip.className = "tooltip";
+    tip.setAttribute("role", "tooltip");
+    tip.hidden = true;
+    doc.body.appendChild(tip);
+    let current = null;
+    const controller = new TipController({
+      show(anchor, text, shortcut) {
+        const el = anchor;
+        tip.replaceChildren(doc.createTextNode(text));
+        if (shortcut) {
+          const key = doc.createElement("span");
+          key.className = "tooltip-key";
+          key.textContent = shortcut;
+          tip.appendChild(key);
+        }
+        tip.hidden = false;
+        const a = el.getBoundingClientRect();
+        const t = tip.getBoundingClientRect();
+        const place = placeTip({ x: a.left, y: a.top, w: a.width, h: a.height }, { w: t.width, h: t.height }, { w: window.innerWidth, h: window.innerHeight });
+        tip.style.left = `${Math.round(place.x)}px`;
+        tip.style.top = `${Math.round(place.y)}px`;
+        current = el;
+        el.setAttribute("aria-describedby", "tooltip");
+      },
+      hide() {
+        tip.hidden = true;
+        current?.removeAttribute("aria-describedby");
+        current = null;
+      },
+      setTimer: (fn, ms) => window.setTimeout(fn, ms),
+      clearTimer: (h) => window.clearTimeout(h),
+      now: () => performance.now()
+    });
+    const anchorOf = (target) => {
+      const el = target?.closest?.("[title], [data-tip]") ?? null;
+      if (!el || el.id === "tooltip")
+        return null;
+      if (el.hasAttribute("title")) {
+        const title = el.getAttribute("title") ?? "";
+        el.removeAttribute("title");
+        el.dataset.tip = title;
+        if (!el.getAttribute("aria-label") && !(el.textContent ?? "").trim())
+          el.setAttribute("aria-label", title);
+      }
+      return el;
+    };
+    const enter = (target) => {
+      const el = anchorOf(target);
+      if (!el)
+        return;
+      const text = tipText(el.dataset.tip, el.textContent);
+      controller.enter(el, text, shortcutFor({ action: el.dataset.action, sim: el.dataset.sim, collapseFor: el.dataset.collapseFor }));
+    };
+    doc.addEventListener("mouseover", (ev) => {
+      const el = anchorOf(ev.target);
+      if (!el)
+        controller.leave();
+      else
+        enter(ev.target);
+    });
+    doc.addEventListener("mouseout", (ev) => {
+      const to = ev.relatedTarget;
+      if (!to?.closest?.("[data-tip], [title]"))
+        controller.leave();
+    });
+    doc.addEventListener("focusin", (ev) => enter(ev.target));
+    doc.addEventListener("focusout", () => controller.leave());
+    doc.addEventListener("pointerdown", () => controller.leave(), true);
+    doc.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape")
+        controller.leave();
+    }, true);
+    doc.addEventListener("scroll", () => controller.leave(), true);
+    window.addEventListener("blur", () => controller.leave());
+  }
+
   // web/ts/ui/protocol_groups.ts
   var PROTOCOL_GROUPS = [
     ["Link", ["ARP", "LACP", "PAgP", "STP", "VTP", "PPP", "PAP", "PRP", "IEEE802.1X", "CDP", "LLDP"]],
@@ -1390,6 +1553,7 @@
     }
   })();
   var wireBars = () => {
+    wireTooltips(document);
     wireSidebar();
     wireCollapsibles(document, store);
   };
