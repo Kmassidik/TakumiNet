@@ -1514,32 +1514,15 @@
   var CONNECTIONS = "Connections";
   var DEFAULT_GROUP = "End devices";
   var GROUP_KINDS = {
-    Routers: [
-      "router",
-      "rtrw-gateway",
-      "district-hub",
-      "city-exchange",
-      "regency-hub",
-      "village-pop",
-      "backbone-pop",
-      "internet-exchange",
-      "national-gateway"
-    ],
-    Switches: ["switch", "switch-l3"],
-    Hubs: ["hub", "patchpanel"],
+    Routers: ["router", "rtrw-gateway"],
+    Switches: ["switch", "switch-l3", "hub", "patchpanel"],
     Wireless: ["ap", "wlc", "hotspot-ap", "sector-radio", "client-radio", "celltower", "microwave-link", "satellite-terminal"],
-    Security: ["asa"],
-    WAN: [
-      "cloud",
-      "provider-link",
-      "homerouter",
-      "cablemodem",
-      "dsl",
-      "submarine-cable"
-    ],
-    "End devices": ["pc", "laptop", "server", "load-balancer", "printer", "phone", "analogphone", "tv", "tablet", "sniffer"],
+    "Home and internet": ["homerouter", "cablemodem", "dsl", "cloud", "provider-link", "submarine-cable"],
+    Backbone: ["district-hub", "city-exchange", "regency-hub", "village-pop", "backbone-pop", "internet-exchange", "national-gateway"],
+    "Security and servers": ["asa", "load-balancer"],
+    "End devices": ["pc", "laptop", "server", "printer", "phone", "analogphone", "tv", "tablet", "sniffer"],
     [CONNECTIONS]: [],
-    IoE: ["ioe", "thing", "plc"]
+    IoT: ["ioe", "thing", "plc"]
   };
   function tilesFor(group, palette) {
     const kinds = GROUP_KINDS[group];
