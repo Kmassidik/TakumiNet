@@ -301,7 +301,7 @@ impl Workspace {
                     continue;
                 };
                 match peer.kind.as_str() {
-                    "switch" | "hub" => {
+                    "switch" | "hub" | "submarine-cable" => {
                         queue.push_back((peer.id.clone(), local_port));
                     }
                     k if crate::model::routes_packets(k) => {

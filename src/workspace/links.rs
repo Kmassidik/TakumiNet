@@ -141,6 +141,7 @@ impl Workspace {
                 k,
                 "switch" | "router" | "switch-l3"
                     | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
+                    | "backbone-pop" | "internet-exchange" | "national-gateway" | "submarine-cable"
             )
         };
         let iot = |k: &str| matches!(k, "thing" | "plc" | "ioe" | "mcucomponent");

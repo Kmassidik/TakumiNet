@@ -19,6 +19,10 @@ pub(super) const CATALOG: &[(&str, &str, &str)] = &[
     ("Cloud", "-", "cloud"),
     ("Provider Link", "-", "provider-link"),
     ("Gateway RT/RW", "-", "rtrw-gateway"),
+    ("Backbone POP", "-", "backbone-pop"),
+    ("Internet Exchange", "-", "internet-exchange"),
+    ("National Gateway", "-", "national-gateway"),
+    ("Submarine Cable", "-", "submarine-cable"),
     ("Home Router", "-", "homerouter"),
     ("Cable Modem", "-", "cablemodem"),
     ("DSL Modem", "-", "dsl"),
@@ -126,6 +130,8 @@ pub(super) fn default_ports(kind: &str) -> Vec<PortCfg> {
         "microwave-link" | "satellite-terminal" => {
             (0..2).map(|i| format!("FastEthernet{i}")).collect()
         }
+        "backbone-pop" | "internet-exchange" | "national-gateway" => (0..8).map(|i| format!("GigabitEthernet0/{i}")).collect(),
+        "submarine-cable" => (0..2).map(|i| format!("FastEthernet{i}")).collect(),
         "load-balancer" => (0..4).map(|i| format!("FastEthernet{i}")).collect(),
         _ => vec!["FastEthernet0".to_string()],
     };
@@ -207,6 +213,10 @@ pub(super) fn name_prefix(kind: &str) -> &'static str {
         "client-radio" => "ClientRadio",
         "hotspot-ap" => "HotspotAP",
         "switch-l3" => "L3Switch",
+        "backbone-pop" => "POP",
+        "internet-exchange" => "Exchange",
+        "national-gateway" => "NationalGateway",
+        "submarine-cable" => "SeaCable",
         "load-balancer" => "Balancer",
         "district-hub" => "DistrictHub",
         "city-exchange" => "CityExchange",

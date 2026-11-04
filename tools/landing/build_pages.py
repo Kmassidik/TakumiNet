@@ -25,10 +25,11 @@ EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed",
             ("tpl-l4-campus-three-layer", 16),
             ("tpl-l5-leaf-spine", 17),
             ("tpl-l5-load-balanced-web", 18),
-            ("tpl-l5-overlay", 19),
-            ("tpl-l7-city-ring", 20),
-            ("tpl-l8-regency-radio", 21)]
-LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-02-wifi-name", "les-l1-03-guest-wifi", "les-l1-04-reserve-address", "les-l1-05-port-forward", "les-l1-06-far-room", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence", "les-l4-03-ospf-campus", "les-l3-05-port-security", "les-l3-06-remote-owner", "les-l3-03-dhcp-per-vlan", "les-l2-01-first-gateway", "les-l2-02-customer-login", "les-l2-03-speed-limits", "les-l2-06-find-the-hog", "les-l2-04-voucher-hotspot", "les-l2-05-far-house", "les-l4-05-campus-wifi", "les-l4-06-dmz", "les-l4-01-three-layers", "les-l4-02-root-and-bundles", "les-l4-04-spare-gateway", "les-l5-01-leaf-spine", "les-l5-02-lose-a-spine", "les-l5-03-load-balancer", "les-l5-04-overlay-network", "les-l5-05-find-the-hot-link", "les-l7-01-ring-heals", "les-l7-02-city-services", "les-l8-01-far-village"]
+            ("tpl-l9-backbone-ring", 22),
+            ("tpl-l10-national", 23),
+            ("tpl-l11-world", 24),
+            ("tpl-l5-overlay", 19), ("tpl-l7-city-ring", 20), ("tpl-l8-regency-radio", 21)]
+LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-02-wifi-name", "les-l1-03-guest-wifi", "les-l1-04-reserve-address", "les-l1-05-port-forward", "les-l1-06-far-room", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence", "les-l4-03-ospf-campus", "les-l3-05-port-security", "les-l3-06-remote-owner", "les-l3-03-dhcp-per-vlan", "les-l2-01-first-gateway", "les-l2-02-customer-login", "les-l2-03-speed-limits", "les-l2-06-find-the-hog", "les-l2-04-voucher-hotspot", "les-l2-05-far-house", "les-l4-05-campus-wifi", "les-l4-06-dmz", "les-l4-01-three-layers", "les-l4-02-root-and-bundles", "les-l4-04-spare-gateway", "les-l5-01-leaf-spine", "les-l5-02-lose-a-spine", "les-l5-03-load-balancer", "les-l5-04-overlay-network", "les-l5-05-find-the-hot-link", "les-l7-01-ring-heals", "les-l7-02-city-services", "les-l8-01-far-village", "les-l9-01-ring-cut", "les-l10-01-gateway-down", "les-l11-01-cable-cut"]
 
 from words import T
 

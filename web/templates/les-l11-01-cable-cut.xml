@@ -1,0 +1,71 @@
+<takumi version="1">
+<device id="gwa" kind="national-gateway" model="National Gateway" x="440" y="100" name="GerbangNegaraA" ip="" prefix="24"/>
+<port id="gwa" name="GigabitEthernet0/0" up="1" ip="172.20.1.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwa" name="GigabitEthernet0/1" up="1" ip="172.20.3.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwa" name="GigabitEthernet0/2" up="1" ip="203.0.115.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="gwb" kind="national-gateway" model="National Gateway" x="180" y="420" name="GerbangNegaraB" ip="" prefix="24"/>
+<port id="gwb" name="GigabitEthernet0/0" up="1" ip="172.20.1.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwb" name="GigabitEthernet0/1" up="1" ip="172.20.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwb" name="GigabitEthernet0/2" up="1" ip="10.30.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="gwc" kind="national-gateway" model="National Gateway" x="700" y="420" name="GerbangNegaraC" ip="" prefix="24"/>
+<port id="gwc" name="GigabitEthernet0/0" up="1" ip="172.20.2.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwc" name="GigabitEthernet0/1" up="1" ip="172.20.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<port id="gwc" name="GigabitEthernet0/2" up="1" ip="10.30.3.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+<device id="cab" kind="submarine-cable" model="Submarine Cable" x="280" y="240" name="KabelAB" ip="" prefix="24"/>
+<port id="cab" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cab" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="cbc" kind="submarine-cable" model="Submarine Cable" x="440" y="500" name="KabelBC" ip="" prefix="24"/>
+<port id="cbc" name="FastEthernet0" up="0" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cbc" name="FastEthernet1" up="0" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="cca" kind="submarine-cable" model="Submarine Cable" x="600" y="240" name="KabelCA" ip="" prefix="24"/>
+<port id="cca" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<port id="cca" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
+<device id="server0" kind="server" model="Server" x="660" y="40" name="AkarNamaDunia" ip="203.0.115.10" prefix="24"/>
+<net id="server0" gw="203.0.115.1" dns=""/>
+<device id="laptopb" kind="laptop" model="Laptop" x="40" y="560" name="WargaNegaraB" ip="10.30.2.20" prefix="24"/>
+<net id="laptopb" gw="10.30.2.1" dns="203.0.115.10"/>
+<device id="laptopc" kind="laptop" model="Laptop" x="860" y="560" name="WargaNegaraC" ip="10.30.3.20" prefix="24"/>
+<net id="laptopc" gw="10.30.3.1" dns="203.0.115.10"/>
+<link a="gwa" a_port="Gig0/0" b="cab" b_port="Fa0" kind="eCopper"/>
+<link a="cab" a_port="Fa1" b="gwb" b_port="Gig0/0" kind="eCopper"/>
+<link a="gwb" a_port="Gig0/1" b="cbc" b_port="Fa0" kind="eCopper"/>
+<link a="cbc" a_port="Fa1" b="gwc" b_port="Gig0/0" kind="eCopper"/>
+<link a="gwc" a_port="Gig0/1" b="cca" b_port="Fa0" kind="eCopper"/>
+<link a="cca" a_port="Fa1" b="gwa" b_port="Gig0/1" kind="eCopper"/>
+<link a="gwa" a_port="Gig0/2" b="server0" b_port="Fa0" kind="eCross"/>
+<link a="gwb" a_port="Gig0/2" b="laptopb" b_port="Fa0" kind="eCross"/>
+<link a="gwc" a_port="Gig0/2" b="laptopc" b_port="Fa0" kind="eCross"/>
+<routing dev="gwa" proto="ospf" process_id="1"/>
+<routenet dev="gwa" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwa" net="10.30.3.0" prefix="24" area="0"/>
+<routing dev="gwb" proto="ospf" process_id="1"/>
+<routenet dev="gwb" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwb" net="10.30.3.0" prefix="24" area="0"/>
+<routing dev="gwc" proto="ospf" process_id="1"/>
+<routenet dev="gwc" net="172.20.1.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="172.20.2.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="172.20.3.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="203.0.115.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.2.0" prefix="24" area="0"/>
+<routenet dev="gwc" net="10.30.3.0" prefix="24" area="0"/>
+<dns id="server0" name="dns.dunia.lab" ip="203.0.115.10"/>
+<lesson id="les-l11-01-cable-cut" title="A triangle under the sea" level="11" minutes="15" goal="Any one submarine cable can break and all three countries still reach each other"/>
+<step n="1" text="Three countries hang on three submarine cables, but KabelBC lies dark: both of its ports are turned off. Two cables make a line, not a triangle."/>
+<step n="2" text="On KabelBC, turn FastEthernet0 and FastEthernet1 on. The triangle closes and OSPF learns the way around."/>
+<step n="3" text="A ship drags its anchor through KabelAB: country B must still reach the name server the long way, through C." check="c1"/>
+<step n="4" text="The same for KabelCA: country C goes through B." check="c2"/>
+<step n="5" text="And for the cable you just lit: B and C meet through A." check="c3"/>
+<step n="6" text="Even the long way, the name server must answer within 200 milliseconds." check="c4"/>
+<check id="c1" kind="outage" from="laptopb" to="server0" url="cab:FastEthernet0" expect="ok" label="WargaNegaraB still reaches AkarNamaDunia with KabelAB cut"/>
+<check id="c2" kind="outage" from="laptopc" to="server0" url="cca:FastEthernet0" expect="ok" label="WargaNegaraC still reaches AkarNamaDunia with KabelCA cut"/>
+<check id="c3" kind="outage" from="laptopb" to="laptopc" url="cbc:FastEthernet0" expect="ok" label="WargaNegaraB still reaches WargaNegaraC with KabelBC cut"/>
+<check id="c4" kind="latency" from="laptopc" to="server0" url="" expect="200" label="AkarNamaDunia answers WargaNegaraC in under 200 milliseconds"/>
+</takumi>

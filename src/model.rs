@@ -370,5 +370,6 @@ pub fn routes_packets(kind: &str) -> bool {
         kind,
         "router" | "asa" | "rtrw-gateway" | "switch-l3"
             | "district-hub" | "city-exchange" | "regency-hub" | "village-pop"
+            | "backbone-pop" | "internet-exchange" | "national-gateway"
     )
 }
