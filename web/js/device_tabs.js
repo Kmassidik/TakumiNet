@@ -13,6 +13,8 @@ function selectTab(name) {
 
   if (name === 'config') return tabConfig(pane, d);
 
+  if (name === 'cli') return tabCli(pane, d);
+
   if (name === 'services') return tabServices(pane, d);
 }
 
@@ -152,4 +154,35 @@ function tabConfig(pane, d) {
     }
   };
   return;
+}
+
+/* The device's own console, inline: the same /api/cli the terminal window uses. */
+function tabCli(pane, d) {
+  const box = document.createElement('div');
+  box.className = 'dw-cli';
+  box.innerHTML = '<pre class="dw-cli-out"></pre><div class="dw-cli-line"><span class="dw-cli-prompt"></span><input class="dw-cli-in" aria-label="Console input"></div>';
+  pane.appendChild(box);
+  const out = box.querySelector('.dw-cli-out');
+  const promptEl = box.querySelector('.dw-cli-prompt');
+  const input = box.querySelector('.dw-cli-in');
+  const show = (r) => {
+    if (r.output) out.textContent += r.output;
+    promptEl.textContent = r.prompt || '>';
+    out.scrollTop = out.scrollHeight;
+  };
+  cliRequest('/api/cli', { id: d.id, line: '' }).then(show).catch(() => {
+    out.textContent = 'The console did not answer. Close the window and try again.';
+  });
+  input.onkeydown = async (e) => {
+    if (e.key !== 'Enter') return;
+    const line = input.value;
+    input.value = '';
+    out.textContent += promptEl.textContent + line + '\n';
+    try {
+      show(await cliRequest('/api/cli', { id: d.id, line }));
+    } catch {
+      out.textContent += 'The console did not answer.\n';
+    }
+  };
+  input.focus();
 }

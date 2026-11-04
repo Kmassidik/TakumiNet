@@ -11,6 +11,18 @@ const DESKTOP_APPS = [
 
 let dwDevice = null;
 
+/* Which tabs a kind earns: hosts get a desktop, network gear gets a CLI,
+   only a server runs services. */
+const DESKTOP_KINDS = new Set(['pc', 'laptop', 'server', 'tablet', 'pda', 'sniffer', 'tv', 'phone']);
+
+function deviceTabs(kind) {
+  const tabs = ['physical', 'config'];
+  if (DESKTOP_KINDS.has(kind)) tabs.push('desktop');
+  if (CONSOLE_KINDS.has(kind)) tabs.push('cli');
+  if (kind === 'server') tabs.push('services');
+  return tabs;
+}
+
 function openDeviceWindow(d) {
   dwDevice = d;
   const win = document.getElementById('device-window');
@@ -18,7 +30,11 @@ function openDeviceWindow(d) {
   document.getElementById('dw-icon').src = d.icon;
   win.hidden = false;
   bringToFront(win);
-  selectTab('desktop');
+  const tabs = deviceTabs(d.kind);
+  document.querySelectorAll('#dw-tabs button').forEach((b) => {
+    b.hidden = !tabs.includes(b.dataset.tab);
+  });
+  selectTab(tabs.includes('desktop') ? 'desktop' : tabs.includes('cli') ? 'cli' : 'config');
   document.getElementById('dw-min').onclick = () => { win.hidden = true; };
   document.getElementById('dw-max').onclick = () => {
     const box = win.querySelector('.preview');

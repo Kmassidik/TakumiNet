@@ -137,7 +137,7 @@ test('device window exposes only the four supported tabs', () => {
   const markup = html.match(/<div class="devwin-tabs" id="dw-tabs">([\s\S]*?)<\/div>/);
   assert.ok(markup);
   const tabs = Array.from(markup[1].matchAll(/data-tab="([^"]+)"/g), (match) => match[1]);
-  assert.deepEqual(tabs, ['physical', 'config', 'desktop', 'services']);
+  assert.deepEqual(tabs, ['physical', 'config', 'desktop', 'cli', 'services']);
 });
 
 test('every static image has a real source before its window opens', () => {
@@ -150,4 +150,20 @@ test('every static image has a real source before its window opens', () => {
 test('loading mascot is preloaded before the gallery can replace it', () => {
   const html = source('web/index.html');
   assert.match(html, /<link rel="preload" as="image" href="\/art3d\/mascot\/think\.webp">/);
+});
+
+test('the device window shows only the tabs a kind earns', () => {
+  const windowSource = fs.readFileSync(path.join(root, 'web/js/device_window.js'), 'utf8');
+  const terminal = fs.readFileSync(path.join(root, 'web/js/terminal.js'), 'utf8');
+  const context = vm.createContext({ CONSOLE_KINDS: new Set(['router', 'switch', 'switch-l3', 'rtrw-gateway']) });
+  const kinds = windowSource.match(/const DESKTOP_KINDS[\s\S]*?\n/)[0];
+  const fn = windowSource.match(/function deviceTabs[\s\S]*?\n}/)[0];
+  vm.runInContext(kinds + fn + '\nglobalThis.deviceTabsTest = deviceTabs;', context);
+  const tabs = context.deviceTabsTest;
+  assert.deepStrictEqual([...tabs('pc')], ['physical', 'config', 'desktop']);
+  assert.deepStrictEqual([...tabs('switch')], ['physical', 'config', 'cli']);
+  assert.deepStrictEqual([...tabs('router')], ['physical', 'config', 'cli']);
+  assert.deepStrictEqual([...tabs('server')], ['physical', 'config', 'desktop', 'services']);
+  assert.deepStrictEqual([...tabs('printer')], ['physical', 'config']);
+  assert.ok(terminal.includes("'switch-l3', 'rtrw-gateway'"), 'the console kinds carry the new gear');
 });
