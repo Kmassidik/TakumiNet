@@ -202,14 +202,15 @@
           <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.webp" alt="forward"></button>
           <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.webp" alt="ffw"></button>
         </div>
-        <section class="filter-section" aria-label="Event list filters">
+        <section class="filter-section" aria-label="Show these protocols">
           <div class="filter-head">
-            <span>Event List Filters</span>
+            <span>Show these protocols</span>
             <span class="right">
-              <button class="mini" id="show-all">Show All</button>
-              <button class="mini" id="show-none">Hide All</button>
+              <button class="mini" id="show-all" title="Tick every protocol so all captured events show">Show All</button>
+              <button class="mini" id="show-none" title="Untick every protocol so no captured events show">Hide All</button>
             </span>
           </div>
+          <p class="filter-blurb">Captured events stay in the list above; untick a protocol to hide its rows.</p>
           <div class="filters" id="filters"></div>
         </section>
       </div>

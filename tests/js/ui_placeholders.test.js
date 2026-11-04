@@ -152,6 +152,15 @@ test('loading mascot is preloaded before the gallery can replace it', () => {
   assert.match(html, /<link rel="preload" as="image" href="\/art3d\/mascot\/think\.webp">/);
 });
 
+test('the protocol filter explains itself under a plain title', () => {
+  const html = source('web/index.html');
+  assert.doesNotMatch(html, /Event List Filters/);
+  assert.match(html, /<span>Show these protocols<\/span>/);
+  assert.match(html, /<p class="filter-blurb">Captured events stay in the list above; untick a protocol to hide its rows\.<\/p>/);
+  assert.match(html, /id="show-all" title="[^"]+"/);
+  assert.match(html, /id="show-none" title="[^"]+"/);
+});
+
 test('the device window explains the model in one muted line under its title', () => {
   const html = source('web/index.html');
   assert.match(html, /<p class="dw-blurb" id="dw-blurb" hidden><\/p>\n\s*<div class="devwin-tabs"/);
