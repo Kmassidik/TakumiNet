@@ -21,6 +21,7 @@ impl Workspace {
             "log" => self.check_log(check),
             "nat" => self.check_forward(check),
             "bgp" => self.check_bgp(check),
+            "capture" => self.check_capture(check),
             _ => return None,
         })
     }
@@ -287,6 +288,29 @@ impl Workspace {
             other => format!("session with {} is {other}", check.to),
         };
         (state == check.expect, actual, hint)
+    }
+
+    /// `from` is the sniffer; `to` a protocol filter (empty = any); `url` a
+    /// host address filter (empty = any); `expect` the frames needed.
+    fn check_capture(&self, check: &Check) -> Verdict {
+        let hint = "Cable the sniffer into the path, then send the traffic across it.".to_string();
+        let Ok(least) = check.expect.parse::<usize>() else {
+            return (false, format!("invalid frame count '{}'", check.expect), "Use a whole number.".into());
+        };
+        let Some(device) = self.devices.iter().find(|d| d.id == check.from) else {
+            return (false, format!("unknown device {}", check.from), "Fix the lesson device reference.".into());
+        };
+        if device.kind != "sniffer" {
+            return (false, format!("{} is not a sniffer", device.name), "Point the check at a sniffer.".into());
+        }
+        let found = self.sniffer_match_count(&check.from, &check.to, &check.url);
+        let what = match (check.to.is_empty(), check.url.is_empty()) {
+            (true, true) => "frames".to_string(),
+            (false, true) => format!("{} frames", check.to),
+            (true, false) => format!("frames touching {}", check.url),
+            (false, false) => format!("{} frames touching {}", check.to, check.url),
+        };
+        (found >= least, format!("{found} {what} captured, {least} needed"), hint)
     }
 
     fn check_count(&self, check: &Check) -> Verdict {

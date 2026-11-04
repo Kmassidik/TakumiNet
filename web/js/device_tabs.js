@@ -26,6 +26,7 @@ function tabDesktop(pane, d) {
   desk.className = 'dw-desktop';
   for (const [icon, label, action] of DESKTOP_APPS) {
     if (action === 'wifi' && !WIFI_APP_KINDS.has(d.kind)) continue;
+    if (action === 'capture' && d.kind !== 'sniffer') continue;
     const app = document.createElement('button');
     app.className = 'dw-app';
     app.title = label;
@@ -44,6 +45,7 @@ function tabDesktop(pane, d) {
       else if (action === 'wifi') openWifiApp(d);
       else if (action === 'editor') openEditor(d);
       else if (action === 'firewall') openFirewall(d);
+      else if (action === 'capture') openCapture(d);
     };
     desk.appendChild(app);
   }

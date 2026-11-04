@@ -17,6 +17,7 @@ mod port_forward;
 mod queues;
 mod vouchers;
 mod shared_gateway;
+mod sniffer;
 mod stp_state;
 mod balancer;
 mod bgp;
@@ -58,6 +59,7 @@ mod wireless;
 
 pub use bgp::*;
 pub use route_types::*;
+pub use sniffer::*;
 pub use types::*;
 use palette::*;
 use util::*;

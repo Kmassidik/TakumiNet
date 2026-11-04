@@ -244,9 +244,10 @@ fn l16_every_native_template_loads_without_unresolved_devices_or_ports() {
         Err(error) => panic!("cannot enumerate templates: {error}"),
     };
     let mut paths: Vec<PathBuf> = entries.flatten().map(|entry| entry.path())
-        .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("tnet"))
+        .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("xml"))
         .collect();
     paths.sort();
+    assert!(paths.len() > 80, "only {} templates found — the loop is not seeing the gallery", paths.len());
     for path in paths {
         let id = path.file_stem().unwrap().to_string_lossy();
         let (status, body) = server.post(&format!("/api/templates/open?id={id}"));

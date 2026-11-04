@@ -47,6 +47,7 @@ const PRECACHE_URLS = Object.freeze([
   '/js/services_sections.js',
   '/js/services_tab.js',
   '/js/simulation.js',
+  '/js/sniffer_app.js',
   '/js/state.js',
   '/js/terminal.js',
   '/js/toolbars.js',

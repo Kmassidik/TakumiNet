@@ -21,7 +21,7 @@ pub(super) fn resolve_arp(
     let target_idx = data_path.devices.iter().enumerate().skip(1).find_map(|(idx, id)| {
         let is_target = id == dst
             || ws.devices.iter().find(|dev| &dev.id == id).is_some_and(|dev| {
-                dev.kind != "switch" && dev.kind != "hub"
+                !crate::model::l2_transparent(&dev.kind)
             });
         is_target.then_some(idx)
     })?;
@@ -157,6 +157,28 @@ pub(super) fn arp_event(
             }
             "hub" => {
                 hop_note = format!("{} repeats the ARP frame to every other port", dev.name);
+            }
+            "patchpanel" => {
+                hop_note = format!("{} passes the frame through, port to port", dev.name);
+            }
+            "sniffer" => {
+                hop_note = format!("{} records the frame and passes it on", dev.name);
+                let info = if request {
+                    format!("ARP request: who has {}?", ipv4_string(target_ip))
+                } else {
+                    format!("ARP reply: {} is at {}", ipv4_string(sender_ip), src_mac)
+                };
+                ws.tables.sniff(dev_id, crate::workspace::SnifferRow {
+                    t: started_at + i as f64 * 0.001,
+                    src_mac: src_mac.to_string(),
+                    dst_mac: dst_mac.to_string(),
+                    ethertype: "0x0806".into(),
+                    src_ip: ipv4_string(sender_ip),
+                    dst_ip: ipv4_string(target_ip),
+                    proto: "arp".into(),
+                    length: bytes.len(),
+                    info,
+                });
             }
             _ => {}
         }
@@ -338,6 +360,50 @@ pub(super) fn decode_layers(src_mac: Mac, dst_mac: Mac, packet: &Packet) -> Vec<
         _ => {}
     }
     layers
+}
+
+/// One line for the Capture app: what kind of traffic this packet carries.
+fn packet_info(packet: &Packet) -> (&'static str, String) {
+    match (&packet.proto, &packet.payload) {
+        (IpProto::Icmp, Payload::EchoRequest { seq, .. }) => ("icmp", format!("Echo request, seq {seq}")),
+        (IpProto::Icmp, Payload::EchoReply { seq, .. }) => ("icmp", format!("Echo reply, seq {seq}")),
+        (IpProto::Icmp, _) => ("icmp", "ICMP message".into()),
+        (IpProto::Tcp, Payload::Bytes(bytes)) if bytes.len() >= 4 => {
+            let src = u16::from_be_bytes([bytes[0], bytes[1]]);
+            let dst = u16::from_be_bytes([bytes[2], bytes[3]]);
+            ("tcp", format!("TCP {src} to {dst}"))
+        }
+        (IpProto::Tcp, _) => ("tcp", "TCP segment".into()),
+        (IpProto::Udp, Payload::Bytes(bytes)) if bytes.len() >= 4 => {
+            let src = u16::from_be_bytes([bytes[0], bytes[1]]);
+            let dst = u16::from_be_bytes([bytes[2], bytes[3]]);
+            ("udp", format!("UDP {src} to {dst}"))
+        }
+        (IpProto::Udp, _) => ("udp", "UDP datagram".into()),
+    }
+}
+
+/// Record one IPv4 frame crossing an in-path sniffer.
+pub(super) fn sniff_packet(
+    ws: &mut Workspace,
+    dev_id: &str,
+    t: f64,
+    src_mac: Mac,
+    dst_mac: Mac,
+    packet: &Packet,
+) {
+    let (proto, info) = packet_info(packet);
+    ws.tables.sniff(dev_id, crate::workspace::SnifferRow {
+        t,
+        src_mac: src_mac.to_string(),
+        dst_mac: dst_mac.to_string(),
+        ethertype: "0x0800".into(),
+        src_ip: ipv4_string(packet.src),
+        dst_ip: ipv4_string(packet.dst),
+        proto: proto.into(),
+        length: 14 + 20 + packet.payload_len(),
+        info,
+    });
 }
 
 /// A frame that arrives tagged on a trunk is received by the matching
