@@ -15,6 +15,8 @@ impl Workspace {
             "outage" => self.check_outage(check),
             "wifi" => self.check_wifi(check),
             "session" => self.check_session(check),
+            "limit" => self.check_limit(check),
+            "load" => self.check_load(check),
             "nat" => self.check_forward(check),
             _ => return None,
         })
@@ -177,6 +179,35 @@ impl Workspace {
         (sessions.len() >= least, format!("{} sessions up, {least} needed", sessions.len()), hint)
     }
 
+    /// Every session on `from` must measure at or under `expect` Mbit/s.
+    fn check_limit(&self, check: &Check) -> Verdict {
+        let hint = "Put the limit on each customer queue, not on the whole group.".to_string();
+        let Ok(most) = check.expect.parse::<f64>() else {
+            return (false, format!("invalid limit '{}'", check.expect), "Use a number of Mbit/s.".into());
+        };
+        let rates = self.measured_rates(&check.from);
+        if rates.is_empty() {
+            return (false, "no customer sessions".into(), "Connect the homes first.".into());
+        }
+        match rates.iter().filter(|(_, _, rate)| *rate > most + 0.05).max_by(|a, b| a.2.total_cmp(&b.2)) {
+            Some((_, user, rate)) => (false, format!("{user} measures {rate:.1} Mbit/s"), hint),
+            None => (true, format!("all {} sessions at or under {most} Mbit/s", rates.len()), hint),
+        }
+    }
+
+    /// The load on port `to` of `from` must stay under `expect` percent.
+    fn check_load(&self, check: &Check) -> Verdict {
+        let hint = "Limit the customers, or set a parent limit at the line speed.".to_string();
+        let Ok(most) = check.expect.parse::<f64>() else {
+            return (false, format!("invalid load '{}'", check.expect), "Use a percentage.".into());
+        };
+        match self.line_load(&check.from, &check.to) {
+            Some(load) if load < most => (true, format!("load {load:.0} % of the line"), hint),
+            Some(load) => (false, format!("load {load:.0} % of the line"), hint),
+            None => (false, format!("no port {} on {}", check.to, check.from), "Name the upstream port.".into()),
+        }
+    }
+
     fn check_count(&self, check: &Check) -> Verdict {
         let hint = "Add more of them, then check again.".to_string();
         let Ok(least) = check.expect.parse::<usize>() else {
@@ -187,7 +218,8 @@ impl Workspace {
             "leases" => self.dhcp_leases.get(&check.to).map_or(0, Vec::len),
             "routes" => self.selected_routes(&check.to).len(),
             "reservations" => self.dhcp_reservations.get(&check.to).map_or(0, Vec::len),
-            other => return (false, format!("unknown count scope '{other}'"), "Use devices, leases, routes or reservations.".into()),
+            "queues" => self.queues.get(&check.to).map_or(0, Vec::len),
+            other => return (false, format!("unknown count scope '{other}'"), "Use devices, leases, routes, reservations or queues.".into()),
         };
         (found >= least, format!("{found} found, {least} needed"), hint)
     }

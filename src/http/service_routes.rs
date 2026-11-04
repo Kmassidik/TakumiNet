@@ -22,6 +22,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/routeradmin") => Some(handle_router_admin(ctx, query)),
         ("POST", "/api/devices/portforward") => Some(handle_port_forward(ctx, query)),
         ("POST", "/api/devices/tunnel") => Some(handle_tunnel(ctx, query)),
+        ("POST", "/api/devices/queue") => Some(handle_queue(ctx, query)),
+        ("POST", "/api/queues/list") => Some(handle_queue_list(ctx, query)),
         ("POST", "/api/webfetch") => Some(handle_webfetch(ctx, query)),
         _ => None,
     }
@@ -300,4 +302,29 @@ fn handle_tunnel(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         ws.tunnel_config(&id, &peer, &key)
     });
     (json, out.into_bytes())
+}
+
+fn handle_queue(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let user = query_value(query, "user").unwrap_or_default();
+    let Some(mbit) = query_value(query, "mbit").and_then(|v| v.parse::<u32>().ok()) else {
+        return (json, json_error("mbit must be a whole number of Mbit/s").into_bytes());
+    };
+    let parent = matches!(query_value(query, "parent").as_deref(), Some("1") | Some("true"));
+    let (out, _) = apply(ctx, |ws| if parent { ws.set_queue_parent(&id, mbit) } else { ws.set_queue(&id, &user, mbit) });
+    (json, out.into_bytes())
+}
+
+fn handle_queue_list(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let port = query_value(query, "port").unwrap_or_else(|| "Ether1".into());
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let rows = ws.measured_rates(&id).iter()
+        .map(|(client, user, rate)| format!("{{\"client\":{},\"user\":{},\"mbit\":{rate:.1}}}", json_str(client), json_str(user)))
+        .collect::<Vec<_>>()
+        .join(",");
+    let load = ws.line_load(&id, &port).map_or("null".to_string(), |l| format!("{l:.0}"));
+    (json, format!("{{\"sessions\":[{rows}],\"load\":{load}}}").into_bytes())
 }

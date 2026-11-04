@@ -58,3 +58,69 @@ fn customer_login_lesson_counts_real_sessions_and_refuses_wrong_passwords() {
     let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.pppoe_sessions("gw0").len(), 3, "sessions survive save and open");
 }
+
+fn busy() -> Workspace {
+    let mut ws = Workspace::from_tnet(SMALL).unwrap();
+    ws.set_demand("home0", 95).unwrap();
+    ws.set_demand("home1", 8).unwrap();
+    ws.set_demand("home2", 8).unwrap();
+    ws
+}
+
+#[test]
+fn rates_follow_demand_then_the_customer_limit_then_the_fair_share() {
+    let mut ws = busy();
+    let rate = |ws: &Workspace, user: &str| ws.measured_rates("gw0").into_iter().find(|(_, u, _)| u == user).unwrap().2;
+    assert_eq!(rate(&ws, "rumah0"), 95.0);
+    assert!(ws.line_load("gw0", "Ether1").unwrap() > 100.0, "the hog pushes the line past full");
+    ws.set_queue("gw0", "rumah0", 10).unwrap();
+    assert_eq!(rate(&ws, "rumah0"), 10.0);
+    assert_eq!(rate(&ws, "rumah1"), 8.0, "a limit above the demand changes nothing");
+    ws.set_queue_parent("gw0", 12).unwrap();
+    assert_eq!(rate(&ws, "rumah1"), 4.0, "a fair share of 12 across three is 4");
+    assert_eq!(rate(&ws, "rumah0"), 4.0);
+    ws.set_queue_parent("gw0", 24).unwrap();
+    assert_eq!(rate(&ws, "rumah1"), 8.0, "whoever wants less hands the rest back");
+    assert_eq!(rate(&ws, "rumah0"), 8.0);
+}
+
+#[test]
+fn queue_input_is_validated_at_the_edges() {
+    let mut ws = busy();
+    assert!(ws.set_queue("gw0", "nobody", 10).is_err());
+    assert!(ws.set_queue("gw0", "rumah0", 100_001).is_err());
+    assert!(ws.set_demand("ghost", 5).is_err());
+    assert!(ws.set_demand("home0", 100_001).is_err());
+    ws.set_queue("gw0", "rumah0", 10).unwrap();
+    ws.set_queue("gw0", "rumah0", 0).unwrap();
+    assert_eq!(ws.queues.get("gw0").map(Vec::len), Some(0));
+    assert_eq!(ws.line_load("gw0", "NoSuchPort"), None);
+    let mut back = Workspace::from_tnet(&busy().to_tnet()).unwrap();
+    assert_eq!(back.measured_rates("gw0").len(), 3, "demands survive save and open");
+    back.set_queue("gw0", "rumah0", 10).unwrap();
+    let again = Workspace::from_tnet(&back.to_tnet()).unwrap();
+    assert!(again.queues.get("gw0").is_some_and(|l| l.len() == 1), "queues survive save and open");
+}
+
+#[test]
+fn speed_limit_lesson_fails_while_the_hog_runs_free() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-03-speed-limits.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, false]);
+    for user in ["rumah0", "rumah1", "rumah2", "rumah3"] {
+        ws.set_queue("gw0", user, 10).unwrap();
+    }
+    ws.set_queue_parent("gw0", 100).unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true]);
+}
+
+#[test]
+fn find_the_hog_lesson_wants_every_customer_limited() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-06-find-the-hog.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, true]);
+    for user in ["rumah0", "rumah1", "rumah2"] {
+        ws.set_queue("gw0", user, 10).unwrap();
+    }
+    assert_eq!(passes(&mut ws), vec![false, true], "three limits are not four");
+    ws.set_queue("gw0", "rumah3", 10).unwrap();
+    assert_eq!(passes(&mut ws), vec![true, true]);
+}

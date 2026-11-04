@@ -1,0 +1,60 @@
+<takumi version="1">
+  <device id="server0" kind="server" model="Server" x="120" y="60" name="ExampleSite" ip="203.0.113.10" prefix="24"/>
+  <device id="provider0" kind="provider-link" model="Provider Link" x="320" y="60" name="Upstream0" ip="" prefix="24"/>
+  <device id="gw0" kind="rtrw-gateway" model="Gateway RT/RW" x="520" y="140" name="GatewayRTRW" ip="" prefix="24"/>
+  <device id="sector0" kind="sector-radio" model="Sector Radio" x="520" y="280" name="PoleRadio" ip="" prefix="24"/>
+  <device id="radio0" kind="client-radio" model="Client Radio" x="280" y="400" name="HouseRadio0" ip="" prefix="24"/>
+  <device id="radio1" kind="client-radio" model="Client Radio" x="520" y="400" name="HouseRadio1" ip="" prefix="24"/>
+  <device id="radio2" kind="client-radio" model="Client Radio" x="760" y="400" name="HouseRadio2" ip="" prefix="24"/>
+  <device id="home0" kind="homerouter" model="Home Router" x="280" y="500" name="Rumah0" ip="10.10.0.11" prefix="24"/>
+  <device id="home1" kind="homerouter" model="Home Router" x="520" y="500" name="Rumah1" ip="10.10.0.12" prefix="24"/>
+  <device id="home2" kind="homerouter" model="Home Router" x="760" y="500" name="Rumah2" ip="10.10.0.13" prefix="24"/>
+  <device id="radio3" kind="client-radio" model="Client Radio" x="1000" y="400" name="HouseRadio3" ip="" prefix="24"/>
+  <device id="home3" kind="homerouter" model="Home Router" x="1000" y="500" name="Rumah3" ip="10.10.0.14" prefix="24"/>
+  <device id="laptop0" kind="laptop" model="Laptop" x="280" y="600" name="Laptop0" ip="10.10.0.20" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC-PT" x="520" y="600" name="PC0" ip="10.10.0.21" prefix="24"/>  <link a="server0" a_port="Fa0" b="provider0" b_port="Fa0" kind="eCopper"/>
+  <link a="provider0" a_port="Fa1" b="gw0" b_port="Ether1" kind="eCopper"/>
+  <link a="gw0" a_port="Ether2" b="sector0" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa1" b="radio0" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa2" b="radio1" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa3" b="radio2" b_port="Fa0" kind="eCopper"/>
+  <link a="radio0" a_port="Fa1" b="home0" b_port="Fa0" kind="eCopper"/>
+  <link a="radio1" a_port="Fa1" b="home1" b_port="Fa0" kind="eCopper"/>
+  <link a="radio2" a_port="Fa1" b="home2" b_port="Fa0" kind="eCopper"/>
+  <link a="sector0" a_port="Fa4" b="radio3" b_port="Fa0" kind="eCopper"/>
+  <link a="radio3" a_port="Fa1" b="home3" b_port="Fa0" kind="eCopper"/>
+  <link a="home0" a_port="Fa1" b="laptop0" b_port="Fa0" kind="eCopper"/>
+  <link a="home1" a_port="Fa1" b="pc0" b_port="Fa0" kind="eCopper"/>  <port id="gw0" name="Ether1" up="1" ip="203.0.113.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <port id="gw0" name="Ether2" up="1" ip="10.10.0.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <net id="laptop0" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home0" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home1" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home2" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="home3" gw="10.10.0.1" dns="203.0.113.10"/>
+  <net id="pc0" gw="10.10.0.1" dns="203.0.113.10"/>
+  <dns id="server0" name="www.example.lab" ip="203.0.113.10"/>
+  <page id="server0" body="A page on the internet"/>
+  <acl dev="gw0" num="1" action="permit" src="10.10.0.0" swc="0.0.0.255" dip="-" dwc="-"/>
+  <natrole dev="gw0" iface="Ether2" dir="inside"/>
+  <natrole dev="gw0" iface="Ether1" dir="outside"/>
+  <natrule dev="gw0" num="1" iface="Ether1"/>
+  <aaa server="gw0" user="rumah0" pass="paket10-a"/>
+  <aaa server="gw0" user="rumah1" pass="paket10-b"/>
+  <aaa server="gw0" user="rumah2" pass="paket10-c"/>
+  <aaa server="gw0" user="rumah3" pass="paket10-d"/>
+  <pppoe client="home0" server="10.10.0.1" user="rumah0"/>
+  <pppoe client="home1" server="10.10.0.1" user="rumah1"/>
+  <pppoe client="home2" server="10.10.0.1" user="rumah2"/>
+  <pppoe client="home3" server="10.10.0.1" user="rumah3"/>
+  <demand client="home0" mbit="95"/>
+  <demand client="home1" mbit="5"/>
+  <demand client="home2" mbit="5"/>
+  <demand client="home3" mbit="5"/>
+  <lesson id="les-l2-06-find-the-hog" title="Find who fills the line" level="2" minutes="12" goal="The heavy user is limited and the other homes work again"/>
+  <step n="1" text="The neighbours complain that evenings are slow. Open the queue view and read the rates."/>
+  <step n="2" text="Rumah0 pulls 95 Mbit/s on a 100 Mbit/s line. Decide: a limit for everyone, or a talk with one neighbour."/>
+  <step n="3" text="Give all four customers a limit." check="c1"/>
+  <step n="4" text="Open the outside page from PC0 at Rumah1 to confirm the others recovered." check="c2"/>
+  <check id="c1" kind="count" from="queues" to="gw0" url="" expect="4" label="All four customers have a limit"/>
+  <check id="c2" kind="http" from="pc0" to="" url="http://www.example.lab/" expect="ExampleSite" label="A page opens from another home"/>
+</takumi>

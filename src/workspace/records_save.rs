@@ -444,6 +444,23 @@ impl Workspace {
                 escape_field(user)
             ));
         }
+        let mut demands: Vec<_> = self.demands.iter().collect();
+        demands.sort();
+        for (client, mbit) in demands {
+            out.push_str(&format!("demand\t{}\t{}\n", client, mbit));
+        }
+        let mut queues: Vec<_> = self.queues.iter().collect();
+        queues.sort_by_key(|(id, _)| id.as_str());
+        for (gateway, list) in queues {
+            for (user, mbit) in list {
+                out.push_str(&format!("queue\t{}\t{}\t{}\n", gateway, user, mbit));
+            }
+        }
+        let mut parents: Vec<_> = self.queue_parent.iter().collect();
+        parents.sort();
+        for (gateway, mbit) in parents {
+            out.push_str(&format!("qparent\t{}\t{}\n", gateway, mbit));
+        }
         let mut phones: Vec<_> = self.phones.iter().collect();
         phones.sort_by_key(|(id, _)| id.as_str());
         for (phone, (cm, ext)) in phones {

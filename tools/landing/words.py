@@ -41,7 +41,8 @@ T = {
             ("Office with three VLANs", "Staff, servers and a printer on three VLANs, joined by one router cable"),
             ("Campus with OSPF", "Four routers in a diamond learn each other's networks and survive one cut"),
             ("Office with a home tunnel", "OwnerLaptop reaches the office file server through a tunnel over the internet"),
-            ("RT/RW Net with three homes", "A neighbourhood shares one line through a gateway, a pole radio and three homes")],
+            ("RT/RW Net with three homes", "A neighbourhood shares one line through a gateway, a pole radio and three homes"),
+            ("RT/RW Net with a full line", "Four homes share one line and one of them fills it")],
         "lessons": [
             ("Connect two computers", "PC0 can ping PC1"),
             ("A star network with a switch", "Three PCs talk and Switch0 learns their MAC addresses"),
@@ -63,6 +64,8 @@ T = {
             ("Reach the office from home", "OwnerLaptop reaches FileServer through a tunnel over the internet"),
             ("Bring the neighbourhood online", "A laptop in a home opens an outside page through the gateway"),
             ("One login per home", "All three homes hold a session, and a wrong password is refused"),
+            ("Give every customer a fair speed", "Each customer measures 10 Mbit/s or less and the line is no longer full"),
+            ("Find who fills the line", "The heavy user is limited and the other homes work again"),
             ("One address server for every VLAN", "Desks in VLAN 10 and VLAN 20 get addresses from FileServer, each from its own network")],
         "faq_h": "Questions people ask",
         "faq": [
@@ -131,7 +134,8 @@ T = {
             ("Kantor dengan tiga VLAN", "Staf, server, dan printer di tiga VLAN, dihubungkan satu kabel router"),
             ("Kampus dengan OSPF", "Empat router berbentuk berlian saling belajar jaringan dan tetap hidup saat satu kabel putus"),
             ("Kantor dengan terowongan dari rumah", "OwnerLaptop menjangkau file server kantor lewat terowongan di internet"),
-            ("RT/RW Net dengan tiga rumah", "Satu lingkungan berbagi satu jalur lewat gateway, radio tiang, dan tiga rumah")],
+            ("RT/RW Net dengan tiga rumah", "Satu lingkungan berbagi satu jalur lewat gateway, radio tiang, dan tiga rumah"),
+            ("RT/RW Net dengan jalur penuh", "Empat rumah berbagi satu jalur dan satu rumah memenuhinya")],
         "lessons": [
             ("Hubungkan dua komputer", "PC0 bisa me-ping PC1"),
             ("Jaringan bintang dengan switch", "Tiga PC saling bicara dan Switch0 belajar alamat MAC mereka"),
@@ -153,6 +157,8 @@ T = {
             ("Jangkau kantor dari rumah", "OwnerLaptop menjangkau FileServer lewat terowongan di internet"),
             ("Bawa lingkungan ke internet", "Laptop di rumah membuka halaman luar lewat gateway"),
             ("Satu login untuk tiap rumah", "Ketiga rumah memegang sesi, dan kata sandi yang salah ditolak"),
+            ("Beri tiap pelanggan kecepatan yang adil", "Tiap pelanggan terukur 10 Mbit/s atau kurang dan jalurnya tidak penuh lagi"),
+            ("Cari siapa yang memenuhi jalur", "Pengguna berat dibatasi dan rumah lain bekerja lagi"),
             ("Satu server alamat untuk semua VLAN", "Meja di VLAN 10 dan VLAN 20 mendapat alamat dari FileServer, masing-masing dari jaringannya")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [

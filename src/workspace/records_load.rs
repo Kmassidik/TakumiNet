@@ -444,6 +444,21 @@ impl Workspace {
                     let _ = self.add_port_forward(router, o, target, i);
                 }
             }
+            ["demand", client, mbit] => {
+                if let Ok(m) = mbit.parse() {
+                    let _ = self.set_demand(client, m);
+                }
+            }
+            ["queue", dev, user, mbit] => {
+                if let Ok(m) = mbit.parse() {
+                    let _ = self.set_queue(dev, user, m);
+                }
+            }
+            ["qparent", dev, mbit] => {
+                if let Ok(m) = mbit.parse() {
+                    let _ = self.set_queue_parent(dev, m);
+                }
+            }
             ["tunnel", device, peer, key] => {
                 let _ = self.tunnel_config(device, peer, &unescape_field(key));
             }

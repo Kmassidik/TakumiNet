@@ -18,8 +18,9 @@ EXAMPLES = [("tpl-connect", 0), ("tpl-star", 1), ("tpl-home", 2), ("tpl-routed",
             ("tpl-l3-office-vlans", 8),
             ("tpl-l4-campus-ospf", 9),
             ("tpl-l3-office-vpn", 10),
-            ("tpl-l2-rtrw-small", 11)]
-LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-02-wifi-name", "les-l1-03-guest-wifi", "les-l1-04-reserve-address", "les-l1-05-port-forward", "les-l1-06-far-room", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence", "les-l4-03-ospf-campus", "les-l3-05-port-security", "les-l3-06-remote-owner", "les-l3-03-dhcp-per-vlan", "les-l2-01-first-gateway", "les-l2-02-customer-login"]
+            ("tpl-l2-rtrw-small", 11),
+            ("tpl-l2-rtrw-busy", 12)]
+LESSONS = ["t1", "t2", "t3", "t4", "t5", "les-l1-01-router-login", "les-l1-02-wifi-name", "les-l1-03-guest-wifi", "les-l1-04-reserve-address", "les-l1-05-port-forward", "les-l1-06-far-room", "les-l1-07-find-the-fault", "les-l3-01-three-vlans", "les-l3-02-inter-vlan", "les-l3-04-acl-fence", "les-l4-03-ospf-campus", "les-l3-05-port-security", "les-l3-06-remote-owner", "les-l3-03-dhcp-per-vlan", "les-l2-01-first-gateway", "les-l2-02-customer-login", "les-l2-03-speed-limits", "les-l2-06-find-the-hog"]
 
 from words import T
 

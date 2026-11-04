@@ -14,6 +14,7 @@ mod checks_more;
 mod json;
 mod router_admin;
 mod port_forward;
+mod queues;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -65,6 +66,9 @@ impl Workspace {
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
                 port_forwards: HashMap::new(),
+                demands: HashMap::new(),
+                queues: HashMap::new(),
+                queue_parent: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
@@ -270,6 +274,9 @@ impl Workspace {
                 tables: Tables::default(),
                 dhcp_pools: HashMap::new(),
                 port_forwards: HashMap::new(),
+                demands: HashMap::new(),
+                queues: HashMap::new(),
+                queue_parent: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
