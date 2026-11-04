@@ -444,6 +444,9 @@ impl Workspace {
                 escape_field(user)
             ));
         }
+        for (gid, name, members) in self.group_rows() {
+            out.push_str(&format!("group\t{}\t{}\t{}\n", gid, escape_field(&name), members.join(",")));
+        }
         let mut vouchers: Vec<_> = self.vouchers.iter().collect();
         vouchers.sort_by_key(|(id, _)| id.as_str());
         for (gateway, list) in vouchers {

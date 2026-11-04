@@ -13,6 +13,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/ipv6") => Some(handle_devices_ipv6(ctx, query)),
         ("POST", "/api/devices/dot1x") => Some(handle_devices_dot1x(ctx, query)),
         ("POST", "/api/devices/sharedgw") => Some(handle_shared_gateway(ctx, query)),
+        ("POST", "/api/groups/collapse") => Some(handle_collapse(ctx, query)),
+        ("POST", "/api/groups/expand") => Some(handle_expand(ctx, query)),
         ("POST", "/api/devices/dhcp/reserve") => Some(handle_devices_dhcp_reserve(ctx, query)),
         ("POST", "/api/devices/dhcp/helper") => Some(handle_devices_dhcp_helper(ctx, query)),
         ("POST", "/api/ipv6/dhcp") => Some(handle_ipv6_dhcp(ctx, query)),
@@ -425,6 +427,24 @@ fn handle_shared_gateway(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
             return Err("priority must be a number from 0 to 255".to_string());
         };
         ws.set_shared_gateway(&id, &vip, priority)
+    });
+    (json, out.into_bytes())
+}
+
+fn handle_collapse(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let name = query_value(query, "name").unwrap_or_default();
+    let members: Vec<String> = query_value(query, "members").unwrap_or_default()
+        .split(',').filter(|m| !m.is_empty()).map(str::to_string).collect();
+    let (out, _) = apply(ctx, |ws| ws.collapse(&name, &members).map(|_| ()));
+    (json, out.into_bytes())
+}
+
+fn handle_expand(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let (out, _) = apply(ctx, |ws| {
+        if ws.expand(&id) { Ok(()) } else { Err("no such group".to_string()) }
     });
     (json, out.into_bytes())
 }

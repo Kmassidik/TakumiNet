@@ -52,6 +52,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("voucher", &["dev", "code", "minutes", "used"]),
     ("sharedgw", &["dev", "vip", "priority"]),
     ("lbpool", &["dev", "member"]),
+    ("group", &["gid", "name", "members"]),
     ("portfwd", &["router", "outside", "target", "inside"]),
     ("capwap", &["ap", "wlc"]),
     ("wifi", &["client", "ssid", "wlc"]),

@@ -11,6 +11,8 @@ impl Workspace {
         self.json_notes(&mut o);
         o.push_str("],\"links\":[");
         self.json_links(&mut o);
+        o.push_str("],\"groups\":[");
+        self.json_groups(&mut o);
         o.push_str("],\"filters\":[");
         self.json_palette(&mut o);
         o.push_str("],\"events\":[");
@@ -156,6 +158,22 @@ impl Workspace {
     }
 
     /// Event filters, palette groups and palette tiles.
+    fn json_groups(&self, o: &mut String) {
+        for (i, (gid, name, members)) in self.group_rows().iter().enumerate() {
+            if i > 0 {
+                o.push(',');
+            }
+            let card = self.node_card(gid);
+            let (status, devices) = card.as_ref().map_or(("up", 0), |c| (c.status, c.devices));
+            o.push_str(&format!(
+                "{{\"id\":{},\"name\":{},\"members\":[{}],\"devices\":{},\"status\":{}}}",
+                s(gid), s(name),
+                members.iter().map(|m| s(m)).collect::<Vec<_>>().join(","),
+                devices, s(status)
+            ));
+        }
+    }
+
     fn json_palette(&self, o: &mut String) {
         for (i, f) in FILTERS.iter().enumerate() {
             if i > 0 {

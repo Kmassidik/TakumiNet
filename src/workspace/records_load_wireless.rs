@@ -36,6 +36,10 @@ impl Workspace {
                     let _ = self.add_port_forward(router, o, target, i);
                 }
             }
+            ["group", _gid, name, members] => {
+                let list: Vec<String> = members.split(',').map(str::to_string).collect();
+                let _ = self.collapse(&unescape_field(name), &list);
+            }
             ["voucher", dev, code, minutes, used] => {
                 if let Ok(m) = minutes.parse() {
                     let _ = self.voucher_create(dev, &unescape_field(code), m);

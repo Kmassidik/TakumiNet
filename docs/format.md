@@ -110,6 +110,7 @@ device ports.
 | `cell` | `client tower` | Cellular client/tower association |
 | `wlan` | `wlc ssid psk security` | Wireless LAN definition on a controller |
 | `portfwd` | `router outside target inside` | Home-router port forward to an inside device |
+| `group` | `gid name members` | Collapsed node: shown name and comma-joined member ids |
 | `lbpool` | `dev member` | Load balancer pool membership |
 | `sharedgw` | `dev vip priority` | Shared gateway membership; the healthiest highest priority answers |
 | `voucher` | `dev code minutes used` | Hotspot voucher on a gateway, `used` is the device that typed it or `-` |

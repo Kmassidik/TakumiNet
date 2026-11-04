@@ -19,6 +19,7 @@ mod vouchers;
 mod shared_gateway;
 mod stp_state;
 mod balancer;
+mod collapse;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -79,6 +80,7 @@ impl Workspace {
                 lb_pools: HashMap::new(),
                 lb_hits: HashMap::new(),
                 lb_next: HashMap::new(),
+                groups: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
@@ -294,6 +296,7 @@ impl Workspace {
                 lb_pools: HashMap::new(),
                 lb_hits: HashMap::new(),
                 lb_next: HashMap::new(),
+                groups: HashMap::new(),
                 dhcp_more: HashMap::new(),
                 dhcp_leases: HashMap::new(),
                 dhcp_clients: std::collections::HashSet::new(),
