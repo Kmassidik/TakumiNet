@@ -272,34 +272,40 @@ html, body {
 
 /* ---------- palette ---------- */
 .palette {
-  display: flex; gap: 8px;
-  height: 108px; padding: 6px 8px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "groups handle" "devices devices";
+  height: 118px; padding: 4px 8px 6px; gap: 4px 8px;
   background: var(--chrome);
   border-top: 1px solid var(--line);
 }
+.palette > .groups { grid-area: groups; }
+.palette > .devices { grid-area: devices; }
+.palette > .collapse-handle { grid-area: handle; margin: 0; }
 
-.groups {
-  display: grid; grid-template-columns: repeat(7, 26px); gap: 3px;
-  align-content: start;
+/* Category tabs: one labelled button per category, scrolling sideways when the window is narrow. */
+.groups { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.groups::-webkit-scrollbar { display: none; }
+.group-tab {
+  flex: none; display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px;
+  font: inherit; font-size: 11px; color: var(--text); white-space: nowrap;
+  background: var(--panel); border: 1px solid var(--line-soft); border-radius: 13px; cursor: pointer;
+}
+.group-tab img { width: 16px; height: 16px; object-fit: contain; }
+.group-tab:hover { border-color: var(--line); }
+.group-tab.active { border-color: var(--accent); background: #e8f0fd; color: var(--accent); font-weight: 600; }
+.group-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.palette button.dev-tile, .palette .dev-tile {
+  display: grid; place-items: center; background: var(--panel);
+  border: 1px solid var(--line-soft); border-radius: 4px; cursor: pointer; padding: 2px;
 }
 
-.groups button, .palette button {
-  display: grid; place-items: center;
-  background: var(--panel); border: 1px solid var(--line-soft); border-radius: 4px;
-  cursor: pointer; padding: 2px;
-}
-.groups button { width: 26px; height: 26px; }
-.groups button.active { border-color: var(--accent); background: #e8f0fd; }
-.groups img { width: 18px; height: 18px; object-fit: contain; }
-
+/* Tiles of the chosen category wrap onto more rows and scroll up and down inside the bar. */
 .devices {
-  display: flex; gap: 6px; flex-wrap: nowrap;
-  overflow-x: auto; overflow-y: hidden;
-  align-items: flex-start; scrollbar-width: thin;
+  display: flex; gap: 6px; flex-wrap: wrap; align-content: flex-start;
+  overflow-x: hidden; overflow-y: auto; scrollbar-width: thin;
 }
-.devices::-webkit-scrollbar { height: 8px; }
-.devices::-webkit-scrollbar-thumb { background: #c7ced6; border-radius: 4px; }
-.devices::-webkit-scrollbar-track { background: transparent; }
+.palette-empty { margin: 8px 4px; color: var(--muted); font-size: 11px; }
 .devices .dev-tile {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   width: 54px; padding: 3px 2px; flex: 0 0 auto;

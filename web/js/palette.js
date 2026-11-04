@@ -1,19 +1,28 @@
 /* ---------------- palette ---------------- */
+let paletteGroup = null;
+
 function renderPalette() {
   const groups = document.getElementById('groups');
   groups.replaceChildren();
-  data.groups.forEach((g, i) => {
+  const labels = data.groups.map((g) => g.label);
+  paletteGroup = paletteStartGroup(paletteGroup, labels);
+  data.groups.forEach((g) => {
     const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'group-tab' + (g.label === paletteGroup ? ' active' : '');
     b.title = g.label;
-    if (i === 0) b.classList.add('active');
+    b.setAttribute('aria-pressed', String(g.label === paletteGroup));
     const img = document.createElement('img');
     img.src = g.icon;
-    img.alt = g.label;
+    img.alt = '';
     b.appendChild(img);
+    const text = document.createElement('span');
+    text.textContent = g.label;
+    b.appendChild(text);
     b.onclick = () => {
-      groups.querySelectorAll('button').forEach((x) => x.classList.remove('active'));
-      b.classList.add('active');
+      paletteGroup = g.label;
       status(g.label);
+      renderPalette();
     };
     groups.appendChild(b);
   });
@@ -21,7 +30,8 @@ function renderPalette() {
   const pal = document.getElementById('palette');
   pal.replaceChildren();
 
-  for (const [kind, label, icon, tip] of CABLE_TYPES) {
+  const showConnections = paletteGroup === PALETTE_CONNECTIONS;
+  for (const [kind, label, icon, tip] of showConnections ? CABLE_TYPES : []) {
     const cable = document.createElement('button');
     const active = cableMode && cableKind === kind;
     cable.className = 'dev-tile cable-tool' + (active ? ' active' : '');
@@ -47,6 +57,7 @@ function renderPalette() {
   }
 
   const bus = document.createElement('button');
+  bus.hidden = !showConnections;
   bus.className = 'dev-tile';
   bus.title = 'Build a bus segment: hub + N computers with addresses';
   bus.id = 'bus-tool';
@@ -58,7 +69,7 @@ function renderPalette() {
   bus.appendChild(bimg);
   bus.appendChild(blabel);
   bus.onclick = () => ACTIONS['build-bus']();
-  pal.appendChild(bus);
+  if (showConnections) pal.appendChild(bus);
 
   const meshTool = document.createElement('button');
   meshTool.id = 'mesh-tool';
@@ -71,9 +82,16 @@ function renderPalette() {
   meshTool.appendChild(mimg);
   meshTool.appendChild(mlabel);
   meshTool.onclick = () => ACTIONS.mesh(true);
-  pal.appendChild(meshTool);
+  if (showConnections) pal.appendChild(meshTool);
 
-  for (const p of data.palette) {
+  const tiles = paletteTiles(paletteGroup, data.palette);
+  if (!tiles.length && !showConnections) {
+    const empty = document.createElement('p');
+    empty.className = 'palette-empty';
+    empty.textContent = 'Nothing in this category yet.';
+    pal.appendChild(empty);
+  }
+  for (const p of tiles) {
     const tile = document.createElement('button');
     tile.className = 'dev-tile';
     tile.title = `Drag ${p.label} onto the canvas`;

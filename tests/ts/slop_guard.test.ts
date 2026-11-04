@@ -54,3 +54,9 @@ test("minimize: every collapsible bar has exactly one handle on the component", 
     expect(index.split(`data-collapse-for="${id}"`).length - 1).toBe(1);
   }
 });
+
+test("palette: tiles come only from the chosen category", () => {
+  const palette = sources.find((s) => s.name === "palette.js")!.text;
+  expect(palette).toMatch(/paletteTiles\(paletteGroup, data\.palette\)/);
+  expect(palette).not.toMatch(/for \(const p of data\.palette\)/);
+});

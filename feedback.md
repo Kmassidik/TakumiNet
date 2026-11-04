@@ -194,7 +194,7 @@ Correction to an earlier version: the palette can already be hidden. The sidebar
 
 ---
 
-## F7. The bottom palette layout is poor (open)
+## F7. The bottom palette layout is poor (done)
 
 ### Research
 - Root cause of the mismatch: category buttons do nothing but highlight and set the status text (`web/js/palette.js:13` to `17`). They never filter. The tile loop (`palette.js:77`) renders every cable, Bus, Mesh and every device in `data.palette`, regardless of the selected category. So "End devices" is selected while routers and cables show.

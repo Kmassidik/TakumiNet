@@ -798,6 +798,32 @@
     globalThis.selectSidebarTab = selectTab;
   }
 
+  // web/ts/ui/palette_groups.ts
+  var CONNECTIONS = "Connections";
+  var DEFAULT_GROUP = "End devices";
+  var GROUP_KINDS = {
+    Routers: ["router"],
+    Switches: ["switch", "ie2000"],
+    Hubs: ["hub", "patchpanel"],
+    Wireless: ["ap", "wlc", "homerouter", "linksys", "celltower"],
+    Security: ["asa"],
+    WAN: ["cloud", "cablemodem", "dsl"],
+    "End devices": ["pc", "laptop", "server", "printer", "phone", "analogphone", "tv", "pda", "tablet", "sniffer", "multiuser"],
+    [CONNECTIONS]: [],
+    IoE: ["ioe", "thing", "plc", "historian", "netcontroller", "meraki"]
+  };
+  function tilesFor(group, palette) {
+    const kinds = GROUP_KINDS[group];
+    if (!kinds)
+      return [];
+    return palette.filter((device) => kinds.includes(device.kind));
+  }
+  function startGroup(saved, groups) {
+    if (saved && groups.includes(saved))
+      return saved;
+    return groups.includes(DEFAULT_GROUP) ? DEFAULT_GROUP : groups[0] ?? DEFAULT_GROUP;
+  }
+
   // web/ts/ui/engine_loading.ts
   var MEGABYTE = 1024 * 1024;
   var megabytes = (bytes) => (bytes / MEGABYTE).toFixed(1);
@@ -1050,6 +1076,9 @@
   globalThis.shouldAutoShowGallery = () => shouldAutoShowGallery(localStorage);
   globalThis.renderDeviceList = (list, devices, onSelect) => renderDeviceList(doc, list, devices, onSelect);
   globalThis.WorkspaceCanvas = WorkspaceCanvas;
+  globalThis.paletteTiles = tilesFor;
+  globalThis.paletteStartGroup = startGroup;
+  globalThis.PALETTE_CONNECTIONS = CONNECTIONS;
   globalThis.buildRunLog = buildRunLog;
   globalThis.formatLogLine = formatLogLine;
   globalThis.renderToolbar = (bar, items) => renderToolbar(doc, bar, items, (key) => icon3d(key));
