@@ -50,3 +50,23 @@ async function boot() {
   if (shouldAutoShowGallery()) await showGallery();
 }
 
+
+/* First visit: the engine is ~1.7 MB. Show progress until it is ready. */
+function showEngineLoading() {
+  const box = document.getElementById('engine-loading');
+  const text = document.getElementById('engine-loading-text');
+  const bar = document.getElementById('engine-bar-fill');
+  if (!box || !text || !window.TakumiEngine) {
+    if (box) box.hidden = true;
+    return;
+  }
+  window.addEventListener('engine-progress', (e) => {
+    text.textContent = engineLoadingMessage(e.detail);
+    if (e.detail.total > 0) bar.style.width = `${Math.round((e.detail.loaded / e.detail.total) * 100)}%`;
+    else bar.parentElement.classList.add('indeterminate');
+  });
+  TakumiEngine.ready.then((ok) => {
+    text.textContent = ok ? 'Engine ready' : 'Engine unavailable: working with the server';
+    box.hidden = true;
+  });
+}

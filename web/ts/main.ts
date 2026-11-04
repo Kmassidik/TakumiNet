@@ -2,6 +2,7 @@ import { bringToFront, makeWindowMovable, watchOverlays } from "./ui/dialogs";
 import type { DocLike, ElementLike } from "./ui/dom";
 import { WorkspaceCanvas } from "./canvas/workspace_canvas";
 import { wireSidebar } from "./ui/sidebar";
+import { engineLoadingMessage, type EngineProgress } from "./ui/engine_loading";
 import { shouldAutoShowGallery } from "./ui/gallery_once";
 import { renderDeviceList, type ListedDevice } from "./ui/device_list";
 import { renderToolbar, type ToolbarItem } from "./ui/toolbar";
@@ -19,6 +20,7 @@ globalThis.askText = async (message: string, value = ""): Promise<string | null>
   (await openModal(doc, stack, { message, input: value })) as string | null;
 
 globalThis.bringToFront = bringToFront;
+globalThis.engineLoadingMessage = engineLoadingMessage;
 globalThis.shouldAutoShowGallery = () => shouldAutoShowGallery(localStorage);
 globalThis.renderDeviceList = (list, devices, onSelect) => renderDeviceList(doc, list as unknown as ElementLike, devices, onSelect);
 globalThis.WorkspaceCanvas = WorkspaceCanvas;
@@ -38,6 +40,7 @@ if (document.readyState === "loading") {
 }
 
 declare global {
+  var engineLoadingMessage: (progress: EngineProgress | null) => string;
   var shouldAutoShowGallery: () => boolean;
   var renderDeviceList: (list: HTMLElement, devices: readonly ListedDevice[], onSelect: (id: string) => void) => void;
   var WorkspaceCanvas: typeof import("./canvas/workspace_canvas").WorkspaceCanvas;

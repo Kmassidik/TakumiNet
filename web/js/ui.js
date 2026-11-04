@@ -730,6 +730,18 @@
     globalThis.selectSidebarTab = selectTab;
   }
 
+  // web/ts/ui/engine_loading.ts
+  var MEGABYTE = 1024 * 1024;
+  var megabytes = (bytes) => (bytes / MEGABYTE).toFixed(1);
+  function engineLoadingMessage(progress) {
+    const prefix = "Loading the TakumiNet engine…";
+    if (!progress)
+      return prefix;
+    if (progress.total > 0)
+      return `${prefix} ${megabytes(progress.loaded)} of ${megabytes(progress.total)} MB`;
+    return `${prefix} ${megabytes(progress.loaded)} MB`;
+  }
+
   // web/ts/ui/gallery_once.ts
   var SEEN_KEY = "pt-web:gallery-seen";
   function shouldAutoShowGallery(store) {
@@ -921,6 +933,7 @@
   globalThis.askConfirm = async (message, okText = "OK") => await openModal(doc, stack, { message, okText }) === true;
   globalThis.askText = async (message, value = "") => await openModal(doc, stack, { message, input: value });
   globalThis.bringToFront = bringToFront;
+  globalThis.engineLoadingMessage = engineLoadingMessage;
   globalThis.shouldAutoShowGallery = () => shouldAutoShowGallery(localStorage);
   globalThis.renderDeviceList = (list, devices, onSelect) => renderDeviceList(doc, list, devices, onSelect);
   globalThis.WorkspaceCanvas = WorkspaceCanvas;

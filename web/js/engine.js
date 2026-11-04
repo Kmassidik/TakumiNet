@@ -12,12 +12,37 @@
     let mode = 'loading';
     let coldStartMs = null;
 
+    async function readWithProgress(response) {
+      if (!response.body || typeof response.body.getReader !== 'function') return response.arrayBuffer();
+      const total = Number(response.headers.get('content-length')) || 0;
+      const reader = response.body.getReader();
+      const chunks = [];
+      let loaded = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.byteLength;
+        if (root.dispatchEvent && typeof root.CustomEvent === 'function') {
+          root.dispatchEvent(new root.CustomEvent('engine-progress', { detail: { loaded, total } }));
+        }
+      }
+      const out = new Uint8Array(loaded);
+      let offset = 0;
+      for (const chunk of chunks) {
+        out.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      return out.buffer;
+    }
+
     const ready = (async () => {
       const started = performance.now();
       try {
         const response = await nativeFetch(wasmUrl);
         if (!response.ok) throw new Error('engine unavailable');
-        const result = await root.WebAssembly.instantiate(await response.arrayBuffer(), {});
+        const bytes = await readWithProgress(response);
+        const result = await root.WebAssembly.instantiate(bytes, {});
         exports = result.instance.exports;
         coldStartMs = performance.now() - started;
         mode = 'wasm';
