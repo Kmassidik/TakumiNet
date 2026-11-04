@@ -9,6 +9,7 @@ import { boundsOf, fitCamera, type Rect } from "./print_view";
 import { bufferSize, recenterShift, type Size } from "./view_size";
 import { hitRackBox, layoutRacks, type RackLayout } from "./rack_layout";
 import { buildScene, type Scene, type SceneDevice, type SceneGroup, type SceneLink, type WorkspaceInput } from "./scene";
+import { idsInRect, normalizedRect } from "./marquee";
 
 export interface CanvasState {
   workspace: WorkspaceInput;
@@ -20,6 +21,7 @@ export interface CanvasState {
   physical?: boolean;
   notes?: readonly NoteInput[];
   selectedNote?: string | null;
+  pending?: Point | null;
 }
 
 export interface PacketRun {
@@ -34,6 +36,7 @@ export interface PointerHandlers {
   onGroupDown?: (group: SceneGroup, ev: PointerEvent) => void;
   onLinkDown?: (link: SceneLink, ev: PointerEvent) => void;
   onBackgroundDown?: (ev: PointerEvent) => void;
+  onMarquee?: (ids: string[], additive: boolean) => void;
   onNoteDown?: (note: NoteInput, ev: PointerEvent) => void;
   onHover?: (device: { name: string; model: string } | null, ev: PointerEvent) => void;
 }
@@ -52,6 +55,8 @@ export class WorkspaceCanvas {
   private packets: { run: PacketRun; start: number }[] = [];
   private frame = 0;
   private panFrom: Point | null = null;
+  private marquee: { from: Point; to: Point; additive: boolean; down: PointerEvent } | null = null;
+  private pointerWorld: Point | null = null;
   private spaceDown = false;
   private wasPhysical = false;
 
@@ -65,10 +70,7 @@ export class WorkspaceCanvas {
     if (typeof ResizeObserver !== "undefined") new ResizeObserver(() => this.resize()).observe(canvas);
     canvas.addEventListener("pointerdown", (ev) => this.onPointerDown(ev));
     canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
-    canvas.addEventListener("pointerup", () => {
-      this.panFrom = null;
-      this.canvas.style.cursor = cursorFor(null, this.mode(), false);
-    });
+    canvas.addEventListener("pointerup", (ev) => this.onPointerUp(ev));
     canvas.addEventListener("wheel", (ev) => this.onWheel(ev), { passive: false });
     window.addEventListener("keydown", (ev) => { if (ev.code === "Space") this.spaceDown = true; });
     window.addEventListener("keyup", (ev) => { if (ev.code === "Space") this.spaceDown = false; });
@@ -230,6 +232,8 @@ export class WorkspaceCanvas {
       empty: state?.empty,
       notes: state?.notes,
       selectedNote: state?.selectedNote,
+      marquee: this.marquee ? normalizedRect(this.marquee.from, this.marquee.to) : null,
+      pending: state?.pending && this.pointerWorld ? { from: state.pending, to: this.pointerWorld } : null,
     });
     if (this.packets.length) this.requestDraw();
   }
@@ -293,17 +297,44 @@ export class WorkspaceCanvas {
     if (device) return this.handlers.onDeviceDown?.(device, ev);
     const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
     if (link) return this.handlers.onLinkDown?.(link, ev);
+    /* Plain left-drag on empty canvas selects; panning lives on Space and the
+       middle button. Crosshair modes keep the old pan-and-report behaviour. */
+    if (ev.button === 0 && this.mode() === "select") {
+      this.marquee = { from: world, to: world, additive: ev.shiftKey, down: ev };
+      this.canvas.setPointerCapture(ev.pointerId);
+      return;
+    }
     this.startPan(ev);
     this.handlers.onBackgroundDown?.(ev);
   }
 
+  private onPointerUp(ev: PointerEvent): void {
+    if (this.marquee) {
+      const { from, to, additive, down } = this.marquee;
+      this.marquee = null;
+      const rect = normalizedRect(from, to);
+      if ((rect.w + rect.h) * this.camera.zoom < 4) this.handlers.onBackgroundDown?.(down);
+      else this.handlers.onMarquee?.(idsInRect(this.scene.devices, rect), additive);
+      this.requestDraw();
+    }
+    this.panFrom = null;
+    this.canvas.style.cursor = cursorFor(null, this.mode(), false);
+  }
+
   private onPointerMove(ev: PointerEvent): void {
+    if (this.marquee) {
+      this.marquee.to = this.worldAt(ev);
+      this.requestDraw();
+      return;
+    }
     if (!this.panFrom) {
       if (this.state?.physical) {
         this.canvas.style.cursor = cursorFor(null, this.mode(), false);
         return;
       }
       const world = this.worldAt(ev);
+      this.pointerWorld = world;
+      if (this.state?.pending) this.requestDraw();
       const group = hitGroup(this.scene, world);
       const device = group ? null : hitDevice(this.scene, world);
       const link = group || device ? null : hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);

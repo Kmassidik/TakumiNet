@@ -20,10 +20,18 @@ function renderTopology() {
     physical: viewMode === 'physical',
     notes: data.notes || [],
     selectedNote: selectedNoteId,
+    pending: cableAnchor(),
     empty: data.devices.length
       ? undefined
       : { message: 'No devices yet. Drop a device here to begin', mascot: '/art3d/mascot/sleep.webp' },
   });
+}
+
+/* Where the rubber band starts while a cable waits for its far end. */
+function cableAnchor() {
+  if (!cableMode || !cableFrom) return null;
+  const d = data.devices.find((x) => x.id === cableFrom);
+  return d ? { x: d.x, y: d.y } : null;
 }
 
 function wireWorkspaceCanvas() {
@@ -49,6 +57,13 @@ function wireWorkspaceCanvas() {
       renderTopology();
     },
     onNoteDown: (note, ev) => startNoteDrag(ev, note),
+    onMarquee: (ids, additive) => {
+      setSelection(additive ? [...selection, ...ids] : ids);
+      selectedLink = null;
+      const n = selectionCount();
+      status(n ? `${n} device${n === 1 ? '' : 's'} selected` : 'Nothing selected');
+      renderTopology();
+    },
     onBackgroundDown: (ev) => {
       if (noteMode) return placeNote(ev);
       selectedNoteId = null;

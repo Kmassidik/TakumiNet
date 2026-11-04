@@ -1,6 +1,7 @@
 import type { Camera, Point } from "./camera";
 import type { Scene, SceneLink } from "./scene";
 import { noteBox, type NoteInput } from "./notes";
+import type { Rect } from "./print_view";
 
 export interface Canvas2D {
   fillStyle: string;
@@ -19,6 +20,7 @@ export interface Canvas2D {
   stroke(): void;
   arc(x: number, y: number, r: number, start: number, end: number): void;
   fill(): void;
+  setLineDash(segments: number[]): void;
   drawImage(image: unknown, x: number, y: number, w: number, h: number): void;
 }
 
@@ -39,6 +41,8 @@ export interface DrawOptions {
   empty?: { message: string; mascot?: string };
   notes?: readonly NoteInput[];
   selectedNote?: string | null;
+  marquee?: Rect | null;
+  pending?: { from: Point; to: Point } | null;
 }
 
 const LED_COLORS: Record<string, string> = { green: "#0a7a3d", amber: "#c98a00", red: "#c62828" };
@@ -91,6 +95,30 @@ export function drawScene(ctx: Canvas2D, scene: Scene, camera: Camera, options: 
   for (const group of scene.groups) drawGroupLabels(ctx, group, camera);
   for (const packet of options.packets ?? []) drawPacket(ctx, packet, camera);
   for (const note of options.notes ?? []) drawNote(ctx, note, camera, options.selectedNote ?? null);
+  if (options.pending) drawPendingCable(ctx, options.pending, camera);
+  if (options.marquee) drawMarquee(ctx, options.marquee, camera);
+}
+
+function drawPendingCable(ctx: Canvas2D, pending: { from: Point; to: Point }, camera: Camera): void {
+  const a = camera.toScreen(pending.from);
+  const b = camera.toScreen(pending.to);
+  ctx.strokeStyle = SELECT;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 5]);
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawMarquee(ctx: Canvas2D, rect: Rect, camera: Camera): void {
+  const at = camera.toScreen({ x: rect.x, y: rect.y });
+  ctx.strokeStyle = SELECT;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 4]);
+  ctx.strokeRect(at.x, at.y, rect.w * camera.zoom, rect.h * camera.zoom);
+  ctx.setLineDash([]);
 }
 
 function drawNote(ctx: Canvas2D, note: NoteInput, camera: Camera, selected: string | null): void {
