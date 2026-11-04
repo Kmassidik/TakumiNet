@@ -6,7 +6,7 @@ import { renderL3SwitchWindow } from "./l3switch_window";
 import { renderHotspotWindow } from "./hotspot_window";
 import { renderProviderWindow } from "./provider_window";
 import { renderRadioWindow } from "./radio_window";
-import type { GetText, KindDevice, KindWorkspace, Post } from "./kind_parts";
+import { el, modelBlurbLine, type GetText, type KindDevice, type KindWorkspace, type Post } from "./kind_parts";
 
 export interface KindDeps {
   post: Post;
@@ -36,23 +36,27 @@ export function renderKindWindow(
   workspace: KindWorkspace,
   deps: KindDeps,
 ): Promise<void> {
+  body.replaceChildren();
+  const blurb = modelBlurbLine(workspace, device);
+  if (blurb) body.appendChild(el(doc, "p", "kw-blurb", blurb));
+  const pane = body.appendChild(el(doc, "div", "kw-pane"));
   switch (device.kind) {
     case "rtrw-gateway":
-      return renderGatewayWindow(doc, body, device, deps.post);
+      return renderGatewayWindow(doc, pane, device, deps.post);
     case "client-radio":
     case "sector-radio":
-      return renderRadioWindow(doc, body, device, workspace, deps.getText);
+      return renderRadioWindow(doc, pane, device, workspace, deps.getText);
     case "provider-link":
-      renderProviderWindow(doc, body, device, workspace);
+      renderProviderWindow(doc, pane, device, workspace);
       return Promise.resolve();
     case "hotspot-ap":
-      return renderHotspotWindow(doc, body, device, deps.post);
+      return renderHotspotWindow(doc, pane, device, deps.post);
     case "asa":
-      return renderFirewallWindow(doc, body, device, deps.getText);
+      return renderFirewallWindow(doc, pane, device, deps.getText);
     case "load-balancer":
-      return renderBalancerWindow(doc, body, device, workspace, deps.post);
+      return renderBalancerWindow(doc, pane, device, workspace, deps.post);
     case "switch-l3":
-      return renderL3SwitchWindow(doc, body, device, deps.getText, deps.post);
+      return renderL3SwitchWindow(doc, pane, device, deps.getText, deps.post);
     default:
       return Promise.resolve();
   }

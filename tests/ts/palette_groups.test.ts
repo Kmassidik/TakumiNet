@@ -4,13 +4,21 @@ import { join } from "node:path";
 import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor, type PaletteDevice } from "../../web/ts/ui/palette_groups";
 
 const catalog = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
-const rows = [...catalog.matchAll(/\("([^"]+)", "-", "([a-z0-9-]+)"\)/g)];
-const palette: PaletteDevice[] = rows.map((m) => ({ label: m[1]!, icon: `/art3d/${m[2]}.webp`, kind: m[2]! }));
+const rows = [...catalog.matchAll(/\("([^"]+)", "([^"]+)", "([a-z0-9-]+)"\),\n/g)];
+const palette: PaletteDevice[] = rows.map((m) => ({ label: m[1]!, icon: `/art3d/${m[3]}.webp`, kind: m[3]!, blurb: m[2]! }));
 const groupsSrc = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
 const groupLabels = [...groupsSrc.slice(groupsSrc.indexOf("GROUPS")).matchAll(/\("([A-Za-z ]+)", "\/art3d/g)].map((m) => m[1]!);
 
 test("the catalog is read from the engine source (sanity)", () => {
   expect(palette.length).toBe(43);
+});
+
+test("every device carries a one-line plain-language description", () => {
+  for (const device of palette) {
+    expect(device.blurb, device.label).not.toBe("-");
+    expect(device.blurb!.length, device.label).toBeGreaterThan(20);
+    expect(device.blurb!.endsWith("."), device.label).toBe(true);
+  }
 });
 
 test("every device in the palette belongs to exactly one category", () => {

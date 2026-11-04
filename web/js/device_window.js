@@ -23,11 +23,20 @@ function deviceTabs(kind) {
   return tabs;
 }
 
+/* The one-line description the palette carries for this device's model. */
+function modelBlurb(model) {
+  const entry = (data.palette || []).find((p) => p.label === model);
+  return entry && entry.blurb ? `${model} — ${entry.blurb}` : '';
+}
+
 function openDeviceWindow(d) {
   dwDevice = d;
   const win = document.getElementById('device-window');
   document.getElementById('dw-name').textContent = d.name;
   document.getElementById('dw-icon').src = d.icon;
+  const blurb = document.getElementById('dw-blurb');
+  blurb.textContent = modelBlurb(d.model);
+  blurb.hidden = !blurb.textContent;
   win.hidden = false;
   bringToFront(win);
   const tabs = deviceTabs(d.kind);

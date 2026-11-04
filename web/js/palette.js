@@ -102,7 +102,7 @@ function renderPalette() {
   for (const p of tiles) {
     const tile = document.createElement('button');
     tile.className = 'dev-tile';
-    tile.title = `Drag ${p.label} onto the canvas`;
+    tile.title = p.blurb || `Drag ${p.label} onto the canvas`;
     tile.draggable = true;
     const img = document.createElement('img');
     img.src = p.icon;

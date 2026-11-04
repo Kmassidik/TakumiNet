@@ -196,16 +196,16 @@ impl Workspace {
         }
 
         o.push_str("],\"palette\":[");
-        for (i, (label, icon, kind)) in CATALOG.iter().enumerate() {
+        for (i, (label, blurb, kind)) in CATALOG.iter().enumerate() {
             if i > 0 {
                 o.push(',');
             }
-            let _ = icon;
             o.push_str(&format!(
-                "{{\"label\":{},\"icon\":{},\"kind\":{}}}",
+                "{{\"label\":{},\"icon\":{},\"kind\":{},\"blurb\":{}}}",
                 s(label),
                 s(&logical_icon(label, kind)),
-                s(kind)
+                s(kind),
+                s(blurb)
             ));
         }
     }

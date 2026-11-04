@@ -6,6 +6,7 @@ export interface PaletteDevice {
   label: string;
   icon: string;
   kind: string;
+  blurb?: string;
 }
 
 export const CONNECTIONS = "Connections";

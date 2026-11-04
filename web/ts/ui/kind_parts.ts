@@ -8,6 +8,12 @@ export interface KindDevice {
   id: string;
   name: string;
   kind: string;
+  model?: string;
+}
+
+export interface PaletteEntry {
+  label: string;
+  blurb?: string;
 }
 
 export interface WorkspaceDevice {
@@ -25,6 +31,14 @@ export interface WorkspaceLink {
 export interface KindWorkspace {
   devices?: WorkspaceDevice[];
   links?: WorkspaceLink[];
+  palette?: PaletteEntry[];
+}
+
+/* "Router 300 — The everyday branch router: …", or "" when the palette does
+   not know the model. */
+export function modelBlurbLine(workspace: KindWorkspace, device: KindDevice): string {
+  const blurb = workspace.palette?.find((p) => p.label === device.model)?.blurb;
+  return blurb && device.model ? `${device.model} — ${blurb}` : "";
 }
 
 export type NoteState = "plain" | "loading" | "empty" | "error" | "ok";

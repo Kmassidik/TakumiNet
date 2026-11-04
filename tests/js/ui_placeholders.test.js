@@ -152,6 +152,20 @@ test('loading mascot is preloaded before the gallery can replace it', () => {
   assert.match(html, /<link rel="preload" as="image" href="\/art3d\/mascot\/think\.webp">/);
 });
 
+test('the device window explains the model in one muted line under its title', () => {
+  const html = source('web/index.html');
+  assert.match(html, /<p class="dw-blurb" id="dw-blurb" hidden><\/p>\n\s*<div class="devwin-tabs"/);
+
+  const windowSource = source('web/js/device_window.js');
+  assert.match(windowSource, /getElementById\('dw-blurb'\)/);
+  const fn = windowSource.match(/function modelBlurb[\s\S]*?\n}/)[0];
+  const blurb = 'The everyday branch router: routing, NAT, access lists, OSPF.';
+  const context = vm.createContext({ data: { palette: [{ label: 'Router 300', blurb }] } });
+  vm.runInContext(fn + '\nglobalThis.modelBlurbTest = modelBlurb;', context);
+  assert.equal(context.modelBlurbTest('Router 300'), `Router 300 — ${blurb}`);
+  assert.equal(context.modelBlurbTest('Mystery Box'), '');
+});
+
 test('the device window shows only the tabs a kind earns', () => {
   const windowSource = fs.readFileSync(path.join(root, 'web/js/device_window.js'), 'utf8');
   const terminal = fs.readFileSync(path.join(root, 'web/js/terminal.js'), 'utf8');
