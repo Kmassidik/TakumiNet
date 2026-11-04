@@ -2407,6 +2407,174 @@
     return done;
   }
 
+  // web/ts/ui/iot_window.ts
+  var enc4 = encodeURIComponent;
+  var SHOWN_REGISTERS = 16;
+  function towerRows(saved) {
+    const towers = [];
+    for (const m of saved.matchAll(/<device id="([^"]+)" kind="celltower"[^>]*name="([^"]*)"/g)) {
+      towers.push({ id: m[1] ?? "", name: m[2] ?? "" });
+    }
+    return towers;
+  }
+  function wholeIn(value, most) {
+    const n = Number(value.trim());
+    return Number.isInteger(n) && n >= 0 && n <= most ? n : null;
+  }
+  function registersSection(doc, root, device, post) {
+    let listBox = null;
+    const fill = async (box) => {
+      listBox = box;
+      const reads = await Promise.all(Array.from({ length: SHOWN_REGISTERS }, (_, addr) => post(`/api/iot/read?id=${enc4(device.id)}&addr=${addr}`)));
+      box.replaceChildren();
+      const err = errorOf(reads[0] ?? {});
+      if (err) {
+        box.appendChild(note(doc, "error", err));
+        return;
+      }
+      box.appendChild(rowList(doc, reads.map((r, addr) => `Register ${addr} · ${asText(r["value"]) || "0"}`)));
+    };
+    const done = asyncSection(doc, root, "Registers", "Could not read the registers.", fill);
+    const form = el(doc, "div", "kw-form");
+    const register = field(doc, form, "Register");
+    const value = field(doc, form, "Value");
+    const outcome = el(doc, "div", "kw-outcome");
+    const submit = () => void write();
+    const write = async () => {
+      const addr = wholeIn(register.value, 255);
+      const wanted = wholeIn(value.value, 65535);
+      if (addr === null || wanted === null) {
+        showOutcome(doc, outcome, "error", "Type a register from 0 to 255 and a value from 0 to 65535.");
+        return;
+      }
+      try {
+        const res = await post(`/api/iot/write?id=${enc4(device.id)}&addr=${addr}&value=${wanted}`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, outcome, "error", err);
+        else {
+          showOutcome(doc, outcome, "ok", `Register ${addr} is now ${wanted} (was ${asText(res["old"]) || "0"}).`);
+          if (listBox)
+            await fill(listBox).catch(() => {
+              return;
+            });
+        }
+      } catch {
+        showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(register, submit);
+    onEnter(value, submit);
+    form.appendChild(createButton(doc, { label: "Write", className: "kw-submit", onClick: submit }));
+    form.appendChild(outcome);
+    root.appendChild(form);
+    return done;
+  }
+  function fillTowers(doc, box, device, post, getText, outcome) {
+    return (async () => {
+      const [saved, status] = await Promise.all([getText("/api/export"), post(`/api/cell/status?id=${enc4(device.id)}`)]);
+      const towers = towerRows(saved);
+      const joined = status["associated"] === true ? asText(status["tower"]) : "";
+      box.replaceChildren();
+      const joinedName = towers.find((t) => t.id === joined)?.name ?? joined;
+      box.appendChild(note(doc, "plain", joined ? `Joined to ${joinedName}.` : "Not joined to a tower."));
+      if (towers.length === 0) {
+        box.appendChild(note(doc, "empty", "There is no cell tower in this workspace."));
+        return;
+      }
+      for (const tower of towers) {
+        const row = el(doc, "div", "kw-row");
+        row.appendChild(el(doc, "span", "kw-tower-name", tower.name));
+        row.appendChild(createButton(doc, {
+          label: "Join",
+          className: "kw-submit",
+          onClick: () => void (async () => {
+            try {
+              const res = await post(`/api/cell/join?id=${enc4(device.id)}&tower=${enc4(tower.id)}`);
+              const err = errorOf(res);
+              if (err)
+                showOutcome(doc, outcome, "error", err);
+              else {
+                showOutcome(doc, outcome, "ok", `Joined to ${tower.name}.`);
+                await fillTowers(doc, box, device, post, getText, outcome).catch(() => {
+                  return;
+                });
+              }
+            } catch {
+              showOutcome(doc, outcome, "error", "The request failed. Check the connection and try again.");
+            }
+          })()
+        }));
+        box.appendChild(row);
+      }
+    })();
+  }
+  function towerSection(doc, root, device, workspace, post, getText) {
+    const outcome = el(doc, "div", "kw-outcome");
+    const done = asyncSection(doc, root, "Cell tower", "Could not read the cell towers.", (box) => fillTowers(doc, box, device, post, getText, outcome));
+    const form = el(doc, "div", "kw-form");
+    const target = field(doc, form, "Send to");
+    const sendOutcome = el(doc, "div", "kw-outcome");
+    const submit = () => void send();
+    const send = async () => {
+      const name = target.value.trim();
+      const peer = workspace.devices?.find((d) => d.name === name || d.id === name);
+      if (!peer) {
+        showOutcome(doc, sendOutcome, "error", name ? `No device is named ${name}.` : "Type the name of the device to reach.");
+        return;
+      }
+      try {
+        const res = await post(`/api/iot/send?src=${enc4(device.id)}&dst=${enc4(peer.id)}&proto=cellular&seq=0`);
+        const err = errorOf(res);
+        if (err)
+          showOutcome(doc, sendOutcome, "error", err);
+        else
+          showOutcome(doc, sendOutcome, "ok", `${asText(res["status"])} to ${peer.name}.`);
+      } catch {
+        showOutcome(doc, sendOutcome, "error", "The request failed. Check the connection and try again.");
+      }
+    };
+    onEnter(target, submit);
+    form.appendChild(createButton(doc, { label: "Send over the tower", className: "kw-submit", onClick: submit }));
+    form.appendChild(sendOutcome);
+    form.appendChild(outcome);
+    root.appendChild(form);
+    return done;
+  }
+  function renderIotWindow(doc, body, device, workspace, post, getText) {
+    body.replaceChildren();
+    return Promise.all([
+      registersSection(doc, body, device, post),
+      towerSection(doc, body, device, workspace, post, getText)
+    ]).then(() => {
+      return;
+    });
+  }
+  function joinedClients(saved, towerId, workspace) {
+    const clients = [];
+    for (const m of saved.matchAll(/<cell client="([^"]+)" tower="([^"]+)"/g)) {
+      if (m[2] !== towerId)
+        continue;
+      const id = m[1] ?? "";
+      clients.push(workspace.devices?.find((d) => d.id === id)?.name ?? id);
+    }
+    return clients;
+  }
+  function renderCellTowerWindow(doc, body, device, workspace, getText) {
+    body.replaceChildren();
+    const about = section(doc, body, "Coverage");
+    about.appendChild(note(doc, "plain", "Devices join this tower over the air; no cable terminates here."));
+    return asyncSection(doc, body, "Joined clients", "Could not read the joined clients.", async (box) => {
+      const saved = await getText("/api/export");
+      const clients = joinedClients(saved, device.id, workspace);
+      box.replaceChildren();
+      if (clients.length === 0)
+        box.appendChild(note(doc, "empty", "No device has joined this tower yet."));
+      else
+        box.appendChild(rowList(doc, clients));
+    });
+  }
+
   // web/ts/ui/provider_window.ts
   function renderProviderWindow(doc, body, device, workspace) {
     body.replaceChildren();
@@ -2459,7 +2627,11 @@
     "hotspot-ap": "hotspot-window",
     asa: "firewall-window",
     "load-balancer": "balancer-window",
-    "switch-l3": "l3switch-window"
+    "switch-l3": "l3switch-window",
+    plc: "iot-window",
+    thing: "iot-window",
+    ioe: "iot-window",
+    celltower: "celltower-window"
   };
   function windowIdForKind(kind) {
     return WINDOW_IDS[kind] ?? null;
@@ -2487,6 +2659,12 @@
         return renderBalancerWindow(doc, pane, device, workspace, deps.post);
       case "switch-l3":
         return renderL3SwitchWindow(doc, pane, device, deps.getText, deps.post);
+      case "plc":
+      case "thing":
+      case "ioe":
+        return renderIotWindow(doc, pane, device, workspace, deps.post, deps.getText);
+      case "celltower":
+        return renderCellTowerWindow(doc, pane, device, workspace, deps.getText);
       default:
         return Promise.resolve();
     }
@@ -2548,7 +2726,7 @@
   }
 
   // web/ts/ui/flows_window.ts
-  var enc4 = encodeURIComponent;
+  var enc5 = encodeURIComponent;
   function parseFlows(xml) {
     const flows = [];
     for (const m of xml.matchAll(/<flow\s+dev="([^"]*)"\s+to="([^"]*)"\s+mbit="([^"]*)"/g)) {
@@ -2609,7 +2787,7 @@
     };
     const setFlow = async (from, to, mbit) => {
       try {
-        const res = await deps.post(`/api/flows/set?from=${enc4(from)}&to=${enc4(to)}&mbit=${mbit}`);
+        const res = await deps.post(`/api/flows/set?from=${enc5(from)}&to=${enc5(to)}&mbit=${mbit}`);
         const err = errorOf(res);
         if (err) {
           showOutcome(doc, outcome, "error", err);

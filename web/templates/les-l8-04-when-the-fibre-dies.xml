@@ -1,0 +1,23 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="160" y="280" name="ClinicSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="60" y="140" name="ClinicPC" ip="10.70.1.10" prefix="24"/>
+  <device id="ioe0" kind="ioe" model="IoE" x="60" y="420" name="ClinicUnit" ip="10.70.1.13" prefix="24"/>
+  <device id="tower0" kind="celltower" model="Cell Tower" x="440" y="220" name="RegencyTower" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="Switch 24" x="720" y="280" name="RegencySwitch" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="820" y="140" name="RegencyServer" ip="10.70.2.20" prefix="24"/>
+  <device id="ioe1" kind="ioe" model="IoE" x="820" y="420" name="RegencyUnit" ip="10.70.2.13" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="ioe0" a_port="IoT0" b="switch0" b_port="Fa0/2" kind="eIoT"/>
+  <link a="server0" a_port="Fa0" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="ioe1" a_port="IoT0" b="switch1" b_port="Fa0/2" kind="eIoT"/>
+  <syslogon device="ioe1"/>
+  <lesson id="les-l8-04-when-the-fibre-dies" title="When the fibre dies, the tower carries it" level="8" minutes="10" goal="Both field units join the cell tower and a message crosses between the sites without a cable"/>
+  <step n="1" text="Ping RegencyUnit from ClinicUnit. The fibre between the sites is gone, so nothing arrives." check="c1"/>
+  <step n="2" text="Double-click ClinicUnit and join it to RegencyTower in the Cell tower section." check="c2"/>
+  <step n="3" text="Join RegencyUnit to the same tower." check="c3"/>
+  <step n="4" text="From ClinicUnit, send to RegencyUnit over the tower." check="c4"/>
+  <check id="c1" kind="noreach" from="ioe0" to="ioe1" url="" expect="" label="No wired path joins the two sites"/>
+  <check id="c2" kind="cell" from="ioe0" to="tower0" url="" expect="" label="ClinicUnit has joined RegencyTower"/>
+  <check id="c3" kind="cell" from="ioe1" to="tower0" url="" expect="" label="RegencyUnit has joined RegencyTower"/>
+  <check id="c4" kind="log" from="ioe1" to="" url="" expect="Cellular" label="RegencyUnit logged the message that crossed the tower"/>
+</takumi>

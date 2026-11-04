@@ -1,0 +1,18 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="160" y="280" name="ClinicSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="60" y="140" name="ClinicPC" ip="10.70.1.10" prefix="24"/>
+  <device id="ioe0" kind="ioe" model="IoE" x="60" y="420" name="ClinicUnit" ip="10.70.1.13" prefix="24"/>
+  <device id="tower0" kind="celltower" model="Cell Tower" x="440" y="220" name="RegencyTower" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="Switch 24" x="720" y="280" name="RegencySwitch" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="820" y="140" name="RegencyServer" ip="10.70.2.20" prefix="24"/>
+  <device id="ioe1" kind="ioe" model="IoE" x="820" y="420" name="RegencyUnit" ip="10.70.2.13" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="ioe0" a_port="IoT0" b="switch0" b_port="Fa0/2" kind="eIoT"/>
+  <link a="server0" a_port="Fa0" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="ioe1" a_port="IoT0" b="switch1" b_port="Fa0/2" kind="eIoT"/>
+  <cell client="ioe0" tower="tower0"/>
+  <cell client="ioe1" tower="tower0"/>
+  <demo kind="ping" from="pc0" to="ioe0" url=""/>
+  <demo kind="ping" from="server0" to="ioe1" url=""/>
+  <demo kind="ping" from="ioe0" to="pc0" url=""/>
+</takumi>

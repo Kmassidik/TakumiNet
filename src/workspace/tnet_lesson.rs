@@ -107,6 +107,17 @@ pub(super) fn validate_lesson_records(
                             invalidate(valid, problems, index, element, "expect", "count expectation must be an unsigned integer");
                         }
                     }
+                    "iot" => {
+                        if !element.get("to").unwrap_or("").parse::<u16>().is_ok_and(|addr| addr <= 255) {
+                            invalidate(valid, problems, index, element, "to", "iot check needs a register number from 0 to 255");
+                        }
+                        if element.get("expect").unwrap_or("").parse::<u16>().is_err() {
+                            invalidate(valid, problems, index, element, "expect", "iot expectation must be a register value from 0 to 65535");
+                        }
+                    }
+                    "cell" if !device_exists(to) => {
+                        invalidate(valid, problems, index, element, "to", format!("refers to device '{to}' that does not exist"));
+                    }
                     "outage" if !element.get("url").unwrap_or("").contains(':') => {
                         invalidate(valid, problems, index, element, "url", "outage check needs the cut as device:port");
                     }
