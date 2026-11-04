@@ -10,6 +10,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/wifi/disconnect") => Some(handle_wifi_disconnect(ctx, query)),
         ("POST", "/api/wifi/roam") => Some(handle_wifi_roam(ctx, query)),
         ("POST", "/api/wifi/capwap") => Some(handle_wifi_capwap(ctx, query)),
+        ("POST", "/api/capwap/status") => Some(handle_capwap_status(ctx, query)),
         ("POST", "/api/wifi/status") => Some(handle_wifi_status(ctx, query)),
         ("POST", "/api/vpn/config") => Some(handle_vpn_config(ctx, query)),
         ("POST", "/api/vpn/status") => Some(handle_vpn_status(ctx, query)),
@@ -52,11 +53,12 @@ fn handle_wifi_wlans(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let list = ws
         .wlan_list(&id)
         .iter()
-        .map(|(ssid, psk)| {
+        .map(|(ssid, security)| {
+            let guest = ws.wlan_guest.contains(&(id.clone(), ssid.clone()));
             format!(
-                "{{\"ssid\":{},\"security\":{}}}",
+                "{{\"ssid\":{},\"security\":{},\"guest\":{guest}}}",
                 json_str(ssid),
-                json_str(if psk.is_empty() { "Open" } else { "WPA2-PSK" })
+                json_str(security)
             )
         })
         .collect::<Vec<_>>()
@@ -122,6 +124,14 @@ fn handle_wifi_capwap(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let wlc = query_value(query, "wlc").unwrap_or_default();
     let (out, _) = apply(ctx, |ws| ws.capwap_join(&id, &wlc));
     (json, out.into_bytes())
+}
+
+fn handle_capwap_status(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let wlc = ws.capwap_status(&id).unwrap_or_default();
+    (json, format!("{{\"wlc\":{}}}", json_str(&wlc)).into_bytes())
 }
 
 fn handle_wifi_status(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {

@@ -278,3 +278,32 @@ fn e2e_ftp_syslog_aaa_and_ntp_services() {
         eprintln!("services endpoints not implemented: {missing:?}");
     }
 }
+
+#[test]
+fn e2e_wireless_guest_flag_and_capwap_adoption() {
+    let s = spawn(38_251);
+    s.post("/api/reset");
+
+    let (status, _, body) = s.post("/api/wifi/wlan?id=router0&ssid=Home&pass=secret123");
+    assert_eq!(status, 200, "{body}");
+    let (_, _, body) = s.post("/api/wifi/wlan?id=router0&ssid=Visitors&pass=");
+    assert!(!body.contains("\"error\""), "{body}");
+    let (_, _, body) = s.post("/api/wifi/guest?id=router0&ssid=Visitors&on=1");
+    assert!(!body.contains("\"error\""), "{body}");
+
+    let (_, _, body) = s.post("/api/wifi/wlans?id=router0");
+    assert!(body.contains("\"ssid\":\"Home\",\"security\":\"WPA2-PSK\",\"guest\":false"), "{body}");
+    assert!(body.contains("\"ssid\":\"Visitors\",\"security\":\"Open\",\"guest\":true"), "{body}");
+
+    let (_, _, body) = s.post("/api/devices?model=Access%20Point&x=10&y=10");
+    assert!(body.contains("\"id\":\"ap0\""), "{body}");
+    let (_, _, body) = s.post("/api/devices?model=Wireless%20Controller&x=40&y=10");
+    assert!(body.contains("\"id\":\"wlc0\""), "{body}");
+
+    let (_, _, body) = s.post("/api/capwap/status?id=ap0");
+    assert_eq!(body, "{\"wlc\":\"\"}");
+    let (_, _, body) = s.post("/api/wifi/capwap?id=ap0&wlc=wlc0");
+    assert!(!body.contains("\"error\""), "{body}");
+    let (_, _, body) = s.post("/api/capwap/status?id=ap0");
+    assert_eq!(body, "{\"wlc\":\"wlc0\"}");
+}

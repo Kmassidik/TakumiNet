@@ -891,6 +891,14 @@ html, body {
 }
 .wifi-row .sec { margin-left: auto; color: var(--muted); }
 .wifi-row .wlc { color: var(--muted); font-size: 11px; }
+.wifi-row .guest {
+  padding: 0 5px; font-size: 10px; color: var(--brand);
+  border: 1px solid var(--brand); border-radius: var(--r-s);
+}
+.wifi-guest { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-2); }
+.dw-wireless { display: flex; flex-direction: column; gap: 10px; font-size: 12px; }
+.dw-wireless .wifi-add { align-items: flex-end; }
+.wifi-controller { border-top: 1px solid var(--line-soft); padding-top: 6px; }
 .firewall-out {
   margin: 0; padding: 10px 12px; min-height: 200px; max-height: 50vh; overflow: auto;
   background: var(--black); color: var(--line-soft); white-space: pre-wrap; word-break: break-word;
