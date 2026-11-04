@@ -31,3 +31,30 @@ test('workspace load failure shows an error mascot and leaves file actions wired
   assert.deepEqual(statuses.at(-1), { message: 'Workspace could not be loaded', failed: true });
   assert.equal(actionsWired, true);
 });
+
+function anyElement() {
+  const el = new Proxy({ dataset: {}, classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {} }, {
+    get: (t, k) => (k in t ? t[k] : () => el),
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  return { getElementById: () => el, querySelectorAll: () => [], querySelector: () => el, createElement: () => el, body: el };
+}
+
+test('every page load starts from a blank workspace, before the workspace is read', async () => {
+  const calls = [];
+  const context = vm.createContext({
+    data: null,
+    api: async (path) => { calls.push(path); return {}; },
+    getJson: async (path) => { calls.push(path); return { tabs: { physical: 'P' }, devices: [], links: [] }; },
+    status() {}, sfx() {}, renderGallery() {}, renderAll() {}, renderPalette() {}, renderFilters() {},
+    renderToolbar() {}, initWorkspaceCanvas() {}, wireMenus() {}, wireActions() {}, wireKeyboard() {},
+    wireCanvasDrop() {}, wireWorkspaceCanvas() {}, showGallery: async () => {},
+    document: anyElement(),
+    workspaceCanvas: { fit() {} },
+    setView() {}, makeWindowMovable() {}, renderTopology() {}, renderRunLog() {}, renderEvents() {}, renderLesson() {}, PRIMARY: [], SECONDARY: [],
+  });
+  vm.runInContext(source, context);
+  await context.boot().catch(() => {});
+  assert.equal(calls[0], '/api/new');
+  assert.equal(calls[1], '/api/workspace');
+});

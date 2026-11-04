@@ -1,4 +1,7 @@
 async function boot() {
+  // Every page load starts blank. The last network stays on the server until
+  // this reset; a refresh should never reopen the previous template.
+  if (typeof api === 'function') await api('/api/new');
   data = await getJson('/api/workspace');
   if (!data || !data.tabs || !Array.isArray(data.devices) || !Array.isArray(data.links)) {
     status('Workspace could not be loaded', true);
