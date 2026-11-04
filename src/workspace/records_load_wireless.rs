@@ -36,6 +36,11 @@ impl Workspace {
                     let _ = self.add_port_forward(router, o, target, i);
                 }
             }
+            ["vnet2", dev, vni] => {
+                if let Ok(v) = vni.parse() {
+                    let _ = self.vnet_join(dev, v);
+                }
+            }
             ["group", _gid, name, members] => {
                 let list: Vec<String> = members.split(',').map(str::to_string).collect();
                 let _ = self.collapse(&unescape_field(name), &list);

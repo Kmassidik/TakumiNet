@@ -444,6 +444,11 @@ impl Workspace {
                 escape_field(user)
             ));
         }
+        let mut vnets: Vec<_> = self.vnets.iter().collect();
+        vnets.sort();
+        for (device, vni) in vnets {
+            out.push_str(&format!("vnet2\t{}\t{}\n", device, vni));
+        }
         for (gid, name, members) in self.group_rows() {
             out.push_str(&format!("group\t{}\t{}\t{}\n", gid, escape_field(&name), members.join(",")));
         }

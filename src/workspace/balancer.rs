@@ -51,4 +51,33 @@ impl Workspace {
     pub(super) fn lb_served_count(&self, balancer: &str) -> usize {
         self.lb_rows(balancer).iter().filter(|(_, hits)| *hits > 0).count()
     }
+
+    /// Join a server to a virtual tenant network. Zero leaves it.
+    pub fn vnet_join(&mut self, device: &str, vni: u32) -> Result<(), String> {
+        if !self.devices.iter().any(|d| d.id == device && d.kind == "server") {
+            return Err("virtual networks hold servers".into());
+        }
+        if vni > 16_777_215 {
+            return Err("a network id runs from 1 to 16777215".into());
+        }
+        if vni == 0 {
+            self.vnets.remove(device);
+        } else {
+            self.vnets.insert(device.to_string(), vni);
+        }
+        Ok(())
+    }
+
+    /// Two servers in different tenant networks never see each other.
+    pub(super) fn vnet_blocked(&self, src: &str, dst: &str) -> Option<String> {
+        let a = self.vnets.get(src)?;
+        let b = self.vnets.get(dst)?;
+        if a == b {
+            return None;
+        }
+        Some(format!(
+            "blocked: {} is in virtual network {a} and {} is in {b}",
+            self.name_of(src), self.name_of(dst)
+        ))
+    }
 }

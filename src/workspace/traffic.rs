@@ -75,7 +75,10 @@ impl Workspace {
         if let Some(reason) = self.tunnel_blocked(src, dst) {
             return Err(reason);
         }
-        match self.provider_blocked(src, dst) {
+        if let Some(reason) = self.provider_blocked(src, dst) {
+            return Err(reason);
+        }
+        match self.vnet_blocked(src, dst) {
             Some(reason) => Err(reason),
             None => Ok(()),
         }

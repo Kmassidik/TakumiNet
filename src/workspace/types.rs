@@ -337,6 +337,8 @@ pub struct Workspace {
     pub lb_pools: HashMap<String, Vec<String>>,
     pub lb_hits: HashMap<String, HashMap<String, u32>>,
     pub(super) lb_next: HashMap<String, usize>,
+    /// Virtual tenant networks: device -> network id.
+    pub vnets: HashMap<String, u32>,
     /// Collapsed nodes: group id -> (shown name, member device ids).
     pub groups: HashMap<String, (String, Vec<String>)>,
     /// Further pools on the same server, one per extra network.

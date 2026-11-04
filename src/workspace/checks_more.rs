@@ -59,6 +59,7 @@ impl Workspace {
             return (actual == check.expect, format!("{port} is {actual}"), "Open the port settings and give it the address.".into());
         }
         let actual = match check.to.as_str() {
+            "vnet" => self.vnets.get(&check.from).map_or_else(|| "none".into(), u32::to_string),
             "tunnel" => self.tunnel_state(&check.from).to_string(),
             "masquerade" => self.nat_rules.get(&check.from)
                 .and_then(|rules| rules.first())

@@ -73,3 +73,21 @@ fn the_balancer_rotates_skips_the_dead_and_reports_an_empty_pool() {
     }
     assert!(crate::webapp::fetch(&mut ws, "pc0", "http://203.0.113.80/").is_err());
 }
+
+#[test]
+fn the_overlay_lesson_separates_tenants_and_survives_a_move() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l5-04-overlay-network.xml")).unwrap();
+    assert_eq!(passes(&mut ws), vec![false, true, false], "one flat fabric: everyone sees everyone");
+    for (server, vni) in [("server0", 100), ("server2", 100), ("server1", 200), ("server3", 200)] {
+        ws.vnet_join(server, vni).unwrap();
+    }
+    assert_eq!(passes(&mut ws), vec![true, true, true]);
+    assert!(ws.send_pdu("server1", "server3").is_ok(), "green reaches green");
+    let moved = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(moved.vnets.len(), 4, "memberships survive save and open");
+    ws.vnet_join("server0", 0).unwrap();
+    assert!(ws.send_pdu("server0", "server3").is_ok(), "leaving the overlay lifts the fence");
+    assert!(ws.vnet_join("pc9", 100).is_err());
+    assert!(ws.vnet_join("server0", 16_777_216).is_err());
+    assert!(ws.vnet_join("l1", 100).is_err(), "only servers join tenant networks");
+}
