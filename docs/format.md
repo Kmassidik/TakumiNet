@@ -132,6 +132,7 @@ device ports.
 | `bgprouter` | `dev as` | BGP local autonomous system |
 | `bgpneighbor` | `dev peer as` | BGP neighbor address and its autonomous system |
 | `bgpnet` | `dev net prefix` | Prefix the router announces to established peers |
+| `bgpdeny` | `dev net prefix` | Prefix the router refuses to import from any peer |
 | `natrole` | `dev iface dir` | NAT inside/outside interface role |
 | `natrule` | `dev num iface` | NAT rule and translated interface |
 

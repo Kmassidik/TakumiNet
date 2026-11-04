@@ -101,7 +101,8 @@ T = {
             ("Reach the far villages", "Both villages answer in time and DesaMakmur survives a radio failure"),
             ("Close the provincial ring", "Any single backbone cable can break and PopPalu still reaches KontenSulawesi"),
             ("When the national gateway fails", "The two provinces still reach each other when a cable at GerbangJakarta is cut, and the overseas page stays under 120 milliseconds"),
-            ("A triangle under the sea", "Any one submarine cable can break and all three countries still reach each other")],
+            ("A triangle under the sea", "Any one submarine cable can break and all three countries still reach each other"),
+            ("Refuse the bogus announcement", "GerbangISP keeps 192.168.0.0/16 out of its routing table while both provider sessions stay up")],
         "faq_h": "Questions people ask",
         "faq": [
             ("Is Takumi free?", "Yes. It is free to use and open source under the MIT licence."),
@@ -229,7 +230,8 @@ T = {
             ("Jangkau desa-desa jauh", "Kedua desa menjawab tepat waktu dan DesaMakmur bertahan saat radionya mati"),
             ("Tutup cincin provinsi", "Satu kabel backbone mana pun boleh putus dan POP terjauh tetap menjangkau server konten"),
             ("Saat gerbang nasional gagal", "Kedua provinsi tetap saling melihat setelah kabel di gerbang putus, dan halaman luar negeri tetap cepat"),
-            ("Segitiga di bawah laut", "Satu kabel laut mana pun boleh putus dan ketiga negara tetap saling menjangkau")],
+            ("Segitiga di bawah laut", "Satu kabel laut mana pun boleh putus dan ketiga negara tetap saling menjangkau"),
+            ("Tolak pengumuman palsu", "GerbangISP menjaga 192.168.0.0/16 tetap di luar tabel rutenya dan kedua sesi penyedia tetap terjalin")],
         "faq_h": "Pertanyaan yang sering muncul",
         "faq": [
             ("Apakah Takumi gratis?", "Ya. Takumi gratis dipakai dan open source dengan lisensi MIT."),

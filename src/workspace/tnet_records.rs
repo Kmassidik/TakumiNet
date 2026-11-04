@@ -67,6 +67,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("bgprouter", &["dev", "as"]),
     ("bgpneighbor", &["dev", "peer", "as"]),
     ("bgpnet", &["dev", "net", "prefix"]),
+    ("bgpdeny", &["dev", "net", "prefix"]),
     ("natrole", &["dev", "iface", "dir"]),
     ("natrule", &["dev", "num", "iface"]),
 ];

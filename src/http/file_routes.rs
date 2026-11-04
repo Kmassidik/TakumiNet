@@ -246,6 +246,7 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("les-l6-01-address-plan", include_str!("../../web/templates/les-l6-01-address-plan.xml")),
     ("les-l6-02-first-bgp", include_str!("../../web/templates/les-l6-02-first-bgp.xml")),
     ("les-l6-03-two-upstreams", include_str!("../../web/templates/les-l6-03-two-upstreams.xml")),
+    ("les-l6-04-prefix-filter", include_str!("../../web/templates/les-l6-04-prefix-filter.xml")),
     ("les-l1-07-find-the-fault", include_str!("../../web/templates/les-l1-07-find-the-fault.xml")),
     ("tpl-l3-office-vlans", include_str!("../../web/templates/tpl-l3-office-vlans.xml")),
     ("les-l3-01-three-vlans", include_str!("../../web/templates/les-l3-01-three-vlans.xml")),

@@ -61,6 +61,14 @@ impl Workspace {
                     prefix
                 ));
             }
+            for (network, prefix) in &config.denied {
+                out.push_str(&format!(
+                    "bgpdeny\t{}\t{}\t{}\n",
+                    dev,
+                    crate::model::ipv4_string(*network),
+                    prefix
+                ));
+            }
         }
         let mut roles: Vec<_> = self.nat_roles.iter().collect();
         roles.sort_by_key(|(id, _)| id.as_str());

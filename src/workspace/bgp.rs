@@ -11,6 +11,7 @@ pub struct BgpConfig {
     pub local_as: u32,
     pub neighbors: Vec<BgpNeighbor>,
     pub networks: Vec<(u32, u8)>,
+    pub denied: Vec<(u32, u8)>,
 }
 
 impl Workspace {
@@ -99,6 +100,41 @@ impl Workspace {
 
     pub fn bgp_networks(&self, device: &str) -> Vec<(u32, u8)> {
         self.bgp.get(device).map(|c| c.networks.clone()).unwrap_or_default()
+    }
+
+    /// Refuse one prefix from every peer: `recompute_bgp` never imports it.
+    pub fn bgp_deny(&mut self, device: &str, net: u32, prefix: u8) -> Result<(), String> {
+        if prefix > 32 {
+            return Err("prefix must be 0 to 32".into());
+        }
+        let Some(config) = self.bgp.get_mut(device) else {
+            return Err("set the local autonomous system first".into());
+        };
+        let net = net & crate::model::mask_of(prefix);
+        if !config.denied.contains(&(net, prefix)) {
+            config.denied.push((net, prefix));
+            config.denied.sort_unstable();
+        }
+        self.recompute_routing();
+        Ok(())
+    }
+
+    pub fn bgp_remove_deny(&mut self, device: &str, net: u32, prefix: u8) -> bool {
+        let Some(config) = self.bgp.get_mut(device) else {
+            return false;
+        };
+        let net = net & crate::model::mask_of(prefix.min(32));
+        let before = config.denied.len();
+        config.denied.retain(|entry| *entry != (net, prefix));
+        let removed = config.denied.len() != before;
+        if removed {
+            self.recompute_routing();
+        }
+        removed
+    }
+
+    pub fn bgp_denied(&self, device: &str) -> Vec<(u32, u8)> {
+        self.bgp.get(device).map(|c| c.denied.clone()).unwrap_or_default()
     }
 
     fn addresses_of(&self, id: &str) -> Vec<u32> {
@@ -203,6 +239,9 @@ impl Workspace {
                     continue;
                 };
                 for &(network, prefix) in &peer_config.networks {
+                    if config.denied.contains(&(network, prefix)) {
+                        continue;
+                    }
                     learned.push((
                         id.clone(),
                         InstalledRoute {

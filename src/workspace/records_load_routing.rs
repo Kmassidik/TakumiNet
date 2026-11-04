@@ -42,6 +42,11 @@ impl Workspace {
                     let _ = self.bgp_network(dev, net, prefix);
                 }
             }
+            ["bgpdeny", dev, net, prefix] => {
+                if let (Some(net), Ok(prefix)) = (crate::model::parse_ipv4(net), prefix.parse::<u8>()) {
+                    let _ = self.bgp_deny(dev, net, prefix);
+                }
+            }
             ["lbpool", dev, member] => {
                 let _ = self.lb_add_member(dev, member);
             }

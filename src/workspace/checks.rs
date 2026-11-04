@@ -98,12 +98,20 @@ impl Workspace {
                 let target = check.expect.split_once('/').and_then(|(network, prefix)| {
                     Some((crate::model::parse_ipv4(network)?, crate::model::parse_mask(prefix)?))
                 });
+                // url="absent" inverts the check: it passes while the prefix
+                // stays out of the routing table.
+                let absent = check.url == "absent";
                 match target {
                     Some((network, prefix)) => {
                         let network = network & crate::model::mask_of(prefix);
                         let present = self.has_route(&check.from, network, prefix);
                         let normalized = format!("{}/{}", crate::model::ipv4_string(network), prefix);
-                        (present, format!("{normalized} {}", if present { "present" } else { "missing" }), format!("Run show ip route on {} and add the exact prefix.", self.name_of(&check.from)))
+                        let hint = if absent {
+                            format!("Run show ip route on {}; this prefix must not appear in the table.", self.name_of(&check.from))
+                        } else {
+                            format!("Run show ip route on {} and add the exact prefix.", self.name_of(&check.from))
+                        };
+                        (present != absent, format!("{normalized} {}", if present { "present" } else { "missing" }), hint)
                     }
                     None => (false, format!("invalid route expectation '{}'", check.expect), "Use network/prefix, for example 10.0.0.0/8.".to_string()),
                 }
