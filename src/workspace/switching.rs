@@ -3,7 +3,7 @@ use crate::net::packet::Mac;
 use std::collections::{BTreeSet, HashMap, VecDeque};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-struct BridgeId {
+pub(super) struct BridgeId {
     // Extended system id: configured priority plus the VLAN number.
     pub(super) priority: u32,
     pub(super) mac: Mac,
@@ -21,7 +21,7 @@ struct LogicalEdge {
 }
 
 #[derive(Default)]
-struct StpTopology {
+pub(super) struct StpTopology {
     pub(super) roots: HashMap<String, BridgeId>,
     pub(super) root_ports: Vec<(String, String)>,
     pub(super) blocked: Vec<(String, String)>,
