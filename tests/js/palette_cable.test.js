@@ -159,6 +159,27 @@ test('a refused link shows the server text in the toast', async () => {
   assert.equal(els['cable-chip'].textContent, 'Copper cable — click two devices. Esc cancels.');
 });
 
+test('while a far end is pending, the chip and the status bar say the same thing', async () => {
+  const { context, els, statuses } = harness();
+  context.renderPalette();
+  tab(els, 'Connections').onclick();
+  cableTile(els).onclick();
+  await context.cableClick({ id: 'd1', name: 'PC0' });
+  assert.equal(els['cable-chip'].textContent, 'Copper cable from PC0 — click the far end. Esc cancels.');
+  assert.equal(statuses[statuses.length - 1], els['cable-chip'].textContent);
+});
+
+test('after a link completes, the chip and the status bar both show the armed message', async () => {
+  const { context, els, statuses } = harness();
+  context.renderPalette();
+  tab(els, 'Connections').onclick();
+  cableTile(els).onclick();
+  await context.cableClick({ id: 'd1', name: 'PC0' });
+  await context.cableClick({ id: 'd2', name: 'Phone0' });
+  assert.equal(els['cable-chip'].textContent, 'Copper cable — click two devices. Esc cancels.');
+  assert.equal(statuses[statuses.length - 1], els['cable-chip'].textContent);
+});
+
 test('Escape leaves cable mode: pending end gone, tile released, chip hidden', async () => {
   const { context, els } = harness();
   context.renderPalette();

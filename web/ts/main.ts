@@ -18,6 +18,7 @@ import { ModalStack } from "./ui/modal_stack";
 import { wireDialogClose, type EventSource } from "./ui/dialog_close";
 import { renderKindWindow, windowIdForKind } from "./ui/kind_windows";
 import { makeGroupPress, renderGroupCard, type GroupLike, type GroupPressDeps } from "./ui/group_card";
+import { placeMenu, placeSubmenu } from "./ui/menu_place";
 import { renderFlowsWindow } from "./ui/flows_window";
 import type { KindDevice, KindWorkspace } from "./ui/kind_parts";
 
@@ -89,6 +90,8 @@ globalThis.openFlowsWindow = (workspace) => {
 };
 
 globalThis.makeGroupPress = makeGroupPress;
+globalThis.placeMenu = placeMenu;
+globalThis.placeSubmenu = placeSubmenu;
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
 } else {
@@ -138,4 +141,6 @@ declare global {
   var openFlowsWindow: (workspace: KindWorkspace | null) => boolean;
   var makeGroupPress: (deps: GroupPressDeps) => (group: GroupLike) => void;
   var askText: (message: string, value?: string) => Promise<string | null>;
+  var placeMenu: typeof import("./ui/menu_place").placeMenu;
+  var placeSubmenu: typeof import("./ui/menu_place").placeSubmenu;
 }

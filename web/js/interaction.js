@@ -1,7 +1,7 @@
 function startDrag(ev, d) {
   ev.preventDefault();
   if (pduMode) { pduClick(d); return; }
-  if (cableMode) { cableClick(d); return; }
+  if (cableMode) { cablePress(d); return; }
 
   // pointerdown+preventDefault suppresses the native dblclick, so detect it.
   const now = performance.now();
@@ -71,17 +71,36 @@ function startDrag(ev, d) {
   window.addEventListener('pointerup', onUp, { once: true });
 }
 
+/* Drag-to-connect: the universal node-editor gesture. A press in cable mode
+   anchors the cable (never moves the device); releasing over another device
+   completes the link exactly like a second click would. Releasing over empty
+   canvas keeps the pending end, so click-click wiring still works. */
+function cablePress(d) {
+  const wasPending = !!cableFrom;
+  cableClick(d);
+  if (wasPending) return;
+  const onUp = (e) => {
+    if (!cableFrom || cableFrom !== d.id) return;
+    const hit = workspaceCanvas.deviceAt(e);
+    if (!hit || hit.id === d.id) return;
+    const far = data.devices.find((x) => x.id === hit.id);
+    if (far) cableClick(far);
+  };
+  window.addEventListener('pointerup', onUp, { once: true });
+}
+
 async function cableClick(d) {
   if (!cableFrom) {
     cableFrom = d.id;
     setSelection([d.id]);
-    status(`Cable from ${d.name} — pick the far end`);
+    status(cableStatusText());
     updateCableChip();
     renderTopology();
     return;
   }
   if (cableFrom === d.id) {
     cableFrom = null;
+    status(cableStatusText());
     updateCableChip();
     renderTopology();
     return;
@@ -91,7 +110,10 @@ async function cableClick(d) {
   updateCableChip();
   const r = await api('/api/links', { a, b: d.id, kind: cableKind });
   if (r.error) showLinkToast(r.error);
-  else sfx('connect1');
+  else {
+    status(cableStatusText());
+    sfx('connect1');
+  }
 }
 
 async function pduClick(d) {

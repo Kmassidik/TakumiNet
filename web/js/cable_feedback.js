@@ -6,6 +6,15 @@ function cableLabel(kind) {
   return row ? row[1] : 'Cable';
 }
 
+/* One sentence for the whole cable state. The chip and the status bar both
+   show it, so they can never disagree about what the next click does. */
+function cableStatusText() {
+  const from = cableFrom && data ? data.devices.find((d) => d.id === cableFrom) : null;
+  return from
+    ? `${cableLabel(cableKind)} cable from ${from.name} — click the far end. Esc cancels.`
+    : `${cableLabel(cableKind)} cable — click two devices. Esc cancels.`;
+}
+
 function updateCableChip() {
   const chip = document.getElementById('cable-chip');
   if (!chip) return;
@@ -14,10 +23,7 @@ function updateCableChip() {
     chip.textContent = '';
     return;
   }
-  const from = cableFrom && data ? data.devices.find((d) => d.id === cableFrom) : null;
-  chip.textContent = from
-    ? `${cableLabel(cableKind)} cable from ${from.name} — click the far end. Esc cancels.`
-    : `${cableLabel(cableKind)} cable — click two devices. Esc cancels.`;
+  chip.textContent = cableStatusText();
   chip.hidden = false;
 }
 

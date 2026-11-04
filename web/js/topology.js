@@ -76,6 +76,11 @@ function wireWorkspaceCanvas() {
       if (device) showTip(ev, `${device.name} · ${device.model}`);
       else hideTip();
     },
+    onContextMenu: (hit, ev) => {
+      hideTip();
+      const device = hit.device ? data.devices.find((x) => x.id === hit.device.id) : null;
+      showContextMenu(device ? { device } : hit, ev);
+    },
   };
 }
 

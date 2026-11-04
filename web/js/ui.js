@@ -698,6 +698,7 @@
       canvas.addEventListener("pointermove", (ev) => this.onPointerMove(ev));
       canvas.addEventListener("pointerup", (ev) => this.onPointerUp(ev));
       canvas.addEventListener("wheel", (ev) => this.onWheel(ev), { passive: false });
+      canvas.addEventListener("contextmenu", (ev) => this.onContextMenu(ev));
       window.addEventListener("keydown", (ev) => {
         if (ev.code === "Space")
           this.spaceDown = true;
@@ -790,6 +791,11 @@
       if (enteringPhysical)
         this.fitRacks();
       this.requestDraw();
+    }
+    deviceAt(ev) {
+      if (this.state?.physical)
+        return null;
+      return hitDevice(this.scene, this.worldAt(ev));
     }
     worldAt(ev) {
       const rect = this.canvas.getBoundingClientRect();
@@ -924,6 +930,24 @@
       }
       this.startPan(ev);
       this.handlers.onBackgroundDown?.(ev);
+    }
+    onContextMenu(ev) {
+      ev.preventDefault();
+      if (!this.handlers.onContextMenu)
+        return;
+      if (this.state?.physical)
+        return this.handlers.onContextMenu({}, ev);
+      const world = this.worldAt(ev);
+      const group = hitGroup(this.scene, world);
+      if (group)
+        return this.handlers.onContextMenu({ group }, ev);
+      const device = hitDevice(this.scene, world);
+      if (device)
+        return this.handlers.onContextMenu({ device }, ev);
+      const link = hitLink(this.scene, world, LINK_TOLERANCE_PX / this.camera.zoom);
+      if (link)
+        return this.handlers.onContextMenu({ link }, ev);
+      this.handlers.onContextMenu({}, ev);
     }
     onPointerUp(ev) {
       if (this.marquee) {
@@ -2505,6 +2529,24 @@
     };
   }
 
+  // web/ts/ui/menu_place.ts
+  var MARGIN = 4;
+  var clamp = (value, low, high) => Math.min(Math.max(value, low), Math.max(low, high));
+  function placeMenu(at, menu, view) {
+    return {
+      x: clamp(at.x, MARGIN, view.w - menu.w - MARGIN),
+      y: clamp(at.y, MARGIN, view.h - menu.h - MARGIN)
+    };
+  }
+  function placeSubmenu(parent, menu, view) {
+    const right = parent.x + parent.w - 2;
+    const x = right + menu.w + MARGIN <= view.w ? right : parent.x - menu.w + 2;
+    return {
+      x: clamp(x, MARGIN, view.w - menu.w - MARGIN),
+      y: clamp(parent.y - MARGIN, MARGIN, view.h - menu.h - MARGIN)
+    };
+  }
+
   // web/ts/ui/flows_window.ts
   var enc4 = encodeURIComponent;
   function parseFlows(xml) {
@@ -2718,6 +2760,8 @@
     return true;
   };
   globalThis.makeGroupPress = makeGroupPress;
+  globalThis.placeMenu = placeMenu;
+  globalThis.placeSubmenu = placeSubmenu;
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
   } else {
