@@ -52,6 +52,32 @@ fn config_vocabulary_in_privileged_mode_hints_at_config_mode() {
 }
 
 #[test]
+fn bgp_vocabulary_hints_toward_router_mode() {
+    let mut ws = Workspace::new();
+    let mut s = Session::default();
+    run(&mut ws, "router0", &mut s, "enable");
+    run(&mut ws, "router0", &mut s, "configure terminal");
+    for line in ["neighbor 10.0.0.2 remote-as 65000", "deny 192.168.0.0/16", "no deny 192.168.0.0/16"] {
+        let out = run(&mut ws, "router0", &mut s, line);
+        assert_eq!(s.mode, Mode::Config, "{line} must not change the mode");
+        assert!(out.contains("% Invalid input detected"), "{line}: {out}");
+        assert!(out.contains("live in router mode"), "{line}: {out}");
+        assert!(out.contains("router bgp AS"), "{line}: {out}");
+        assert_eq!(out.matches("Takumi:").count(), 1, "{line}: {out}");
+    }
+
+    run(&mut ws, "router0", &mut s, "exit");
+    assert_eq!(s.mode, Mode::Priv);
+    let out = run(&mut ws, "router0", &mut s, "neighbor 10.0.0.2 remote-as 65000");
+    assert!(out.contains(CONFIG_HINT), "privileged mode points at config first: {out}");
+
+    run(&mut ws, "router0", &mut s, "configure terminal");
+    run(&mut ws, "router0", &mut s, "router bgp 65000");
+    let out = run(&mut ws, "router0", &mut s, "neighbor 10.0.0.2 remote-as 65001");
+    assert!(!out.contains("Takumi:"), "accepted in its own mode: {out}");
+}
+
+#[test]
 fn the_same_commands_work_hintless_in_their_own_mode() {
     let mut ws = Workspace::new();
     let mut s = Session::default();

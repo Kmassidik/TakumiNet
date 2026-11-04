@@ -179,11 +179,12 @@ test('the device window explains the model in one muted line under its title', (
 test('the device window shows only the tabs a kind earns', () => {
   const windowSource = fs.readFileSync(path.join(root, 'web/js/device_window.js'), 'utf8');
   const terminal = fs.readFileSync(path.join(root, 'web/js/terminal.js'), 'utf8');
-  const context = vm.createContext({ CONSOLE_KINDS: new Set(['router', 'switch', 'switch-l3', 'rtrw-gateway']) });
+  const context = vm.createContext({});
+  const consoleKinds = terminal.match(/const CONSOLE_KINDS = new Set\(\[[\s\S]*?\]\);/)[0];
   const kinds = windowSource.match(/const DESKTOP_KINDS[\s\S]*?\n/)[0]
     + windowSource.match(/const WIRELESS_KINDS[\s\S]*?\n/)[0];
   const fn = windowSource.match(/function deviceTabs[\s\S]*?\n}/)[0];
-  vm.runInContext(kinds + fn + '\nglobalThis.deviceTabsTest = deviceTabs;', context);
+  vm.runInContext(consoleKinds + kinds + fn + '\nglobalThis.deviceTabsTest = deviceTabs;', context);
   const tabs = context.deviceTabsTest;
   assert.deepStrictEqual([...tabs('pc')], ['physical', 'config', 'desktop']);
   assert.deepStrictEqual([...tabs('switch')], ['physical', 'config', 'cli']);
@@ -193,5 +194,8 @@ test('the device window shows only the tabs a kind earns', () => {
   for (const kind of ['homerouter', 'ap', 'wlc', 'hotspot-ap']) {
     assert.deepStrictEqual([...tabs(kind)], ['physical', 'config', 'wireless'], kind);
   }
-  assert.ok(terminal.includes("'switch-l3', 'rtrw-gateway'"), 'the console kinds carry the new gear');
+  for (const kind of ['asa', 'district-hub', 'city-exchange', 'regency-hub', 'village-pop',
+    'backbone-pop', 'internet-exchange', 'national-gateway']) {
+    assert.deepStrictEqual([...tabs(kind)], ['physical', 'config', 'cli'], kind);
+  }
 });

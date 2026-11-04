@@ -9,6 +9,8 @@ const INVALID: &str = "% Invalid input detected";
 const PRIV_HINT: &str = "Takumi: this command works in privileged mode. Type 'enable' first.\n";
 const CONFIG_HINT: &str =
     "Takumi: configuration commands live in config mode. Type 'configure terminal' first.\n";
+const ROUTER_HINT: &str =
+    "Takumi: neighbor, network and deny live in router mode. Type 'router bgp AS' (or 'router ospf PID') first.\n";
 
 /// Exact privileged-mode spellings, mirroring the match arms of
 /// `exec::privileged` that user mode does not also accept.
@@ -37,7 +39,8 @@ pub(super) fn append(ws: &Workspace, id: &str, mode: Mode, lower: &str, out: Str
     }
     let hint = match mode {
         Mode::User if works_in_priv(ws, id, lower) => PRIV_HINT,
-        Mode::Priv if is_config_vocabulary(lower) => CONFIG_HINT,
+        Mode::Priv if is_config_vocabulary(lower) || is_router_vocabulary(lower) => CONFIG_HINT,
+        Mode::Config if is_router_vocabulary(lower) => ROUTER_HINT,
         _ => return out,
     };
     format!("{out}{hint}")
@@ -81,4 +84,12 @@ fn is_config_vocabulary(lower: &str) -> bool {
         .any(|p| rest.starts_with(p));
     }
     config::vocabulary(lower)
+}
+
+/// Does the line open with router-mode vocabulary (the BGP commands and the
+/// shared `network` statement)? Mirrors the dispatch in `config_bgp::bgp_mode`
+/// and `router::router_mode`.
+fn is_router_vocabulary(lower: &str) -> bool {
+    let rest = lower.strip_prefix("no ").unwrap_or(lower).trim_start();
+    ["neighbor ", "network ", "deny "].iter().any(|p| rest.starts_with(p))
 }

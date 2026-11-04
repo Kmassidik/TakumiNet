@@ -26,9 +26,9 @@
 <bgpnet dev="isp1" net="192.168.76.0" prefix="24"/>
 <lesson id="les-l7-04-city-exchange" title="Two providers, one exchange" level="7" minutes="15" goal="Traffic between the two providers' districts flows through CityCentral"/>
 <step n="1" text="Two providers each serve a district of the same city. ProviderDawn already peers with CityCentral and announces its district. Ping CustomerDusk from CustomerDawn and read the failure: the exchange has no route to the other district yet." check="c1"/>
-<step n="2" text="On ProviderDusk set the local autonomous system to 64702."/>
-<step n="3" text="Add the neighbor 10.70.8.5 in autonomous system 64700. The session to CityCentral comes up." check="c2"/>
-<step n="4" text="Announce the district network 192.168.77.0/24. CityCentral learns it, and traffic between the two providers now stays inside the city." check="c3"/>
+<step n="2" text="On ProviderDusk open the CLI and start BGP: router bgp 64702."/>
+<step n="3" text="Name the exchange: neighbor 10.70.8.5 remote-as 64700. The session to CityCentral comes up." check="c2"/>
+<step n="4" text="Announce the district: network 192.168.77.0 mask 255.255.255.0. CityCentral learns it, and traffic between the two providers now stays inside the city." check="c3"/>
 <step n="5" text="Ping CustomerDusk from CustomerDawn again. The packet crosses the exchange, never a far-away transit." check="c4"/>
 <check id="c1" kind="bgp" from="isp1" to="10.70.8.1" url="" expect="established" label="ProviderDawn holds its session at the exchange"/>
 <check id="c2" kind="bgp" from="isp2" to="10.70.8.5" url="" expect="established" label="ProviderDusk holds its session at the exchange"/>

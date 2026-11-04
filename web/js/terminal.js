@@ -1,5 +1,9 @@
 /* ---------------- terminal (console into routers and switches) ---------------- */
-const CONSOLE_KINDS = new Set(['router', 'switch', 'switch-l3', 'rtrw-gateway']);
+const CONSOLE_KINDS = new Set([
+  'router', 'switch', 'switch-l3', 'rtrw-gateway', 'asa',
+  'district-hub', 'city-exchange', 'regency-hub', 'village-pop',
+  'backbone-pop', 'internet-exchange', 'national-gateway',
+]);
 
 let termDevice = null;
 /* Router/switch id the session is bound to; differs from termDevice when the

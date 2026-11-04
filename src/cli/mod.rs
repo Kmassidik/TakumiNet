@@ -7,6 +7,7 @@ use crate::model::{ipv4_string, mask_of, parse_ipv4, parse_mask};
 use crate::workspace::{Device, Workspace};
 
 mod config;
+mod config_bgp;
 mod exec;
 mod help;
 mod hints;
@@ -170,6 +171,9 @@ mod tests;
 
 #[cfg(test)]
 mod tests_complete;
+
+#[cfg(test)]
+mod tests_bgp;
 
 #[cfg(test)]
 mod tests_hints;

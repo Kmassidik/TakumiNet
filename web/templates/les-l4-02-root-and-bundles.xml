@@ -15,8 +15,8 @@
   <stppriority dev="a2" vlan="1" priority="4096"/>
   <lesson id="les-l4-02-root-and-bundles" title="Put the root where it belongs" level="4" minutes="15" goal="CoreLeft is the spanning tree root and the two core cables act as one bundle"/>
   <step n="1" text="Look at the spanning tree: today the root is AccessRight, a floor switch. Traffic between the cores takes a detour."/>
-  <step n="2" text="Give CoreLeft spanning tree priority 0. It must win the election." check="c1"/>
-  <step n="3" text="Bundle the two cables between CoreLeft and CoreRight: channel group 1 on Fa0/23 and Fa0/24 of both." check="c2"/>
+  <step n="2" text="Give CoreLeft the winning priority: spanning-tree vlan 1 priority 0. It must win the election." check="c1"/>
+  <step n="3" text="Bundle the two cables between CoreLeft and CoreRight: on both switches enter interface FastEthernet0/23, type channel-group 1 mode on, and repeat on FastEthernet0/24." check="c2"/>
   <step n="4" text="Think about one core cable breaking. The pings must keep working." check="c3"/>
   <check id="c1" kind="config" from="c1" to="stp-root" url="" expect="CoreLeft" label="CoreLeft is the root"/>
   <check id="c2" kind="config" from="c1" to="channel:1" url="" expect="up" label="The core bundle is up"/>

@@ -8,7 +8,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("ips signature ") || l.starts_with("no ips signature "), ips_signature),
     (|l| l.starts_with("spanning-tree mode "), spanning_tree_mode),
     (|l| l.starts_with("spanning-tree vlan "), spanning_tree_priority),
-    (|l| l.starts_with("router "), router_protocol),
+    (|l| l.starts_with("router "), config_bgp::router_protocol),
     (|l| l.starts_with("ip nat inside source list "), nat_source_list),
     (|l| l.starts_with("no ip nat inside source"), nat_clear),
     (|l| l.starts_with("access-list "), access_list),
@@ -89,43 +89,6 @@ fn spanning_tree_priority(ws: &mut Workspace, id: &str, _s: &mut Session, line: 
     };
     match ws.set_stp_priority(id, parsed.0, parsed.1) {
         Ok(()) => String::new(),
-        Err(e) => format!("% {e}\n"),
-    }
-}
-
-fn router_protocol(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, _lower: &str) -> String {
-    let rest = &line["router ".len()..];
-    let mut words = rest.split_whitespace();
-    let (Some(proto), pid) = (words.next(), words.next()) else {
-        return "% Incomplete command.\n".into();
-    };
-    let proto = proto.to_ascii_lowercase();
-    if !matches!(proto.as_str(), "rip" | "ospf" | "eigrp" | "ospfv3") {
-        return format!("% Invalid routing protocol: {proto}\n");
-    }
-    let process_id = if proto == "rip" {
-        if pid.is_some() {
-            return invalid(line, Mode::Config);
-        }
-        0
-    } else {
-        let Some(pid) = pid else {
-            return "% Incomplete command.\n".into();
-        };
-        match pid.parse::<u32>() {
-            Ok(pid) => pid,
-            Err(_) => return format!("% Invalid process id: {pid}\n"),
-        }
-    };
-    if words.next().is_some() {
-        return invalid(line, Mode::Config);
-    }
-    match ws.set_routing_protocol(id, &proto, process_id) {
-        Ok(()) => {
-            s.mode = Mode::Router;
-            s.router = Some(proto);
-            String::new()
-        }
         Err(e) => format!("% {e}\n"),
     }
 }

@@ -28,8 +28,8 @@
   <net id="printer0" gw="192.168.30.1" dns=""/>
   <page id="server0" body="Shared files"/>
   <lesson id="les-l3-02-inter-vlan" title="Let the VLANs talk through the router" level="3" minutes="12" goal="Desk0 reaches FileServer and the printer through one router cable"/>
-  <step n="1" text="On OfficeRouter create a subinterface for each VLAN on GigabitEthernet0/0: .10, .20 and .30, each with its VLAN number."/>
-  <step n="2" text="Give the subinterfaces 192.168.10.1, 192.168.20.1 and 192.168.30.1, all with mask 255.255.255.0." check="c1"/>
+  <step n="1" text="On OfficeRouter create a subinterface for each VLAN: interface GigabitEthernet0/0.10 followed by encapsulation dot1Q 10, then the same for .20 with VLAN 20 and .30 with VLAN 30."/>
+  <step n="2" text="Address each one: ip address 192.168.10.1 255.255.255.0 on .10, ip address 192.168.20.1 255.255.255.0 on .20 and ip address 192.168.30.1 255.255.255.0 on .30." check="c1"/>
   <step n="3" text="Ping FileServer from Desk0." check="c3"/>
   <step n="4" text="Ping the printer from Desk0." check="c4"/>
   <check id="c1" kind="route" from="router0" to="" url="" expect="192.168.10.0/24" label="The router knows the staff network"/>

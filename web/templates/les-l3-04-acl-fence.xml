@@ -32,8 +32,8 @@
   <page id="server0" body="Shared files"/>
   <lesson id="les-l3-04-acl-fence" title="Fence the printer off from the servers" level="3" minutes="12" goal="The printer VLAN cannot reach the servers, and everyone else still can"/>
   <step n="1" text="Ping FileServer from Printer0. It works today, and it should not."/>
-  <step n="2" text="On OfficeRouter make access list 100: deny from 192.168.30.0 to 192.168.20.0 (wildcard 0.0.0.255), then permit everything else."/>
-  <step n="3" text="Apply list 100 inbound on subinterface GigabitEthernet0/0.30." check="c1"/>
+  <step n="2" text="On OfficeRouter make access list 100: access-list 100 deny ip 192.168.30.0 0.0.0.255 192.168.20.0 0.0.0.255, then access-list 100 permit ip any any."/>
+  <step n="3" text="Apply it where printer traffic enters: interface GigabitEthernet0/0.30, then ip access-group 100 in." check="c1"/>
   <step n="4" text="Ping FileServer from Desk0. Staff must still get through." check="c2"/>
   <check id="c1" kind="noreach" from="printer0" to="server0" url="" expect="" label="The printer cannot reach FileServer"/>
   <check id="c2" kind="ping" from="pc0" to="server0" url="" expect="ok" label="Desk0 still reaches FileServer"/>

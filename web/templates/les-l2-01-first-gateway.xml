@@ -34,7 +34,7 @@
   <lesson id="les-l2-01-first-gateway" title="Bring the neighbourhood online" level="2" minutes="15" goal="A laptop in a home opens an outside page through the gateway"/>
   <step n="1" text="The provider gave you 203.0.113.2. On GatewayRTRW give Ether1, the upstream port, that address with mask 255.255.255.0." check="c1"/>
   <step n="2" text="The homes use 10.10.0.0/24 on Ether2. That side is already addressed; check it in the port list."/>
-  <step n="3" text="Make the homes share the public address: permit 10.10.0.0/24 in list 1, mark Ether2 inside and Ether1 outside, and add the masquerade rule on Ether1." check="c2"/>
+  <step n="3" text="Make the homes share the public address. In the CLI of GatewayRTRW: access-list 1 permit 10.10.0.0 0.0.0.255, then ip nat inside on interface Ether2, ip nat outside on interface Ether1, and finally ip nat inside source list 1 interface Ether1 overload." check="c2"/>
   <step n="4" text="Open http://www.example.lab/ from Laptop0." check="c3"/>
   <check id="c1" kind="config" from="gw0" to="port:Ether1" url="" expect="203.0.113.2" label="The upstream port has the provider's address"/>
   <check id="c2" kind="config" from="gw0" to="masquerade" url="" expect="Ether1" label="Customers are translated on the upstream"/>

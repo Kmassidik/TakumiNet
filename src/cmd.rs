@@ -367,7 +367,7 @@ fn netstat(ws: &Workspace, id: &str) -> String {
     )
 }
 
-/// `telnet HOST` — a reachable router or switch hands back a CLI session.
+/// `telnet HOST` — any reachable device with a console hands back a CLI session.
 pub fn telnet(ws: &mut Workspace, id: &str, target: &str) -> (String, Option<String>) {
     let fail = |t: &str| {
         (
@@ -386,7 +386,7 @@ pub fn telnet(ws: &mut Workspace, id: &str, target: &str) -> (String, Option<Str
     else {
         return fail(target);
     };
-    if !matches!(dst.1.as_str(), "router" | "switch" | "rtrw-gateway" | "switch-l3") {
+    if !crate::model::has_console(dst.1.as_str()) {
         return fail(target);
     }
     match ws.send_pdu(id, &dst.0) {

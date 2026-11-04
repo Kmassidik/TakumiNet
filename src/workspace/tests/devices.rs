@@ -121,6 +121,26 @@ fn console_cable_joins_only_a_host_to_a_network_device() {
 }
 
 #[test]
+fn console_cable_reaches_every_routing_kind_and_nothing_less() {
+    let mut ws = Workspace::empty();
+    let laptop = ws.add("Laptop", 80.0, 80.0).unwrap();
+    let pop = ws.add("Backbone POP", 240.0, 80.0).unwrap();
+    ws.link_kind(&laptop, &pop, "eConsole").unwrap();
+    assert_eq!(ws.console_peer(&laptop), Some(pop.as_str()));
+
+    let pc = ws.add("PC", 80.0, 240.0).unwrap();
+    let hub = ws.add("Village POP", 240.0, 240.0).unwrap();
+    ws.link_kind(&hub, &pc, "eConsole").unwrap();
+    assert_eq!(ws.console_peer(&pc), Some(hub.as_str()));
+
+    // a printer answers no console, so the cable is refused outright
+    let pc2 = ws.add("PC", 80.0, 400.0).unwrap();
+    let printer = ws.add("Printer", 240.0, 400.0).unwrap();
+    let err = ws.link_kind(&pc2, &printer, "eConsole").unwrap_err();
+    assert!(err.contains("console cable joins a PC"), "{err}");
+}
+
+#[test]
 fn cables_only_join_devices_that_support_them() {
     let mut ws = Workspace::empty();
     let r1 = ws.add("2911", 200.0, 100.0).unwrap();

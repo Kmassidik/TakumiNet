@@ -144,6 +144,40 @@ pub(super) fn stp_table(ws: &Workspace, id: &str) -> String {
     out
 }
 
+/// `show ip bgp`: the local AS, every session, and what is announced and
+/// denied. Rendered from the same state `recompute_bgp` reads.
+pub(super) fn bgp_table(ws: &Workspace, id: &str) -> String {
+    let Some(config) = ws.bgp.get(id) else {
+        return "% BGP is not configured\n".into();
+    };
+    let mut out = format!("BGP local autonomous system {}\n", config.local_as);
+    let sessions = ws.bgp_sessions(id);
+    if sessions.is_empty() {
+        out.push_str("No neighbors configured\n");
+    } else {
+        out.push_str("Neighbor         Remote-AS   State\n");
+        for (peer, remote_as, state) in &sessions {
+            out.push_str(&format!("{peer:<16} {remote_as:<11} {state}\n"));
+        }
+    }
+    out.push_str("Announced networks:\n");
+    let networks = ws.bgp_networks(id);
+    if networks.is_empty() {
+        out.push_str("  none\n");
+    }
+    for (net, prefix) in networks {
+        out.push_str(&format!("  {}/{}\n", ipv4_string(net), prefix));
+    }
+    let denied = ws.bgp_denied(id);
+    if !denied.is_empty() {
+        out.push_str("Denied prefixes (bgp deny):\n");
+        for (net, prefix) in denied {
+            out.push_str(&format!("  {}/{}\n", ipv4_string(net), prefix));
+        }
+    }
+    out
+}
+
 /// `show ip nat translations`: the observed inside-local -> global pairs.
 pub(super) fn nat_table(ws: &Workspace, id: &str) -> String {
     let rules = ws.nat_binding_lines(id);
