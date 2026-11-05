@@ -52,19 +52,18 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         None => "null".to_string(),
                     };
                     format!(
-                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{}{}}}",
+                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{}}}",
                         json_str(&p.name),
                         ip,
                         p.prefix,
                         p.up,
                         peer,
-                        link_fields(&ws, &id, &p.name),
-                        collisions
+                        link_fields(&ws, &id, &p.name)
                     )
                 })
                 .collect::<Vec<_>>()
                 .join(",");
-            (json, format!("{{\"ports\":[{ports}]}}").into_bytes())
+            (json, format!("{{\"ports\":[{ports}]{collisions}}}").into_bytes())
         }
     }
 }

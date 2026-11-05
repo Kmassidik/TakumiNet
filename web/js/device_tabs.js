@@ -157,6 +157,12 @@ function portsFieldset(box, d) {
       holder.appendChild(empty);
       return;
     }
+    if (typeof res.collisions === 'number') {
+      const count = document.createElement('p');
+      count.className = 'meta port-collisions';
+      count.textContent = `Collisions: ${res.collisions}`;
+      holder.appendChild(count);
+    }
     await Promise.all(res.ports.map(async (port) => {
       if (!port.peer) return;
       const poe = await getJson(`/api/devices/poe?id=${encodeURIComponent(port.peer.id)}`);
