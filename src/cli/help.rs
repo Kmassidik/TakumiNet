@@ -7,6 +7,7 @@ pub(super) const SHOW_COMMANDS: &[(&str, &str)] = &[
     ("show ip bgp", "BGP sessions, announced and denied prefixes"),
     ("show ip interface brief", "Interface summary"),
     ("show ip route", "Routing table"),
+    ("show lldp neighbors", "Neighbours seen over IEEE 802.1AB LLDP"),
     ("show mac address-table", "MAC address table"),
     ("show running-config", "Current configuration"),
     ("show startup-config", "Saved configuration"),

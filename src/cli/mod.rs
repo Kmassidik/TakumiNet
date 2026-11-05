@@ -177,3 +177,6 @@ mod tests_bgp;
 
 #[cfg(test)]
 mod tests_hints;
+
+#[cfg(test)]
+mod tests_lldp;

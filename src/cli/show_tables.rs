@@ -332,3 +332,38 @@ pub(super) fn helper_list(ws: &Workspace, id: &str) -> String {
     }
     out
 }
+
+/// `show lldp neighbors`: IEEE 802.1AB. Every live cable whose far end is a
+/// device that speaks LLDP shows up with its name, port and capability.
+pub(super) fn lldp_neighbors(ws: &Workspace, id: &str) -> String {
+    let Some(dev) = ws.devices.iter().find(|d| d.id == id) else {
+        return String::new();
+    };
+    let mut rows = String::new();
+    let mut count = 0;
+    for port in &dev.ports {
+        if !ws.port_state(id, &port.name).line_up {
+            continue;
+        }
+        let Some((peer_id, peer_port)) = ws.peer_port(id, &port.name) else { continue };
+        let Some(peer) = ws.devices.iter().find(|d| d.id == peer_id) else { continue };
+        let code = match peer.kind.as_str() {
+            "hub" | "patchpanel" | "cloud" => continue,
+            "router" | "asa" | "switch-l3" | "rtrw-gateway" | "homerouter" => "R",
+            "switch" => "B",
+            "ap" | "wlc" | "hotspot-ap" => "W",
+            "phone" | "analogphone" => "T",
+            "pc" | "laptop" | "server" | "printer" | "tv" | "tablet" => "S",
+            _ => "O",
+        };
+        rows.push_str(&format!("{:<17}{:<15}{:<17}{}\n", peer.name, port.name, peer_port, code));
+        count += 1;
+    }
+    if count == 0 {
+        return "% no LLDP neighbors\n".into();
+    }
+    format!(
+        "Capability codes:\n    (R) Router, (B) Bridge, (T) Telephone, (W) WLAN access point, (S) Station, (O) Other\n\n{:<17}{:<15}{:<17}Capability\n{rows}\nTotal entries displayed: {count}\n",
+        "Device ID", "Local Intf", "Port ID"
+    )
+}

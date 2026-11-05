@@ -55,7 +55,7 @@ function openBrowser(d) {
   url.focus();
 }
 
-/* ---------------- text editor ---------------- */
+/* ---------------- notes ---------------- */
 /* Notes are per device and live in this browser only: the key is exactly
    `pt-web:editor:<device id>`, written on Save and read again on open. */
 function editorKey(id) { return `pt-web:editor:${id}`; }
@@ -64,7 +64,7 @@ function openEditor(d) {
   const win = document.getElementById('editor-dialog');
   const area = document.getElementById('editor-text');
   const note = document.getElementById('editor-status');
-  document.getElementById('editor-title').textContent = `Text Editor — ${d.name}`;
+  document.getElementById('editor-title').textContent = `Notes — ${d.name}`;
 
   let saved = '';
   try { saved = localStorage.getItem(editorKey(d.id)) || ''; } catch { /* storage blocked */ }

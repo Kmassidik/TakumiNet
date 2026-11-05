@@ -38,6 +38,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
         }
         "etherchannel summary" => etherchannel_summary(ws, id),
         "interfaces trunk" => trunk_table(ws, id),
+        "lldp neighbors" | "lldp neighbor" | "lldp" => lldp_neighbors(ws, id),
         other => {
             if let Some(arg) = other.strip_prefix("interfaces ") {
                 return show_interfaces(ws, id, arg.trim());
