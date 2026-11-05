@@ -25,6 +25,8 @@ export interface PortInfo {
   poe?: { capable: boolean; on: boolean; powered: boolean; watts: number; reason: string };
   /* Set when the port was shut by a guard; the text is the switch's reason. */
   errdisabled?: string;
+  /* CRC/input errors counted on this port. */
+  errors?: number;
 }
 
 /* One /api/devices/ports payload, parsed; an error payload throws. */
@@ -48,6 +50,7 @@ export function parsePortsInfo(text: string): PortInfo[] {
       link: asText(p["link"]),
       fault: asText(p["fault"]),
       errdisabled: asText(p["errdisabled"]) || undefined,
+      errors: Number(p["errors"]) || 0,
       poe: poeRaw
         ? {
             capable: poeRaw["capable"] === true,
@@ -148,6 +151,7 @@ function portRow(doc: DocLike, port: PortInfo, deps: PortsPanelDeps): ElementLik
   if (post && port.eth) linkControls(doc, row, port, deps, post);
   const poe = poeText(port);
   if (poe) row.appendChild(el(doc, "span", "port-poe", poe));
+  if (port.errors) row.appendChild(el(doc, "span", "port-errors", `${port.errors} input errors`));
   if (post) {
     row.appendChild(
       createButton(doc, {

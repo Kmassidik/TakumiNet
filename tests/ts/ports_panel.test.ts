@@ -191,3 +191,27 @@ test("an err-disabled port shows the guard reason as its fault", () => {
   renderPortsPanel(doc, box, parsePortsInfo(payload), { deviceId: "sw0", post: async () => ({}) });
   expect(allText(box)).toContain("errdisabled: BPDU guard: a switch is on this access port");
 });
+
+test("a port with input errors shows the count", () => {
+  const payload = JSON.stringify({
+    ports: [
+      {
+        name: "FastEthernet0/1",
+        ip: null,
+        prefix: 0,
+        up: true,
+        peer: { id: "pc0", name: "PC0", port: "FastEthernet0" },
+        eth: true,
+        speed: "auto",
+        duplex: "auto",
+        link: "100 Mb/s, half duplex",
+        fault: "duplex",
+        errors: 3,
+      },
+    ],
+  });
+  const doc = new FakeDocument();
+  const box = new FakeElement("div");
+  renderPortsPanel(doc, box, parsePortsInfo(payload), { deviceId: "sw0" });
+  expect(allText(box)).toContain("3 input errors");
+});

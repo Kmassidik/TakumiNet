@@ -38,6 +38,7 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         .errdisabled_reason(&id, &p.name)
                         .map(json_str)
                         .unwrap_or_else(|| "null".to_string());
+                    let errors = ws.crc_errors_for(&id, &p.name);
                     let peer = match ws.peer_port(&id, &p.name) {
                         Some((peer_id, peer_port)) => {
                             let peer_name = ws
@@ -56,14 +57,15 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         None => "null".to_string(),
                     };
                     format!(
-                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{},\"errdisabled\":{}}}",
+                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{},\"errdisabled\":{},\"errors\":{}}}",
                         json_str(&p.name),
                         ip,
                         p.prefix,
                         p.up,
                         peer,
                         link_fields(&ws, &id, &p.name),
-                        err
+                        err,
+                        errors
                     )
                 })
                 .collect::<Vec<_>>()

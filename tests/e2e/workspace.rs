@@ -467,30 +467,3 @@ fn e2e_poe_status_and_switch_over_http() {
     assert!(body.contains("no such device"), "{body}");
 }
 
-#[test]
-fn e2e_wireless_route_reports_channel_bands_and_overlaps() {
-    let s = spawn(38_283);
-    s.post("/api/reset");
-    s.post("/api/devices?model=Access%20Point&x=100&y=100");
-    s.post("/api/devices?model=Access%20Point&x=400&y=100");
-    s.post("/api/devices/wireless?id=ap0&channel=1&band=2.4");
-    s.post("/api/devices/wireless?id=ap1&channel=3&band=2.4");
-    let (status, _, body) = s.get("/api/devices/wireless");
-    assert_eq!(status, 200, "{body}");
-    assert!(body.contains("\"channel\":1"), "{body}");
-    assert!(body.contains("\"band\":\"2.4\""), "{body}");
-    assert!(body.contains("\"overlaps_with\""), "{body}");
-    s.post("/api/devices/wireless?id=ap1&channel=6&band=2.4");
-    let (_, _, body) = s.get("/api/devices/wireless");
-    assert!(!body.contains("\"overlaps_with\":[\"AccessPoint0\"]"), "{body}");
-}
-
-#[test]
-fn e2e_hub_ports_expose_the_collision_counter() {
-    let s = spawn(38_284);
-    s.post("/api/reset");
-    s.post("/api/devices?model=Hub&x=100&y=100");
-    let (status, _, body) = s.get("/api/devices/ports?id=hub0");
-    assert_eq!(status, 200, "{body}");
-    assert!(body.contains("\"collisions\":0"), "{body}");
-}

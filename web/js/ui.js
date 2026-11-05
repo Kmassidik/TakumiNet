@@ -2455,6 +2455,7 @@
         link: asText(p["link"]),
         fault: asText(p["fault"]),
         errdisabled: asText(p["errdisabled"]) || undefined,
+        errors: Number(p["errors"]) || 0,
         poe: poeRaw ? {
           capable: poeRaw["capable"] === true,
           on: poeRaw["on"] === true,
@@ -2549,6 +2550,8 @@
     const poe = poeText(port);
     if (poe)
       row.appendChild(el(doc, "span", "port-poe", poe));
+    if (port.errors)
+      row.appendChild(el(doc, "span", "port-errors", `${port.errors} input errors`));
     if (post) {
       row.appendChild(createButton(doc, {
         label: port.up ? "Shut down" : "Bring up",

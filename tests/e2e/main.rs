@@ -6,6 +6,7 @@ mod pages;
 mod services;
 mod workspace;
 mod duplex;
+mod round2;
 
 use std::io::{Read, Write};
 use std::net::TcpStream;
