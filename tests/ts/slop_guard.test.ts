@@ -6,6 +6,7 @@ import { join } from "node:path";
    protects. They read the shipped files, so they cannot drift from the app. */
 
 const web = join(import.meta.dir, "../../web");
+const root = join(web, "..");
 const index = readFileSync(join(web, "index.html"), "utf8");
 const jsDir = join(web, "js");
 const sources = readdirSync(jsDir)
@@ -95,6 +96,16 @@ test("files: .xml is the file type; .tnet appears only where old files are read"
   expect(templates.length).toBe(108);
   expect(templates.every((n) => n.endsWith(".xml"))).toBe(true);
   expect(readFileSync(join(web, "sw.js"), "utf8")).not.toContain(".tnet");
+});
+
+test("README counts match the template directory", () => {
+  const dir = join(web, "templates");
+  const files = readdirSync(dir).filter((n) => n.endsWith(".xml"));
+  const examples = files.filter((n) => n.startsWith("tpl-")).length;
+  const lessons = files.length - examples;
+  const readme = readFileSync(join(root, "README.md"), "utf8");
+  expect(readme).toContain(`all ${files.length} templates`);
+  expect(readme).toContain(`${lessons} guided lessons and ${examples} ready-to-run`);
 });
 
 test("templates: every example template carries built-in traffic, lessons carry none", () => {

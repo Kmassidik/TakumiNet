@@ -57,7 +57,10 @@ uses attributes only; there is no significant text content in native records.
 | `check` | `id kind from to url expect label` | Live lesson assertion and its displayed label |
 
 Supported lesson-check kinds are `ping`, `ttl`, `mac-table`, `lease`, `http`,
-`arp`, `nslookup`, and `route`. Cable kinds are `eCopper`, `eCross`, `eConsole`,
+`arp`, `nslookup`, `route`, `noreach`, `config`, `pool`, `vlan`, `count`,
+`login`, `outage`, `wifi`, `nat`, `session`, `limit`, `load`, `latency`, `log`,
+`bgp`, `capture`, `iot`, `cell`, `call`, `duplex`, `lldp`, `blocked-http`,
+`overlap`, `absent`, `errdisabled`, and `gateway`. Cable kinds are `eCopper`, `eCross`, `eConsole`,
 `eFiber`, `ePhone`, `eCoax`, `eSerial`, and `eIoT`, subject to the selected
 device ports.
 

@@ -15,7 +15,7 @@ docker run --rm --name pt-web -p 3000:3000 takumi
 
 Open **http://127.0.0.1:3000** for the landing page, or **http://127.0.0.1:3000/workspace** to go straight to the workspace. Stop the container with `docker rm -f pt-web`.
 The image contains the native static/development server, the complete web app,
-all five templates, original assets, and the committed WebAssembly engine. It
+all 108 templates, original assets, and the committed WebAssembly engine. It
 needs no runtime package installation or external asset service.
 
 For native development instead:
@@ -29,7 +29,7 @@ The server listens on `127.0.0.1:3000` by default. Set `HOST`, `PORT`, or
 
 ## Start a lab or build a network
 
-The opening gallery includes five guided lessons and five ready-to-run example templates, all `.xml` files:
+The opening gallery holds 73 guided lessons and 35 ready-to-run example networks, all `.xml` files. The five starter lessons are:
 
 | Template | Lab |
 | --- | --- |
@@ -43,6 +43,22 @@ Choose a card to load its topology and steps. **Check my work** runs the actual
 lesson checks against the live simulation. You can also close the gallery and
 start from a blank workspace: place devices, choose cable types, open a device's
 Physical/Config/Desktop/Services views, and use its terminal or desktop apps.
+
+### What is simulated
+
+- Ethernet switching with VLANs and trunks, STP, EtherChannel and LLDP.
+- Speed and duplex negotiation, including a mismatch that drops frames and counts errors.
+- PoE budget and denial on switches, plus hub CSMA/CD collisions.
+- IPv4 routing (static, OSPF, EIGRP, BGP, RIP), NAT, ACLs, DHCP, DNS, NTP, HTTP and mail.
+- A host firewall (`ufw`) in the terminal, IPv4 and same-segment IPv6 echo; DHCP snooping, ARP inspection and duplicate-address warnings.
+- VRRP virtual gateways (owner election only), Wi-Fi channels and 2.4 GHz overlap warnings.
+- Port mirroring (Cisco-style SPAN) into the Sniffer, and replacing a device in place.
+- A terminal with `help`, `--help`, history and `clear`; Play, Step and the Capture dock.
+
+Not simulated: real 802.1X exchanges, IPv6 routing/NDP, VRRP timers and
+authentication, ARP-table forwarding, Wi-Fi signal strength or roaming, and
+vendor names from MAC addresses. Names of Cisco and IETF features are used
+plainly; nothing here claims IEEE or Cisco certification.
 
 Realtime and Simulation modes share the same protocol engine. The Capture dock
 shows packet rows, decoded fields, and wire bytes; Flow draws a hop-by-hop
