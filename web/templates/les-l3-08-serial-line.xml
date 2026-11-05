@@ -9,7 +9,7 @@
   <port id="router1" name="GigabitEthernet0/0" up="1" ip="192.168.2.1" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
   <net id="pc0" gw="192.168.1.1" dns=""/>
   <net id="pc1" gw="192.168.2.1" dns=""/>
-  <lesson id="les-l3-07-serial-line" title="A serial line between offices" level="3" minutes="15" goal="DeskA reaches DeskB over a /30 serial line and a static route each way"/>
+  <lesson id="les-l3-08-serial-line" title="A serial line between offices" level="3" minutes="15" goal="DeskA reaches DeskB over a /30 serial line and a static route each way"/>
   <step n="1" text="Ping DeskB (192.168.2.10) from DeskA and read why it fails: nothing joins the two offices."/>
   <step n="2" text="Run a serial cable between OfficeA and OfficeB. It lands on Serial0/0/0 at both ends."/>
   <step n="3" text="The line gets the /30 network 10.0.0.0/30, which holds exactly two addresses. Give Serial0/0/0 the address 10.0.0.1/30 on OfficeA and 10.0.0.2/30 on OfficeB."/>
