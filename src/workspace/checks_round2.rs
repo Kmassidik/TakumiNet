@@ -14,6 +14,7 @@ impl Workspace {
             "overlap" => self.check_overlap(check),
             "absent" => self.check_absent(check),
             "errdisabled" => self.check_errdisabled(check),
+            "gateway" => self.check_gateway(check),
             _ => return None,
         })
     }
@@ -56,6 +57,28 @@ impl Workspace {
         match crate::webapp::fetch(self, &check.from, &check.url) {
             Ok(page) => (false, format!("page still loaded: {}", page.title), hint),
             Err(error) => (true, format!("blocked: {error}"), hint),
+        }
+    }
+
+    /// `from` device: its default gateway must equal the address in `expect`.
+    fn check_gateway(&self, check: &Check) -> Verdict {
+        let hint = "Renew the lease after fixing the DHCP path; the gateway shown by ipconfig must be the real router.".to_string();
+        let want = crate::model::parse_ipv4(&check.expect);
+        let Some(dev) = self.devices.iter().find(|d| d.id == check.from) else {
+            return (false, format!("unknown device {}", check.from), "Fix the lesson device reference.".into());
+        };
+        match (dev.gateway, want) {
+            (Some(got), Some(want)) if got == want => (
+                true,
+                format!("gateway {}", crate::model::ipv4_string(got)),
+                hint,
+            ),
+            (Some(got), _) => (
+                false,
+                format!("wrong gateway {} (wanted {})", crate::model::ipv4_string(got), check.expect),
+                hint,
+            ),
+            (None, _) => (false, "no gateway yet; renew the lease".into(), hint),
         }
     }
 

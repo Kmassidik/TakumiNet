@@ -27,6 +27,9 @@ pub(super) fn resolve_arp(
     })?;
     let target_id = data_path.devices[target_idx].clone();
     let target = find(ws, &target_id).ok()?.clone();
+    if !ws.arp_reply_allowed(&target.id, target_ip) {
+        return None;
+    }
     let request_path = DataPath {
         devices: data_path.devices[..=target_idx].to_vec(),
         links: data_path.links[..target_idx].to_vec(),

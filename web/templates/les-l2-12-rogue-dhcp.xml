@@ -1,15 +1,19 @@
 <takumi version="1">
-  <device id="switch0" kind="switch" model="Switch 24" x="420" y="140" name="Closet" ip="" prefix="24"/>
-  <device id="server0" kind="server" model="Server" x="700" y="140" name="DhcpServer" ip="10.50.0.2" prefix="24"/>
-  <device id="pc0" kind="pc" model="PC" x="240" y="320" name="DeskPC" ip="" prefix="24"/>
-  <link a="switch0" a_port="Fa0/1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="260" y="120" name="Closet" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="Switch 24" x="620" y="120" name="ServerCloset" ip="" prefix="24"/>
+  <device id="router0" kind="router" model="Router 300" x="120" y="320" name="RogueRouter" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="780" y="320" name="DhcpServer" ip="10.50.0.2" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="280" y="420" name="DeskPC" ip="" prefix="24"/>
+  <link a="switch0" a_port="Fa0/1" b="router0" b_port="Gig0/0" kind="eCopper"/>
   <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch1" a_port="Fa0/2" b="server0" b_port="Fa0" kind="eCopper"/>
   <pool id="server0" network="10.50.0.0" prefix="24" gw="10.50.0.1" dns=""/>
-  <dhcpsnoop dev="switch0"/>
-  <lesson id="les-l2-12-rogue-dhcp" title="Trust the DHCP uplink" level="2" minutes="10" goal="A rogue server could answer DHCP through any wall port. Trust only the uplink to DhcpServer so DeskPC gets a real lease."/>
-  <step n="1" text="DHCP snooping is already on for Closet, but no port is trusted, so offers are refused and DeskPC has no address."/>
-  <step n="2" text="Decide which port faces the real DHCP server: it is the uplink FastEthernet0/1."/>
-  <step n="3" text="Enter interface FastEthernet0/1 and run ip dhcp snooping trust."/>
-  <step n="4" text="On DeskPC run ipconfig /renew; a lease from DhcpServer appears in show ip dhcp snooping binding."/>
-  <check id="c1" kind="lease" from="pc0" to="" url="" expect="" label="DeskPC has a DHCP lease from the trusted uplink"/>
+  <pool id="router0" network="10.50.0.0" prefix="24" gw="10.50.0.254" dns=""/>
+  <lesson id="les-l2-12-rogue-dhcp" title="A rogue DHCP server" level="2" minutes="14" goal="DeskPC got a wrong gateway from RogueRouter. Use DHCP snooping so the real server on the uplink answers instead."/>
+  <step n="1" text="On DeskPC run ipconfig /renew, then ipconfig. The address comes from RogueRouter and the default gateway is 10.50.0.254, which is wrong."/>
+  <step n="2" text="On Closet and ServerCloset turn on ip dhcp snooping."/>
+  <step n="3" text="Trust only the port that faces DhcpServer: on ServerCloset, interface FastEthernet0/2, ip dhcp snooping trust."/>
+  <step n="4" text="Renew again on DeskPC. The rogue offer is dropped and the gateway becomes 10.50.0.1."/>
+  <check id="c1" kind="gateway" from="pc0" to="" url="" expect="10.50.0.1" label="DeskPC has the real gateway"/>
 </takumi>

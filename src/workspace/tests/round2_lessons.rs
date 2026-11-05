@@ -82,12 +82,17 @@ fn rogue_switch_passes_after_bpdu_guard_errs_the_port() {
 const ROGUE_DHCP: &str = include_str!("../../../web/templates/les-l2-12-rogue-dhcp.xml");
 
 #[test]
-fn rogue_dhcp_lesson_passes_after_the_uplink_is_trusted() {
+fn rogue_dhcp_lesson_shows_the_wrong_gateway_then_the_real_one() {
     let mut ws = Workspace::from_tnet(ROGUE_DHCP).unwrap();
     assert_eq!(results(&mut ws), vec![false]);
-    assert!(ws.acquire_dhcp("pc0").is_err(), "untrusted offer must be refused");
-    ws.dhcp_snooping_trust("switch0", "FastEthernet0/1", true);
-    ws.acquire_dhcp("pc0").unwrap();
+    let rogue = ws.acquire_dhcp("pc0").unwrap();
+    assert_eq!(rogue.server, "router0", "the near rogue server wins while snooping is off");
+    assert_eq!(rogue.gateway, Some(crate::model::parse_ipv4("10.50.0.254").unwrap()));
+    ws.set_dhcp_snooping("switch0", true);
+    ws.set_dhcp_snooping("switch1", true);
+    ws.dhcp_snooping_trust("switch1", "FastEthernet0/2", true);
+    let good = ws.acquire_dhcp("pc0").unwrap();
+    assert_eq!(good.server, "server0");
     assert_eq!(results(&mut ws), vec![true]);
 }
 

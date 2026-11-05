@@ -184,7 +184,7 @@ impl Workspace {
 
     /// The VLAN of the switch access port a device is cabled to; `None` when it hangs
     /// on a trunk, a router or no switch at all.
-    fn access_vlan_of(&self, id: &str) -> Option<u16> {
+    pub(super) fn access_vlan_of(&self, id: &str) -> Option<u16> {
         self.links.iter().find_map(|l| {
             let (peer, peer_port) = if l.a == id { (&l.b, &l.b_port) } else if l.b == id { (&l.a, &l.a_port) } else { return None };
             let switch = self.devices.iter().find(|d| d.id == *peer && d.kind == "switch")?;
@@ -211,40 +211,8 @@ impl Workspace {
 
     /// The server that answers this client's broadcast: same L2 segment, never
     /// across a router.
-    pub(super) fn dhcp_server_for(&self, id: &str) -> Option<String> {
-        use std::collections::VecDeque;
-        let mut seen = vec![id.to_string()];
-        let mut q: VecDeque<String> = VecDeque::new();
-        q.push_back(id.to_string());
-        while let Some(cur) = q.pop_front() {
-            for l in &self.links {
-                if !l.carries_data() {
-                    continue;
-                }
-                let next = if l.a == cur {
-                    &l.b
-                } else if l.b == cur {
-                    &l.a
-                } else {
-                    continue;
-                };
-                if seen.iter().any(|s| s == next) {
-                    continue;
-                }
-                let Some(dev) = self.devices.iter().find(|d| d.id == *next) else {
-                    continue;
-                };
-                if dev.kind == "router" {
-                    continue;
-                }
-                if self.dhcp_pools.contains_key(&dev.id) && self.access_vlan_of(id) == self.access_vlan_of(&dev.id) {
-                    return Some(dev.id.clone());
-                }
-                seen.push(dev.id.clone());
-                q.push_back(dev.id.clone());
-            }
-        }
-        None
+    pub(super) fn dhcp_server_for(&mut self, id: &str) -> Option<String> {
+        self.dhcp_pick_server(id)
     }
 
     /// A router with `ip helper-address` on the client's subnet forwards the

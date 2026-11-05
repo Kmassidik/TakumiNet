@@ -75,15 +75,15 @@ impl Workspace {
         self.snoop.arp_drops.get(id).copied().unwrap_or(0)
     }
 
-    /// The switch port that faces `server`, used to decide trust.
-    fn server_switch_port(&self, server: &str) -> Option<(String, String)> {
+    /// The switch port that faces `device`, used for trust and inspection.
+    pub(super) fn switch_port_for(&self, device: &str) -> Option<(String, String)> {
         for dev in &self.devices {
             if !matches!(dev.kind.as_str(), "switch" | "switch-l3") {
                 continue;
             }
             for port in &dev.ports {
                 if let Some((peer, _)) = self.peer_port(&dev.id, &port.name) {
-                    if peer == server {
+                    if peer == device {
                         return Some((dev.id.clone(), port.name.clone()));
                     }
                 }
@@ -94,7 +94,7 @@ impl Workspace {
 
     /// `Some(reason)` when snooping refuses the offer from this server.
     pub(super) fn dhcp_snoop_block(&mut self, server: &str) -> Option<String> {
-        let (switch, port) = self.server_switch_port(server)?;
+        let (switch, port) = self.switch_port_for(server)?;
         if !self.snoop.dhcp_on.contains(&switch) || self.port_trusted(&switch, &port) {
             return None;
         }
@@ -159,6 +159,15 @@ impl Workspace {
             }
         }
         true
+    }
+
+    /// DAI on the reply's ingress switch port. Called for every ARP reply.
+    pub fn arp_reply_allowed(&mut self, device: &str, ip: u32) -> bool {
+        let Some((switch, port)) = self.switch_port_for(device) else {
+            return true;
+        };
+        let mac = crate::net::packet::Mac::for_device(device).to_string();
+        self.arp_inspection_allows(&switch, &port, ip, &mac)
     }
 
     pub fn show_dhcp_snooping(&self, id: &str) -> String {

@@ -14,6 +14,7 @@ mod checks_more;
 mod checks_round2;
 mod l2_guard;
 mod snooping;
+mod dhcp_multi;
 mod fhrp;
 mod json;
 mod router_admin;

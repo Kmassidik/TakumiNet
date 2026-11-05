@@ -41,3 +41,26 @@ fn e2e_ping6_reaches_a_host_on_the_same_segment() {
     assert_eq!(status, 200, "{body}");
     assert!(body.contains("Reply from 2001:db8::2"), "{body}");
 }
+
+#[test]
+fn e2e_rogue_dhcp_wins_then_snooping_falls_back_to_the_real_server() {
+    let s = spawn(38_286);
+    s.post("/api/templates/open?id=les-l2-12-rogue-dhcp");
+    s.post("/api/cmd?id=pc0&line=ipconfig%20/renew");
+    let (_, _, body) = s.get("/api/workspace");
+    assert!(body.contains("\"gateway\":\"10.50.0.254\""), "rogue gateway first: {body}");
+
+    for line in ["enable", "configure terminal", "ip dhcp snooping"] {
+        s.post(&format!("/api/cli?id=switch0&line={}", urlencode(line)));
+    }
+    for line in ["enable", "configure terminal", "ip dhcp snooping", "interface FastEthernet0/2", "ip dhcp snooping trust"] {
+        s.post(&format!("/api/cli?id=switch1&line={}", urlencode(line)));
+    }
+    s.post("/api/cmd?id=pc0&line=ipconfig%20/renew");
+    let (_, _, body) = s.get("/api/workspace");
+    assert!(body.contains("\"gateway\":\"10.50.0.1\""), "legacy gateway after the fix: {body}");
+}
+
+fn urlencode(text: &str) -> String {
+    text.replace(' ', "%20")
+}
