@@ -64,9 +64,33 @@ pub(super) fn overview() -> String {
             group = entry.group;
             out.push_str(&format!("\n{group}\n"));
         }
-        out.push_str(&format!("  {:<34}{}\n", entry.usage, entry.summary));
+        out.push_str(&wrapped_row(entry.usage, entry.summary));
     }
     out.push('\n');
+    out
+}
+
+/// One command row. Descriptions wrap at 80 columns and stay aligned under
+/// the description column, so a long summary never falls back to the margin.
+fn wrapped_row(usage: &str, summary: &str) -> String {
+    const PREFIX: usize = 36;
+    let budget = 80usize.saturating_sub(PREFIX);
+    let mut lines: Vec<String> = Vec::new();
+    let mut current = String::new();
+    for word in summary.split_whitespace() {
+        if !current.is_empty() && current.len() + 1 + word.len() > budget {
+            lines.push(std::mem::take(&mut current));
+        }
+        if !current.is_empty() {
+            current.push(' ');
+        }
+        current.push_str(word);
+    }
+    lines.push(current);
+    let mut out = format!("  {usage:<34}{}\n", lines[0]);
+    for line in &lines[1..] {
+        out.push_str(&format!("  {:<34}{}\n", "", line));
+    }
     out
 }
 

@@ -303,3 +303,16 @@ fn ssh_opens_a_router_session_and_refuses_a_stranger() {
     assert!(text.contains("no console cable"), "{text}");
     assert!(peer.is_none());
 }
+
+#[test]
+fn long_help_summaries_wrap_under_the_description_column() {
+    let out = super::help::overview();
+    for line in out.lines() {
+        assert!(line.len() <= 80, "line over 80 columns: {line}");
+    }
+    let pad = " ".repeat(36);
+    assert!(
+        out.lines().any(|line| line.starts_with(&pad)),
+        "continuation line should be indented to the description column: {out}"
+    );
+}
