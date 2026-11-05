@@ -90,3 +90,24 @@ fn rogue_dhcp_lesson_passes_after_the_uplink_is_trusted() {
     ws.acquire_dhcp("pc0").unwrap();
     assert_eq!(results(&mut ws), vec![true]);
 }
+
+const GATEWAY: &str = include_str!("../../../web/templates/les-l3-10-gateway-fails.xml");
+
+#[test]
+fn gateway_lesson_passes_after_vrrp_and_survives_a_power_cut() {
+    let mut ws = Workspace::from_tnet(GATEWAY).unwrap();
+    assert_eq!(results(&mut ws), vec![false]);
+    use crate::cli::{run as cli_run, Session};
+    let mut s = Session::default();
+    for (router, prio) in [("router0", 120), ("router1", 100)] {
+        for line in [
+            "enable", "configure terminal", "interface GigabitEthernet0/0",
+            &format!("vrrp 1 ip 10.61.0.1 priority {prio}"),
+        ] {
+            cli_run(&mut ws, router, &mut s, line);
+        }
+    }
+    assert_eq!(results(&mut ws), vec![true]);
+    ws.set_power("router0", false);
+    assert_eq!(results(&mut ws), vec![true], "GatewayB keeps the path after a power cut");
+}

@@ -27,6 +27,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("spanning-tree bpduguard ") || l == "no spanning-tree bpduguard", bpduguard_port),
     (|l| l.starts_with("storm-control broadcast") || l == "no storm-control broadcast", storm_control),
     (|l| l == "ip dhcp snooping trust" || l == "no ip dhcp snooping trust", snoop_trust),
+    (|l| l.starts_with("vrrp ") || l.starts_with("standby ") || l.starts_with("no vrrp ") || l.starts_with("no standby "), fhrp_command),
     (|l| l.strip_prefix("no ").is_some_and(|rest| is_prefix(rest.trim(), "shutdown")), no_shutdown),
     (|l| is_prefix(l, "shutdown"), shutdown),
 ];
@@ -412,4 +413,33 @@ fn power_inline(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower
         Ok(()) => String::new(),
         Err(e) => format!("% {e}\n"),
     }
+}
+
+fn fhrp_command(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    let words: Vec<&str> = lower.split_whitespace().collect();
+    let hsrp = words.first() == Some(&"standby");
+    if words.first() == Some(&"no") {
+        if let Some(group) = words.get(2).and_then(|v| v.parse::<u8>().ok()) {
+            ws.fhrp_disable(id, group);
+        }
+        return String::new();
+    }
+    let Some(group) = words.get(1).and_then(|v| v.parse::<u8>().ok()) else {
+        return "ERROR: group must be 1-255\n".into();
+    };
+    let Some(ip) = words.iter().position(|w| *w == "ip").and_then(|i| words.get(i + 1)) else {
+        return "ERROR: need 'ip <address>'\n".into();
+    };
+    let Some(vip) = crate::model::parse_ipv4(ip) else {
+        return "ERROR: bad virtual address\n".into();
+    };
+    let priority = words
+        .iter()
+        .position(|w| *w == "priority")
+        .and_then(|i| words.get(i + 1))
+        .and_then(|v| v.parse::<u8>().ok())
+        .unwrap_or(100);
+    ws.set_fhrp(id, &iface, group, vip, priority, hsrp);
+    String::new()
 }

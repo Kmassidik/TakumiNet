@@ -399,6 +399,9 @@ impl Workspace {
             }
             ["poe", dev] => self.load_poe_device(dev),
             ["wifiradio", id, channel, band] => self.wifi_radio_load(id, channel, band),
+            ["fhrp", dev, port, group, vip, priority, hsrp] => {
+                self.fhrp_load(&["fhrp", dev, port, group, vip, priority, hsrp])
+            }
             ["dhcpsnoop", dev] => self.snoop_load(&["dhcpsnoop", dev]),
             ["snoopvlan", dev, vlan] => self.snoop_load(&["snoopvlan", dev, vlan]),
             ["snooptrust", dev, port] => self.snoop_load(&["snooptrust", dev, port]),

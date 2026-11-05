@@ -39,9 +39,10 @@ impl Workspace {
         let members = self.shared_gateways.get(&vip)?;
         members.iter()
             .filter(|(id, _)| {
-                self.devices.iter().find(|d| d.id == **id).is_some_and(|d| {
-                    d.ports.iter().any(|p| p.up && p.ip.is_some_and(|ip| ip != vip && contains(vip, ip, p.prefix)))
-                })
+                self.is_powered(id)
+                    && self.devices.iter().find(|d| d.id == **id).is_some_and(|d| {
+                        d.ports.iter().any(|p| p.up && p.ip.is_some_and(|ip| ip != vip && contains(vip, ip, p.prefix)))
+                    })
             })
             .max_by_key(|(id, priority)| (*priority, std::cmp::Reverse(id.clone())))
             .map(|(id, _)| id.clone())

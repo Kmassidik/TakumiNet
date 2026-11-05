@@ -340,7 +340,7 @@ pub struct Workspace {
     /// Hotspot vouchers per gateway.
     pub vouchers: HashMap<String, Vec<Voucher>>,
     pub link_counters: HashMap<String, crate::net::duplex::Counters>, // CRC counters, duplex mismatch
-    pub collisions: HashMap<String, u32>, pub l2_guard: L2GuardConfig, pub snoop: SnoopConfig, // hub, guard, snooping
+    pub collisions: HashMap<String, u32>, pub l2_guard: L2GuardConfig, pub snoop: SnoopConfig, pub fhrp: FhrpConfig, // hub, guard, snooping, VRRP
     /// Shared gateway addresses: address -> (member device, priority).
     pub shared_gateways: HashMap<u32, Vec<(String, u8)>>,
     /// Load balancer pools, served counts and the round robin cursor.

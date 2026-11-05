@@ -42,6 +42,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
         "power inline" => power_inline_table(ws, id),
         "wireless" | "wlan" => ws.wireless_table(id),
         "errdisable" => ws.errdisable_table(id),
+        "vrrp brief" | "vrrp" | "standby brief" | "standby" => ws.show_fhrp(id),
         "ip dhcp snooping binding" | "ip dhcp snooping" => ws.show_dhcp_snooping(id),
         "ip arp inspection" => format!(
             "ARP inspection is {}\nDropped replies: {}\n",
