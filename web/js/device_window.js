@@ -4,6 +4,7 @@ const DESKTOP_APPS = [
   ['apps/terminal', 'Terminal', 'term'],
   ['apps/browser', 'Web Browser', 'browser'],
   ['apps/wireless', 'Wireless', 'wifi'],
+  ['groups/notes', 'Text Editor', 'editor'],
   ['apps/traffic', 'Capture', 'capture'],
 ];
 

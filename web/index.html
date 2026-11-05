@@ -433,6 +433,22 @@
   </div>
 </div>
 
+<div id="editor-dialog" class="overlay" hidden>
+  <div class="preview editorwin">
+    <div class="devwin-title">
+      <span id="editor-title">Text Editor</span>
+      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
+    </div>
+    <div class="editor-bar">
+      <button class="btn" id="editor-save">Save</button>
+      <span id="editor-status" class="meta">Saved text lives in this browser</span>
+    </div>
+    <div class="editor-body">
+      <textarea id="editor-text" class="editor-area" spellcheck="false" placeholder="Type notes for this device…"></textarea>
+    </div>
+  </div>
+</div>
+
 <div id="pdu-dialog" class="overlay" hidden>
   <div class="preview pduwin">
     <div class="devwin-title">

@@ -99,6 +99,7 @@ test('every Desktop app dispatches to its real handler', () => {
     term: 'openTerm',
     browser: 'openBrowser',
     wifi: 'openWifiApp',
+    editor: 'openEditor',
     capture: 'openCapture',
   };
   const context = vm.createContext({
@@ -117,7 +118,7 @@ test('every Desktop app dispatches to its real handler', () => {
   const pane = new Element();
   context.tabDesktop(pane, device);
   const buttons = pane.children[0].children;
-  assert.equal(apps.length, 5);
+  assert.equal(apps.length, 6);
   /* Capture is the sniffer's app: a PC desktop never shows it. */
   const shown = apps.filter(([, , action]) => action !== 'capture');
   assert.equal(buttons.length, shown.length);

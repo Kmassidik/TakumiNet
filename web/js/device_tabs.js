@@ -42,6 +42,7 @@ function tabDesktop(pane, d) {
       else if (action === 'term') openTerm(d);
       else if (action === 'browser') openBrowser(d);
       else if (action === 'wifi') openWifiApp(d);
+      else if (action === 'editor') openEditor(d);
       else if (action === 'capture') openCapture(d);
     };
     desk.appendChild(app);
