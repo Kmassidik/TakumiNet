@@ -1095,3 +1095,4 @@ div.cli-help-row { padding: 2px 0; }
 .port-choice .kw-input { width: auto; padding: 1px 4px; }
 .port-link { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .port-fault { color: var(--danger-ink); font-weight: 600; }
+.cable-tool .cable-swatch { display: block; width: 40px; height: 6px; margin: 2px auto 0; }

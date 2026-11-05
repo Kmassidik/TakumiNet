@@ -3394,6 +3394,7 @@
   globalThis.makeGroupPress = makeGroupPress;
   globalThis.placeMenu = placeMenu;
   globalThis.placeSubmenu = placeSubmenu;
+  globalThis.cableStyle = cableStyle;
   globalThis.renderPortsPanel = (box, ports, deps) => renderPortsPanel(doc, box, ports, deps);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));

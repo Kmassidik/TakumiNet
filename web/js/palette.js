@@ -54,6 +54,8 @@ function renderPalette() {
     clabel.textContent = label;
     cable.appendChild(cimg);
     cable.appendChild(clabel);
+    const swatch = cableSwatch(kind);
+    if (swatch) cable.appendChild(swatch);
     cable.onclick = () => {
       cableMode = !(cableMode && cableKind === kind);
       cableKind = kind;
@@ -148,4 +150,25 @@ function renderPalette() {
     pal.appendChild(tile);
   }
 
+}
+
+/* A short sample of how this cable is drawn on the canvas, so the palette is its own key. */
+function cableSwatch(kind) {
+  if (typeof cableStyle !== 'function' || !document.createElementNS) return null;
+  const style = cableStyle(kind);
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('class', 'cable-swatch');
+  svg.setAttribute('viewBox', '0 0 40 6');
+  svg.setAttribute('aria-hidden', 'true');
+  const line = document.createElementNS(ns, 'line');
+  line.setAttribute('x1', '1');
+  line.setAttribute('y1', '3');
+  line.setAttribute('x2', '39');
+  line.setAttribute('y2', '3');
+  line.setAttribute('stroke', style.color);
+  line.setAttribute('stroke-width', String(style.width));
+  if (style.dash.length) line.setAttribute('stroke-dasharray', style.dash.join(' '));
+  svg.appendChild(line);
+  return svg;
 }
