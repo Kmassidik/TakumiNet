@@ -7,6 +7,7 @@ mod services;
 mod workspace;
 mod duplex;
 mod round2;
+mod round4;
 
 use std::io::{Read, Write};
 use std::net::TcpStream;

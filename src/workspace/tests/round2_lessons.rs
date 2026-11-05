@@ -45,11 +45,7 @@ fn lock_the_server_needs_a_firewall_rule_for_the_office_prefix() {
 fn noisy_hub_passes_only_after_the_hub_is_replaced() {
     let mut ws = Workspace::from_tnet(HUB).unwrap();
     assert_eq!(results(&mut ws), vec![false, true]);
-    assert!(ws.remove("hub0"));
-    let sw = ws.add("Switch 24", 420.0, 160.0).unwrap();
-    ws.link_ports(&sw, "pc0", "eCopper", Some("FastEthernet0/1"), None).unwrap();
-    ws.link_ports(&sw, "pc1", "eCopper", Some("FastEthernet0/2"), None).unwrap();
-    ws.link_ports(&sw, "pc2", "eCopper", Some("FastEthernet0/3"), None).unwrap();
+    ws.replace("hub0", "Switch 24").unwrap();
     assert_eq!(results(&mut ws), vec![true, true]);
 }
 

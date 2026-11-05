@@ -39,6 +39,23 @@ function deviceContextItems(d) {
       .filter(([kind]) => CONTEXT_CABLE_KINDS.includes(kind))
       .map(([kind, label]) => ({ label, run: () => armCableFrom(d, kind) })),
   });
+  const replace = Array.isArray(d.replaceModels) ? d.replaceModels : [];
+  if (replace.length) {
+    items.push({
+      label: 'Replace with…',
+      children: replace.map((model) => ({
+        label: model,
+        run: async () => {
+          const r = await api('/api/devices/replace', { id: d.id, model });
+          if (r.error) { status(r.error, true); return; }
+          const info = r.replace || { kept: 0, dropped: [] };
+          const dropped = info.dropped.length ? `, dropped ${info.dropped.length} (${info.dropped.join(', ')})` : ', dropped 0';
+          status(`Replaced ${d.name} with ${model}. Kept ${info.kept} cables${dropped}.`);
+          sfx('devicePlacement');
+        },
+      })),
+    });
+  }
   items.push({
     label: 'Rename…',
     run: async () => {

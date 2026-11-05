@@ -9,7 +9,7 @@
   <lesson id="les-l2-10-noisy-hub" title="The noisy hub" level="2" minutes="10" goal="Three PCs share one hub. Replace the hub with a switch so the collision counter stays at zero."/>
   <step n="1" text="PC-A and PC-B talk through SharedHub. Open the hub's Config tab and look at the Collisions line."/>
   <step n="2" text="A hub repeats every frame to every port; when two send together they collide. A switch gives each port its own collision domain."/>
-  <step n="3" text="Delete the hub, place a Switch 24, and cable all three PCs to it. Keep their addresses."/>
+  <step n="3" text="Right-click SharedHub and choose Replace with… → Switch 24. The name and every cable stay; the switch takes over the same ports."/>
   <step n="4" text="Ping PC-C from PC-A and check the switch has no hub left."/>
   <check id="c1" kind="absent" from="" to="hub" url="" expect="" label="The hub is gone"/>
   <check id="c2" kind="ping" from="pc0" to="pc2" url="" expect="ok" label="PC-A still reaches PC-C through the switch"/>

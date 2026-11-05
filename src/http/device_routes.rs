@@ -11,6 +11,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/delete") => Some(handle_devices_delete(ctx, query)),
         ("POST", "/api/devices/duplicate") => Some(handle_devices_duplicate(ctx, query)),
         ("POST", "/api/devices/rename") => Some(handle_devices_rename(ctx, query)),
+        ("POST", "/api/devices/replace") => Some(handle_devices_replace(ctx, query)),
         ("POST", "/api/devices/ip") => Some(handle_devices_ip(ctx, query)),
         ("POST", "/api/devices/ipv6") => Some(handle_devices_ipv6(ctx, query)),
         ("POST", "/api/devices/dot1x") => Some(handle_devices_dot1x(ctx, query)),
@@ -91,6 +92,28 @@ fn handle_devices_delete(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         if ws.remove(&id) { Ok(()) } else { Err("no such device".into()) }
     });
     (json, out.into_bytes())
+}
+
+fn handle_devices_replace(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let model = query_value(query, "model").unwrap_or_default();
+    let mut report = None;
+    let (out, ok) = apply(ctx, |ws| {
+        report = Some(ws.replace(&id, &model)?);
+        Ok(())
+    });
+    if !ok {
+        return (json, out.into_bytes());
+    }
+    let dropped = report
+        .map(|r| {
+            let list = r.dropped.iter().map(|p| json_str(p)).collect::<Vec<_>>().join(",");
+            format!("{{\"kept\":{},\"dropped\":[{list}]}}", r.kept)
+        })
+        .unwrap_or_else(|| "{\"kept\":0,\"dropped\":[]}".into());
+    let body = out.trim_end_matches('}').to_string() + ",\"replace\":" + &dropped + "}";
+    (json, body.into_bytes())
 }
 
 fn handle_devices_duplicate(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {

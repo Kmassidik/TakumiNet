@@ -163,8 +163,16 @@ impl Workspace {
                 reservations,
                 helpers
             ));
+            let replace_models = format!(
+                "[{}]",
+                self.replace_options(&d.id)
+                    .iter()
+                    .map(|m| s(m))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            );
             o.push_str(&format!(
-                ",\"forwards\":{forwards},\"pools\":{pools},\"tunnel\":{tunnel},\"vnet\":{vnet},\"sharedGws\":{shared_gws},\"pppoe\":{pppoe}}}"
+                ",\"forwards\":{forwards},\"pools\":{pools},\"tunnel\":{tunnel},\"vnet\":{vnet},\"sharedGws\":{shared_gws},\"pppoe\":{pppoe},\"replaceModels\":{replace_models}}}"
             ));
         }
     }
