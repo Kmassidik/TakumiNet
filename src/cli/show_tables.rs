@@ -367,3 +367,28 @@ pub(super) fn lldp_neighbors(ws: &Workspace, id: &str) -> String {
         "Device ID", "Local Intf", "Port ID"
     )
 }
+
+/// `show power inline`: the budget, and one row per cable that ends in a device
+/// running on that cable.
+pub(super) fn power_inline_table(ws: &Workspace, id: &str) -> String {
+    use crate::workspace::{PoeState, POE_BUDGET_W};
+    let kind = ws.devices.iter().find(|d| d.id == id).map(|d| d.kind.as_str()).unwrap_or("");
+    if !matches!(kind, "switch" | "switch-l3") {
+        return "% this device does not supply power over Ethernet\n".into();
+    }
+    let used = ws.poe_used(id);
+    let mut out = format!(
+        "Available:{:.1}(w)  Used:{:.1}(w)  Remaining:{:.1}(w)\n\n{:<18}{:<7}{:<7}{:<14}Device\n",
+        POE_BUDGET_W, used, POE_BUDGET_W - used, "Interface", "Admin", "Oper", "Power(Watts)"
+    );
+    for row in ws.poe_report().iter().filter(|r| r.switch == id) {
+        let admin = if ws.poe_port_on(id, &row.port) { "auto" } else { "never" };
+        let (oper, watts) = match row.state {
+            PoeState::Powered => ("on", row.watts),
+            PoeState::Denied(_) => ("off", 0.0),
+        };
+        let name = ws.devices.iter().find(|d| d.id == row.device).map(|d| d.name.as_str()).unwrap_or("");
+        out.push_str(&format!("{:<18}{:<7}{:<7}{:<14.1}{}\n", row.port, admin, oper, watts, name));
+    }
+    out
+}

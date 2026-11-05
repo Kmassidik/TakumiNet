@@ -454,3 +454,15 @@ fn e2e_speed_and_duplex_controls_report_the_link_and_the_mismatch() {
     let (_, _, body) = s.post("/api/devices/linkspeed?id=switch0&port=NoSuchPort&speed=auto&duplex=auto");
     assert!(body.contains("no such interface"), "{body}");
 }
+
+#[test]
+fn e2e_poe_status_and_switch_over_http() {
+    let s = spawn(38_271);
+    s.post("/api/reset");
+    let (_, _, body) = s.get("/api/devices/poe?id=pc0");
+    assert!(body.contains("\"capable\":false"), "{body}");
+    let (_, _, body) = s.post("/api/devices/poe?id=pc0&on=1");
+    assert!(body.contains("cannot take power"), "{body}");
+    let (_, _, body) = s.get("/api/devices/poe?id=nobody");
+    assert!(body.contains("no such device"), "{body}");
+}

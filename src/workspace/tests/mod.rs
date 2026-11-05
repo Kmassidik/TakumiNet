@@ -19,6 +19,7 @@ mod l9_l11_more;
 mod notes;
 mod host_firewall;
 mod persistence;
+mod poe;
 mod realtime;
 mod routing;
 mod voice;

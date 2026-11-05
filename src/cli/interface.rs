@@ -9,6 +9,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("ip address "), ip_address),
     (|l| l.starts_with("bandwidth ") || l == "no bandwidth", bandwidth),
     (|l| l.starts_with("delay ") || l == "no delay", delay),
+    (|l| l.starts_with("power inline") || l == "no power inline", power_inline),
     (|l| l.starts_with("speed ") || l == "no speed" || l.starts_with("duplex ") || l == "no duplex", speed_duplex),
     (|l| l.starts_with("encapsulation dot1q "), encapsulation_dot1q),
     (|l| l.starts_with("ip helper-address "), ip_helper_address),
@@ -356,6 +357,20 @@ fn speed_duplex(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower
         }
     };
     match result {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
+    }
+}
+
+/// `power inline auto|never` on a switch port; `no power inline` is `never`.
+fn power_inline(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    let supply = match lower {
+        "power inline auto" => true,
+        "power inline never" | "no power inline" => false,
+        _ => return invalid(line, Mode::Iface),
+    };
+    match ws.set_port_poe(id, &iface, supply) {
         Ok(()) => String::new(),
         Err(e) => format!("% {e}\n"),
     }

@@ -9,6 +9,7 @@ pub(super) const SHOW_COMMANDS: &[(&str, &str)] = &[
     ("show ip route", "Routing table"),
     ("show lldp neighbors", "Neighbours seen over IEEE 802.1AB LLDP"),
     ("show mac address-table", "MAC address table"),
+    ("show power inline", "PoE budget and the ports supplying power (IEEE 802.3af/at)"),
     ("show running-config", "Current configuration"),
     ("show startup-config", "Saved configuration"),
     ("show version", "Image information"),
@@ -57,6 +58,7 @@ pub(super) fn commands(mode: Mode) -> Vec<(&'static str, &'static str)> {
         Mode::Iface => vec![
             ("bandwidth KBPS", "Set the interface bandwidth"),
             ("duplex half|full|auto", "Set the duplex (IEEE 802.3)"),
+            ("power inline auto|never", "Supply PoE power to the device on this port"),
             ("speed 10|100|1000|auto", "Set the speed in Mb/s (IEEE 802.3)"),
             ("delay USEC", "Set the interface delay"),
             ("end", "Return to privileged mode"),

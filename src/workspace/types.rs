@@ -330,6 +330,8 @@ pub struct Workspace {
     pub host_firewalls: HashMap<String, HostFirewall>,
     /// Fixed speed or duplex per "device<TAB>port"; absent means auto-negotiate.
     pub link_settings: HashMap<String, LinkSetting>,
+    /// Power over Ethernet: which devices run on the cable and which ports refuse to supply.
+    pub poe: PoeConfig,
     /// What each home pulls, in Mbit/s, for the queue model.
     pub demands: HashMap<String, u32>,
     /// Per-customer limits on a gateway, by login name.

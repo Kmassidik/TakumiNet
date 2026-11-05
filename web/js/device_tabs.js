@@ -80,6 +80,7 @@ function tabPhysical(pane, d) {
   box.appendChild(img);
   box.appendChild(cap);
   box.appendChild(power);
+  poeControl(box, d, refresh);
 
   /* Modules are dragged from the tray into a slot; clicking a filled slot
      removes it (the server refuses while its ports are cabled). */

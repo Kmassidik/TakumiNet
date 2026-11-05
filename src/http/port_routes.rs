@@ -8,6 +8,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("GET", "/api/devices/ports") => Some(handle_devices_ports(ctx, query)),
         ("POST", "/api/devices/port") => Some(handle_devices_port(ctx, query)),
         ("POST", "/api/devices/linkspeed") => Some(handle_link_speed(ctx, query)),
+        ("GET", "/api/devices/poe") => Some(handle_poe_status(ctx, query)),
+        ("POST", "/api/devices/poe") => Some(handle_poe_set(ctx, query)),
         _ => None,
     }
 }
@@ -128,4 +130,33 @@ fn handle_link_speed(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         ws.set_link_duplex(&id, &port, full)
     });
     (json, out.into_bytes())
+}
+
+/// Whether a device can run on its cable, whether it does, and what it gets.
+fn handle_poe_status(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let id = query_value(query, "id").unwrap_or_default();
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let Some(device) = ws.devices.iter().find(|d| d.id == id) else {
+        return ("application/json", json_error("no such device").into_bytes());
+    };
+    let draw = crate::workspace::poe_draw(&device.kind);
+    let on = ws.poe.devices.contains(&id);
+    let reason = ws.poe_denied(&id).unwrap_or("");
+    let body = format!(
+        "{{\"capable\":{},\"on\":{},\"watts\":{},\"powered\":{},\"reason\":{}}}",
+        draw.is_some(),
+        on,
+        draw.unwrap_or(0.0),
+        on && reason.is_empty(),
+        json_str(reason)
+    );
+    ("application/json", body.into_bytes())
+}
+
+/// Tick or untick "powered by its cable" for one device.
+fn handle_poe_set(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let id = query_value(query, "id").unwrap_or_default();
+    let on = matches!(query_value(query, "on").as_deref(), Some("1") | Some("true"));
+    let (out, _) = apply(ctx, |ws| ws.set_poe_device(&id, on));
+    ("application/json", out.into_bytes())
 }

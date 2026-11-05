@@ -9,7 +9,7 @@ impl Workspace {
     }
 
     pub fn is_powered(&self, id: &str) -> bool {
-        !self.powered_off.contains(id)
+        !self.powered_off.contains(id) && self.poe_denied(id).is_none()
     }
 
     /// Physical power switch; a device that is off drops all traffic.

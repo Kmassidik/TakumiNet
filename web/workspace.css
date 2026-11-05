@@ -1096,3 +1096,6 @@ div.cli-help-row { padding: 2px 0; }
 .port-link { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .port-fault { color: var(--danger-ink); font-weight: 600; }
 .cable-tool .cable-swatch { display: block; width: 40px; height: 6px; margin: 2px auto 0; }
+.poe-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); flex-wrap: wrap; justify-content: center; }
+.poe-status { color: var(--ink-2); }
+.poe-status.is-bad { color: var(--danger-ink); font-weight: 600; }

@@ -421,6 +421,7 @@ impl Workspace {
         }
         out.push_str(&self.ufw_records());
         out.push_str(&self.link_records());
+        out.push_str(&self.poe_records());
         let mut tunnels: Vec<_> = self.tunnels.iter().collect();
         tunnels.sort_by_key(|(id, _)| id.as_str());
         for (device, (peer, key)) in tunnels {
