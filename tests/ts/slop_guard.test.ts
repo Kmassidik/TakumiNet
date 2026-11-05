@@ -98,6 +98,16 @@ test("files: .xml is the file type; .tnet appears only where old files are read"
   expect(readFileSync(join(web, "sw.js"), "utf8")).not.toContain(".tnet");
 });
 
+test("the service worker precaches every script and template the app uses", () => {
+  const sw = readFileSync(join(web, "sw.js"), "utf8");
+  const html = readFileSync(join(web, "index.html"), "utf8");
+  const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map((m) => m[1]);
+  const templates = readdirSync(join(web, "templates")).filter((n) => n.endsWith(".xml"));
+  for (const asset of [...scripts, ...templates.map((n) => `/templates/${n}`)]) {
+    expect(sw, `${asset} must be precached`).toContain(asset.startsWith("/") ? asset : `/${asset}`);
+  }
+});
+
 test("README counts match the template directory", () => {
   const dir = join(web, "templates");
   const files = readdirSync(dir).filter((n) => n.endsWith(".xml"));
