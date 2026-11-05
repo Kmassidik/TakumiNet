@@ -14,8 +14,8 @@
 <body>
 <section id="phone-block" class="phone-block" role="alert">
   <img src="/art3d/mascot/sleep.webp" alt="" width="96" height="96">
-  <h1>Takumi is not supported on phones</h1>
-  <p>Building and tracing networks needs a bigger screen and a mouse or keyboard. Please open this page on a computer or a tablet.</p>
+  <h1>Open Takumi on a wider screen</h1>
+  <p>Building and tracing networks needs a bigger screen and a mouse or keyboard. Open this page on a computer or a tablet, or make this window wider.</p>
   <p><a href="/about">About Takumi</a></p>
 </section>
 <div id="engine-loading" class="engine-loading" role="status" aria-live="polite">
@@ -141,6 +141,7 @@
           <button title="Reset simulation" data-sfx="movieControlButton" data-sim="reset"><img src="/art3d/sim/reset.webp" alt="reset"></button>
           <button title="Play" id="play-btn" data-sim="play"><img src="/art3d/sim/play.webp" alt="play"></button>
           <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/art3d/sim/stepa.webp" alt="step"></button>
+          <span id="pdu-queue" class="pdu-queue" role="status" hidden></span>
         </span>
         <label class="playback-speed" title="Playback speed (Space play/pause, Left back, Right step)">
           <span>Speed</span>

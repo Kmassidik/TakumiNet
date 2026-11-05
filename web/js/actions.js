@@ -324,6 +324,7 @@ async function stepSim(dir) {
     globalThis.queuedPduCount = 0;
     const r = await api('/api/sim/step');
     if (r.error) return;
+    if (typeof renderPduQueue === 'function') renderPduQueue();
     status(`Sent ${sent} queued frame${sent === 1 ? '' : 's'}`);
   }
   const events = visibleEvents();
@@ -377,6 +378,7 @@ async function togglePlay() {
       globalThis.queuedPduCount = 0;
       const queued = await api('/api/sim/step');
       if (queued.error) return;
+      if (typeof renderPduQueue === 'function') renderPduQueue();
     }
     const events = visibleEvents();
     if (!events.length && !(await sendBuiltInTraffic())) return;

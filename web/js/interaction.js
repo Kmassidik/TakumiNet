@@ -155,6 +155,7 @@ async function pduClick(d) {
   const r = await api('/api/pdu', { src, dst: d.id, queue: 1 });
   if (r.error) return;
   globalThis.queuedPduCount = (globalThis.queuedPduCount || 0) + 1;
+  if (typeof renderPduQueue === 'function') renderPduQueue();
   sfx('addPacketDevice');
   status(`Queued ${source ? source.name : src} → ${d.name}. Press Step or Play to send.`);
 }

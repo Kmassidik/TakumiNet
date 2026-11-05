@@ -1,4 +1,26 @@
 /* ---------------- simulation panel ---------------- */
+function renderPduQueue() {
+  const chip = typeof document !== 'undefined' && document.getElementById ? document.getElementById('pdu-queue') : null;
+  if (!chip) return;
+  const count = globalThis.queuedPduCount || 0;
+  chip.textContent = count ? `${count} send${count === 1 ? '' : 's'} waiting` : '';
+  chip.hidden = count === 0;
+}
+
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') window.addEventListener('beforeunload', () => {
+  try {
+    if ((globalThis.queuedPduCount || 0) > 0) sessionStorage.setItem('takumi:queue-cleared', '1');
+  } catch { /* storage may be unavailable */ }
+});
+
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') document.addEventListener('DOMContentLoaded', () => {
+  try {
+    if (sessionStorage.getItem('takumi:queue-cleared')) {
+      sessionStorage.removeItem('takumi:queue-cleared');
+      status('The send queue was cleared when the page reloaded. Queue your sends again.', true);
+    }
+  } catch { /* storage may be unavailable */ }
+});
 function enabledFilters() {
   const on = new Set();
   document.querySelectorAll('#filters input').forEach((cb) => {

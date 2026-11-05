@@ -39,23 +39,37 @@ function deviceContextItems(d) {
       .filter(([kind]) => CONTEXT_CABLE_KINDS.includes(kind))
       .map(([kind, label]) => ({ label, run: () => armCableFrom(d, kind) })),
   });
-  const replace = Array.isArray(d.replaceModels) ? d.replaceModels : [];
-  if (replace.length) {
-    items.push({
-      label: 'Replace with…',
-      children: replace.map((model) => ({
+  const replaceChoices = () => {
+    const live = typeof data !== 'undefined' && data && Array.isArray(data.devices)
+      ? (data.devices.find((item) => item.id === d.id) || d)
+      : d;
+    const models = Array.isArray(live.replaceModels) ? live.replaceModels : [];
+    if (!models.length) return [];
+    const choices = [];
+    for (const model of models) {
+      const clears = (live.replaceClears && live.replaceClears[model]) || [];
+      choices.push({
+        label: clears.length
+          ? `${clears.join(', ')} on ${live.name} will be cleared`
+          : `Nothing on ${live.name} is cleared; name and cables stay`,
+        disabled: true,
+      });
+      choices.push({
         label: model,
         run: async () => {
           const r = await api('/api/devices/replace', { id: d.id, model });
           if (r.error) { status(r.error, true); return; }
-          const info = r.replace || { kept: 0, dropped: [] };
+          const info = r.replace || { kept: 0, dropped: [], cleared: [] };
           const dropped = info.dropped.length ? `, dropped ${info.dropped.length} (${info.dropped.join(', ')})` : ', dropped 0';
-          status(`Replaced ${d.name} with ${model}. Kept ${info.kept} cables${dropped}.`);
+          const cleared = info.cleared.length ? `, cleared ${info.cleared.join(', ').toLowerCase()}` : ', nothing cleared';
+          status(`Replaced ${live.name} with ${model}. Kept ${info.kept} cables${dropped}${cleared}.`);
           sfx('devicePlacement');
         },
-      })),
-    });
-  }
+      });
+    }
+    return choices;
+  };
+  if (replaceChoices().length) items.push({ label: 'Replace with…', children: replaceChoices });
   items.push({
     label: 'Rename…',
     run: async () => {
@@ -155,9 +169,10 @@ function contextMenuItemButton(item) {
   b.textContent = item.label;
   if (item.disabled) b.disabled = true;
   if (item.children) {
+    const children = () => (typeof item.children === 'function' ? item.children() : item.children);
     b.setAttribute('aria-haspopup', 'menu');
-    b.addEventListener('mouseenter', () => openContextSubmenu(b, item.children));
-    b.onclick = (e) => { e.stopPropagation(); openContextSubmenu(b, item.children); };
+    b.addEventListener('mouseenter', () => openContextSubmenu(b, children()));
+    b.onclick = (e) => { e.stopPropagation(); openContextSubmenu(b, children()); };
   } else {
     b.addEventListener('mouseenter', () => { if (ctxMenuEl && b.parentElement === ctxMenuEl) closeContextSubmenu(); });
     b.onclick = (e) => { e.stopPropagation(); closeContextMenu(); item.run(); };

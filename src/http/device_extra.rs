@@ -15,9 +15,10 @@ pub(super) fn handle_devices_replace(ctx: &Ctx, query: &str) -> (&'static str, V
     let dropped = report
         .map(|r| {
             let list = r.dropped.iter().map(|p| json_str(p)).collect::<Vec<_>>().join(",");
-            format!("{{\"kept\":{},\"dropped\":[{list}]}}", r.kept)
+            let cleared = r.cleared.iter().map(|c| json_str(c)).collect::<Vec<_>>().join(",");
+            format!("{{\"kept\":{},\"dropped\":[{list}],\"cleared\":[{cleared}]}}", r.kept)
         })
-        .unwrap_or_else(|| "{\"kept\":0,\"dropped\":[]}".into());
+        .unwrap_or_else(|| "{\"kept\":0,\"dropped\":[],\"cleared\":[]}".into());
     let body = out.trim_end_matches('}').to_string() + ",\"replace\":" + &dropped + "}";
     (json, body.into_bytes())
 }

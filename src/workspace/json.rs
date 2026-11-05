@@ -171,9 +171,25 @@ impl Workspace {
                     .collect::<Vec<_>>()
                     .join(",")
             );
+            let replace_clears = format!(
+                "{{{}}}",
+                self.replace_options(&d.id)
+                    .iter()
+                    .map(|m| {
+                        let list = self
+                            .replace_clears(&d.id, m)
+                            .iter()
+                            .map(|c| s(c))
+                            .collect::<Vec<_>>()
+                            .join(",");
+                        format!("{}:[{list}]", s(m))
+                    })
+                    .collect::<Vec<_>>()
+                    .join(",")
+            );
             let warning = opt_str(self.duplicate_ip_warning(&d.id).as_deref());
             o.push_str(&format!(
-                ",\"forwards\":{forwards},\"pools\":{pools},\"tunnel\":{tunnel},\"vnet\":{vnet},\"sharedGws\":{shared_gws},\"pppoe\":{pppoe},\"replaceModels\":{replace_models},\"warning\":{warning}}}"
+                ",\"forwards\":{forwards},\"pools\":{pools},\"tunnel\":{tunnel},\"vnet\":{vnet},\"sharedGws\":{shared_gws},\"pppoe\":{pppoe},\"replaceModels\":{replace_models},\"replaceClears\":{replace_clears},\"warning\":{warning}}}"
             ));
         }
     }

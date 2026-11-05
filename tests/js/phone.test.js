@@ -58,7 +58,7 @@ test('on a phone the page shows only the message', () => {
   assert.match(block, /body > \*:not\(\.phone-block\) \{ display: none !important; \}/);
   assert.match(css, /\.phone-block \{ display: none; \}/);
   assert.match(html, /<section id="phone-block" class="phone-block" role="alert">/);
-  assert.match(html, /not supported on phones/i);
+  assert.match(html, /Open Takumi on a wider screen/);
 });
 
 test('the phone check loads before the engine, and the app does not start on a phone', () => {

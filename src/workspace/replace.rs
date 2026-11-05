@@ -11,6 +11,8 @@ use crate::workspace::palette;
 pub struct ReplaceReport {
     pub kept: usize,
     pub dropped: Vec<String>,
+    /// Configuration the swap removed, in plain words.
+    pub cleared: Vec<String>,
 }
 
 fn family(kind: &str) -> Option<&'static str> {
@@ -39,6 +41,47 @@ impl Workspace {
             .collect()
     }
 
+    /// Configuration that replacing `id` with `model` would remove. Empty when
+    /// the swap only changes the model.
+    pub fn replace_clears(&self, id: &str, model: &str) -> Vec<String> {
+        let Some(old) = self.devices.iter().find(|d| d.id == id) else {
+            return Vec::new();
+        };
+        let model = palette::canonical_model(model);
+        let Some((_, _, kind)) = CATALOG.iter().find(|(label, _, _)| *label == model) else {
+            return Vec::new();
+        };
+        if family(&old.kind) != family(kind) || *kind != "hub" {
+            return Vec::new();
+        }
+        let key = |name: &str| name.starts_with(&format!("{id}\t"));
+        let mut out = Vec::new();
+        if self.link_settings.keys().any(|k| key(k)) {
+            out.push("Interface speed and duplex settings".to_string());
+        }
+        if self.l2_guard.portfast.iter().any(|k| key(k))
+            || self.l2_guard.bpduguard.iter().any(|k| key(k))
+            || self.l2_guard.errdisabled.keys().any(|k| key(k))
+            || self.l2_guard.storm_level.keys().any(|k| key(k))
+        {
+            out.push("Layer-2 guard settings".to_string());
+        }
+        if self.snoop.dhcp_on.contains(id)
+            || self.snoop.arp_on.contains(id)
+            || self.snoop.trusted.iter().any(|k| key(k))
+            || self.snoop.bindings.iter().any(|b| b.switch == id)
+        {
+            out.push("DHCP snooping and ARP inspection".to_string());
+        }
+        if self.mirror.sessions.contains_key(id) {
+            out.push("Port mirroring".to_string());
+        }
+        if self.fhrp.groups.iter().any(|g| g.device == id) {
+            out.push("VRRP groups".to_string());
+        }
+        out
+    }
+
     pub fn replace(&mut self, id: &str, model: &str) -> Result<ReplaceReport, String> {
         let old = self
             .devices
@@ -64,6 +107,7 @@ impl Workspace {
             return Err("that is the same model".into());
         }
 
+        let cleared = self.replace_clears(id, model);
         let mut replacement = old.clone();
         replacement.model = model.to_string();
         replacement.kind = kind.to_string();
@@ -156,11 +200,21 @@ impl Workspace {
             self.host_firewalls.remove(id);
         }
         if *kind == "hub" {
+            self.link_settings.retain(|k, _| !k.starts_with(&format!("{id}\t")));
+            self.l2_guard.portfast.retain(|k| !k.starts_with(&format!("{id}\t")));
+            self.l2_guard.bpduguard.retain(|k| !k.starts_with(&format!("{id}\t")));
+            self.l2_guard.errdisabled.retain(|k, _| !k.starts_with(&format!("{id}\t")));
+            self.l2_guard.storm_level.retain(|k, _| !k.starts_with(&format!("{id}\t")));
+            self.l2_guard.storm_seen.retain(|k, _| !k.starts_with(&format!("{id}\t")));
+            self.l2_guard.storm_drops.retain(|k, _| !k.starts_with(&format!("{id}\t")));
             self.fhrp.groups.retain(|g| g.device != id);
             self.snoop.dhcp_on.remove(id);
             self.snoop.arp_on.remove(id);
+            self.snoop.trusted.retain(|k| !k.starts_with(&format!("{id}\t")));
+            self.snoop.bindings.retain(|b| b.switch != id);
             self.mirror.sessions.remove(id);
         }
+        report.cleared = cleared;
         self.recompute_routing();
         Ok(report)
     }
