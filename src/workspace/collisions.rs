@@ -29,8 +29,9 @@ impl Workspace {
                 .find(|d| d.id == hub_id)
                 .map(|d| d.name.clone())
                 .unwrap_or(hub_id);
-            for (index, (src, dst)) in sends.iter().enumerate() {
-                self.advance((1 + index % 3) as f32 * 0.001);
+            for (src, dst) in sends.iter() {
+                let ticks = 1 + frame_backoff(src, dst) % 3;
+                self.advance(ticks as f32 * 0.001);
                 let _ = self.send_pdu(src, dst);
             }
             return sends
@@ -82,4 +83,15 @@ fn shared_hub(ws: &Workspace, paths: &[Option<Vec<String>>]) -> Option<String> {
         }
     }
     None
+}
+
+/// Stable back-off seed from the frame's endpoints (FNV-1a), so the same
+/// frame always waits the same 1 to 3 ticks and tests never flake.
+fn frame_backoff(src: &str, dst: &str) -> u32 {
+    let mut hash: u32 = 0x811c_9dc5;
+    for byte in src.bytes().chain(std::iter::once(0)).chain(dst.bytes()) {
+        hash ^= u32::from(byte);
+        hash = hash.wrapping_mul(0x0100_0193);
+    }
+    hash
 }
