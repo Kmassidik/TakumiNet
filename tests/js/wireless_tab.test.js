@@ -32,7 +32,7 @@ function walk(el, out = []) {
 const byText = (box, text) => walk(box).find((e) => e.textContent === text);
 const byClass = (box, cls) => walk(box).filter((e) => (e.className || '').includes(cls));
 
-function harness({ device, wlans = [], controller = '', devices = [], fetchFails = false, apiResult = {} } = {}) {
+function harness({ device, wlans = [], controller = '', devices = [], radios = [], fetchFails = false, apiResult = {} } = {}) {
   const calls = { json: [], api: [] };
   const context = vm.createContext({
     console,
@@ -50,6 +50,7 @@ function harness({ device, wlans = [], controller = '', devices = [], fetchFails
       return {};
     },
     api: async (p, params) => { calls.api.push({ p, params }); return apiResult; },
+    getJson: async () => ({ devices: radios }),
   });
   vm.runInContext(source, context);
   return { context, calls };
@@ -180,4 +181,16 @@ test('a failed load shows the error state and Try again reloads', async () => {
   byText(box, 'Try again').onclick();
   await settle();
   assert.ok(byText(box, 'No wireless network is set up yet.'));
+});
+
+test('an access point shows its channel, band and the overlap warning', async () => {
+  const app = harness({
+    wlans: [],
+    radios: [{ id: 'ap0', channel: 1, band: '2.4', overlaps_with: ['AP1'] }],
+  });
+  const box = await openTab(app, ap);
+  await settle();
+  assert.ok(walk(box).some((e) => e.textContent === '2.4 GHz'));
+  assert.ok(walk(box).some((e) => e.textContent === 'Channel'));
+  assert.ok(walk(box).some((e) => (e.textContent || '').includes('Channel overlap with AP1')));
 });

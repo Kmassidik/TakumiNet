@@ -57,6 +57,7 @@ async function loadWireless(box, d) {
   }
   box.appendChild(wlanAddForm(d, note, redraw));
   if (controller !== null) box.appendChild(controllerRow(d, controller, note, redraw));
+  if (d.kind === 'ap' || d.kind === 'hotspot-ap') box.appendChild(channelSection(d, redraw, note));
   box.appendChild(note);
 }
 
@@ -170,4 +171,70 @@ function controllerRow(d, controller, note, redraw) {
   };
   row.appendChild(join);
   return row;
+}
+
+/* Access points expose their 2.4/5 GHz channel and an overlap warning. */
+function channelSection(d, redraw, note) {
+  const wrap = document.createElement('fieldset');
+  wrap.className = 'ip-group';
+  const legend = document.createElement('legend');
+  legend.textContent = 'Radio';
+  wrap.appendChild(legend);
+  const row = document.createElement('div');
+  row.className = 'ipfield';
+  const bandLabel = document.createElement('span');
+  bandLabel.textContent = 'Band';
+  const band = document.createElement('select');
+  band.className = 'kw-input';
+  for (const value of ['2.4', '5']) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = `${value} GHz`;
+    band.appendChild(opt);
+  }
+  const chanLabel = document.createElement('span');
+  chanLabel.textContent = 'Channel';
+  const chan = document.createElement('select');
+  chan.className = 'kw-input';
+  const fill = () => {
+    chan.replaceChildren();
+    const values = band.value === '5'
+      ? [36, 40, 44, 48, 149, 153, 157, 161, 165]
+      : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    for (const n of values) {
+      const opt = document.createElement('option');
+      opt.value = String(n);
+      opt.textContent = String(n);
+      chan.appendChild(opt);
+    }
+  };
+  fill();
+  row.appendChild(bandLabel);
+  row.appendChild(band);
+  row.appendChild(chanLabel);
+  row.appendChild(chan);
+  wrap.appendChild(row);
+  const warn = document.createElement('p');
+  warn.className = 'meta';
+  wrap.appendChild(warn);
+  const save = async () => {
+    const r = await api('/api/devices/wireless', { id: d.id, channel: chan.value, band: band.value });
+    if (r.error) { note.textContent = r.error; return; }
+    redraw();
+  };
+  band.onchange = () => { fill(); save(); };
+  chan.onchange = save;
+  if (typeof getJson !== 'function') return wrap;
+  getJson('/api/devices/wireless').then((res) => {
+    const mine = (res.devices || []).find((x) => x.id === d.id);
+    if (!mine) return;
+    band.value = mine.band;
+    fill();
+    chan.value = String(mine.channel);
+    const others = mine.overlaps_with || [];
+    warn.textContent = others.length
+      ? `Channel overlap with ${others.join(', ')}. Move one access point to 1, 6 or 11.`
+      : '';
+  }).catch(() => undefined);
+  return wrap;
 }
