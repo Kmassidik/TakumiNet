@@ -26,6 +26,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("spanning-tree portfast") || l == "no spanning-tree portfast", spanning_tree_portfast),
     (|l| l.starts_with("spanning-tree bpduguard ") || l == "no spanning-tree bpduguard", bpduguard_port),
     (|l| l.starts_with("storm-control broadcast") || l == "no storm-control broadcast", storm_control),
+    (|l| l == "ip dhcp snooping trust" || l == "no ip dhcp snooping trust", snoop_trust),
     (|l| l.strip_prefix("no ").is_some_and(|rest| is_prefix(rest.trim(), "shutdown")), no_shutdown),
     (|l| is_prefix(l, "shutdown"), shutdown),
 ];
@@ -321,6 +322,12 @@ fn spanning_tree_portfast(ws: &mut Workspace, id: &str, s: &mut Session, _line: 
 fn bpduguard_port(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
     let iface = s.iface.clone().unwrap_or_default();
     ws.set_bpduguard(id, &iface, lower.contains("enable"));
+    String::new()
+}
+
+fn snoop_trust(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    ws.dhcp_snooping_trust(id, &iface, !lower.starts_with("no "));
     String::new()
 }
 

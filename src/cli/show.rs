@@ -42,6 +42,12 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
         "power inline" => power_inline_table(ws, id),
         "wireless" | "wlan" => ws.wireless_table(id),
         "errdisable" => ws.errdisable_table(id),
+        "ip dhcp snooping binding" | "ip dhcp snooping" => ws.show_dhcp_snooping(id),
+        "ip arp inspection" => format!(
+            "ARP inspection is {}\nDropped replies: {}\n",
+            if ws.arp_inspection(id) { "on" } else { "off" },
+            ws.arp_inspection_drops(id)
+        ),
         other => {
             if let Some(arg) = other.strip_prefix("interfaces ") {
                 return show_interfaces(ws, id, arg.trim());

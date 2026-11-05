@@ -78,3 +78,15 @@ fn rogue_switch_passes_after_bpdu_guard_errs_the_port() {
     }
     assert_eq!(results(&mut ws), vec![true]);
 }
+
+const ROGUE_DHCP: &str = include_str!("../../../web/templates/les-l2-12-rogue-dhcp.xml");
+
+#[test]
+fn rogue_dhcp_lesson_passes_after_the_uplink_is_trusted() {
+    let mut ws = Workspace::from_tnet(ROGUE_DHCP).unwrap();
+    assert_eq!(results(&mut ws), vec![false]);
+    assert!(ws.acquire_dhcp("pc0").is_err(), "untrusted offer must be refused");
+    ws.dhcp_snooping_trust("switch0", "FastEthernet0/1", true);
+    ws.acquire_dhcp("pc0").unwrap();
+    assert_eq!(results(&mut ws), vec![true]);
+}

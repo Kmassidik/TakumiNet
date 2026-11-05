@@ -13,6 +13,7 @@ mod checks;
 mod checks_more;
 mod checks_round2;
 mod l2_guard;
+mod snooping;
 mod json;
 mod router_admin;
 mod port_forward;
@@ -70,6 +71,7 @@ pub use route_types::*;
 pub use host_firewall::*;
 pub use wifi_channels::WifiRadio;
 pub use l2_guard::L2GuardConfig;
+pub use snooping::{SnoopBinding, SnoopConfig};
 pub use link_speed::*;
 pub use poe::*;
 pub use sniffer::*;
@@ -150,6 +152,7 @@ impl Workspace {
                 wifi_radios: HashMap::new(),
                 collisions: HashMap::new(),
                 l2_guard: L2GuardConfig::default(),
+                snoop: SnoopConfig::default(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),
@@ -384,6 +387,7 @@ impl Workspace {
                 wifi_radios: HashMap::new(),
                 collisions: HashMap::new(),
                 l2_guard: L2GuardConfig::default(),
+                snoop: SnoopConfig::default(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),

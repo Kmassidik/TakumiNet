@@ -363,6 +363,9 @@ impl Workspace {
                 (s, Some(giaddr))
             }
         };
+        if let Some(reason) = self.dhcp_snoop_block(&server) {
+            return Err(reason);
+        }
         let pool = self.pool_for(&server, relay_address);
         let mask = crate::model::mask_of(pool.prefix);
         let base = pool.network & mask;
@@ -436,6 +439,7 @@ impl Workspace {
             d.dns = pool.dns;
         }
         self.dhcp_clients.insert(id.to_string());
+        self.record_snoop_binding(id, ip);
         let leases = self.dhcp_leases.entry(server.clone()).or_default();
         if !leases.contains(&ip) {
             leases.push(ip);

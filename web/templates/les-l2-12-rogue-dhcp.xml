@@ -1,0 +1,15 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="420" y="140" name="Closet" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="700" y="140" name="DhcpServer" ip="10.50.0.2" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="240" y="320" name="DeskPC" ip="" prefix="24"/>
+  <link a="switch0" a_port="Fa0/1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <pool id="server0" network="10.50.0.0" prefix="24" gw="10.50.0.1" dns=""/>
+  <dhcpsnoop dev="switch0"/>
+  <lesson id="les-l2-12-rogue-dhcp" title="Trust the DHCP uplink" level="2" minutes="10" goal="A rogue server could answer DHCP through any wall port. Trust only the uplink to DhcpServer so DeskPC gets a real lease."/>
+  <step n="1" text="DHCP snooping is already on for Closet, but no port is trusted, so offers are refused and DeskPC has no address."/>
+  <step n="2" text="Decide which port faces the real DHCP server: it is the uplink FastEthernet0/1."/>
+  <step n="3" text="Enter interface FastEthernet0/1 and run ip dhcp snooping trust."/>
+  <step n="4" text="On DeskPC run ipconfig /renew; a lease from DhcpServer appears in show ip dhcp snooping binding."/>
+  <check id="c1" kind="lease" from="pc0" to="" url="" expect="" label="DeskPC has a DHCP lease from the trusted uplink"/>
+</takumi>

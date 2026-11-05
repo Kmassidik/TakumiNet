@@ -399,6 +399,11 @@ impl Workspace {
             }
             ["poe", dev] => self.load_poe_device(dev),
             ["wifiradio", id, channel, band] => self.wifi_radio_load(id, channel, band),
+            ["dhcpsnoop", dev] => self.snoop_load(&["dhcpsnoop", dev]),
+            ["snoopvlan", dev, vlan] => self.snoop_load(&["snoopvlan", dev, vlan]),
+            ["snooptrust", dev, port] => self.snoop_load(&["snooptrust", dev, port]),
+            ["snoopbind", sw, port, mac, ip, vlan] => self.snoop_load(&["snoopbind", sw, port, mac, ip, vlan]),
+            ["arpinspect", dev] => self.snoop_load(&["arpinspect", dev]),
             ["portfast", dev, port] => self.l2_guard_load("portfast", &[dev, port]),
             ["bpduguard", dev, port] => self.l2_guard_load("bpduguard", &[dev, port]),
             ["storm", dev, port, level] => self.l2_guard_load("storm", &[dev, port, level]),

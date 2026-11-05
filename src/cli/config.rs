@@ -14,6 +14,8 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("access-list "), access_list),
     (|l| l.starts_with("hostname "), hostname),
     (|l| iface_arg(l).is_some(), enter_interface),
+    (|l| l == "ip dhcp snooping" || l == "no ip dhcp snooping" || l.starts_with("ip dhcp snooping vlan "), dhcp_snooping),
+    (|l| l.starts_with("ip arp inspection vlan "), arp_inspection_vlan),
     (|l| l.starts_with("ip route "), ip_route),
     (|l| l.starts_with("no vlan "), no_vlan),
     (|l| l.starts_with("no "), no_command),
@@ -457,4 +459,24 @@ pub(super) fn remove_route_cmd(ws: &mut Workspace, id: &str, rest: &str) -> Stri
         prefix,
         ipv4_string(hop)
     )
+}
+
+fn dhcp_snooping(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lower: &str) -> String {
+    if let Some(vlan) = lower.strip_prefix("ip dhcp snooping vlan ") {
+        match vlan.trim().parse::<u16>() {
+            Ok(v) if (1..=4094).contains(&v) => { ws.dhcp_snooping_vlan(id, v); String::new() }
+            _ => "ERROR: VLAN must be 1-4094\n".into(),
+        }
+    } else {
+        ws.set_dhcp_snooping(id, !lower.starts_with("no "));
+        String::new()
+    }
+}
+
+fn arp_inspection_vlan(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lower: &str) -> String {
+    let Some(vlan) = lower.strip_prefix("ip arp inspection vlan ") else { return String::new() };
+    match vlan.trim().parse::<u16>() {
+        Ok(v) if (1..=4094).contains(&v) => { ws.set_arp_inspection(id, true); ws.arp_inspection_vlan(id, v); String::new() }
+        _ => "ERROR: VLAN must be 1-4094\n".into(),
+    }
 }
