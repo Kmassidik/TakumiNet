@@ -48,3 +48,26 @@ fn collision_counters_survive_a_save_and_open_round_trip() {
     let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.hub_collisions(&hub), 1);
 }
+
+#[test]
+fn play_collides_two_pings_through_a_hub_without_a_special_api() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-shared-segment.xml")).unwrap();
+    ws.run_demo().unwrap();
+    assert!(ws.hub_collisions("hub0") > 0, "the hub counter must rise in normal play");
+}
+
+#[test]
+fn play_on_a_switch_keeps_the_hub_counter_at_zero() {
+    let (mut ws, switch, a, b) = two_hosts("switch");
+    let c = ws.add("PC", 800.0, 400.0).unwrap();
+    ws.link_ports(&switch, &c, "eCopper", Some("FastEthernet0/3"), None).unwrap();
+    for id in [&a, &b, &c] {
+        ws.set_ip(id, "10.30.0.10", 24).unwrap();
+    }
+    ws.demo = vec![
+        Demo { kind: "ping".into(), from: a.clone(), to: b.clone(), url: String::new() },
+        Demo { kind: "ping".into(), from: c, to: b, url: String::new() },
+    ];
+    ws.run_demo().unwrap();
+    assert_eq!(ws.hub_collisions(&switch), 0);
+}
