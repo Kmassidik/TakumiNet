@@ -46,3 +46,21 @@ fn every_catalog_kind_is_named_and_drawn() {
         assert_eq!(logical_icon(label, kind), format!("/art3d/devices/{kind}.webp"));
     }
 }
+
+#[test]
+fn remaining_palette_cards_name_their_standard() {
+    let wanted = [
+        ("Sector Radio", "IEEE 802.11"),
+        ("Client Radio", "IEEE 802.11"),
+        ("Microwave Link", "ITU-R"),
+        ("Cell Tower", "3GPP"),
+        ("Satellite Terminal", "DVB-S2"),
+        ("PLC", "Modbus"),
+        ("Thing", "Modbus"),
+        ("IoE", "Modbus"),
+    ];
+    for (label, word) in wanted {
+        let (_, blurb, _) = CATALOG.iter().find(|(name, _, _)| *name == label).expect(label);
+        assert!(blurb.contains(word), "{label} must name {word}: {blurb}");
+    }
+}
