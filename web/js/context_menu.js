@@ -48,14 +48,11 @@ function deviceContextItems(d) {
     const choices = [];
     for (const model of models) {
       const clears = (live.replaceClears && live.replaceClears[model]) || [];
+      const note = clears.length
+        ? `${model} — clears ${clears.join(', ').toLowerCase()}`
+        : `${model} — nothing cleared`;
       choices.push({
-        label: clears.length
-          ? `${clears.join(', ')} on ${live.name} will be cleared`
-          : `Nothing on ${live.name} is cleared; name and cables stay`,
-        disabled: true,
-      });
-      choices.push({
-        label: model,
+        label: note,
         run: async () => {
           const r = await api('/api/devices/replace', { id: d.id, model });
           if (r.error) { status(r.error, true); return; }

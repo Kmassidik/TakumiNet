@@ -157,3 +157,19 @@ test('empty canvas offers paste, zoom to fit and select all; paste needs a clipb
   const full = harness({ clipboard: 'd1' });
   assert.equal(full.context.contextMenuFor({})[0].disabled, false);
 });
+
+test('each replace option says what it clears, once', () => {
+  const h = harness();
+  const device = h.context.data.devices[0];
+  device.replaceModels = ['Switch 24', 'Switch L3'];
+  device.replaceClears = { 'Switch 24': ['Layer-2 guard settings'], 'Switch L3': [] };
+  const items = h.context.deviceContextItems(device);
+  const replace = items.find((item) => item.label === 'Replace with…');
+  const children = typeof replace.children === 'function' ? replace.children() : replace.children;
+  const labels = Array.from(children, (item) => item.label);
+  assert.deepEqual(labels, [
+    'Switch 24 — clears layer-2 guard settings',
+    'Switch L3 — nothing cleared',
+  ]);
+  assert.ok(children.every((item) => !item.disabled));
+});
