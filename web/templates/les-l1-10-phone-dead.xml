@@ -1,0 +1,15 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="420" y="120" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="200" y="320" name="DeskPC" ip="10.30.0.10" prefix="24"/>
+  <device id="phone0" kind="phone" model="IP Phone" x="620" y="320" name="DeskPhone" ip="10.30.0.11" prefix="24"/>
+  <link a="switch0" a_port="Fa0/1" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="phone0" b_port="Fa0" kind="eCopper"/>
+  <poe dev="phone0"/>
+  <poeport dev="switch0" port="FastEthernet0/2" mode="never"/>
+  <lesson id="les-l1-10-phone-dead" title="The phone is dead" level="1" minutes="10" goal="The desk phone has no power. Find the switch port and turn power on."/>
+  <step n="1" text="The desk phone is plugged into OfficeSwitch port 2, but it is dark. A working phone needs power over its network cable."/>
+  <step n="2" text="Open OfficeSwitch and look at the port the phone is on. Power is being refused on that port."/>
+  <step n="3" text="On OfficeSwitch, go into that interface and allow power: power inline auto. The phone should come back."/>
+  <step n="4" text="Ping DeskPhone from DeskPC to prove the phone is alive again."/>
+  <check id="c1" kind="ping" from="pc0" to="phone0" url="" expect="ok" label="DeskPC reaches DeskPhone"/>
+</takumi>

@@ -271,6 +271,7 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("les-l4-07-two-phones", include_str!("../../web/templates/les-l4-07-two-phones.xml")),
     ("tpl-last-mile", include_str!("../../web/templates/tpl-last-mile.xml")),
     ("les-l1-09-last-mile", include_str!("../../web/templates/les-l1-09-last-mile.xml")),
+    ("les-l1-10-phone-dead", include_str!("../../web/templates/les-l1-10-phone-dead.xml")),
     ("tpl-wiring-closet", include_str!("../../web/templates/tpl-wiring-closet.xml")),
     ("tpl-home-phone", include_str!("../../web/templates/tpl-home-phone.xml")),
     ("les-l1-07-find-the-fault", include_str!("../../web/templates/les-l1-07-find-the-fault.xml")),

@@ -208,3 +208,23 @@ fn signal_bars_follow_distance_and_need_a_join() {
         assert_eq!(ws.wifi_signal("phone0"), Some(bars), "at x {x}");
     }
 }
+
+const PHONE_DEAD: &str = include_str!("../../../web/templates/les-l1-10-phone-dead.xml");
+
+#[test]
+fn the_phone_lesson_fails_dark_and_passes_after_power_is_allowed() {
+    let mut ws = Workspace::from_tnet(PHONE_DEAD).unwrap();
+    assert_eq!(results(&mut ws), vec![false], "a dark phone must not answer");
+    use crate::cli::{run as cli_run, Session};
+    let mut s = Session::default();
+    for line in [
+        "enable",
+        "configure terminal",
+        "interface FastEthernet0/2",
+        "power inline auto",
+        "end",
+    ] {
+        cli_run(&mut ws, "switch0", &mut s, line);
+    }
+    assert_eq!(results(&mut ws), vec![true], "power inline auto must revive the phone");
+}
