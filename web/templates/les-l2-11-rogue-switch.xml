@@ -1,0 +1,11 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="300" y="140" name="Closet" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="Switch 24" x="620" y="140" name="UserSwitch" ip="" prefix="24"/>
+  <link a="switch0" a_port="Fa0/5" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <lesson id="les-l2-11-rogue-switch" title="A rogue switch on an access port" level="2" minutes="12" goal="Someone plugged a switch into wall port 5. Protect that access port so it shuts instead of forwarding the rogue BPDU."/>
+  <step n="1" text="Open Closet and run show spanning-tree. UserSwitch is taking part in spanning tree through an access port."/>
+  <step n="2" text="On interface FastEthernet0/5 turn on spanning-tree portfast and spanning-tree bpduguard enable."/>
+  <step n="3" text="Shut the port and open it again. BPDU guard errs the port down instead of forwarding."/>
+  <step n="4" text="Read the reason with show errdisable. Recover later with no shutdown once the rogue switch is gone."/>
+  <check id="c1" kind="errdisabled" from="switch0" to="FastEthernet0/5" url="" expect="" label="FastEthernet0/5 is err-disabled by BPDU guard"/>
+</takumi>

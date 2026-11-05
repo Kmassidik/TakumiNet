@@ -41,6 +41,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
         "lldp neighbors" | "lldp neighbor" | "lldp" => lldp_neighbors(ws, id),
         "power inline" => power_inline_table(ws, id),
         "wireless" | "wlan" => ws.wireless_table(id),
+        "errdisable" => ws.errdisable_table(id),
         other => {
             if let Some(arg) = other.strip_prefix("interfaces ") {
                 return show_interfaces(ws, id, arg.trim());
@@ -83,7 +84,10 @@ pub(crate) fn show_interfaces(ws: &Workspace, id: &str, iface: &str) -> String {
     } else {
         "up, line protocol is up"
     };
-    let mut out = format!("{name} is {state}\n");
+    let mut out = match ws.errdisabled_reason(id, &name) {
+        Some(reason) => format!("{name} is err-disabled ({reason})\n"),
+        None => format!("{name} is {state}\n"),
+    };
     match ip {
         Some(ip) => out.push_str(&format!(
             "  Internet address is {}/{}\n",
@@ -138,7 +142,10 @@ pub(super) fn show_ip_interface(ws: &Workspace, id: &str, iface: &str) -> String
     } else {
         "up, line protocol is up"
     };
-    let mut out = format!("{name} is {state}\n");
+    let mut out = match ws.errdisabled_reason(id, &name) {
+        Some(reason) => format!("{name} is err-disabled ({reason})\n"),
+        None => format!("{name} is {state}\n"),
+    };
     match ip {
         Some(ip) => {
             out.push_str(&format!(

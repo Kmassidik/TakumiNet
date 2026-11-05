@@ -326,6 +326,7 @@ where
                 }
             }
             "switch" => {
+                if ws.storm_drop(dev_id, ingress.as_deref().unwrap_or_default(), dst_mac == Mac::BROADCAST) { drop_here!(format!("storm control on {} {}", dev.name, ingress.as_deref().unwrap_or_default())); }
                 // An access port pins the frame to its VLAN; a trunk carries it
                 // tagged, so only an access-to-access mismatch drops the frame.
                 for port_name in [ingress.as_ref(), egress.as_ref()].into_iter().flatten() {
@@ -413,8 +414,7 @@ where
 
     // The scheduler owns time: one arrival per device, 1 ms apart. `finished_at`
     // is when the last device saw the frame.
-    let mut scheduler = crate::net::sched::Scheduler::new();
-    let times = scheduler.schedule(data_started_at, &path);
+    let mut scheduler = crate::net::sched::Scheduler::new(); let times = scheduler.schedule(data_started_at, &path);
     for (hop, t) in capture.hops.iter_mut().zip(times.iter()) {
         hop.t = *t;
     }

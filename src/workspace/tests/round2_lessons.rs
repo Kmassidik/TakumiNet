@@ -60,3 +60,21 @@ fn two_wifi_networks_pass_after_moving_a_channel() {
     ws.set_wifi_channel("ap1", 6, "2.4").unwrap();
     assert_eq!(results(&mut ws), vec![true]);
 }
+
+const ROGUE: &str = include_str!("../../../web/templates/les-l2-11-rogue-switch.xml");
+
+#[test]
+fn rogue_switch_passes_after_bpdu_guard_errs_the_port() {
+    let mut ws = Workspace::from_tnet(ROGUE).unwrap();
+    assert_eq!(results(&mut ws), vec![false]);
+    use crate::cli::{run as cli_run, Session};
+    let mut s = Session::default();
+    for line in [
+        "enable", "configure terminal", "interface FastEthernet0/5",
+        "spanning-tree portfast", "spanning-tree bpduguard enable",
+        "shutdown", "no shutdown",
+    ] {
+        cli_run(&mut ws, "switch0", &mut s, line);
+    }
+    assert_eq!(results(&mut ws), vec![true]);
+}

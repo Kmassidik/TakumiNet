@@ -23,6 +23,9 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("no switchport port-security"), no_port_security),
     (|l| l.starts_with("channel-group "), channel_group),
     (|l| l.starts_with("switchport trunk encapsulation dot1q") || l.starts_with("switchport nonegotiate"), ignored_switchport_options),
+    (|l| l.starts_with("spanning-tree portfast") || l == "no spanning-tree portfast", spanning_tree_portfast),
+    (|l| l.starts_with("spanning-tree bpduguard ") || l == "no spanning-tree bpduguard", bpduguard_port),
+    (|l| l.starts_with("storm-control broadcast") || l == "no storm-control broadcast", storm_control),
     (|l| l.strip_prefix("no ").is_some_and(|rest| is_prefix(rest.trim(), "shutdown")), no_shutdown),
     (|l| is_prefix(l, "shutdown"), shutdown),
 ];
@@ -302,8 +305,36 @@ fn no_shutdown(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, _lowe
     // IOS accepts any unambiguous prefix here, so `shut`, `no shut` and
     // `no sh` must resolve to `shutdown` / `no shutdown`.
     let _ = ws.set_port_up(id, &iface, true);
+    if let Some(reason) = ws.errdisabled_reason(id, &iface) {
+        return format!("%PM-4-ERR_DISABLE: {reason}\n");
+    }
     "%LINK-5-CHANGED: Interface {}, changed state to up\n"
         .replace("{}", &iface)
+}
+
+fn spanning_tree_portfast(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    ws.set_portfast(id, &iface, !lower.starts_with("no "));
+    String::new()
+}
+
+fn bpduguard_port(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    ws.set_bpduguard(id, &iface, lower.contains("enable"));
+    String::new()
+}
+
+fn storm_control(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    if lower.starts_with("no ") {
+        ws.clear_storm_level(id, &iface);
+        return String::new();
+    }
+    let level = line.split_whitespace().last().and_then(|v| v.trim_end_matches('%').parse::<u8>().ok());
+    match level.filter(|l| (1..=100).contains(l)) {
+        Some(level) => { ws.set_storm_level(id, &iface, level); String::new() }
+        None => "ERROR: level must be 1 to 100\n".into(),
+    }
 }
 
 fn shutdown(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, _lower: &str) -> String {

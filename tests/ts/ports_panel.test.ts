@@ -167,3 +167,27 @@ test("a denied PoE device shows the switch's reason", () => {
   const text = allText(box);
   expect(text).toContain("off: power inline never is set on the switch port");
 });
+
+test("an err-disabled port shows the guard reason as its fault", () => {
+  const payload = JSON.stringify({
+    ports: [
+      {
+        name: "FastEthernet0/5",
+        ip: null,
+        prefix: 0,
+        up: false,
+        peer: { id: "sw1", name: "UserSwitch", port: "FastEthernet0/1" },
+        eth: true,
+        speed: "auto",
+        duplex: "auto",
+        link: "",
+        fault: "",
+        errdisabled: "BPDU guard: a switch is on this access port",
+      },
+    ],
+  });
+  const doc = new FakeDocument();
+  const box = new FakeElement("div");
+  renderPortsPanel(doc, box, parsePortsInfo(payload), { deviceId: "sw0", post: async () => ({}) });
+  expect(allText(box)).toContain("errdisabled: BPDU guard: a switch is on this access port");
+});

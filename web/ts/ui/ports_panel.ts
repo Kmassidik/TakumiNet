@@ -23,6 +23,8 @@ export interface PortInfo {
   fault?: string;
   /* PoE state of the device on the far end, when it is a PoE device. */
   poe?: { capable: boolean; on: boolean; powered: boolean; watts: number; reason: string };
+  /* Set when the port was shut by a guard; the text is the switch's reason. */
+  errdisabled?: string;
 }
 
 /* One /api/devices/ports payload, parsed; an error payload throws. */
@@ -45,6 +47,7 @@ export function parsePortsInfo(text: string): PortInfo[] {
       duplex: asText(p["duplex"]) || "auto",
       link: asText(p["link"]),
       fault: asText(p["fault"]),
+      errdisabled: asText(p["errdisabled"]) || undefined,
       poe: poeRaw
         ? {
             capable: poeRaw["capable"] === true,
@@ -82,6 +85,7 @@ const SPEEDS = ["auto", "10", "100", "1000"];
 const DUPLEXES = ["auto", "half", "full"];
 
 export function faultText(port: PortInfo): string {
+  if (port.errdisabled) return `errdisabled: ${port.errdisabled}`;
   if (port.fault === "speed") return "Speed mismatch: no link";
   if (port.fault === "duplex") return "Duplex mismatch: expect errors";
   return "";

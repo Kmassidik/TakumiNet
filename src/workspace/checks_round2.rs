@@ -13,6 +13,7 @@ impl Workspace {
             "blocked-http" => self.check_blocked_http(check),
             "overlap" => self.check_overlap(check),
             "absent" => self.check_absent(check),
+            "errdisabled" => self.check_errdisabled(check),
             _ => return None,
         })
     }
@@ -55,6 +56,15 @@ impl Workspace {
         match crate::webapp::fetch(self, &check.from, &check.url) {
             Ok(page) => (false, format!("page still loaded: {}", page.title), hint),
             Err(error) => (true, format!("blocked: {error}"), hint),
+        }
+    }
+
+    /// `from` device, `to` port: the port must be err-disabled.
+    fn check_errdisabled(&self, check: &Check) -> Verdict {
+        let hint = "Enable BPDU guard on the access port, then shut and reopen it.".to_string();
+        match self.errdisabled_reason(&check.from, &check.to) {
+            Some(reason) => (true, reason.to_string(), hint),
+            None => (false, format!("{} {} is not err-disabled", check.from, check.to), hint),
         }
     }
 

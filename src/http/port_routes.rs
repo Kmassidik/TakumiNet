@@ -34,6 +34,10 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         Some(a) => json_str(&crate::model::ipv4_string(a)),
                         None => "null".to_string(),
                     };
+                    let err = ws
+                        .errdisabled_reason(&id, &p.name)
+                        .map(json_str)
+                        .unwrap_or_else(|| "null".to_string());
                     let peer = match ws.peer_port(&id, &p.name) {
                         Some((peer_id, peer_port)) => {
                             let peer_name = ws
@@ -52,13 +56,14 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         None => "null".to_string(),
                     };
                     format!(
-                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{}}}",
+                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{},\"errdisabled\":{}}}",
                         json_str(&p.name),
                         ip,
                         p.prefix,
                         p.up,
                         peer,
-                        link_fields(&ws, &id, &p.name)
+                        link_fields(&ws, &id, &p.name),
+                        err
                     )
                 })
                 .collect::<Vec<_>>()

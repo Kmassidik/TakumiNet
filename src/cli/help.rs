@@ -10,6 +10,7 @@ pub(super) const SHOW_COMMANDS: &[(&str, &str)] = &[
     ("show lldp neighbors", "Neighbours seen over IEEE 802.1AB LLDP"),
     ("show mac address-table", "MAC address table"),
     ("show power inline", "PoE budget and the ports supplying power (IEEE 802.3af/at)"),
+    ("show errdisable", "Ports shut by a guard, and the reason"),
     ("show running-config", "Current configuration"),
     ("show startup-config", "Saved configuration"),
     ("show version", "Image information"),
@@ -69,6 +70,9 @@ pub(super) fn commands(mode: Mode) -> Vec<(&'static str, &'static str)> {
             ("no bandwidth", "Restore the default bandwidth"),
             ("no delay", "Restore the default delay"),
             ("no shutdown", "Bring the interface up"),
+            ("spanning-tree portfast", "Skip the listening delay on an access port"),
+            ("spanning-tree bpduguard enable|disable", "Err-disable a port that receives a BPDU (Cisco feature around IEEE 802.1D)"),
+            ("storm-control broadcast level N", "Drop broadcast traffic above N percent"),
             ("shutdown", "Administratively disable the interface"),
         ],
         Mode::Router => vec![

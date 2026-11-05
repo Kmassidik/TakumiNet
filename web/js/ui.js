@@ -2454,6 +2454,7 @@
         duplex: asText(p["duplex"]) || "auto",
         link: asText(p["link"]),
         fault: asText(p["fault"]),
+        errdisabled: asText(p["errdisabled"]) || undefined,
         poe: poeRaw ? {
           capable: poeRaw["capable"] === true,
           on: poeRaw["on"] === true,
@@ -2475,6 +2476,8 @@
   var SPEEDS = ["auto", "10", "100", "1000"];
   var DUPLEXES = ["auto", "half", "full"];
   function faultText(port) {
+    if (port.errdisabled)
+      return `errdisabled: ${port.errdisabled}`;
     if (port.fault === "speed")
       return "Speed mismatch: no link";
     if (port.fault === "duplex")

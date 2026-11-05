@@ -399,6 +399,9 @@ impl Workspace {
             }
             ["poe", dev] => self.load_poe_device(dev),
             ["wifiradio", id, channel, band] => self.wifi_radio_load(id, channel, band),
+            ["portfast", dev, port] => self.l2_guard_load("portfast", &[dev, port]),
+            ["bpduguard", dev, port] => self.l2_guard_load("bpduguard", &[dev, port]),
+            ["storm", dev, port, level] => self.l2_guard_load("storm", &[dev, port, level]),
             ["collisions", id, count] => {
                 if let Ok(n) = count.parse::<u32>() {
                     self.collisions.insert(id.to_string(), n);

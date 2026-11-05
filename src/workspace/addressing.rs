@@ -146,6 +146,18 @@ impl Workspace {
             None => false,
         };
         if changed {
+            if up {
+                self.l2_guard_on_enable(id, iface);
+                if self.errdisabled_reason(id, iface).is_some() {
+                    if let Some(dev) = self.devices.iter_mut().find(|d| d.id == id) {
+                        if let Some(port) = dev.ports.iter_mut().find(|p| p.name == iface) {
+                            port.up = false;
+                        }
+                    }
+                }
+            } else {
+                self.l2_guard.errdisabled.remove(&format!("{id}\t{iface}"));
+            }
             self.recompute_routing();
         }
         changed
