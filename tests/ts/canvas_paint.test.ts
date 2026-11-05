@@ -29,6 +29,7 @@ function paintRecorder(): { ctx: Canvas2D; paint: Paint } {
     moveTo() {},
     lineTo() {},
     stroke() {},
+    setLineDash() {},
     fill() { paint.arcFills.push(ctx.fillStyle); },
     arc() {},
     fillText(text: string) { paint.texts.push(text); paint.fonts.push(ctx.font); paint.textFills.push(ctx.fillStyle); },

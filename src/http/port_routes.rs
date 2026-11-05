@@ -7,6 +7,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
     match (method, path) {
         ("GET", "/api/devices/ports") => Some(handle_devices_ports(ctx, query)),
         ("POST", "/api/devices/port") => Some(handle_devices_port(ctx, query)),
+        ("POST", "/api/devices/linkspeed") => Some(handle_link_speed(ctx, query)),
         _ => None,
     }
 }
@@ -44,12 +45,13 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         None => "null".to_string(),
                     };
                     format!(
-                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}}}",
+                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{}}}",
                         json_str(&p.name),
                         ip,
                         p.prefix,
                         p.up,
-                        peer
+                        peer,
+                        link_fields(&ws, &id, &p.name)
                     )
                 })
                 .collect::<Vec<_>>()
@@ -71,6 +73,59 @@ fn handle_devices_port(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
         } else {
             Err("no such interface".into())
         }
+    });
+    (json, out.into_bytes())
+}
+
+/// Speed and duplex fields for an Ethernet port; empty for serial and other media.
+fn link_fields(ws: &crate::workspace::Workspace, id: &str, port: &str) -> String {
+    if !(port.starts_with("FastEthernet") || port.starts_with("GigabitEthernet")) {
+        return String::new();
+    }
+    let setting = ws.link_setting(id, port);
+    let speed = setting.speed.map_or("auto".to_string(), |s| s.to_string());
+    let duplex = match setting.full {
+        Some(true) => "full",
+        Some(false) => "half",
+        None => "auto",
+    };
+    let (link, fault) = match ws.negotiated(id, port) {
+        Some(n) => (
+            format!("{} Mb/s, {} duplex", n.speed, if n.full { "full" } else { "half" }),
+            if n.duplex_mismatch() { "duplex" } else { "" },
+        ),
+        None if ws.peer_port(id, port).is_some() => ("no link".to_string(), "speed"),
+        None => (String::new(), ""),
+    };
+    format!(
+        ",\"eth\":true,\"speed\":{},\"duplex\":{},\"link\":{},\"fault\":{}",
+        json_str(&speed),
+        json_str(duplex),
+        json_str(&link),
+        json_str(fault)
+    )
+}
+
+/// Set a port's fixed speed and duplex; `auto` puts a field back to negotiating.
+fn handle_link_speed(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let port = query_value(query, "port").unwrap_or_default();
+    let speed = query_value(query, "speed").unwrap_or_else(|| "auto".into());
+    let duplex = query_value(query, "duplex").unwrap_or_else(|| "auto".into());
+    let (out, _) = apply(ctx, |ws| {
+        let speed = match speed.as_str() {
+            "auto" => None,
+            other => Some(other.parse::<u32>().map_err(|_| "speed must be 10, 100, 1000 or auto".to_string())?),
+        };
+        let full = match duplex.as_str() {
+            "auto" => None,
+            "full" => Some(true),
+            "half" => Some(false),
+            _ => return Err("duplex must be half, full or auto".to_string()),
+        };
+        ws.set_link_speed(&id, &port, speed)?;
+        ws.set_link_duplex(&id, &port, full)
     });
     (json, out.into_bytes())
 }

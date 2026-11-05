@@ -80,3 +80,43 @@ test("a refused toggle leaves the rows alone instead of refreshing", async () =>
   await flush();
   expect(refreshed).toBe(0);
 });
+
+const linkPayload = JSON.stringify({
+  ports: [
+    { name: "FastEthernet0/1", ip: null, prefix: 0, up: true, peer: { id: "sw1", name: "Switch1", port: "FastEthernet0/1" }, eth: true, speed: "100", duplex: "full", link: "100 Mb/s, full duplex", fault: "duplex" },
+    { name: "FastEthernet0/2", ip: null, prefix: 0, up: true, peer: { id: "sw1", name: "Switch1", port: "FastEthernet0/2" }, eth: true, speed: "10", duplex: "auto", link: "no link", fault: "speed" },
+    { name: "Serial0/0/0", ip: null, prefix: 0, up: true, peer: null },
+  ],
+});
+
+test("an Ethernet row offers speed and duplex and names a mismatch", () => {
+  const doc = new FakeDocument();
+  const box = new FakeElement("div");
+  renderPortsPanel(doc, box, parsePortsInfo(linkPayload), { deviceId: "sw0", post: async () => ({}) });
+  const text = allText(box);
+  expect(text).toContain("100 Mb/s, full duplex");
+  expect(text).toContain("Duplex mismatch: expect errors");
+  expect(text).toContain("Speed mismatch: no link");
+  const selects = box.children[0]!.children[0]!.children.filter((n) => n.children.some((c) => c.tagName === "SELECT"));
+  expect(selects.length).toBe(2);
+  expect(find(box.children[0]!.children[2]!, (n) => n.tagName === "SELECT")).toBe(null);
+});
+
+test("picking a speed posts the port with both fields, then refreshes", async () => {
+  const doc = new FakeDocument();
+  const box = new FakeElement("div");
+  const posts: string[] = [];
+  let refreshed = 0;
+  renderPortsPanel(doc, box, parsePortsInfo(linkPayload), {
+    deviceId: "sw0",
+    post: async (path) => { posts.push(path); return {}; },
+    refresh: () => { refreshed += 1; },
+  });
+  const row = box.children[0]!.children[0]!;
+  const speed = find(row, (n) => n.tagName === "SELECT")!;
+  speed.value = "10";
+  speed.dispatch("change", {});
+  await flush();
+  expect(posts).toEqual(["/api/devices/linkspeed?id=sw0&port=FastEthernet0%2F1&speed=10&duplex=full"]);
+  expect(refreshed).toBe(1);
+});

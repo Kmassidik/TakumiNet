@@ -1090,3 +1090,8 @@ html, body {
 .cli-help-row span { color: var(--text-2); }
 div.cli-help-row { padding: 2px 0; }
 .devwin-title .dw-btns button.btn { width: auto; padding: 0 8px; }
+.port-row { flex-wrap: wrap; }
+.port-choice { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-2); }
+.port-choice .kw-input { width: auto; padding: 1px 4px; }
+.port-link { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.port-fault { color: var(--danger-ink); font-weight: 600; }

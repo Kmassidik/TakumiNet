@@ -424,3 +424,33 @@ fn e2e_explicit_link_ports_and_the_port_toggle() {
     let (_, _, body) = s.post("/api/devices/port?id=switch0&port=NoSuchPort&up=1");
     assert!(body.contains("no such interface"), "{body}");
 }
+
+#[test]
+fn e2e_speed_and_duplex_controls_report_the_link_and_the_mismatch() {
+    let s = spawn(38_261);
+    s.post("/api/reset");
+    let (_, _, body) = s.post("/api/links?a=switch0&b=switch1&kind=eCopper&aport=Fa0/10&bport=Fa0/11");
+    assert!(!body.contains("error"), "{body}");
+
+    let (_, _, body) = s.get("/api/devices/ports?id=switch0");
+    assert!(body.contains("\"eth\":true,\"speed\":\"auto\",\"duplex\":\"auto\",\"link\":\"100 Mb/s, full duplex\",\"fault\":\"\""), "{body}");
+
+    let (status, _, body) = s.post("/api/devices/linkspeed?id=switch0&port=FastEthernet0/10&speed=100&duplex=full");
+    assert_eq!(status, 200, "{body}");
+    let (_, _, body) = s.get("/api/devices/ports?id=switch0");
+    assert!(body.contains("\"speed\":\"100\",\"duplex\":\"full\"") && body.contains("\"fault\":\"duplex\""), "{body}");
+
+    let (_, _, body) = s.post("/api/devices/linkspeed?id=switch1&port=FastEthernet0/11&speed=10&duplex=full");
+    assert!(!body.contains("error"), "{body}");
+    let (_, _, body) = s.get("/api/devices/ports?id=switch0");
+    assert!(body.contains("\"link\":\"no link\",\"fault\":\"speed\""), "{body}");
+
+    let (_, _, body) = s.post("/api/devices/linkspeed?id=switch0&port=FastEthernet0/10&speed=1000&duplex=auto");
+    assert!(body.contains("cannot run at 1000"), "{body}");
+    let (_, _, body) = s.post("/api/devices/linkspeed?id=switch0&port=FastEthernet0/10&speed=fast&duplex=auto");
+    assert!(body.contains("speed must be"), "{body}");
+    let (_, _, body) = s.post("/api/devices/linkspeed?id=switch0&port=FastEthernet0/10&speed=100&duplex=sideways");
+    assert!(body.contains("duplex must be"), "{body}");
+    let (_, _, body) = s.post("/api/devices/linkspeed?id=switch0&port=NoSuchPort&speed=auto&duplex=auto");
+    assert!(body.contains("no such interface"), "{body}");
+}

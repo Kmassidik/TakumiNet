@@ -1,4 +1,5 @@
 import type { Camera, Point } from "./camera";
+import { cableStyle } from "./cable_style";
 import type { Scene, SceneLink } from "./scene";
 import { noteBox, type NoteInput } from "./notes";
 import type { Rect } from "./print_view";
@@ -171,12 +172,15 @@ function drawCable(ctx: Canvas2D, link: SceneLink, camera: Camera, options: Draw
   const a = camera.toScreen(link.from);
   const b = camera.toScreen(link.to);
   const selected = options.linked?.a === link.a && options.linked?.b === link.b;
-  ctx.strokeStyle = selected ? SELECT : link.kind === "eConsole" ? MUTED : INK;
-  ctx.lineWidth = selected ? 3 : 2;
+  const style = cableStyle(link.kind);
+  ctx.strokeStyle = selected ? SELECT : style.color;
+  ctx.lineWidth = selected ? style.width + 1 : style.width;
+  if (style.dash.length > 0) ctx.setLineDash(style.dash);
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(b.x, b.y);
   ctx.stroke();
+  if (style.dash.length > 0) ctx.setLineDash([]);
   for (const [t, state] of [[0.08, link.aState], [0.92, link.bState]] as const) {
     ctx.fillStyle = LED_COLORS[state ?? "red"] ?? LED_COLORS.red!;
     ctx.beginPath();

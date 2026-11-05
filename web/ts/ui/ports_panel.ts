@@ -14,6 +14,13 @@ export interface PortInfo {
   prefix: number;
   up: boolean;
   peer: PortPeer | null;
+  /* Ethernet only: the fixed speed and duplex ("auto" while negotiating),
+     what the cable actually runs at, and what is wrong with it, if anything. */
+  eth?: boolean;
+  speed?: string;
+  duplex?: string;
+  link?: string;
+  fault?: string;
 }
 
 /* One /api/devices/ports payload, parsed; an error payload throws. */
@@ -30,6 +37,11 @@ export function parsePortsInfo(text: string): PortInfo[] {
       prefix: Number(p["prefix"]) || 0,
       up: p["up"] !== false,
       peer: peer ? { id: asText(peer["id"]), name: asText(peer["name"]), port: asText(peer["port"]) } : null,
+      eth: p["eth"] === true,
+      speed: asText(p["speed"]) || "auto",
+      duplex: asText(p["duplex"]) || "auto",
+      link: asText(p["link"]),
+      fault: asText(p["fault"]),
     };
   });
 }
@@ -54,6 +66,49 @@ export interface PortsPanelDeps {
   extra?: (name: string) => string | null;
 }
 
+const SPEEDS = ["auto", "10", "100", "1000"];
+const DUPLEXES = ["auto", "half", "full"];
+
+export function faultText(port: PortInfo): string {
+  if (port.fault === "speed") return "Speed mismatch: no link";
+  if (port.fault === "duplex") return "Duplex mismatch: expect errors";
+  return "";
+}
+
+function choice(doc: DocLike, label: string, values: readonly string[], current: string, onPick: (value: string) => void): ElementLike {
+  const wrap = el(doc, "label", "port-choice", label);
+  const select = el(doc, "select", "kw-input");
+  select.setAttribute("aria-label", label);
+  for (const value of values) {
+    const option = el(doc, "option", "", value === "auto" ? "auto" : value);
+    option.setAttribute("value", value);
+    select.appendChild(option);
+  }
+  select.value = current;
+  select.addEventListener("change", () => onPick(select.value));
+  wrap.appendChild(select);
+  return wrap;
+}
+
+function linkControls(doc: DocLike, row: ElementLike, port: PortInfo, deps: PortsPanelDeps, post: Post): void {
+  const state = { speed: port.speed ?? "auto", duplex: port.duplex ?? "auto" };
+  const send = (): void => {
+    const enc = encodeURIComponent;
+    void post(`/api/devices/linkspeed?id=${enc(deps.deviceId)}&port=${enc(port.name)}&speed=${state.speed}&duplex=${state.duplex}`)
+      .then(() => deps.refresh?.())
+      .catch(() => undefined);
+  };
+  row.appendChild(choice(doc, "Speed", SPEEDS, state.speed, (v) => { state.speed = v; send(); }));
+  row.appendChild(choice(doc, "Duplex", DUPLEXES, state.duplex, (v) => { state.duplex = v; send(); }));
+  if (port.link) row.appendChild(el(doc, "span", "port-link", port.link));
+  const fault = faultText(port);
+  if (fault) {
+    const flag = el(doc, "span", "port-fault", fault);
+    flag.setAttribute("role", "status");
+    row.appendChild(flag);
+  }
+}
+
 function portRow(doc: DocLike, port: PortInfo, deps: PortsPanelDeps): ElementLike {
   const row = el(doc, "li", "kw-row port-row");
   const dot = el(doc, "span", portDotClass(port));
@@ -65,6 +120,7 @@ function portRow(doc: DocLike, port: PortInfo, deps: PortsPanelDeps): ElementLik
   if (tag) row.appendChild(el(doc, "span", "port-extra", tag));
   row.appendChild(el(doc, "span", port.peer ? "port-peer" : "port-peer is-free", portPeerText(port)));
   const post = deps.post;
+  if (post && port.eth) linkControls(doc, row, port, deps, post);
   if (post) {
     row.appendChild(
       createButton(doc, {

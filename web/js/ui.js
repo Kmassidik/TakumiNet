@@ -159,6 +159,22 @@
     return best;
   }
 
+  // web/ts/canvas/cable_style.ts
+  var CABLE_STYLES = {
+    eCopper: { color: "#1b1f23", width: 2, dash: [], name: "Copper straight-through" },
+    eCross: { color: "#1b1f23", width: 2, dash: [10, 6], name: "Copper cross-over" },
+    eFiber: { color: "#c2570c", width: 2.5, dash: [], name: "Optical fibre" },
+    eSerial: { color: "#b42318", width: 2, dash: [12, 4, 2, 4], name: "Serial" },
+    eConsole: { color: "#0f766e", width: 2, dash: [6, 4], name: "Console" },
+    ePhone: { color: "#7c3aed", width: 2, dash: [2, 4], name: "Phone line" },
+    eCoax: { color: "#8a5a14", width: 3.5, dash: [], name: "Coaxial" },
+    eIoT: { color: "#be185d", width: 2, dash: [5, 3, 1, 3], name: "IoT" }
+  };
+  var FALLBACK = CABLE_STYLES["eCopper"];
+  function cableStyle(kind) {
+    return kind && CABLE_STYLES[kind] || FALLBACK;
+  }
+
   // web/ts/canvas/notes.ts
   var NOTE_WIDTH = 180;
   var NOTE_CHARS_PER_LINE = 26;
@@ -337,12 +353,17 @@
     const a = camera.toScreen(link.from);
     const b = camera.toScreen(link.to);
     const selected = options.linked?.a === link.a && options.linked?.b === link.b;
-    ctx.strokeStyle = selected ? SELECT : link.kind === "eConsole" ? MUTED : INK;
-    ctx.lineWidth = selected ? 3 : 2;
+    const style = cableStyle(link.kind);
+    ctx.strokeStyle = selected ? SELECT : style.color;
+    ctx.lineWidth = selected ? style.width + 1 : style.width;
+    if (style.dash.length > 0)
+      ctx.setLineDash(style.dash);
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
+    if (style.dash.length > 0)
+      ctx.setLineDash([]);
     for (const [t, state] of [[0.08, link.aState], [0.92, link.bState]]) {
       ctx.fillStyle = LED_COLORS[state ?? "red"] ?? LED_COLORS.red;
       ctx.beginPath();
@@ -2426,7 +2447,12 @@
         ip: typeof p["ip"] === "string" ? p["ip"] : null,
         prefix: Number(p["prefix"]) || 0,
         up: p["up"] !== false,
-        peer: peer ? { id: asText(peer["id"]), name: asText(peer["name"]), port: asText(peer["port"]) } : null
+        peer: peer ? { id: asText(peer["id"]), name: asText(peer["name"]), port: asText(peer["port"]) } : null,
+        eth: p["eth"] === true,
+        speed: asText(p["speed"]) || "auto",
+        duplex: asText(p["duplex"]) || "auto",
+        link: asText(p["link"]),
+        fault: asText(p["fault"])
       };
     });
   }
@@ -2437,6 +2463,54 @@
   }
   function portPeerText(port) {
     return port.peer ? `connected to ${port.peer.name} ${port.peer.port}` : "free";
+  }
+  var SPEEDS = ["auto", "10", "100", "1000"];
+  var DUPLEXES = ["auto", "half", "full"];
+  function faultText(port) {
+    if (port.fault === "speed")
+      return "Speed mismatch: no link";
+    if (port.fault === "duplex")
+      return "Duplex mismatch: expect errors";
+    return "";
+  }
+  function choice(doc, label, values, current, onPick) {
+    const wrap = el(doc, "label", "port-choice", label);
+    const select = el(doc, "select", "kw-input");
+    select.setAttribute("aria-label", label);
+    for (const value of values) {
+      const option = el(doc, "option", "", value === "auto" ? "auto" : value);
+      option.setAttribute("value", value);
+      select.appendChild(option);
+    }
+    select.value = current;
+    select.addEventListener("change", () => onPick(select.value));
+    wrap.appendChild(select);
+    return wrap;
+  }
+  function linkControls(doc, row, port, deps, post) {
+    const state = { speed: port.speed ?? "auto", duplex: port.duplex ?? "auto" };
+    const send = () => {
+      const enc = encodeURIComponent;
+      post(`/api/devices/linkspeed?id=${enc(deps.deviceId)}&port=${enc(port.name)}&speed=${state.speed}&duplex=${state.duplex}`).then(() => deps.refresh?.()).catch(() => {
+        return;
+      });
+    };
+    row.appendChild(choice(doc, "Speed", SPEEDS, state.speed, (v) => {
+      state.speed = v;
+      send();
+    }));
+    row.appendChild(choice(doc, "Duplex", DUPLEXES, state.duplex, (v) => {
+      state.duplex = v;
+      send();
+    }));
+    if (port.link)
+      row.appendChild(el(doc, "span", "port-link", port.link));
+    const fault = faultText(port);
+    if (fault) {
+      const flag = el(doc, "span", "port-fault", fault);
+      flag.setAttribute("role", "status");
+      row.appendChild(flag);
+    }
   }
   function portRow(doc, port, deps) {
     const row = el(doc, "li", "kw-row port-row");
@@ -2451,6 +2525,8 @@
       row.appendChild(el(doc, "span", "port-extra", tag));
     row.appendChild(el(doc, "span", port.peer ? "port-peer" : "port-peer is-free", portPeerText(port)));
     const post = deps.post;
+    if (post && port.eth)
+      linkControls(doc, row, port, deps, post);
     if (post) {
       row.appendChild(createButton(doc, {
         label: port.up ? "Shut down" : "Bring up",
