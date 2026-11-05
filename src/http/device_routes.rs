@@ -1,4 +1,6 @@
 use super::*;
+#[path = "device_extra.rs"]
+mod device_extra;
 
 /// Returns `None` when this group does not own the route.
 pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<(&'static str, Vec<u8>)> {
@@ -11,7 +13,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/devices/delete") => Some(handle_devices_delete(ctx, query)),
         ("POST", "/api/devices/duplicate") => Some(handle_devices_duplicate(ctx, query)),
         ("POST", "/api/devices/rename") => Some(handle_devices_rename(ctx, query)),
-        ("POST", "/api/devices/replace") => Some(handle_devices_replace(ctx, query)),
+        ("POST", "/api/devices/replace") => Some(device_extra::handle_devices_replace(ctx, query)),
         ("POST", "/api/devices/ip") => Some(handle_devices_ip(ctx, query)),
         ("POST", "/api/devices/ipv6") => Some(handle_devices_ipv6(ctx, query)),
         ("POST", "/api/devices/dot1x") => Some(handle_devices_dot1x(ctx, query)),
@@ -33,6 +35,7 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<
         ("POST", "/api/pdu") => Some(handle_pdu(ctx, query)),
         ("POST", "/api/sim/reset") => Some(handle_sim_reset(ctx)),
         ("POST", "/api/sim/tick") => Some(handle_sim_tick(ctx, query)),
+        ("POST", "/api/sim/step") => Some(device_extra::handle_sim_step(ctx)),
         ("POST", "/api/demo") => Some(handle_demo(ctx)),
         ("POST", "/api/undo") => Some(handle_undo(ctx)),
         ("POST", "/api/redo") => Some(handle_redo(ctx)),
@@ -94,27 +97,6 @@ fn handle_devices_delete(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     (json, out.into_bytes())
 }
 
-fn handle_devices_replace(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
-    let json = "application/json";
-    let id = query_value(query, "id").unwrap_or_default();
-    let model = query_value(query, "model").unwrap_or_default();
-    let mut report = None;
-    let (out, ok) = apply(ctx, |ws| {
-        report = Some(ws.replace(&id, &model)?);
-        Ok(())
-    });
-    if !ok {
-        return (json, out.into_bytes());
-    }
-    let dropped = report
-        .map(|r| {
-            let list = r.dropped.iter().map(|p| json_str(p)).collect::<Vec<_>>().join(",");
-            format!("{{\"kept\":{},\"dropped\":[{list}]}}", r.kept)
-        })
-        .unwrap_or_else(|| "{\"kept\":0,\"dropped\":[]}".into());
-    let body = out.trim_end_matches('}').to_string() + ",\"replace\":" + &dropped + "}";
-    (json, body.into_bytes())
-}
 
 fn handle_devices_duplicate(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let json = "application/json";
@@ -347,9 +329,15 @@ fn handle_pdu(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let json = "application/json";
     let src = query_value(query, "src").unwrap_or_default();
     let dst = query_value(query, "dst").unwrap_or_default();
+    if matches!(query_value(query, "queue").as_deref(), Some("1") | Some("true")) {
+        let (out, _) = apply(ctx, |ws| ws.queue_pdu(&src, &dst));
+        return (json, out.into_bytes());
+    }
     let (out, _) = apply_capture(ctx, |ws| ws.send_pdu(&src, &dst));
     (json, out.into_bytes())
 }
+
+
 
 fn handle_demo(ctx: &Ctx) -> (&'static str, Vec<u8>) {
     let json = "application/json";

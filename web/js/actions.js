@@ -318,7 +318,14 @@ function zoom(factor) {
 }
 
 /* ---------------- simulation transport ---------------- */
-function stepSim(dir) {
+async function stepSim(dir) {
+  if ((globalThis.queuedPduCount || 0) > 0) {
+    const sent = globalThis.queuedPduCount;
+    globalThis.queuedPduCount = 0;
+    const r = await api('/api/sim/step');
+    if (r.error) return;
+    status(`Sent ${sent} queued frame${sent === 1 ? '' : 's'}`);
+  }
   const events = visibleEvents();
   if (!events.length) { status('No events'); return; }
   const current = events.findIndex((e) => e.id === simCursor);
@@ -366,6 +373,11 @@ async function togglePlay() {
   if (playStarting) return;
   playStarting = true;
   try {
+    if ((globalThis.queuedPduCount || 0) > 0) {
+      globalThis.queuedPduCount = 0;
+      const queued = await api('/api/sim/step');
+      if (queued.error) return;
+    }
     const events = visibleEvents();
     if (!events.length && !(await sendBuiltInTraffic())) return;
     /* Play on a finished capture rewinds and replays it, like any media player.

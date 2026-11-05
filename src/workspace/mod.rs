@@ -17,6 +17,7 @@ mod snooping;
 mod dhcp_multi;
 pub(crate) mod mirror;
 mod replace;
+mod pending;
 mod fhrp;
 mod json;
 mod router_admin;
@@ -162,6 +163,7 @@ impl Workspace {
                 snoop: SnoopConfig::default(),
                 fhrp: FhrpConfig::default(),
                 mirror: MirrorConfig::default(),
+                pending_pdu: Vec::new(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),
@@ -399,6 +401,7 @@ impl Workspace {
                 snoop: SnoopConfig::default(),
                 fhrp: FhrpConfig::default(),
                 mirror: MirrorConfig::default(),
+                pending_pdu: Vec::new(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),

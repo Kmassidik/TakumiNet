@@ -149,34 +149,14 @@ async function pduClick(d) {
     return;
   }
   const src = pduFrom;
+  const source = data && Array.isArray(data.devices) ? data.devices.find((x) => x.id === src) : null;
   pduFrom = null;
   pduMode = false;
-  const r = await api('/api/pdu', { src, dst: d.id });
-  if (r.error) {
-    const snapshot = await getJson('/api/workspace');
-    if (!snapshot.events) return;
-    setData(snapshot);
-    const event = snapshot.events[snapshot.events.length - 1];
-    if (event && event.status === 'Dropped') {
-      if (typeof selectCaptureEvent === 'function') selectCaptureEvent(event.id);
-      else {
-        simCursor = event.id;
-        renderEvents();
-        animatePath(event.path, event.proto);
-      }
-    }
-    return;
-  }
-  const event = data.events[data.events.length - 1];
-  if (!event) return;
+  const r = await api('/api/pdu', { src, dst: d.id, queue: 1 });
+  if (r.error) return;
+  globalThis.queuedPduCount = (globalThis.queuedPduCount || 0) + 1;
   sfx('addPacketDevice');
-  if (typeof selectCaptureEvent === 'function') selectCaptureEvent(event.id);
-  else {
-    simCursor = event.id;
-    renderEvents();
-    animatePath(event.path, event.proto);
-  }
-  status(`PDU delivered ${event.last} → ${event.at}`);
+  status(`Queued ${source ? source.name : src} → ${d.name}. Press Step or Play to send.`);
 }
 
 const tipEl = document.getElementById('tip');

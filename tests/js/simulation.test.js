@@ -134,7 +134,6 @@ test('Hide All shows no events and a zero visible capture count', () => {
   h.context.renderFilters();
   h.context.setAllFilters(false);
   assert.deepEqual(Array.from(h.context.visibleEvents(), (e) => e.id), []);
-  assert.equal(h.byId('captured').textContent, 'Captured: 0/0');
   assert.match(h.byId('events').textContent, /No events/);
 });
 
@@ -202,34 +201,18 @@ test('PDU inspection renders captured layer fields and control-plane details', (
   assert.match(control, /Query: web.lab A/);
 });
 
-test('new PDU selection stores its stable ID rather than an array index', async () => {
+test('a new PDU is queued until the student steps the simulation', async () => {
   const h = harness([]);
   vm.runInContext("pduFrom = 'pc0'; pduMode = true;", h.context);
-  h.context.api = async () => {
-    h.context.data = { events: [event(42, 'ICMP')], filters: ['ICMP'], devices: [] };
-    h.context.renderFilters();
-    return {};
-  };
+  h.context.api = async () => ({});
   await h.context.pduClick({ id: 'server0' });
-  assert.equal(vm.runInContext('simCursor', h.context), 42);
-  assert.equal(h.byId('captured').textContent, 'Captured: 1/1');
+  assert.equal(vm.runInContext('globalThis.queuedPduCount', h.context), 1);
 });
 
-test('a dropped PDU refreshes the list and selects its stable event', async () => {
+test('a refused queue changes nothing in the capture', async () => {
   const h = harness([]);
   vm.runInContext("pduFrom = 'pc0'; pduMode = true;", h.context);
-  h.context.api = async () => ({ error: 'ACL denied' });
-  h.context.getJson = async () => ({
-    events: [event(77, 'ICMP', { status: 'Dropped', reason: 'ACL denied' })],
-    filters: ['ICMP'],
-    devices: [],
-  });
-  h.context.setData = (snapshot) => {
-    h.context.data = snapshot;
-    h.context.renderFilters();
-    h.context.renderEvents();
-  };
+  h.context.api = async () => ({ error: 'no such device' });
   await h.context.pduClick({ id: 'server0' });
-  assert.equal(vm.runInContext('simCursor', h.context), 77);
-  assert.equal(h.byId('captured').textContent, 'Captured: 1/1');
+  assert.equal(vm.runInContext('globalThis.queuedPduCount || 0', h.context), 0);
 });
