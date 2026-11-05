@@ -10,7 +10,7 @@ pub struct PortState {
     pub line_up: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct PortCfg {
     pub name: String,
     pub ip: Option<u32>,
@@ -340,6 +340,8 @@ pub struct Workspace {
     pub queue_parent: HashMap<String, u32>,
     /// Hotspot vouchers per gateway.
     pub vouchers: HashMap<String, Vec<Voucher>>,
+    /// Per-link CRC counters for duplex mismatch simulation.
+    pub link_counters: HashMap<String, crate::net::duplex::Counters>,
     /// Shared gateway addresses: address -> (member device, priority).
     pub shared_gateways: HashMap<u32, Vec<(String, u8)>>,
     /// Load balancer pools, served counts and the round robin cursor.

@@ -68,7 +68,7 @@ pub(super) fn port_view(ws: &Workspace, id: &str, iface: &str) -> Option<(String
     Some(view)
 }
 
-pub(super) fn show_interfaces(ws: &Workspace, id: &str, iface: &str) -> String {
+pub(crate) fn show_interfaces(ws: &Workspace, id: &str, iface: &str) -> String {
     let Some((name, ip, prefix, _up)) = port_view(ws, id, iface) else {
         return format!("% Invalid interface name: {iface}\n");
     };
@@ -111,6 +111,10 @@ pub(super) fn show_interfaces(ws: &Workspace, id: &str, iface: &str) -> String {
             out.push_str(&format!("  {duplex}, {}Mb/s, media type is RJ45\n", n.speed));
             if n.duplex_mismatch() {
                 out.push_str("  Duplex mismatch with the far end: late collisions and CRC errors are rising\n");
+            }
+            let crc = ws.crc_errors_for(id, &name);
+            if crc > 0 {
+                out.push_str(&format!("  {} input errors\n", crc));
             }
         }
         None if st.linked => out.push_str("  Speed mismatch with the far end: no link\n"),

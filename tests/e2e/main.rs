@@ -5,6 +5,7 @@ mod files;
 mod pages;
 mod services;
 mod workspace;
+mod duplex;
 
 use std::io::{Read, Write};
 use std::net::TcpStream;

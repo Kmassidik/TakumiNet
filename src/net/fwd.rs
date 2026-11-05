@@ -232,7 +232,7 @@ where
                 return Err(reason);
             }};
         }
-
+        if i > 0 { if let Some(r) = ws.check_duplex_mismatch(&dev, ingress.as_deref().unwrap_or_default()) { drop_here!(r); } }
         match dev.kind.as_str() {
             k if crate::model::routes_packets(k) => {
                 if let Some(expected) = ingress.as_ref().and_then(|name| {
