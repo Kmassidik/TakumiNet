@@ -1,0 +1,12 @@
+<takumi version="1">
+  <device id="pc0" kind="pc" model="PC" x="260" y="240" name="DeskA" ip="10.0.0.1" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="620" y="240" name="DeskB" ip="10.0.0.2" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <linkset dev="pc0" port="FastEthernet0" speed="100" duplex="full"/>
+  <lesson id="les-l2-08-slow-link" title="The slow link" level="2" minutes="10" goal="Pings between DeskA and DeskB keep failing. Make both ends of the cable agree on speed and duplex."/>
+  <step n="1" text="Ping DeskB from DeskA. Some pings are lost even though the cable is fine."/>
+  <step n="2" text="On either computer open Config and read the Speed and Duplex selects. One end is fixed and the other is auto, so the cable runs half duplex."/>
+  <step n="3" text="Set both ends the same (for example 100 and full on both, or auto on both), then ping again."/>
+  <check id="c1" kind="duplex" from="pc0" to="FastEthernet0" url="" expect="" label="DeskA's end has no duplex mismatch"/>
+  <check id="c2" kind="duplex" from="pc1" to="FastEthernet0" url="" expect="" label="DeskB's end has no duplex mismatch"/>
+</takumi>

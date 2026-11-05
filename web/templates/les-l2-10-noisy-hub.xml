@@ -1,0 +1,16 @@
+<takumi version="1">
+  <device id="hub0" kind="hub" model="Hub" x="420" y="160" name="SharedHub" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="200" y="300" name="PC-A" ip="10.20.0.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="420" y="300" name="PC-B" ip="10.20.0.11" prefix="24"/>
+  <device id="pc2" kind="pc" model="PC" x="640" y="300" name="PC-C" ip="10.20.0.12" prefix="24"/>
+  <link a="hub0" a_port="Fa0" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="hub0" a_port="Fa1" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="hub0" a_port="Fa2" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <lesson id="les-l2-10-noisy-hub" title="The noisy hub" level="2" minutes="10" goal="Three PCs share one hub. Replace the hub with a switch so the collision counter stays at zero."/>
+  <step n="1" text="PC-A and PC-B talk through SharedHub. Open the hub's Config tab and look at the Collisions line."/>
+  <step n="2" text="A hub repeats every frame to every port; when two send together they collide. A switch gives each port its own collision domain."/>
+  <step n="3" text="Delete the hub, place a Switch 24, and cable all three PCs to it. Keep their addresses."/>
+  <step n="4" text="Ping PC-C from PC-A and check the switch has no hub left."/>
+  <check id="c1" kind="absent" from="" to="hub" url="" expect="" label="The hub is gone"/>
+  <check id="c2" kind="ping" from="pc0" to="pc2" url="" expect="ok" label="PC-A still reaches PC-C through the switch"/>
+</takumi>

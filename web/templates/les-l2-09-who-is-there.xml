@@ -1,0 +1,13 @@
+<takumi version="1">
+  <device id="router0" kind="router" model="Router 300" x="180" y="200" name="Edge" ip="" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="440" y="200" name="Closet" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="Switch 24" x="700" y="200" name="FarCloset" ip="" prefix="24"/>
+  <link a="router0" a_port="Gig0/0" b="switch0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="switch1" b_port="Fa0/1" kind="eCopper"/>
+  <port id="switch0" name="FastEthernet0/1" up="0" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="100"/>
+  <lesson id="les-l2-09-who-is-there" title="Who is on the other end?" level="2" minutes="10" goal="The uplink to Edge is shut. Bring it up and use show lldp neighbors to name the device on it."/>
+  <step n="1" text="On Closet, run show lldp neighbors. The uplink to Edge is shut, so nothing is listed."/>
+  <step n="2" text="Enter interface FastEthernet0/1 and run no shutdown."/>
+  <step n="3" text="Run show lldp neighbors again; Edge appears with its port and a router capability code."/>
+  <check id="c1" kind="lldp" from="switch0" to="router0" url="" expect="" label="Closet sees Edge over LLDP"/>
+</takumi>

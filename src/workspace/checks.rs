@@ -116,7 +116,9 @@ impl Workspace {
                     None => (false, format!("invalid route expectation '{}'", check.expect), "Use network/prefix, for example 10.0.0.0/8.".to_string()),
                 }
             }
-            other => self.run_extra_check(check)
+            other => self
+                .run_extra_check(check)
+                .or_else(|| self.run_round2_check(check))
                 .unwrap_or_else(|| (false, format!("unsupported check kind '{other}'"), "Choose a supported lesson check.".to_string())),
         };
         CheckResult {

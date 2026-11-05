@@ -1,0 +1,11 @@
+<takumi version="1">
+  <device id="ap0" kind="ap" model="Access Point" x="300" y="220" name="LobbyAP" ip="" prefix="24"/>
+  <device id="ap1" kind="ap" model="Access Point" x="650" y="220" name="HallAP" ip="" prefix="24"/>
+  <wifiradio dev="ap0" channel="1" band="2.4"/>
+  <wifiradio dev="ap1" channel="3" band="2.4"/>
+  <lesson id="les-l4-08-two-wifi" title="Two Wi-Fi networks fight" level="4" minutes="10" goal="LobbyAP and HallAP sit on channels that overlap. Move one to 6 or 11 so the warning clears."/>
+  <step n="1" text="Open LobbyAP, Wireless tab. The Radio row shows channel 1 and warns about HallAP."/>
+  <step n="2" text="2.4 GHz channels 1, 6 and 11 do not overlap. Channels 1 and 3 interfere."/>
+  <step n="3" text="Change HallAP to channel 6 or 11, then check LobbyAP again."/>
+  <check id="c1" kind="overlap" from="ap0" to="" url="" expect="" label="LobbyAP no longer overlaps HallAP"/>
+</takumi>

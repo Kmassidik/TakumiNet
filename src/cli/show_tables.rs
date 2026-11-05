@@ -335,7 +335,7 @@ pub(super) fn helper_list(ws: &Workspace, id: &str) -> String {
 
 /// `show lldp neighbors`: IEEE 802.1AB. Every live cable whose far end is a
 /// device that speaks LLDP shows up with its name, port and capability.
-pub(super) fn lldp_neighbors(ws: &Workspace, id: &str) -> String {
+pub(crate) fn lldp_neighbors(ws: &Workspace, id: &str) -> String {
     let Some(dev) = ws.devices.iter().find(|d| d.id == id) else {
         return String::new();
     };

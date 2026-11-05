@@ -1,0 +1,18 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="420" y="160" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="server0" kind="server" model="Server" x="700" y="300" name="FileServer" ip="10.10.0.2" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="200" y="300" name="OfficePC" ip="10.10.0.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="420" y="300" name="GuestPC" ip="10.10.0.140" prefix="24"/>
+  <link a="switch0" a_port="Fa0/1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/3" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <page id="server0" body="Office files, staff only"/>
+  <lesson id="les-l3-09-lock-the-server" title="Lock down the server" level="3" minutes="12" goal="GuestPC can read the FileServer page. Allow the office subnet 10.10.0.0/25 and block everyone else with ufw."/>
+  <step n="1" text="Open http://10.10.0.2/ from GuestPC. The page loads, which is the problem."/>
+  <step n="2" text="On FileServer open Terminal and run sudo ufw enable."/>
+  <step n="3" text="Set the incoming policy to deny: sudo ufw default deny incoming."/>
+  <step n="4" text="Allow the office subnet: sudo ufw allow from 10.10.0.0/25."/>
+  <step n="5" text="Try both computers: OfficePC still opens the page, GuestPC is refused."/>
+  <check id="c1" kind="http" from="pc0" to="" url="http://10.10.0.2/" expect="FileServer" label="OfficePC opens the server page"/>
+  <check id="c2" kind="blocked-http" from="pc1" to="" url="http://10.10.0.2/" expect="" label="GuestPC is refused by the server firewall"/>
+</takumi>

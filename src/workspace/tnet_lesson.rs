@@ -65,7 +65,7 @@ pub(super) fn validate_lesson_records(
                     invalidate(valid, problems, index, element, "kind", format!("unknown check kind '{kind}'"));
                 }
                 let from = element.get("from").unwrap_or("");
-                if !matches!(kind, "count") && !device_exists(from) {
+                if !matches!(kind, "count" | "absent") && !device_exists(from) {
                     invalidate(valid, problems, index, element, "from", format!("refers to device '{from}' that does not exist"));
                 }
                 let to = element.get("to").unwrap_or("");

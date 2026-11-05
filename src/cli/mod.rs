@@ -15,7 +15,7 @@ mod interface;
 mod line;
 mod router;
 mod show;
-mod show_tables;
+pub(crate) mod show_tables;
 use help::*;
 use show::*;
 use show_tables::*;
