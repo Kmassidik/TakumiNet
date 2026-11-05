@@ -2,6 +2,7 @@
 
 use super::*;
 use crate::net::packet::{IpProto, Packet, Payload};
+use std::net::Ipv6Addr;
 
 /// Source ports from this number up are answers to a request the host sent,
 /// so a default-deny host still accepts them (a stateful firewall's job).
@@ -13,6 +14,8 @@ pub struct UfwRule {
     pub proto: Option<String>,
     pub port: Option<u16>,
     pub from: Option<(u32, u8)>,
+    /// IPv6 source prefix; a rule carries one family or the other.
+    pub from6: Option<(Ipv6Addr, u8)>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -24,12 +27,28 @@ pub struct HostFirewall {
 
 impl UfwRule {
     fn matches(&self, proto: &str, port: Option<u16>, src: u32) -> bool {
-        self.proto.as_deref().map_or(true, |p| p == proto)
+        self.from6.is_none()
+            && self.proto.as_deref().map_or(true, |p| p == proto)
             && self.port.map_or(true, |p| port == Some(p))
             && self.from.map_or(true, |(net, prefix)| {
                 let mask = crate::model::mask_of(prefix);
                 net & mask == src & mask
             })
+    }
+
+    /// An IPv6 ping. A rule written for IPv4 does not apply to a v6 source,
+    /// and the protocol keyword `icmp` covers `icmp6`.
+    fn matches6(&self, src: Ipv6Addr) -> bool {
+        self.port.is_none()
+            && self.proto.as_deref().map_or(true, |p| p == "icmp" || p == "icmp6" || p == "ipv6")
+            && match self.from6 {
+                Some((net, prefix)) => {
+                    let bits = u128::from(net) >> (128 - prefix.min(128) as u32);
+                    let src_bits = u128::from(src) >> (128 - prefix.min(128) as u32);
+                    bits == src_bits
+                }
+                None => self.from.is_none(),
+            }
     }
 }
 
@@ -81,6 +100,18 @@ impl Workspace {
         }
     }
 
+    /// Whether an IPv6 echo from `src` is refused, and the label to show.
+    /// A stock host answers ping, so only an explicit deny rule blocks it.
+    pub fn ufw_blocks_v6(&self, id: &str, src: Ipv6Addr) -> Option<String> {
+        let firewall = self.host_firewalls.get(id).filter(|f| f.enabled)?;
+        for rule in &firewall.rules {
+            if rule.matches6(src) {
+                return if rule.allow { None } else { Some("icmp6".into()) };
+            }
+        }
+        None
+    }
+
     pub(super) fn ufw_records(&self) -> String {
         let mut ids: Vec<_> = self.host_firewalls.keys().collect();
         ids.sort();
@@ -94,9 +125,13 @@ impl Workspace {
                 if firewall.default_allow { "allow" } else { "deny" }
             ));
             for rule in &firewall.rules {
-                let from = rule.from.map_or("-".to_string(), |(net, prefix)| {
+                let from = if let Some((net, prefix)) = rule.from6 {
+                    format!("{net}/{prefix}")
+                } else if let Some((net, prefix)) = rule.from {
                     format!("{}/{}", crate::model::ipv4_string(net), prefix)
-                });
+                } else {
+                    "-".to_string()
+                };
                 out.push_str(&format!(
                     "ufwrule\t{}\t{}\t{}\t{}\t{}\n",
                     id,
@@ -117,14 +152,24 @@ impl Workspace {
     }
 
     pub(super) fn ufw_load_rule(&mut self, id: &str, action: &str, proto: &str, port: &str, from: &str) {
-        let from = from.split_once('/').and_then(|(net, prefix)| {
-            Some((crate::model::parse_ipv4(net)?, prefix.parse::<u8>().ok().filter(|p| *p <= 32)?))
-        });
+        let mut v4 = None;
+        let mut v6 = None;
+        if from != "-" {
+            let (net, prefix) = from.split_once('/').unwrap_or((from, ""));
+            if net.contains(':') {
+                if let Ok(addr) = net.parse::<std::net::Ipv6Addr>() {
+                    v6 = Some((addr, prefix.parse::<u8>().unwrap_or(128)));
+                }
+            } else if let Some(ip) = crate::model::parse_ipv4(net) {
+                v4 = Some((ip, prefix.parse::<u8>().ok().filter(|p| *p <= 32).unwrap_or(32)));
+            }
+        }
         self.ufw_mut(id).rules.push(UfwRule {
             allow: action == "allow",
             proto: (proto != "-").then(|| proto.to_string()),
             port: port.parse().ok(),
-            from,
+            from: v4,
+            from6: v6,
         });
     }
 }

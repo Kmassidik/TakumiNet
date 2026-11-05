@@ -29,3 +29,4 @@ mod sniffer;
 mod traffic;
 mod wireless_iot;
 mod duplex_loss;
+mod ufw_v6;

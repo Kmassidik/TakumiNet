@@ -20,6 +20,7 @@ use help::*;
 use show::*;
 use show_tables::*;
 pub use help::complete;
+#[cfg(test)]
 pub(crate) use show::show_interfaces;
 pub(crate) use show::config_for;
 

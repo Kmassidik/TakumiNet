@@ -49,6 +49,7 @@ pub fn run(ws: &mut Workspace, id: &str, line: &str) -> String {
         },
         "ipconfig" | "ifconfig" => ipconfig(ws, id),
         "ping" => ping(ws, id, &args),
+        "ping6" => ping6(ws, id, &args),
         "tracert" | "traceroute" => tracert(ws, id, &args),
         "arp" => arp(ws, id, arg),
         "route" => match arg.to_ascii_lowercase().as_str() {
@@ -124,6 +125,14 @@ fn ipconfig_release(ws: &mut Workspace, id: &str) -> String {
     String::from(
         "Windows IP Configuration\n\nIP address successfully released for adapter \"FastEthernet0\"\n\n",
     )
+}
+
+/// `ping6 <address>`: an IPv6 echo over one live L2 segment.
+fn ping6(ws: &mut Workspace, id: &str, args: &[&str]) -> String {
+    let Some(target) = args.iter().find(|a| !a.starts_with('-')) else {
+        return "Usage: ping6 <address>\n".into();
+    };
+    ws.ping6(id, target)
 }
 
 /// Resolve `target` to a device by address, then run a real delivery.

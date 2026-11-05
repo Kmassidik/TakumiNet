@@ -166,3 +166,55 @@ impl Workspace {
         out
     }
 }
+
+impl Workspace {
+    /// `ping6`: an IPv6 echo over one live L2 segment. IPv6 routing is not
+    /// modelled, so a target behind a router times out.
+    pub fn ping6(&mut self, src: &str, target: &str) -> String {
+        let Some(sdev) = self.devices.iter().find(|d| d.id == src) else {
+            return "ping6: unknown device\n".into();
+        };
+        let Some(src_ip) = sdev.ipv6.as_deref().and_then(|t| t.parse::<std::net::Ipv6Addr>().ok()) else {
+            return format!("ping6: {} has no IPv6 address set\n", sdev.name);
+        };
+        let Ok(target_ip) = target.parse::<std::net::Ipv6Addr>() else {
+            return format!("ping6: cannot resolve {target}\n");
+        };
+        let Some(dst) = self
+            .devices
+            .iter()
+            .find(|d| d.ipv6.as_deref().and_then(|t| t.parse::<std::net::Ipv6Addr>().ok()) == Some(target_ip))
+            .map(|d| d.id.clone())
+        else {
+            return format!("Pinging {target_ip} with 32 bytes of data:\n\nRequest timed out.\n\nPing statistics for {target_ip}:\n    Packets: Sent = 1, Received = 0, Lost = 1 (100% loss),\n\n");
+        };
+        let Some(path) = crate::net::v6::l2_path(self, src, &dst) else {
+            return format!("Pinging {target_ip} with 32 bytes of data:\n\nRequest timed out.\n\nPing statistics for {target_ip}:\n    Packets: Sent = 1, Received = 0, Lost = 1 (100% loss),\n\n");
+        };
+        let dst_name = self.devices.iter().find(|d| d.id == dst).map(|d| d.name.clone()).unwrap_or_default();
+        let hops = crate::net::v6::v6_hops(self, &path, src, &dst);
+        self.next_event += 1;
+        let blocked = self.ufw_blocks_v6(&dst, src_ip);
+        let ok = blocked.is_none();
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: sdev.name.clone(),
+            at: dst_name.clone(),
+            kind: "ICMPv6".into(),
+            proto: "ICMPv6".into(),
+            path,
+            hops,
+            layers: Vec::new(),
+            status: if ok { "Successful" } else { "Dropped" }.into(),
+            reason: blocked.clone().map(|label| format!("ufw on {dst_name} denied {label}")),
+            note: if ok { format!("{} answers {}", dst_name, src_ip) } else { format!("ufw on {dst_name} refused the echo") },
+            bytes: Vec::new(),
+            size: 0,
+        });
+        if let Some(label) = blocked {
+            return format!("Pinging {target_ip} with 32 bytes of data:\n\nRequest timed out. (ufw denied {label})\n\nPing statistics for {target_ip}:\n    Packets: Sent = 1, Received = 0, Lost = 1 (100% loss),\n\n");
+        }
+        format!("Pinging {target_ip} with 32 bytes of data:\n\nReply from {target_ip}: bytes=32 time=1ms TTL=64\n\nPing statistics for {target_ip}:\n    Packets: Sent = 1, Received = 1, Lost = 0 (0% loss),\n\n")
+    }
+}

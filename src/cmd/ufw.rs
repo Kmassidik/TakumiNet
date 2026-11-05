@@ -26,16 +26,23 @@ fn parse_from(text: &str) -> Result<Option<(u32, u8)>, String> {
     Ok(Some((ip, prefix)))
 }
 
+fn parse_from6(text: &str) -> Result<Option<(std::net::Ipv6Addr, u8)>, String> {
+    let (ip, prefix) = text.split_once('/').unwrap_or((text, "128"));
+    let addr = ip.parse::<std::net::Ipv6Addr>().map_err(|_| format!("ERROR: Bad source address '{text}'"))?;
+    let prefix: u8 = prefix.parse().ok().filter(|p| *p <= 128).ok_or("ERROR: Bad prefix length")?;
+    Ok(Some((addr, prefix)))
+}
+
 fn parse_proto(text: &str) -> Result<Option<String>, String> {
     match text {
-        "tcp" | "udp" | "icmp" => Ok(Some(text.to_string())),
+        "tcp" | "udp" | "icmp" | "ipv6" => Ok(Some(text.to_string())),
         "any" => Ok(None),
         _ => Err(format!("ERROR: Unsupported protocol '{text}'")),
     }
 }
 
 fn parse_rule(allow: bool, words: &[&str]) -> Result<UfwRule, String> {
-    let mut rule = UfwRule { allow, proto: None, port: None, from: None };
+    let mut rule = UfwRule { allow, proto: None, port: None, from: None, from6: None };
     if words.is_empty() {
         return Err("ERROR: Need a rule, for example: ufw allow 22/tcp".into());
     }
@@ -56,6 +63,9 @@ fn parse_rule(allow: bool, words: &[&str]) -> Result<UfwRule, String> {
     while i < words.len() {
         let value = words.get(i + 1).copied();
         match (words[i], value) {
+            ("from", Some(v)) if v.contains(':') => {
+                rule.from6 = parse_from6(v)?;
+            }
             ("from", Some(v)) => rule.from = parse_from(v)?,
             ("proto", Some(v)) => rule.proto = parse_proto(v)?,
             ("port", Some(v)) => {
@@ -79,6 +89,9 @@ fn describe_to(rule: &UfwRule) -> String {
 }
 
 fn describe_from(rule: &UfwRule) -> String {
+    if let Some((ip, prefix)) = rule.from6 {
+        return if prefix == 128 { ip.to_string() } else { format!("{ip}/{prefix}") };
+    }
     match rule.from {
         None => "Anywhere".into(),
         Some((ip, 32)) => crate::model::ipv4_string(ip),
