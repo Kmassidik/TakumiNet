@@ -54,36 +54,3 @@ function openBrowser(d) {
   url.onkeydown = (e) => { if (e.key === 'Enter') go(); };
   url.focus();
 }
-
-/* ---------------- text editor ---------------- */
-/* Notes are per device and live in this browser only: the key is exactly
-   `pt-web:editor:<device id>`, written on Save and read again on open. */
-function editorKey(id) { return `pt-web:editor:${id}`; }
-
-function openEditor(d) {
-  const win = document.getElementById('editor-dialog');
-  const area = document.getElementById('editor-text');
-  const note = document.getElementById('editor-status');
-  document.getElementById('editor-title').textContent = `Text Editor — ${d.name}`;
-
-  let saved = '';
-  try { saved = localStorage.getItem(editorKey(d.id)) || ''; } catch { /* storage blocked */ }
-  area.value = saved;
-  note.textContent = saved
-    ? `Restored ${saved.length} characters for ${d.name}`
-    : 'No saved text yet';
-
-  document.getElementById('editor-save').onclick = () => {
-    try {
-      localStorage.setItem(editorKey(d.id), area.value);
-      note.textContent = `Saved ${area.value.length} characters for ${d.name}`;
-      sfx('popUp');
-    } catch {
-      note.textContent = 'Local storage is unavailable — the text was not saved';
-    }
-  };
-
-  win.hidden = false;
-  bringToFront(win);
-  area.focus();
-}

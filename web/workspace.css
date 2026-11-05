@@ -530,7 +530,7 @@ html, body {
   margin: 0 !important;
 }
 .preview.maxed .devwin-body, .preview.maxed .web-body,
-.preview.maxed .editor-body, .preview.maxed .traffic-body, .preview.maxed .mib-body,
+.preview.maxed .traffic-body, .preview.maxed .mib-body,
 .preview.maxed .mail-body { max-height: none; }
 .preview {
   position: relative; width: 100%; max-width: 900px; max-height: 90vh; overflow: auto;
@@ -695,19 +695,7 @@ html, body {
 .termwin #term-prompt { color: var(--accent-light); white-space: pre; }
 .termwin .cmd-line input:disabled { color: var(--faint); }
 
-.editorwin, .trafficwin, .mibwin { max-width: 720px; padding: 0; }
-.editor-bar {
-  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-  background: var(--titlebar); border-bottom: 1px solid var(--line-win);
-  font-size: 12px;
-}
-.editor-bar .meta { margin-left: auto; color: var(--ink-2); }
-.editor-body { background: var(--white); padding: 10px 12px; }
-.editor-area {
-  display: block; width: 100%; min-height: 320px; resize: vertical;
-  padding: 8px; border: 1px solid var(--line-win); background: var(--white);
-  font: 12px/1.45 var(--font-mono); color: var(--ink);
-}
+.trafficwin, .mibwin { max-width: 720px; padding: 0; }
 
 /* Email client: account settings, the server inbox and the compose form. */
 .mailwin { max-width: 560px; padding: 0; }
