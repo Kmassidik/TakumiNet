@@ -569,8 +569,9 @@ html, body {
 .devwin-title img { width: 16px; height: 16px; }
 .devwin-title .dw-btns { margin-left: auto; display: flex; gap: 3px; }
 .devwin-title .dw-btns button {
-  width: 22px; height: 18px; font: inherit; font-size: 11px; line-height: 1;
-  background: var(--chrome); border: 1px solid var(--line-win); border-radius: 2px; cursor: pointer;
+  width: 24px; height: 22px; font: inherit; font-size: 11px; line-height: 1;
+  display: grid; place-items: center; padding: 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-m); cursor: pointer;
 }
 .devwin-title .dw-btns button:disabled { opacity: 0.5; cursor: default; }
 .dw-blurb { margin: 0; padding: 4px 8px; font-size: 11px; color: var(--muted); background: var(--window); }
@@ -998,7 +999,6 @@ html, body {
 .dlg-close:hover { background: var(--danger-bg); border-color: var(--danger-line); color: var(--danger-ink); }
 .dlg-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .dlg-close-float { position: absolute; top: 10px; right: 10px; z-index: 2; }
-.devwin-title .dw-btns .dlg-close { width: 24px; height: 22px; }
 
 /* ---------- minimize: one handle, one rule for every bar ---------- */
 .bar { display: flex; align-items: stretch; background: var(--chrome); }
