@@ -107,3 +107,19 @@ fn the_probe_never_mutates_the_workspace() {
     assert_eq!(before, snapshot(&ws), "a rejected line must not change state");
     assert_eq!(s.mode, Mode::User);
 }
+
+const IFACE_HINT: &str =
+    "Takumi: that is an interface command. Type 'configure terminal', then 'interface FastEthernet0/1' first.";
+
+#[test]
+fn interface_commands_typed_in_config_mode_point_at_interface_mode() {
+    let mut ws = Workspace::new();
+    let mut s = Session::default();
+    run(&mut ws, "switch0", &mut s, "enable");
+    run(&mut ws, "switch0", &mut s, "configure terminal");
+    for line in ["spanning-tree portfast", "storm-control broadcast level 20", "vrrp 1 ip 10.0.0.1"] {
+        let out = run(&mut ws, "switch0", &mut s, line);
+        assert!(out.contains("% Invalid input detected"), "{line}: {out}");
+        assert!(out.contains(IFACE_HINT), "{line}: {out}");
+    }
+}

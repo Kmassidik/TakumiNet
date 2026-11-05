@@ -186,6 +186,7 @@ function channelSection(d, redraw, note) {
   bandLabel.textContent = 'Band';
   const band = document.createElement('select');
   band.className = 'kw-input';
+  band.setAttribute('aria-label', 'Band');
   for (const value of ['2.4', '5']) {
     const opt = document.createElement('option');
     opt.value = value;
@@ -196,6 +197,7 @@ function channelSection(d, redraw, note) {
   chanLabel.textContent = 'Channel';
   const chan = document.createElement('select');
   chan.className = 'kw-input';
+  chan.setAttribute('aria-label', 'Channel');
   const fill = () => {
     chan.replaceChildren();
     const values = band.value === '5'

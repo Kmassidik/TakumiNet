@@ -41,7 +41,7 @@ fn completes_commands_and_interfaces() {
     assert!(!show.contains(&"write memory".to_string()), "{show:?}");
 
     let ip = complete(&ws, "router0", &priv_s, "show ip ");
-    assert_eq!(ip, vec!["show ip bgp", "show ip interface brief", "show ip route"]);
+    assert_eq!(ip, vec!["show ip arp inspection", "show ip bgp", "show ip dhcp snooping binding", "show ip interface brief", "show ip route"]);
 
     let cfg = Session { mode: Mode::Config, iface: None, router: None };
     let gi = complete(&ws, "router0", &cfg, "int g");
@@ -80,4 +80,19 @@ fn no_vlan_deletes_a_vlan() {
         run(&mut ws, "switch0", &mut s, cmd);
     }
     assert!(!ws.vlan_exists("switch0", 10));
+}
+
+#[test]
+fn completion_offers_the_round_two_commands() {
+    let mut ws = Workspace::new();
+    let mut s = Session::default();
+    run(&mut ws, "switch0", &mut s, "enable");
+    run(&mut ws, "switch0", &mut s, "configure terminal");
+    let config = complete(&ws, "switch0", &s, "ip dhcp s");
+    assert!(config.iter().any(|c| c.contains("ip dhcp snooping vlan")), "{config:?}");
+    run(&mut ws, "switch0", &mut s, "interface FastEthernet0/5");
+    let iface = complete(&ws, "switch0", &s, "v");
+    assert!(iface.iter().any(|c| c.starts_with("vrrp")), "{iface:?}");
+    let trust = complete(&ws, "switch0", &s, "ip dhcp ");
+    assert!(trust.iter().any(|c| c.contains("snooping trust")), "{trust:?}");
 }

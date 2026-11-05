@@ -11,6 +11,8 @@ const CONFIG_HINT: &str =
     "Takumi: configuration commands live in config mode. Type 'configure terminal' first.\n";
 const ROUTER_HINT: &str =
     "Takumi: neighbor, network and deny live in router mode. Type 'router bgp AS' (or 'router ospf PID') first.\n";
+const IFACE_HINT: &str =
+    "Takumi: that is an interface command. Type 'configure terminal', then 'interface FastEthernet0/1' first.\n";
 
 /// Exact privileged-mode spellings, mirroring the match arms of
 /// `exec::privileged` that user mode does not also accept.
@@ -39,7 +41,9 @@ pub(super) fn append(ws: &Workspace, id: &str, mode: Mode, lower: &str, out: Str
     }
     let hint = match mode {
         Mode::User if works_in_priv(ws, id, lower) => PRIV_HINT,
+        Mode::Priv if is_iface_vocabulary(lower) => IFACE_HINT,
         Mode::Priv if is_config_vocabulary(lower) || is_router_vocabulary(lower) => CONFIG_HINT,
+        Mode::Config if is_iface_vocabulary(lower) => IFACE_HINT,
         Mode::Config if is_router_vocabulary(lower) => ROUTER_HINT,
         _ => return out,
     };
@@ -84,6 +88,21 @@ fn is_config_vocabulary(lower: &str) -> bool {
         .any(|p| rest.starts_with(p));
     }
     config::vocabulary(lower)
+}
+
+/// Commands that only exist after `interface NAME`.
+fn is_iface_vocabulary(lower: &str) -> bool {
+    let rest = lower.strip_prefix("no ").unwrap_or(lower).trim_start();
+    [
+        "spanning-tree ",
+        "storm-control ",
+        "vrrp ",
+        "standby ",
+        "ip dhcp snooping trust",
+        "power inline",
+    ]
+    .iter()
+    .any(|p| rest.starts_with(p))
 }
 
 /// Does the line open with router-mode vocabulary (the BGP commands and the

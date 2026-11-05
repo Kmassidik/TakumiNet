@@ -17,7 +17,11 @@ class Element {
     this.textContent = '';
     this.value = '';
     this.checked = false;
+    this.attributes = {};
   }
+
+  setAttribute(name, value) { this.attributes[name] = String(value); }
+  getAttribute(name) { return this.attributes[name] ?? null; }
 
   appendChild(child) { this.children.push(child); return child; }
   replaceChildren(...children) { this.children = children; }
@@ -193,4 +197,12 @@ test('an access point shows its channel, band and the overlap warning', async ()
   assert.ok(walk(box).some((e) => e.textContent === '2.4 GHz'));
   assert.ok(walk(box).some((e) => e.textContent === 'Channel'));
   assert.ok(walk(box).some((e) => (e.textContent || '').includes('Channel overlap with AP1')));
+});
+
+test('the radio selects are labelled for assistive tech', async () => {
+  const app = harness({ wlans: [], radios: [{ id: 'ap0', channel: 1, band: '2.4', overlaps_with: [] }] });
+  const box = await openTab(app, ap);
+  await settle();
+  const labels = walk(box).filter((e) => e.tag === 'select').map((e) => e.getAttribute('aria-label'));
+  assert.deepEqual(labels, ['Band', 'Channel']);
 });

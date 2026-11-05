@@ -324,7 +324,7 @@ fn e2e_cli_completion_follows_the_session_mode() {
     let (status, _, body) = s.post("/api/complete?id=router0&line=show%20ip");
     assert_eq!(status, 200, "{body}");
     assert!(
-        body.contains("\"candidates\":[\"show ip bgp\",\"show ip interface brief\",\"show ip route\"]"),
+        body.contains("\"candidates\":[\"show ip arp inspection\",\"show ip bgp\",\"show ip dhcp snooping binding\",\"show ip interface brief\",\"show ip route\"]"),
         "{body}"
     );
 
