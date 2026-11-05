@@ -40,6 +40,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
         "interfaces trunk" => trunk_table(ws, id),
         "lldp neighbors" | "lldp neighbor" | "lldp" => lldp_neighbors(ws, id),
         "power inline" => power_inline_table(ws, id),
+        "wireless" | "wlan" => ws.wireless_table(id),
         other => {
             if let Some(arg) = other.strip_prefix("interfaces ") {
                 return show_interfaces(ws, id, arg.trim());

@@ -4,6 +4,8 @@ use super::*;
 pub(super) fn route(ctx: &Ctx, method: &str, path: &str, query: &str) -> Option<(&'static str, Vec<u8>)> {
     match (method, path) {
         ("GET", "/api/workspace") => Some(handle_workspace(ctx)),
+        ("GET", "/api/devices/wireless") => Some(handle_wireless(ctx)),
+        ("POST", "/api/devices/wireless") => Some(handle_wireless_set(ctx, query)),
         ("POST", "/api/devices") => Some(handle_devices(ctx, query)),
         ("POST", "/api/devices/move") => Some(handle_devices_move(ctx, query)),
         ("POST", "/api/devices/delete") => Some(handle_devices_delete(ctx, query)),
@@ -379,6 +381,42 @@ fn handle_redo(ctx: &Ctx) -> (&'static str, Vec<u8>) {
         }
         None => (json, json_error("nothing to redo").into_bytes()),
     }
+}
+
+fn handle_wireless(ctx: &Ctx) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let ws = ctx.ws.lock().unwrap_or_else(|e| e.into_inner());
+    let rows: Vec<String> = ws
+        .devices
+        .iter()
+        .filter(|d| matches!(d.kind.as_str(), "ap" | "hotspot-ap"))
+        .map(|d| {
+            let radio = ws.wifi_radio(&d.id);
+            let overlaps = ws
+                .overlaps_with(&d.id)
+                .iter()
+                .map(|name| json_str(name))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                "{{\"id\":{},\"name\":{},\"channel\":{},\"band\":{},\"overlaps_with\":[{overlaps}]}}",
+                json_str(&d.id),
+                json_str(&d.name),
+                radio.channel,
+                json_str(&radio.band)
+            )
+        })
+        .collect();
+    (json, format!("{{\"devices\":[{}]}}", rows.join(",")).into_bytes())
+}
+
+fn handle_wireless_set(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
+    let json = "application/json";
+    let id = query_value(query, "id").unwrap_or_default();
+    let channel = query_value(query, "channel").and_then(|v| v.parse::<u8>().ok()).unwrap_or(0);
+    let band = query_value(query, "band").unwrap_or_else(|| "2.4".into());
+    let (out, _) = apply(ctx, |ws| ws.set_wifi_channel(&id, channel, &band));
+    (json, out.into_bytes())
 }
 
 fn handle_reset(ctx: &Ctx) -> (&'static str, Vec<u8>) {

@@ -60,10 +60,12 @@ mod util;
 mod voice;
 mod wan;
 mod wireless;
+mod wifi_channels;
 
 pub use bgp::*;
 pub use route_types::*;
 pub use host_firewall::*;
+pub use wifi_channels::WifiRadio;
 pub use link_speed::*;
 pub use poe::*;
 pub use sniffer::*;
@@ -141,6 +143,7 @@ impl Workspace {
                 stp_modes: HashMap::new(),
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),
+                wifi_radios: HashMap::new(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),
@@ -372,6 +375,7 @@ impl Workspace {
                 stp_modes: HashMap::new(),
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),
+                wifi_radios: HashMap::new(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),

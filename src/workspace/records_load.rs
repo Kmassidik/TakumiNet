@@ -398,6 +398,7 @@ impl Workspace {
                 let _ = self.add_v6_network(dev, net);
             }
             ["poe", dev] => self.load_poe_device(dev),
+            ["wifiradio", id, channel, band] => self.wifi_radio_load(id, channel, band),
             ["poeport", dev, port, _mode] => self.load_poe_port(dev, port),
             ["linkset", dev, port, speed, duplex] => self.load_link_setting(dev, port, speed, duplex),
             ["ufw", dev, enabled, default] => self.ufw_load_policy(dev, enabled, default),
