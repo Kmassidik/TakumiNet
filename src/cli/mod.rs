@@ -180,3 +180,6 @@ mod tests_hints;
 
 #[cfg(test)]
 mod tests_lldp;
+
+#[cfg(test)]
+mod tests_speed;

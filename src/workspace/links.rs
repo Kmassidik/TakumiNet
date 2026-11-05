@@ -128,7 +128,7 @@ impl Workspace {
         let admin_up = self.port_admin(id, port) && self.port_admin(id, parent);
         let peer = self.peer_port(id, parent);
         let linked = peer.is_some();
-        let line_up = admin_up && linked && peer.map(|(pid, pp)| self.port_admin(&pid, &pp)).unwrap_or(false);
+        let line_up = admin_up && linked && !self.speed_mismatch(id, parent) && peer.map(|(pid, pp)| self.port_admin(&pid, &pp)).unwrap_or(false);
         PortState {
             admin_up,
             linked,

@@ -9,6 +9,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("ip address "), ip_address),
     (|l| l.starts_with("bandwidth ") || l == "no bandwidth", bandwidth),
     (|l| l.starts_with("delay ") || l == "no delay", delay),
+    (|l| l.starts_with("speed ") || l == "no speed" || l.starts_with("duplex ") || l == "no duplex", speed_duplex),
     (|l| l.starts_with("encapsulation dot1q "), encapsulation_dot1q),
     (|l| l.starts_with("ip helper-address "), ip_helper_address),
     (|l| l.starts_with("no ip helper-address"), no_ip_helper_address),
@@ -326,5 +327,36 @@ fn keyword_command(s: &mut Session, line: &str, lower: &str) -> String {
         }
         "help" | "?" => help(Mode::Iface),
         _ => invalid(&line, Mode::Iface),
+    }
+}
+
+/// `speed 10|100|1000|auto` and `duplex half|full|auto`; `no` goes back to auto.
+fn speed_duplex(ws: &mut Workspace, id: &str, s: &mut Session, line: &str, lower: &str) -> String {
+    let iface = s.iface.clone().unwrap_or_default();
+    let words: Vec<&str> = lower.split_whitespace().collect();
+    let (kind, value) = match words.as_slice() {
+        ["no", kind] => (*kind, "auto"),
+        [kind, value] => (*kind, *value),
+        _ => return invalid(line, Mode::Iface),
+    };
+    let result = if kind == "speed" {
+        match value {
+            "auto" => ws.set_link_speed(id, &iface, None),
+            _ => match value.parse::<u32>() {
+                Ok(speed) => ws.set_link_speed(id, &iface, Some(speed)),
+                Err(_) => return invalid(line, Mode::Iface),
+            },
+        }
+    } else {
+        match value {
+            "auto" => ws.set_link_duplex(id, &iface, None),
+            "full" => ws.set_link_duplex(id, &iface, Some(true)),
+            "half" => ws.set_link_duplex(id, &iface, Some(false)),
+            _ => return invalid(line, Mode::Iface),
+        }
+    };
+    match result {
+        Ok(()) => String::new(),
+        Err(e) => format!("% {e}\n"),
     }
 }

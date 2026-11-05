@@ -24,6 +24,7 @@ mod bgp;
 mod collapse;
 mod flow;
 mod host_firewall;
+mod link_speed;
 mod dhcp;
 mod dns;
 mod hardware;
@@ -62,6 +63,7 @@ mod wireless;
 pub use bgp::*;
 pub use route_types::*;
 pub use host_firewall::*;
+pub use link_speed::*;
 pub use sniffer::*;
 pub use types::*;
 use palette::*;
@@ -85,6 +87,7 @@ impl Workspace {
                 dhcp_pools: HashMap::new(),
                 port_forwards: HashMap::new(),
                 host_firewalls: HashMap::new(),
+                link_settings: HashMap::new(),
                 demands: HashMap::new(),
                 queues: HashMap::new(),
                 queue_parent: HashMap::new(),
@@ -286,6 +289,7 @@ impl Workspace {
         self.routing.remove(id);
         self.bgp.remove(id);
         self.host_firewalls.remove(id);
+        self.link_settings.retain(|name, _| !name.starts_with(&format!("{id}\t")));
         self.recompute_routing();
         true
     }
@@ -310,6 +314,7 @@ impl Workspace {
                 dhcp_pools: HashMap::new(),
                 port_forwards: HashMap::new(),
                 host_firewalls: HashMap::new(),
+                link_settings: HashMap::new(),
                 demands: HashMap::new(),
                 queues: HashMap::new(),
                 queue_parent: HashMap::new(),

@@ -397,6 +397,7 @@ impl Workspace {
             ["v6net", dev, net] => {
                 let _ = self.add_v6_network(dev, net);
             }
+            ["linkset", dev, port, speed, duplex] => self.load_link_setting(dev, port, speed, duplex),
             ["ufw", dev, enabled, default] => self.ufw_load_policy(dev, enabled, default),
             ["ufwrule", dev, action, proto, port, from] => self.ufw_load_rule(dev, action, proto, port, from),
             ["inspect", dev] => {

@@ -104,7 +104,17 @@ pub(super) fn show_interfaces(ws: &Workspace, id: &str, iface: &str) -> String {
     ));
     out.push_str("     reliability 255/255, txload 1/255, rxload 1/255\n");
     out.push_str("  Encapsulation ARPA, loopback not set\n");
-    out.push_str("  Full-duplex, 1000Mb/s, media type is RJ45\n");
+    match ws.negotiated(id, &name) {
+        Some(n) => {
+            let duplex = if n.full { "Full-duplex" } else { "Half-duplex" };
+            out.push_str(&format!("  {duplex}, {}Mb/s, media type is RJ45\n", n.speed));
+            if n.duplex_mismatch() {
+                out.push_str("  Duplex mismatch with the far end: late collisions and CRC errors are rising\n");
+            }
+        }
+        None if st.linked => out.push_str("  Speed mismatch with the far end: no link\n"),
+        None => out.push_str("  Auto-duplex, Auto-speed, media type is RJ45\n"),
+    }
     out
 }
 

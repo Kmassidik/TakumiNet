@@ -34,6 +34,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("channel", &["dev", "iface", "group", "mode"]),
     ("stpmode", &["dev", "mode"]),
     ("stppriority", &["dev", "vlan", "priority"]),
+    ("linkset", &["dev", "port", "speed", "duplex"]),
     ("ufw", &["dev", "enabled", "default"]),
     ("ufwrule", &["dev", "action", "proto", "port", "from"]),
     ("acl", &["dev", "num", "action", "src", "swc", "dip", "dwc"]),

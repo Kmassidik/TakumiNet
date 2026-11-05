@@ -56,6 +56,8 @@ pub(super) fn commands(mode: Mode) -> Vec<(&'static str, &'static str)> {
         ],
         Mode::Iface => vec![
             ("bandwidth KBPS", "Set the interface bandwidth"),
+            ("duplex half|full|auto", "Set the duplex (IEEE 802.3)"),
+            ("speed 10|100|1000|auto", "Set the speed in Mb/s (IEEE 802.3)"),
             ("delay USEC", "Set the interface delay"),
             ("end", "Return to privileged mode"),
             ("exit", "Back to configuration mode"),
