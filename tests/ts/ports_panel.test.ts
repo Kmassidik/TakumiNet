@@ -120,3 +120,50 @@ test("picking a speed posts the port with both fields, then refreshes", async ()
   expect(posts).toEqual(["/api/devices/linkspeed?id=sw0&port=FastEthernet0%2F1&speed=10&duplex=full"]);
   expect(refreshed).toBe(1);
 });
+
+const poePayload = JSON.stringify({
+  ports: [
+    {
+      name: "FastEthernet0/1",
+      ip: null,
+      prefix: 0,
+      up: true,
+      peer: { id: "ap0", name: "AP0", port: "FastEthernet0" },
+      eth: true,
+      speed: "auto",
+      duplex: "auto",
+      link: "100 Mb/s, full duplex",
+      fault: "",
+      poe: { capable: true, on: true, powered: true, watts: 15.4, reason: "" },
+    },
+    {
+      name: "FastEthernet0/2",
+      ip: null,
+      prefix: 0,
+      up: true,
+      peer: { id: "phone0", name: "Phone0", port: "FastEthernet0" },
+      eth: true,
+      speed: "auto",
+      duplex: "auto",
+      link: "100 Mb/s, half duplex",
+      fault: "",
+      poe: { capable: true, on: true, powered: false, watts: 6.5, reason: "power inline never is set on the switch port" },
+    },
+  ],
+});
+
+test("a powered PoE device shows its draw beside the link", () => {
+  const doc = new FakeDocument();
+  const box = new FakeElement("div");
+  renderPortsPanel(doc, box, parsePortsInfo(poePayload), { deviceId: "sw0" });
+  const text = allText(box);
+  expect(text).toContain("15.4 W");
+});
+
+test("a denied PoE device shows the switch's reason", () => {
+  const doc = new FakeDocument();
+  const box = new FakeElement("div");
+  renderPortsPanel(doc, box, parsePortsInfo(poePayload), { deviceId: "sw0" });
+  const text = allText(box);
+  expect(text).toContain("off: power inline never is set on the switch port");
+});

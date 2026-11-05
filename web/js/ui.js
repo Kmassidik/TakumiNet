@@ -2442,6 +2442,7 @@
     const raw = Array.isArray(parsed["ports"]) ? parsed["ports"] : [];
     return raw.map((p) => {
       const peer = p["peer"];
+      const poeRaw = p["poe"];
       return {
         name: asText(p["name"]),
         ip: typeof p["ip"] === "string" ? p["ip"] : null,
@@ -2452,7 +2453,14 @@
         speed: asText(p["speed"]) || "auto",
         duplex: asText(p["duplex"]) || "auto",
         link: asText(p["link"]),
-        fault: asText(p["fault"])
+        fault: asText(p["fault"]),
+        poe: poeRaw ? {
+          capable: poeRaw["capable"] === true,
+          on: poeRaw["on"] === true,
+          powered: poeRaw["powered"] === true,
+          watts: Number(poeRaw["watts"]) || 0,
+          reason: asText(poeRaw["reason"])
+        } : undefined
       };
     });
   }
@@ -2472,6 +2480,14 @@
     if (port.fault === "duplex")
       return "Duplex mismatch: expect errors";
     return "";
+  }
+  function poeText(port) {
+    const poe = port.poe;
+    if (!poe || !poe.capable)
+      return "";
+    if (poe.powered)
+      return `${poe.watts.toFixed(1)} W`;
+    return `off: ${poe.reason || "not supplied"}`;
   }
   function choice(doc, label, values, current, onPick) {
     const wrap = el(doc, "label", "port-choice", label);
@@ -2527,6 +2543,9 @@
     const post = deps.post;
     if (post && port.eth)
       linkControls(doc, row, port, deps, post);
+    const poe = poeText(port);
+    if (poe)
+      row.appendChild(el(doc, "span", "port-poe", poe));
     if (post) {
       row.appendChild(createButton(doc, {
         label: port.up ? "Shut down" : "Bring up",

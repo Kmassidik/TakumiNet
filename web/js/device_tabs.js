@@ -157,6 +157,11 @@ function portsFieldset(box, d) {
       holder.appendChild(empty);
       return;
     }
+    await Promise.all(res.ports.map(async (port) => {
+      if (!port.peer) return;
+      const poe = await getJson(`/api/devices/poe?id=${encodeURIComponent(port.peer.id)}`);
+      if (poe && poe.capable) port.poe = poe;
+    }));
     renderPortsPanel(holder, res.ports, { deviceId: d.id, post, refresh: fill });
   };
   fill();

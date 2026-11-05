@@ -21,6 +21,8 @@ export interface PortInfo {
   duplex?: string;
   link?: string;
   fault?: string;
+  /* PoE state of the device on the far end, when it is a PoE device. */
+  poe?: { capable: boolean; on: boolean; powered: boolean; watts: number; reason: string };
 }
 
 /* One /api/devices/ports payload, parsed; an error payload throws. */
@@ -31,6 +33,7 @@ export function parsePortsInfo(text: string): PortInfo[] {
   const raw = Array.isArray(parsed["ports"]) ? (parsed["ports"] as Record<string, unknown>[]) : [];
   return raw.map((p) => {
     const peer = p["peer"] as Record<string, unknown> | null | undefined;
+    const poeRaw = p["poe"] as Record<string, unknown> | undefined;
     return {
       name: asText(p["name"]),
       ip: typeof p["ip"] === "string" ? (p["ip"] as string) : null,
@@ -42,6 +45,15 @@ export function parsePortsInfo(text: string): PortInfo[] {
       duplex: asText(p["duplex"]) || "auto",
       link: asText(p["link"]),
       fault: asText(p["fault"]),
+      poe: poeRaw
+        ? {
+            capable: poeRaw["capable"] === true,
+            on: poeRaw["on"] === true,
+            powered: poeRaw["powered"] === true,
+            watts: Number(poeRaw["watts"]) || 0,
+            reason: asText(poeRaw["reason"]),
+          }
+        : undefined,
     };
   });
 }
@@ -73,6 +85,15 @@ export function faultText(port: PortInfo): string {
   if (port.fault === "speed") return "Speed mismatch: no link";
   if (port.fault === "duplex") return "Duplex mismatch: expect errors";
   return "";
+}
+
+/* PoE on the powered device at the far end: watts while supplied, otherwise
+   the switch's own reason for denying power. */
+export function poeText(port: PortInfo): string {
+  const poe = port.poe;
+  if (!poe || !poe.capable) return "";
+  if (poe.powered) return `${poe.watts.toFixed(1)} W`;
+  return `off: ${poe.reason || "not supplied"}`;
 }
 
 function choice(doc: DocLike, label: string, values: readonly string[], current: string, onPick: (value: string) => void): ElementLike {
@@ -121,6 +142,8 @@ function portRow(doc: DocLike, port: PortInfo, deps: PortsPanelDeps): ElementLik
   row.appendChild(el(doc, "span", port.peer ? "port-peer" : "port-peer is-free", portPeerText(port)));
   const post = deps.post;
   if (post && port.eth) linkControls(doc, row, port, deps, post);
+  const poe = poeText(port);
+  if (poe) row.appendChild(el(doc, "span", "port-poe", poe));
   if (post) {
     row.appendChild(
       createButton(doc, {
