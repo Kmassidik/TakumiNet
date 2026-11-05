@@ -61,6 +61,7 @@ mod voice;
 mod wan;
 mod wireless;
 mod wifi_channels;
+mod collisions;
 
 pub use bgp::*;
 pub use route_types::*;
@@ -144,6 +145,7 @@ impl Workspace {
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),
                 wifi_radios: HashMap::new(),
+                collisions: HashMap::new(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),
@@ -376,6 +378,7 @@ impl Workspace {
                 stp_priorities: HashMap::new(),
                 wlans: HashMap::new(),
                 wifi_radios: HashMap::new(),
+                collisions: HashMap::new(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),

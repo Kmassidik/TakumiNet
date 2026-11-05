@@ -31,3 +31,4 @@ mod wireless_iot;
 mod duplex_loss;
 mod ufw_v6;
 mod wifi_channels;
+mod collisions;

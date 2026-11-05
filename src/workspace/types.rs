@@ -28,8 +28,7 @@ pub struct PortCfg {
     pub dot1q: Option<u16>,
 }
 
-/// State a live network keeps between deliveries: switch MAC learning and ARP
-/// caches. Both age on the simulated clock.
+/// Live network state between deliveries: MAC learning and ARP caches.
 #[derive(Clone, Default)]
 pub struct Tables {
     pub(super) macs: HashMap<String, crate::net::packet::MacTable>,
@@ -341,6 +340,7 @@ pub struct Workspace {
     /// Hotspot vouchers per gateway.
     pub vouchers: HashMap<String, Vec<Voucher>>,
     pub link_counters: HashMap<String, crate::net::duplex::Counters>, // CRC counters, duplex mismatch
+    pub collisions: HashMap<String, u32>, // hub collision counters
     /// Shared gateway addresses: address -> (member device, priority).
     pub shared_gateways: HashMap<u32, Vec<(String, u8)>>,
     /// Load balancer pools, served counts and the round robin cursor.

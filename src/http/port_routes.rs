@@ -21,6 +21,11 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     match ws.devices.iter().find(|d| d.id == id) {
         None => (json, json_error("no such device").into_bytes()),
         Some(dev) => {
+            let collisions = if dev.kind == "hub" {
+                format!(",\"collisions\":{}", ws.hub_collisions(&id))
+            } else {
+                String::new()
+            };
             let ports = dev
                 .ports
                 .iter()
@@ -47,13 +52,14 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         None => "null".to_string(),
                     };
                     format!(
-                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{}}}",
+                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{}{}}}",
                         json_str(&p.name),
                         ip,
                         p.prefix,
                         p.up,
                         peer,
-                        link_fields(&ws, &id, &p.name)
+                        link_fields(&ws, &id, &p.name),
+                        collisions
                     )
                 })
                 .collect::<Vec<_>>()

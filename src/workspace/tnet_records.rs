@@ -37,6 +37,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("poe", &["dev"]),
     ("poeport", &["dev", "port", "mode"]),
     ("wifiradio", &["dev", "channel", "band"]),
+    ("collisions", &["dev", "count"]),
     ("linkset", &["dev", "port", "speed", "duplex"]),
     ("ufw", &["dev", "enabled", "default"]),
     ("ufwrule", &["dev", "action", "proto", "port", "from"]),

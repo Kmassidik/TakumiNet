@@ -393,6 +393,7 @@ impl Workspace {
             }
         }
         out.push_str(&self.wifi_radio_records());
+        out.push_str(&self.collision_records());
         let mut capwap: Vec<_> = self.capwap.iter().collect();
         capwap.sort_by_key(|(id, _)| id.as_str());
         for (ap, wlc) in capwap {
