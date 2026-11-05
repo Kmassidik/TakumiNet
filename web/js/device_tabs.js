@@ -184,6 +184,12 @@ function tabConfig(pane, d) {
       <div class="ip-actions"><button class="btn" id="cfg-apply">Apply</button>
       <span id="cfg-note" class="meta"></span></div>
     </fieldset>`;
+  if (d.warning) {
+    const warn = document.createElement('p');
+    warn.className = 'ip-warning';
+    warn.textContent = d.warning;
+    box.appendChild(warn);
+  }
   portsFieldset(box, d);
   pane.appendChild(box);
   document.getElementById('cfg-name').value = d.name;

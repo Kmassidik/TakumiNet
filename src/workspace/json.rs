@@ -171,8 +171,9 @@ impl Workspace {
                     .collect::<Vec<_>>()
                     .join(",")
             );
+            let warning = opt_str(self.duplicate_ip_warning(&d.id).as_deref());
             o.push_str(&format!(
-                ",\"forwards\":{forwards},\"pools\":{pools},\"tunnel\":{tunnel},\"vnet\":{vnet},\"sharedGws\":{shared_gws},\"pppoe\":{pppoe},\"replaceModels\":{replace_models}}}"
+                ",\"forwards\":{forwards},\"pools\":{pools},\"tunnel\":{tunnel},\"vnet\":{vnet},\"sharedGws\":{shared_gws},\"pppoe\":{pppoe},\"replaceModels\":{replace_models},\"warning\":{warning}}}"
             ));
         }
     }

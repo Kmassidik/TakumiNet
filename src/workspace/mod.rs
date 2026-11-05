@@ -18,6 +18,7 @@ mod dhcp_multi;
 pub(crate) mod mirror;
 mod replace;
 mod pending;
+mod duplicate_ip;
 mod fhrp;
 mod json;
 mod router_admin;

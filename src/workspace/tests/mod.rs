@@ -39,3 +39,4 @@ mod fhrp;
 mod mirror;
 mod replace;
 mod pending;
+mod duplicate_ip;

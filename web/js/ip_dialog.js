@@ -25,6 +25,9 @@ function openIpDialog(d) {
   $('ip-8021x-user').value = d.dot1xUser || '';
   $('ip-8021x-pass').value = '';
   $('ip-note').textContent = `${d.name} · ${d.model}`;
+  const warning = $('ip-warning');
+  warning.hidden = !d.warning;
+  warning.textContent = d.warning || '';
 
   const dialog = $('ip-dialog');
   dialog.hidden = false;
@@ -113,6 +116,9 @@ function openIpDialog(d) {
     });
     if (x.error) { note.textContent = x.error; return; }
 
+    const saved = (x.devices || []).find((item) => item.id === ipTarget);
+    const warn = saved && saved.warning;
+    if (warn) { note.textContent = warn; return; }
     dialog.hidden = true;
     status(`IP configuration saved: ${$('ip-addr').value.trim()} ${$('ip-mask').value.trim()}`);
     sfx('popUp');

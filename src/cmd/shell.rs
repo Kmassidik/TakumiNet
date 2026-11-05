@@ -43,6 +43,9 @@ fn ip(ws: &mut Workspace, id: &str, args: &[&str]) -> String {
                 Some(address) => out.push_str(&format!("    inet {}/{}\n", ipv4_string(address), d.prefix)),
                 None => out.push_str("    (no IPv4 address set)\n"),
             }
+            if let Some(warning) = ws.duplicate_ip_warning(id) {
+                out.push_str(&format!("    Warning: {warning}\n"));
+            }
             out
         }
         "route" | "r" => {

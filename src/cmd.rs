@@ -112,7 +112,11 @@ fn ipconfig(ws: &Workspace, id: &str) -> String {
     out.push_str(&format!("   IPv4 Address....................: {ip}\n"));
     out.push_str(&format!("   Subnet Mask.....................: {mask}\n"));
     out.push_str(&format!("   Default Gateway.................: {gw}\n"));
-    out.push_str(&format!("   DNS Servers.....................: {dns}\n\n"));
+    out.push_str(&format!("   DNS Servers.....................: {dns}\n"));
+    if let Some(warning) = ws.duplicate_ip_warning(id) {
+        out.push_str(&format!("\n   Warning: {warning}\n"));
+    }
+    out.push('\n');
     out
 }
 
