@@ -1,0 +1,15 @@
+<takumi version="1">
+  <device id="switch0" kind="switch" model="Switch 24" x="360" y="140" name="OfficeSwitch" ip="" prefix="24"/>
+  <device id="pc0" kind="pc" model="PC" x="160" y="340" name="DeskA" ip="10.91.0.10" prefix="24"/>
+  <device id="pc1" kind="pc" model="PC" x="520" y="340" name="DeskB" ip="10.91.0.11" prefix="24"/>
+  <device id="sniffer0" kind="sniffer" model="Sniffer" x="700" y="140" name="Tap" ip="" prefix="24"/>
+  <link a="switch0" a_port="Fa0/1" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/2" b="pc1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="Fa0/9" b="sniffer0" b_port="Fa0" kind="eCopper"/>
+  <lesson id="les-l2-13-watch-the-wire" title="Watch the wire" level="2" minutes="12" goal="Tap DeskA's port into Tap, send a ping to DeskB, and read the frames the sniffer captured."/>
+  <step n="1" text="Open OfficeSwitch and run show monitor session 1. No session is configured."/>
+  <step n="2" text="In config mode copy DeskA's port to the sniffer port: monitor session 1 source interface FastEthernet0/1 both, then monitor session 1 destination interface FastEthernet0/9."/>
+  <step n="3" text="Ping DeskB from DeskA."/>
+  <step n="4" text="Open Tap and look at Captured frames; the ping traffic appears even though Tap is not on the cable between the PCs."/>
+  <check id="c1" kind="capture" from="sniffer0" to="icmp" url="" expect="1" label="Tap captured the ping through the mirrored port"/>
+</takumi>

@@ -116,3 +116,22 @@ fn gateway_lesson_passes_after_vrrp_and_survives_a_power_cut() {
     ws.set_power("router0", false);
     assert_eq!(results(&mut ws), vec![true], "GatewayB keeps the path after a power cut");
 }
+
+const WATCH: &str = include_str!("../../../web/templates/les-l2-13-watch-the-wire.xml");
+
+#[test]
+fn watch_the_wire_needs_a_mirror_before_the_sniffer_sees_the_ping() {
+    let mut ws = Workspace::from_tnet(WATCH).unwrap();
+    assert_eq!(results(&mut ws), vec![false]);
+    use crate::cli::{run as cli_run, Session};
+    let mut s = Session::default();
+    for line in [
+        "enable", "configure terminal",
+        "monitor session 1 source interface FastEthernet0/1 both",
+        "monitor session 1 destination interface FastEthernet0/9",
+    ] {
+        cli_run(&mut ws, "switch0", &mut s, line);
+    }
+    ws.send_pdu("pc0", "pc1").unwrap();
+    assert_eq!(results(&mut ws), vec![true]);
+}

@@ -100,6 +100,7 @@ impl Workspace {
         if note.is_empty() {
             note = format!("{} delivers {proto} to {}", self.name_of(src), self.name_of(dst));
         }
+        self.mirror_delivery(proto, &delivery);
         self.next_event += 1;
         self.sim_time = delivery.finished_at as f32;
         self.push_event(Event {

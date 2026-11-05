@@ -1,4 +1,5 @@
 use super::*;
+pub(super) use crate::workspace::mirror::command as mirror_session;
 
 type Handler = fn(&mut Workspace, &str, &mut Session, &str, &str) -> String;
 
@@ -6,6 +7,7 @@ type Handler = fn(&mut Workspace, &str, &mut Session, &str, &str) -> String;
 const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("inspect icmp") || l.starts_with("no inspect icmp"), inspect_icmp),
     (|l| l.starts_with("ips signature ") || l.starts_with("no ips signature "), ips_signature),
+    (|l| l == "no monitor session 1" || l.starts_with("monitor session "), mirror_session),
     (|l| l.starts_with("spanning-tree mode "), spanning_tree_mode),
     (|l| l.starts_with("spanning-tree vlan "), spanning_tree_priority),
     (|l| l.starts_with("router "), config_bgp::router_protocol),

@@ -399,6 +399,7 @@ impl Workspace {
             }
             ["poe", dev] => self.load_poe_device(dev),
             ["wifiradio", id, channel, band] => self.wifi_radio_load(id, channel, band),
+            ["mirror", dev, source, dest] => self.mirror_load(dev, source, dest),
             ["fhrp", dev, port, group, vip, priority, hsrp] => {
                 self.fhrp_load(&["fhrp", dev, port, group, vip, priority, hsrp])
             }

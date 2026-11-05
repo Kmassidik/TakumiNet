@@ -15,6 +15,7 @@ mod checks_round2;
 mod l2_guard;
 mod snooping;
 mod dhcp_multi;
+pub(crate) mod mirror;
 mod fhrp;
 mod json;
 mod router_admin;
@@ -75,6 +76,7 @@ pub use wifi_channels::WifiRadio;
 pub use l2_guard::L2GuardConfig;
 pub use snooping::{SnoopBinding, SnoopConfig};
 pub use fhrp::{FhrpConfig, FhrpGroup};
+pub use mirror::{MirrorConfig, MirrorSession};
 pub use link_speed::*;
 pub use poe::*;
 pub use sniffer::*;
@@ -157,6 +159,7 @@ impl Workspace {
                 l2_guard: L2GuardConfig::default(),
                 snoop: SnoopConfig::default(),
                 fhrp: FhrpConfig::default(),
+                mirror: MirrorConfig::default(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),
@@ -393,6 +396,7 @@ impl Workspace {
                 l2_guard: L2GuardConfig::default(),
                 snoop: SnoopConfig::default(),
                 fhrp: FhrpConfig::default(),
+                mirror: MirrorConfig::default(),
                 wlan_guest: Default::default(),
                 tunnels: HashMap::new(),
                 capwap: HashMap::new(),

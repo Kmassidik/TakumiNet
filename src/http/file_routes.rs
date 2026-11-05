@@ -280,6 +280,7 @@ const EMBEDDED_TEMPLATES: &[(&str, &str)] = &[
     ("les-l2-11-rogue-switch", include_str!("../../web/templates/les-l2-11-rogue-switch.xml")),
     ("les-l2-12-rogue-dhcp", include_str!("../../web/templates/les-l2-12-rogue-dhcp.xml")),
     ("les-l3-10-gateway-fails", include_str!("../../web/templates/les-l3-10-gateway-fails.xml")),
+    ("les-l2-13-watch-the-wire", include_str!("../../web/templates/les-l2-13-watch-the-wire.xml")),
     ("tpl-wiring-closet", include_str!("../../web/templates/tpl-wiring-closet.xml")),
     ("tpl-home-phone", include_str!("../../web/templates/tpl-home-phone.xml")),
     ("les-l1-07-find-the-fault", include_str!("../../web/templates/les-l1-07-find-the-fault.xml")),
