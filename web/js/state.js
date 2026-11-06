@@ -139,6 +139,8 @@ function hasUnsavedWork() {
 
 function setData(json) {
   data = json;
+  globalThis.queuedPduCount = Number(json.pendingPdus) || 0;
+  if (typeof renderPduQueue === 'function') renderPduQueue();
   const known = new Set(data.devices.map((d) => d.id));
   setSelection([...selection].filter((id) => known.has(id)));
   renderFilters();

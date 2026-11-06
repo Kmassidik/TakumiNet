@@ -32,3 +32,19 @@ impl Workspace {
         self.send_concurrent(&sends)
     }
 }
+
+impl Workspace {
+    pub(super) fn pending_records(&self) -> String {
+        let mut out = String::new();
+        for (src, dst) in &self.pending_pdu {
+            out.push_str(&format!("pending\t{src}\t{dst}\n"));
+        }
+        out
+    }
+
+    pub(super) fn pending_load(&mut self, src: &str, dst: &str) {
+        if self.devices.iter().any(|d| d.id == src) && self.devices.iter().any(|d| d.id == dst) {
+            self.pending_pdu.push((src.to_string(), dst.to_string()));
+        }
+    }
+}

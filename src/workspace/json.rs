@@ -19,7 +19,8 @@ impl Workspace {
         self.json_events(&mut o);
         o.push_str("],\"lesson\":");
         self.lesson_json(&mut o);
-        o.push_str(if self.demo.is_empty() { ",\"hasDemo\":false}" } else { ",\"hasDemo\":true}" });
+        o.push_str(if self.demo.is_empty() { ",\"hasDemo\":false" } else { ",\"hasDemo\":true" });
+        o.push_str(&format!(",\"pendingPdus\":{}}}", self.pending_pdu.len()));
         o
     }
 

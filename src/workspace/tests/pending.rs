@@ -45,3 +45,19 @@ fn a_bad_queue_entry_is_refused() {
     assert!(ws.queue_pdu("pc0", "pc0").is_err());
     assert_eq!(ws.pending_pdus(), 0);
 }
+
+#[test]
+fn queued_sends_survive_a_save_and_open_round_trip() {
+    let (mut ws, _hub, a, b, c) = hub_lab();
+    ws.queue_pdu(&a, &c).unwrap();
+    ws.queue_pdu(&b, &c).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.pending_pdus(), 2);
+    assert!(back.json().contains("\"pendingPdus\":2"));
+}
+
+#[test]
+fn a_saved_queue_naming_a_missing_device_is_rejected() {
+    let saved = "<?xml version=\"1.0\"?><takumi version=\"1\"><device id=\"pc0\" kind=\"pc\" model=\"PC\" x=\"1\" y=\"1\" name=\"PC0\" ip=\"10.1.0.1\" prefix=\"24\"/><pending source=\"pc0\" target=\"missing\"/></takumi>";
+    assert!(Workspace::from_tnet(saved).is_err());
+}
