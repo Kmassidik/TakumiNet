@@ -884,6 +884,7 @@ html, body {
 .dw-face-info { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 0; }
 .dw-faceplate-host { width: 100%; max-width: 760px; }
 .port-faceplate { width: 100%; }
+.port-faceplate-note { margin: 0 0 6px; color: var(--muted); font-size: 11px; }
 .port-faceplate-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 2px 0 6px; }
 .port-legend { display: flex; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 11px; }
 .port-legend-item { display: flex; align-items: center; gap: 4px; }

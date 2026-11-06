@@ -31,6 +31,8 @@ export interface PortInfo {
   media?: "rj45" | "sfp" | "serial" | "console" | "other";
   cable?: string | null;
   linkUp?: boolean;
+  mdi?: "mdi" | "mdi-x";
+  autoMdix?: boolean;
 }
 
 /* One /api/devices/ports payload, parsed; an error payload throws. */
@@ -60,6 +62,8 @@ export function parsePortsInfo(text: string): PortInfo[] {
         : undefined,
       cable: typeof p["cable"] === "string" ? (p["cable"] as string) : null,
       linkUp: "linkUp" in p ? p["linkUp"] === true : undefined,
+      mdi: p["mdi"] === "mdi" || p["mdi"] === "mdi-x" ? (p["mdi"] as PortInfo["mdi"]) : undefined,
+      autoMdix: "autoMdix" in p ? p["autoMdix"] === true : undefined,
       poe: poeRaw
         ? {
             capable: poeRaw["capable"] === true,

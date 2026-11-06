@@ -88,11 +88,25 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                     let has_peer = peer != "null";
                     let no_speed = eth && has_peer && ws.negotiated(&id, &p.name).is_none();
                     let link_up = p.up && has_peer && !no_speed;
+                    let pair = crate::workspace::mdi::mdi_port(&dev.kind);
+                    let pair_fields = if media == "rj45" {
+                        format!(
+                            ",\"mdi\":{},\"autoMdix\":{}",
+                            json_str(match pair.role {
+                                crate::workspace::MdiRole::Mdi => "mdi",
+                                crate::workspace::MdiRole::Mdix => "mdi-x",
+                            }),
+                            pair.auto
+                        )
+                    } else {
+                        String::new()
+                    };
                     let edge = format!(
-                        ",\"media\":{},\"cable\":{},\"linkUp\":{}",
+                        ",\"media\":{},\"cable\":{},\"linkUp\":{}{}",
                         json_str(media),
                         cable.as_ref().map_or_else(|| "null".to_string(), |c| json_str(c)),
-                        link_up
+                        link_up,
+                        pair_fields
                     );
                     format!(
                         "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{},\"errdisabled\":{},\"errors\":{}{}}}",

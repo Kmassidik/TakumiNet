@@ -2459,6 +2459,8 @@
         media: ["rj45", "sfp", "serial", "console", "other"].includes(asText(p["media"])) ? asText(p["media"]) : undefined,
         cable: typeof p["cable"] === "string" ? p["cable"] : null,
         linkUp: "linkUp" in p ? p["linkUp"] === true : undefined,
+        mdi: p["mdi"] === "mdi" || p["mdi"] === "mdi-x" ? p["mdi"] : undefined,
+        autoMdix: "autoMdix" in p ? p["autoMdix"] === true : undefined,
         poe: poeRaw ? {
           capable: poeRaw["capable"] === true,
           on: poeRaw["on"] === true,
@@ -3494,6 +3496,11 @@
     }
     head.appendChild(legend);
     wrap.appendChild(head);
+    const copper = ports.filter((port) => port.media === "rj45");
+    if (copper.length) {
+      const note = copper.some((port) => port.autoMdix) ? "Auto-MDI-X: either copper cable works." : "Fixed MDI-X: use a crossover cable between two fixed ports.";
+      wrap.appendChild(el(doc, "p", "port-faceplate-note", note));
+    }
     const grid = el(doc, "div", "port-jack-grid");
     for (const port of ports) {
       const light = portLight(port);
@@ -3501,7 +3508,8 @@
       const card = el(doc, "div", `port-jack cable-${cable}`);
       card.setAttribute("data-media", portMedia(port));
       card.setAttribute("data-state", light);
-      card.title = `${port.name}: ${portStateText(port)}`;
+      const pair = port.media === "rj45" ? port.autoMdix ? "auto-MDI-X" : port.mdi === "mdi" ? "fixed MDI" : "fixed MDI-X" : "";
+      card.title = `${port.name}: ${portStateText(port)}${pair ? ` · ${pair}` : ""}`;
       const svg = svgNode(doc, "svg");
       svg.setAttribute("viewBox", "0 0 54 38");
       svg.setAttribute("aria-hidden", "true");

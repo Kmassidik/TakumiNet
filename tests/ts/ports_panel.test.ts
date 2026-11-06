@@ -5,7 +5,7 @@ import { allText, button, find, flush } from "./kind_test_helpers";
 
 const payload = JSON.stringify({
   ports: [
-    { name: "GigabitEthernet0/0", ip: "192.168.1.1", prefix: 24, up: true, peer: { id: "sw0", name: "Switch0", port: "FastEthernet0/1" } },
+    { name: "GigabitEthernet0/0", ip: "192.168.1.1", prefix: 24, up: true, peer: { id: "sw0", name: "Switch0", port: "FastEthernet0/1" }, media: "rj45", mdi: "mdi", autoMdix: true },
     { name: "GigabitEthernet0/1", ip: null, prefix: 0, up: true, peer: null },
     { name: "GigabitEthernet0/2", ip: null, prefix: 0, up: false, peer: null },
   ],
@@ -17,6 +17,8 @@ test("the ports payload parses into rows with peers and admin state", () => {
   expect(ports[0]!.peer).toEqual({ id: "sw0", name: "Switch0", port: "FastEthernet0/1" });
   expect(ports[1]!.peer).toBe(null);
   expect(ports[2]!.up).toBe(false);
+  expect(ports[0]!.mdi).toBe("mdi");
+  expect(ports[0]!.autoMdix).toBe(true);
   expect(() => parsePortsInfo('{"error":"no such device"}')).toThrow("no such device");
 });
 

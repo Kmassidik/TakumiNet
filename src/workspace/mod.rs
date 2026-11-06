@@ -23,7 +23,7 @@ mod fhrp;
 mod ssh;
 mod dot1x;
 mod qos;
-mod mdi;
+pub(crate) mod mdi;
 mod json;
 mod router_admin;
 mod port_forward;

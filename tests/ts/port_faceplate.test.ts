@@ -55,10 +55,13 @@ test("media falls back to rj45 and the connector follows it", () => {
     port({ name: "Fa0/1", cable: "eFiber", media: "sfp", linkUp: true, peer: { id: "s", name: "S", port: "Fa0/2" } }),
     port({ name: "Serial0/0/0", media: "serial", eth: false, cable: "eSerial" }),
     port({ name: "Fa0/9", up: false, cable: null, linkUp: false }),
+    port({ name: "Fa0/8", media: "rj45", cable: "eCopper", autoMdix: true, mdi: "mdi" }),
   ]);
-  const cards = [...(box as unknown as { children: FakeElement[] }).children[0]!.children[1]!.children];
+  const wrap = (box as unknown as { children: FakeElement[] }).children[0]!;
+  const grid = wrap.children.find((c) => c.className === "port-jack-grid")!;
+  const cards = [...grid.children];
   const jacks = cards.filter((c) => c.className.startsWith("port-jack"));
-  expect(jacks.length).toBe(3);
+  expect(jacks.length).toBe(4);
   expect(jacks[0]!.className).toContain("cable-fiber");
   expect(jacks[0]!.getAttribute("data-media")).toBe("sfp");
   expect(jacks[0]!.getAttribute("data-state")).toBe("up");
@@ -66,7 +69,10 @@ test("media falls back to rj45 and the connector follows it", () => {
   expect(jacks[2]!.getAttribute("data-state")).toBe("shut");
   const text = allText(box);
   expect(text).toContain("Ports");
+  expect(text).toContain("Auto-MDI-X: either copper cable works.");
   expect(text).toContain("No link");
   expect(text).toContain("fibre");
   expect(find(box, (n) => n.className === "port-legend") !== null).toBe(true);
+  expect(jacks[3]!.title).toContain("auto-MDI-X");
+  expect(jacks[0]!.title).not.toContain("auto-MDI-X");
 });

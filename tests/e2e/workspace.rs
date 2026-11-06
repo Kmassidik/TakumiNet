@@ -303,6 +303,7 @@ fn e2e_cable_kinds_are_media_checked() {
     let (_, _, body) = s.get("/api/devices/ports?id=switch0");
     assert!(body.contains("\"media\":\"sfp\",\"cable\":\"eFiber\",\"linkUp\":true"), "the fibre port says so: {body}");
     assert!(body.contains("\"media\":\"rj45\",\"cable\":null,\"linkUp\":false"), "a free copper port stays rj45: {body}");
+    assert!(body.contains("\"mdi\":\"mdi-x\",\"autoMdix\":true"), "a switch port auto-detects: {body}");
 
     // A second router gives the serial cable two serial endpoints.
     let (status, _, body) = s.post("/api/devices?model=2911&x=700&y=150");
