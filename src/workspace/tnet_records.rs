@@ -47,6 +47,8 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("snoopbind", &["switch", "port", "mac", "ip", "vlan"]),
     ("arpinspect", &["dev"]),
     ("fhrp", &["dev", "port", "group", "vip", "priority", "hsrp", "advert", "auth"]),
+    ("dot1xport", &["dev", "port", "mode", "auth", "user"]),
+    ("radius", &["dev", "address"]),
     ("sshenable", &["dev", "on"]),
     ("sshhost", &["dev", "key"]),
     ("sshuser", &["dev", "user", "password"]),

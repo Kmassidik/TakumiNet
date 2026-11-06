@@ -326,7 +326,7 @@ where
                 }
             }
             "switch" => {
-                let hop_t = ws.sim_time as f64; ws.mirror_hop(dev_id, ingress.as_deref(), egress.as_deref(), src_mac, dst_mac, &packet, hop_t); if ws.storm_drop(dev_id, ingress.as_deref().unwrap_or_default(), dst_mac == Mac::BROADCAST) { drop_here!(format!("storm control on {} {}", dev.name, ingress.as_deref().unwrap_or_default())); }
+                if let Err(reason) = ws.dot1x_allow(dev_id, ingress.as_deref().unwrap_or_default()) { drop_here!(reason); } let hop_t = ws.sim_time as f64; ws.mirror_hop(dev_id, ingress.as_deref(), egress.as_deref(), src_mac, dst_mac, &packet, hop_t); if ws.storm_drop(dev_id, ingress.as_deref().unwrap_or_default(), dst_mac == Mac::BROADCAST) { drop_here!(format!("storm control on {} {}", dev.name, ingress.as_deref().unwrap_or_default())); }
                 // An access port pins the frame to its VLAN; a trunk carries it
                 // tagged, so only an access-to-access mismatch drops the frame.
                 for port_name in [ingress.as_ref(), egress.as_ref()].into_iter().flatten() {

@@ -393,7 +393,7 @@ impl Workspace {
             }
         }
         out.push_str(&self.wifi_radio_records());
-        out.push_str(&self.collision_records()); out.push_str(&self.l2_guard_records()); out.push_str(&self.snoop_records()); out.push_str(&self.fhrp_records()); out.push_str(&self.ssh_records()); out.push_str(&self.mirror_records()); out.push_str(&self.pending_records());
+        out.push_str(&self.collision_records()); out.push_str(&self.l2_guard_records()); out.push_str(&self.snoop_records()); out.push_str(&self.fhrp_records()); out.push_str(&self.ssh_records()); out.push_str(&self.dot1x_records()); out.push_str(&self.mirror_records()); out.push_str(&self.pending_records());
         let mut capwap: Vec<_> = self.capwap.iter().collect();
         capwap.sort_by_key(|(id, _)| id.as_str());
         for (ap, wlc) in capwap {

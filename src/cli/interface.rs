@@ -184,9 +184,15 @@ fn switchport_access_vlan(ws: &mut Workspace, id: &str, s: &mut Session, line: &
     }
 }
 
-fn dot1x_port_control(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lower: &str) -> String {
-    let on = !lower.starts_with("no ");
-    match ws.set_dot1x(id, on, "", "") {
+fn dot1x_port_control(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, lower: &str) -> String {
+    let Some(iface) = s.iface.clone().filter(|i| !i.is_empty()) else {
+        return "ERROR: enter an interface first\n".into();
+    };
+    let mode = if lower.starts_with("no ") { "force-authorized" } else { lower.rsplit(' ').next().unwrap_or("") };
+    let Some(mode) = crate::workspace::Dot1xMode::parse(mode) else {
+        return "ERROR: use auto, force-authorized or force-unauthorized\n".into();
+    };
+    match ws.set_dot1x_port(id, &iface, mode) {
         Ok(()) => String::new(),
         Err(e) => format!("% {e}\n"),
     }

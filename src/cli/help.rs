@@ -12,6 +12,8 @@ pub(super) const SHOW_COMMANDS: &[(&str, &str)] = &[
     ("show mac address-table", "MAC address table"),
     ("show power inline", "PoE budget and the ports supplying power (IEEE 802.3af/at)"),
     ("show errdisable", "Ports shut by a guard, and the reason"),
+    ("show dot1x", "802.1X port control, status and user"),
+    ("show authentication sessions", "Same as show dot1x"),
     ("show monitor session 1", "Port mirroring sessions on this switch"),
     ("show vrrp brief", "Virtual gateway groups, priority and state"),
     ("show ip dhcp snooping binding", "Learned DHCP bindings per switch"),

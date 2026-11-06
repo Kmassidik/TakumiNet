@@ -16,5 +16,7 @@ path = "src/main.rs"
 opt-level = "z"
 lto = true
 panic = "abort"
+codegen-units = 1
+strip = true
 
 [dependencies]

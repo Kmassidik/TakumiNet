@@ -19,6 +19,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("username ") || l.starts_with("no username "), username),
     (|l| l.starts_with("crypto key generate rsa"), crypto),
     (|l| l.starts_with("ip ssh ") || l.starts_with("no ip ssh"), ip_ssh),
+    (|l| l.starts_with("radius-server host ") || l == "no radius-server", radius_server),
     (|l| iface_arg(l).is_some(), enter_interface),
     (|l| l == "ip dhcp snooping" || l == "no ip dhcp snooping" || l.starts_with("ip dhcp snooping vlan "), dhcp_snooping),
     (|l| l.starts_with("ip arp inspection vlan "), arp_inspection_vlan),
@@ -485,4 +486,16 @@ fn arp_inspection_vlan(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &s
         Ok(v) if (1..=4094).contains(&v) => { ws.set_arp_inspection(id, true); ws.arp_inspection_vlan(id, v); String::new() }
         _ => "ERROR: VLAN must be 1-4094\n".into(),
     }
+}
+
+fn radius_server(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lower: &str) -> String {
+    if lower == "no radius-server" {
+        ws.set_radius_server(id, 0);
+        return String::new();
+    }
+    let Some(ip) = lower.split_whitespace().last().and_then(crate::model::parse_ipv4) else {
+        return "ERROR: need 'radius-server host A.B.C.D'\n".into();
+    };
+    ws.set_radius_server(id, ip);
+    String::new()
 }

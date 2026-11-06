@@ -36,6 +36,7 @@ mod round2_lessons;
 mod l2_guard;
 mod snooping;
 mod fhrp;
+mod dot1x_eap;
 mod mirror;
 mod replace;
 mod pending;

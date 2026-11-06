@@ -28,14 +28,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
                 format!("IPS drop: {}\n", list.join(" "))
             }
         }
-        "authentication sessions" => {
-            let list = ws.devices.iter().find(|d| d.id == id).map(|d| d.dot1x).unwrap_or(false);
-            if list {
-                format!("{id}  Interface  Status\nFa0/1  Authorized\n")
-            } else {
-                "% no authenticated sessions\n".into()
-            }
-        }
+        "authentication sessions" | "dot1x" | "dot1x all" => ws.show_dot1x(id),
         "etherchannel summary" => etherchannel_summary(ws, id),
         "interfaces trunk" => trunk_table(ws, id),
         "lldp neighbors" | "lldp neighbor" | "lldp" => lldp_neighbors(ws, id),
