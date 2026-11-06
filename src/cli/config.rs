@@ -479,7 +479,6 @@ fn dhcp_snooping(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lo
         String::new()
     }
 }
-
 fn arp_inspection_vlan(ws: &mut Workspace, id: &str, _s: &mut Session, _line: &str, lower: &str) -> String {
     let Some(vlan) = lower.strip_prefix("ip arp inspection vlan ") else { return String::new() };
     match vlan.trim().parse::<u16>() {

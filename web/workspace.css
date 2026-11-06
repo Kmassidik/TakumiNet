@@ -874,6 +874,63 @@ html, body {
 }
 /* ---------- ports: the picker menu and the per-device panel ---------- */
 .port-picker button { font-variant-numeric: tabular-nums; }
+/* Physical port bank: connector shape, LED and a readable state line. */
+.dw-face-head {
+  display: flex; width: 100%; max-width: 760px; gap: 12px; align-items: center;
+  padding-bottom: 8px; border-bottom: 1px solid var(--line-soft);
+}
+.dw-face-thumb { width: 96px; height: 72px; object-fit: contain; flex: none; }
+.dw-face-thumb.off { filter: grayscale(1) brightness(.6); }
+.dw-face-info { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 0; }
+.dw-faceplate-host { width: 100%; max-width: 760px; }
+.port-faceplate { width: 100%; }
+.port-faceplate-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 2px 0 6px; }
+.port-legend { display: flex; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 11px; }
+.port-legend-item { display: flex; align-items: center; gap: 4px; }
+.port-jack-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 5px; max-height: 300px; overflow: auto; padding-right: 4px;
+}
+.port-jack {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: auto auto;
+  column-gap: 6px; align-items: center; min-width: 0;
+  padding: 5px 6px; background: var(--surface);
+  border: 1px solid var(--line-soft); border-radius: var(--r-m);
+}
+.port-jack svg { display: block; width: 46px; height: 32px; grid-row: 1 / 3; }
+.port-jack-name {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.port-jack-state {
+  font-size: 10px; line-height: 1.25; color: var(--text-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.port-jack-state.state-up { color: var(--ok); }
+.port-jack-state.state-no-link { color: var(--warn-ink); }
+.port-jack-state.state-free, .port-jack-state.state-shut { color: var(--muted); }
+.port-body { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.port-cavity { fill: var(--bg); stroke: var(--line-soft); stroke-width: 1; }
+.port-pin { fill: none; stroke: var(--muted); stroke-width: 1; }
+.port-pin-fill { fill: var(--muted); }
+.port-led { fill: var(--faint); }
+.led-up { fill: var(--ok-bright); }
+.led-no-link { fill: var(--warn); }
+.led-shut { fill: var(--danger); }
+.port-legend .port-led { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.port-legend .led-up { background: var(--ok-bright); }
+.port-legend .led-no-link { background: var(--warn); }
+.port-legend .led-shut { background: var(--danger); }
+.port-jack.cable-copper .port-body { stroke: var(--cable-copper); }
+.port-jack.cable-fiber .port-body { stroke: var(--cable-fiber); fill: var(--warn-bg); }
+.port-jack.cable-serial .port-body { stroke: var(--cable-serial); }
+.port-jack.cable-console .port-body { stroke: var(--cable-console); }
+.port-jack.cable-phone .port-body { stroke: var(--cable-phone); }
+.port-jack.cable-coax .port-body { stroke: var(--cable-coax); }
+.port-jack.cable-iot .port-body { stroke: var(--cable-iot); }
+.port-jack.cable-fiber svg { outline: 1px dashed var(--cable-fiber); outline-offset: -1px; border-radius: var(--r-s); }
+
 .port-list { padding-left: 0; list-style: none; }
 .port-row {
   display: flex; align-items: center; gap: 8px; padding: 3px 4px;
@@ -884,6 +941,8 @@ html, body {
   background: var(--faint);
 }
 .port-dot.is-up { background: var(--ok); }
+.port-dot.is-warn { background: var(--warn); }
+.port-dot.is-idle { background: var(--faint); }
 .port-dot.is-down { background: var(--danger); }
 .port-name { font-family: var(--font-mono); color: var(--text); }
 .port-addr { font-family: var(--font-mono); color: var(--ink-2); }

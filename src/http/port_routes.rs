@@ -39,6 +39,35 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         .map(json_str)
                         .unwrap_or_else(|| "null".to_string());
                     let errors = ws.crc_errors_for(&id, &p.name);
+                    let cable = ws
+                        .links
+                        .iter()
+                        .find_map(|l| {
+                            let names: Vec<String> = dev.ports.iter().map(|p| p.name.clone()).collect();
+                            let matches = |side: &str, raw: &str| {
+                                side == id
+                                    && crate::cli::expand_iface(raw, &names)
+                                        .unwrap_or_else(|| raw.to_string())
+                                        == p.name
+                            };
+                            if matches(&l.a, &l.a_port) || matches(&l.b, &l.b_port) {
+                                Some(l.kind.clone())
+                            } else {
+                                None
+                            }
+                        });
+                    let media = if p.name.starts_with("Serial") {
+                        "serial"
+                    } else if p.name.starts_with("Console") {
+                        "console"
+                    } else if cable.as_deref() == Some("eFiber") {
+                        "sfp"
+                    } else if p.name.starts_with("FastEthernet") || p.name.starts_with("GigabitEthernet") {
+                        "rj45"
+                    } else {
+                        "other"
+                    };
+                    let eth = media == "rj45" || media == "sfp";
                     let peer = match ws.peer_port(&id, &p.name) {
                         Some((peer_id, peer_port)) => {
                             let peer_name = ws
@@ -56,8 +85,17 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         }
                         None => "null".to_string(),
                     };
+                    let has_peer = peer != "null";
+                    let no_speed = eth && has_peer && ws.negotiated(&id, &p.name).is_none();
+                    let link_up = p.up && has_peer && !no_speed;
+                    let edge = format!(
+                        ",\"media\":{},\"cable\":{},\"linkUp\":{}",
+                        json_str(media),
+                        cable.as_ref().map_or_else(|| "null".to_string(), |c| json_str(c)),
+                        link_up
+                    );
                     format!(
-                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{},\"errdisabled\":{},\"errors\":{}}}",
+                        "{{\"name\":{},\"ip\":{},\"prefix\":{},\"up\":{},\"peer\":{}{},\"errdisabled\":{},\"errors\":{}{}}}",
                         json_str(&p.name),
                         ip,
                         p.prefix,
@@ -65,7 +103,8 @@ fn handle_devices_ports(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
                         peer,
                         link_fields(&ws, &id, &p.name),
                         err,
-                        errors
+                        errors,
+                        edge
                     )
                 })
                 .collect::<Vec<_>>()

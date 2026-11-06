@@ -21,6 +21,7 @@ import { makeGroupPress, renderGroupCard, type GroupLike, type GroupPressDeps } 
 import { placeMenu, placeSubmenu } from "./ui/menu_place";
 import { renderFlowsWindow } from "./ui/flows_window";
 import { renderPortsPanel, type PortInfo, type PortsPanelDeps } from "./ui/ports_panel";
+import { renderPortFaceplate, type FaceplatePort } from "./ui/port_faceplate";
 import { cableStyle, type CableStyle } from "./canvas/cable_style";
 import type { KindDevice, KindWorkspace } from "./ui/kind_parts";
 
@@ -96,6 +97,7 @@ globalThis.placeMenu = placeMenu;
 globalThis.placeSubmenu = placeSubmenu;
 globalThis.cableStyle = cableStyle;
 globalThis.renderPortsPanel = (box, ports, deps) => renderPortsPanel(doc, box as unknown as ElementLike, ports, deps);
+globalThis.renderPortFaceplate = (box, ports) => renderPortFaceplate(doc, box as unknown as ElementLike, ports);
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
 } else {
@@ -149,4 +151,5 @@ declare global {
   var placeSubmenu: typeof import("./ui/menu_place").placeSubmenu;
   var cableStyle: (kind: string | undefined) => CableStyle;
   var renderPortsPanel: (box: HTMLElement, ports: readonly PortInfo[], deps: PortsPanelDeps) => void;
+  var renderPortFaceplate: (box: HTMLElement, ports: readonly FaceplatePort[]) => void;
 }

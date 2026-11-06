@@ -2456,6 +2456,9 @@
         fault: asText(p["fault"]),
         errdisabled: asText(p["errdisabled"]) || undefined,
         errors: Number(p["errors"]) || 0,
+        media: ["rj45", "sfp", "serial", "console", "other"].includes(asText(p["media"])) ? asText(p["media"]) : undefined,
+        cable: typeof p["cable"] === "string" ? p["cable"] : null,
+        linkUp: "linkUp" in p ? p["linkUp"] === true : undefined,
         poe: poeRaw ? {
           capable: poeRaw["capable"] === true,
           on: poeRaw["on"] === true,
@@ -2467,8 +2470,10 @@
     });
   }
   function portDotClass(port) {
-    if (!port.up)
+    if (!port.up || port.errdisabled)
       return "port-dot is-down";
+    if (port.fault === "speed" || port.peer && port.linkUp === false)
+      return "port-dot is-warn";
     return port.peer ? "port-dot is-up" : "port-dot is-idle";
   }
   function portPeerText(port) {
@@ -3355,6 +3360,162 @@
     return done;
   }
 
+  // web/ts/ui/port_faceplate.ts
+  function portLight(port) {
+    if (!port.up || port.errdisabled)
+      return "shut";
+    if (port.fault === "speed" || port.peer && port.linkUp === false)
+      return "no-link";
+    return port.peer ? "up" : "free";
+  }
+  function portStateText(port) {
+    const light = portLight(port);
+    if (light === "shut")
+      return port.errdisabled ? `shut down · ${port.errdisabled}` : "shut down";
+    if (light === "no-link")
+      return "no link";
+    if (light === "free")
+      return "free";
+    const parts = ["connected"];
+    if (port.cable === "eFiber")
+      parts.push("optical fibre");
+    else if (port.cable === "eSerial")
+      parts.push("serial");
+    if (port.eth && port.link)
+      parts.push(port.link);
+    if (port.fault === "duplex")
+      parts.push("duplex mismatch");
+    parts.push(`to ${port.peer.name} ${port.peer.port}`);
+    return parts.join(" · ");
+  }
+  function portCardText(port) {
+    const light = portLight(port);
+    if (light === "shut")
+      return "shut down";
+    if (light === "no-link")
+      return "no link";
+    if (light === "free")
+      return "free";
+    if (port.fault === "duplex")
+      return "connected · duplex mismatch";
+    const parts = ["connected"];
+    if (port.cable === "eFiber")
+      parts.push("fibre");
+    else if (port.cable === "eSerial")
+      parts.push("serial");
+    if (port.eth && port.link)
+      parts.push(port.link.split(",")[0].trim());
+    return parts.join(" · ");
+  }
+  function portMedia(port) {
+    return port.media ?? "rj45";
+  }
+  var CABLES = {
+    eCopper: "copper",
+    eCross: "copper",
+    eFiber: "fiber",
+    eSerial: "serial",
+    eConsole: "console",
+    ePhone: "phone",
+    eCoax: "coax",
+    eIoT: "iot"
+  };
+  function svgNode(doc, tag) {
+    if (doc.createElementNS) {
+      return doc.createElementNS("http://www.w3.org/2000/svg", tag);
+    }
+    return doc.createElement(tag);
+  }
+  function shape(doc, tag, attrs) {
+    const node = svgNode(doc, tag);
+    for (const [name, value] of Object.entries(attrs))
+      node.setAttribute(name, String(value));
+    return node;
+  }
+  function led(doc, light) {
+    const circle = shape(doc, "circle", { cx: 45, cy: 9, r: 3.2, class: `port-led led-${light}` });
+    return circle;
+  }
+  function rj45(doc, light, kind) {
+    const body = shape(doc, "rect", { x: 5, y: 6, width: 34, height: 25, rx: 3, class: `port-body ${kind}` });
+    const cavity = shape(doc, "rect", { x: 10, y: 11, width: 24, height: 12, rx: 1, class: "port-cavity" });
+    const pins = shape(doc, "path", {
+      d: "M12 12v10M15 12v10M18 12v10M21 12v10M24 12v10M27 12v10M30 12v10",
+      class: "port-pin"
+    });
+    return group(doc, [body, cavity, pins, led(doc, light)]);
+  }
+  function sfp(doc, light, kind) {
+    const cage = shape(doc, "rect", { x: 4, y: 7, width: 34, height: 24, rx: 2, class: `port-body ${kind}` });
+    const slot = shape(doc, "rect", { x: 9, y: 12, width: 24, height: 8, rx: 1, class: "port-cavity" });
+    const latch = shape(doc, "path", { d: "M9 20h24M16 20v7M32 20v7", class: "port-pin" });
+    return group(doc, [cage, slot, latch, led(doc, light)]);
+  }
+  function serial(doc, light, kind) {
+    const shell = shape(doc, "path", { d: "M6 9h40l-4 18H10z", class: `port-body ${kind}` });
+    const pins = [];
+    for (let row = 0;row < 2; row += 1) {
+      for (let col = 0;col < 5; col += 1) {
+        pins.push(shape(doc, "circle", { cx: 15 + col * 6, cy: 15 + row * 6, r: 1.4, class: "port-pin-fill" }));
+      }
+    }
+    return group(doc, [shell, ...pins, led(doc, light)]);
+  }
+  function group(doc, children) {
+    const g = shape(doc, "g", { class: "port-icon" });
+    for (const child of children)
+      g.appendChild(child);
+    return g;
+  }
+  function icon(doc, port, light, kind) {
+    const media = portMedia(port);
+    if (media === "sfp")
+      return sfp(doc, light, kind);
+    if (media === "serial")
+      return serial(doc, light, kind);
+    if (media === "console")
+      return rj45(doc, light, `${kind} console`);
+    if (media === "other")
+      return serial(doc, light, kind);
+    return rj45(doc, light, kind);
+  }
+  function renderPortFaceplate(doc, box, ports) {
+    const wrap = el(doc, "div", "port-faceplate");
+    const head = el(doc, "div", "port-faceplate-head");
+    head.appendChild(el(doc, "strong", "", "Ports"));
+    const legend = el(doc, "div", "port-legend");
+    for (const [light, label] of [["up", "Up"], ["free", "Free"], ["no-link", "No link"], ["shut", "Shut down"]]) {
+      const item = el(doc, "span", "port-legend-item");
+      const dot = el(doc, "span", `port-led led-${light}`);
+      dot.setAttribute("aria-hidden", "true");
+      item.appendChild(dot);
+      item.appendChild(el(doc, "span", "", label));
+      legend.appendChild(item);
+    }
+    head.appendChild(legend);
+    wrap.appendChild(head);
+    const grid = el(doc, "div", "port-jack-grid");
+    for (const port of ports) {
+      const light = portLight(port);
+      const cable = CABLES[port.cable ?? ""] ?? "none";
+      const card = el(doc, "div", `port-jack cable-${cable}`);
+      card.setAttribute("data-media", portMedia(port));
+      card.setAttribute("data-state", light);
+      card.title = `${port.name}: ${portStateText(port)}`;
+      const svg = svgNode(doc, "svg");
+      svg.setAttribute("viewBox", "0 0 54 38");
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("focusable", "false");
+      svg.appendChild(icon(doc, port, light, "port-shape"));
+      card.appendChild(svg);
+      card.appendChild(el(doc, "span", "port-jack-name", port.name));
+      card.appendChild(el(doc, "span", `port-jack-state state-${light}`, portCardText(port)));
+      grid.appendChild(card);
+    }
+    wrap.appendChild(grid);
+    box.appendChild(wrap);
+  }
+
   // web/ts/main.ts
   var doc = document;
   var stack = new ModalStack;
@@ -3421,6 +3582,7 @@
   globalThis.placeSubmenu = placeSubmenu;
   globalThis.cableStyle = cableStyle;
   globalThis.renderPortsPanel = (box, ports, deps) => renderPortsPanel(doc, box, ports, deps);
+  globalThis.renderPortFaceplate = (box, ports) => renderPortFaceplate(doc, box, ports);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => watchOverlays(stack));
   } else {

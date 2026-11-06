@@ -24,6 +24,7 @@ export interface ElementLike {
 
 export interface DocLike {
   createElement(tag: string): ElementLike;
+  createElementNS?(namespace: string, tag: string): ElementLike;
   body: ElementLike;
   activeElement: ElementLike | null;
 }

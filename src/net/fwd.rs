@@ -204,7 +204,6 @@ where
 
         // Every L2 boundary is a new Ethernet header: the next L3 device along
         // the path is the destination of this frame.
-        let next_l3 = next_l3_id(ws, &path, i, dst);
         let src_mac = cur_src;
         let dst_mac = mac::frame_mac(ws, &path, i, dip);
         capture.size = 14 + 20 + packet.payload_len();

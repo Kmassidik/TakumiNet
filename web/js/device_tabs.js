@@ -55,20 +55,24 @@ function tabPhysical(pane, d) {
   const box = document.createElement('div');
   box.className = 'dw-physical';
   const off = d.powered === false;
-  const img = document.createElement('img');
-  img.src = d.icon;
-  img.alt = d.name;
-  img.classList.toggle('off', off);
-
-  const cap = document.createElement('div');
-  cap.className = 'meta';
-  cap.textContent = `${d.name} · ${d.model}${off ? ' · powered off' : ''}`;
 
   const refresh = async () => {
     dwDevice = (data.devices || []).find((x) => x.id === d.id) || d;
     selectTab('physical');
   };
 
+  const head = document.createElement('div');
+  head.className = 'dw-face-head';
+  const img = document.createElement('img');
+  img.src = d.icon;
+  img.alt = '';
+  img.className = 'dw-face-thumb';
+  img.classList.toggle('off', off);
+  const info = document.createElement('div');
+  info.className = 'dw-face-info';
+  const cap = document.createElement('div');
+  cap.className = 'meta';
+  cap.textContent = `${d.name} · ${d.model}${off ? ' · powered off' : ''}`;
   const power = document.createElement('button');
   power.className = 'btn';
   power.textContent = off ? 'Power On' : 'Power Off';
@@ -76,10 +80,27 @@ function tabPhysical(pane, d) {
     await api('/api/devices/power', { id: d.id, on: off ? '1' : '0' });
     await refresh();
   };
+  info.appendChild(cap);
+  info.appendChild(power);
+  head.appendChild(img);
+  head.appendChild(info);
+  box.appendChild(head);
 
-  box.appendChild(img);
-  box.appendChild(cap);
-  box.appendChild(power);
+  const face = document.createElement('div');
+  face.className = 'dw-faceplate-host';
+  box.appendChild(face);
+  getJson(`/api/devices/ports?id=${encodeURIComponent(d.id)}`).then((res) => {
+    face.replaceChildren();
+    if (!res || res.error || !Array.isArray(res.ports) || !res.ports.length) {
+      const empty = document.createElement('p');
+      empty.className = 'meta';
+      empty.textContent = 'This device has no ports.';
+      face.appendChild(empty);
+      return;
+    }
+    renderPortFaceplate(face, res.ports);
+  });
+
   poeControl(box, d, refresh);
 
   /* Modules are dragged from the tray into a slot; clicking a filled slot

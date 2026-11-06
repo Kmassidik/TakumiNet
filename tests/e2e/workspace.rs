@@ -279,6 +279,7 @@ fn e2e_router_module_insert_and_remove() {
     assert_eq!(status, 200);
     assert!(body.contains("\"Serial0/3/0\""), "{body}");
     assert!(body.contains("\"Serial0/3/1\""), "{body}");
+    assert!(body.contains("\"media\":\"serial\""), "a serial port names its connector: {body}");
 
     // An empty model pulls the module back out.
     let (status, _, body) = s.post("/api/devices/module?id=router0&slot=0&model=");
@@ -299,6 +300,9 @@ fn e2e_cable_kinds_are_media_checked() {
     assert!(body.contains("fiber cable"), "{body}");
     let (_, _, body) = s.post("/api/links?kind=eFiber&a=switch0&b=switch1");
     assert!(!body.contains("\"error\""), "{body}");
+    let (_, _, body) = s.get("/api/devices/ports?id=switch0");
+    assert!(body.contains("\"media\":\"sfp\",\"cable\":\"eFiber\",\"linkUp\":true"), "the fibre port says so: {body}");
+    assert!(body.contains("\"media\":\"rj45\",\"cable\":null,\"linkUp\":false"), "a free copper port stays rj45: {body}");
 
     // A second router gives the serial cable two serial endpoints.
     let (status, _, body) = s.post("/api/devices?model=2911&x=700&y=150");

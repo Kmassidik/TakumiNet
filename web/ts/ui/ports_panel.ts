@@ -27,6 +27,10 @@ export interface PortInfo {
   errdisabled?: string;
   /* CRC/input errors counted on this port. */
   errors?: number;
+  /* Connector and cable the engine reports; `linkUp` is the data path state. */
+  media?: "rj45" | "sfp" | "serial" | "console" | "other";
+  cable?: string | null;
+  linkUp?: boolean;
 }
 
 /* One /api/devices/ports payload, parsed; an error payload throws. */
@@ -51,6 +55,11 @@ export function parsePortsInfo(text: string): PortInfo[] {
       fault: asText(p["fault"]),
       errdisabled: asText(p["errdisabled"]) || undefined,
       errors: Number(p["errors"]) || 0,
+      media: ["rj45", "sfp", "serial", "console", "other"].includes(asText(p["media"]))
+        ? (asText(p["media"]) as PortInfo["media"])
+        : undefined,
+      cable: typeof p["cable"] === "string" ? (p["cable"] as string) : null,
+      linkUp: "linkUp" in p ? p["linkUp"] === true : undefined,
       poe: poeRaw
         ? {
             capable: poeRaw["capable"] === true,
@@ -66,7 +75,8 @@ export function parsePortsInfo(text: string): PortInfo[] {
 
 /* Green needs both ends of the story: administratively up and cabled. */
 export function portDotClass(port: PortInfo): string {
-  if (!port.up) return "port-dot is-down";
+  if (!port.up || port.errdisabled) return "port-dot is-down";
+  if (port.fault === "speed" || (port.peer && port.linkUp === false)) return "port-dot is-warn";
   return port.peer ? "port-dot is-up" : "port-dot is-idle";
 }
 

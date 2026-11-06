@@ -8,6 +8,7 @@
   --accent: #0a5ed7; --accent-strong: #084eae; --accent-bg: #e8f0fd; --accent-line: #b7d4f5; --accent-ink: #173d68; --accent-light: #7aa8e5;
   --danger: #b42318; --danger-bg: #fff5f5; --danger-line: #efb4ae; --danger-ink: #8a1c1c; --danger-hot: #d64545;
   --ok: #0a7a3d; --ok-bg: #f0fbf5; --ok-line: #a9dfc2; --ok-bright: #20a464;
+  --cable-copper: #1b1f23; --cable-fiber: #c2570c; --cable-serial: #b42318; --cable-console: #0f766e; --cable-phone: #7c3aed; --cable-coax: #8a5a14; --cable-iot: #be185d;
   --warn: #e6a23c; --warn-bg: #fff3c4; --warn-line: #f0b429; --warn-ink: #a86a00; --warn-fill: #ffe08a; --packet: #e8590c;
   --screen-bg: #203a2b; --screen-text: #c9f7d4; --screen-dim: #9ed4ae; --screen-ok: #eafff0; --screen-edge: #51705c;
   --shadow-ink: #19395b; --scrim: rgba(21, 36, 56, .28); --scrim-strong: rgba(16, 24, 40, 0.45);
