@@ -110,6 +110,8 @@ fn gateway_lesson_passes_after_vrrp_and_survives_a_power_cut() {
     }
     assert_eq!(results(&mut ws), vec![true]);
     ws.set_power("router0", false);
+    assert_eq!(results(&mut ws), vec![false], "the backup waits for the master-down timer");
+    ws.advance(4.0);
     assert_eq!(results(&mut ws), vec![true], "GatewayB keeps the path after a power cut");
 }
 

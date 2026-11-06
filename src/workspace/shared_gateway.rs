@@ -36,6 +36,11 @@ impl Workspace {
     /// The member that answers for `vip` now: the highest priority whose port in
     /// the shared network is up.
     pub fn shared_gateway_owner(&self, vip: u32) -> Option<String> {
+        if self.fhrp.elected.contains_key(&vip) {
+            if let Some(owner) = self.fhrp_owner(vip) {
+                return Some(owner);
+            }
+        }
         let members = self.shared_gateways.get(&vip)?;
         members.iter()
             .filter(|(id, _)| {

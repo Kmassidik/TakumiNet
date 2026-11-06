@@ -402,9 +402,8 @@ impl Workspace {
             ["mirror", rest @ ..] if rest.len() == 3 => self.mirror_load(rest),
             ["mirror", rest @ ..] if rest.len() == 4 => self.mirror_load(rest),
             ["pending", src, dst] => self.pending_load(src, dst),
-            ["fhrp", dev, port, group, vip, priority, hsrp] => {
-                self.fhrp_load(&["fhrp", dev, port, group, vip, priority, hsrp])
-            }
+            ["fhrp", rest @ ..] if rest.len() == 6 => self.fhrp_load(rest),
+            ["fhrp", rest @ ..] if rest.len() == 8 => self.fhrp_load(rest),
             ["dhcpsnoop", dev] => self.snoop_load(&["dhcpsnoop", dev]),
             ["snoopvlan", dev, vlan] => self.snoop_load(&["snoopvlan", dev, vlan]),
             ["snooptrust", dev, port] => self.snoop_load(&["snooptrust", dev, port]),

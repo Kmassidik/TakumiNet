@@ -85,6 +85,8 @@ pub(super) fn commands(mode: Mode) -> Vec<(&'static str, &'static str)> {
             ("spanning-tree bpduguard enable|disable", "Err-disable a port that receives a BPDU (Cisco feature around IEEE 802.1D)"),
             ("storm-control broadcast level N", "Drop broadcast traffic above N percent"),
             ("vrrp GROUP ip ADDRESS [priority N]", "Share a virtual gateway (IETF RFC 5798)"),
+            ("vrrp GROUP timers advertise MS", "Advertisement interval; backup takes over after three"),
+            ("vrrp GROUP authentication text WORD", "Simple-text authentication; mismatched peers never take over"),
             ("standby GROUP ip ADDRESS [priority N]", "HSRP-compatible alias for vrrp"),
             ("shutdown", "Administratively disable the interface"),
         ],

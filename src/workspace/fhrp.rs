@@ -15,11 +15,15 @@ pub struct FhrpGroup {
     pub vip: u32,
     pub priority: u8,
     pub hsrp: bool,
+    pub advert_ms: u32,
+    pub auth: Option<String>,
 }
 
 #[derive(Clone, Default)]
 pub struct FhrpConfig {
     pub(super) groups: Vec<FhrpGroup>,
+    pub(super) elected: std::collections::HashMap<u32, String>,
+    pub(super) pending: std::collections::HashMap<u32, f64>,
 }
 
 impl Workspace {
@@ -46,6 +50,8 @@ impl Workspace {
                 vip,
                 priority,
                 hsrp,
+                advert_ms: 1000,
+                auth: None,
             });
         }
         // The VIP joins the shared-gateway table so routing finds its owner.
@@ -56,6 +62,116 @@ impl Workspace {
             members.push((device.to_string(), priority));
         }
         members.sort_by_key(|(id, _)| id.clone());
+        if !self.fhrp.elected.contains_key(&vip) {
+            if let Some(winner) = self.raw_fhrp_winner(vip) {
+                self.fhrp.elected.insert(vip, winner);
+            }
+        }
+    }
+
+    fn group_for(&self, vip: u32, device: &str) -> Option<&FhrpGroup> {
+        self.fhrp
+            .groups
+            .iter()
+            .find(|g| g.vip == vip && g.device == device)
+    }
+
+    /// Highest-priority live member, considering only one authentication set.
+    /// The elected master's authentication (or the top live one) is the anchor.
+    fn raw_fhrp_winner(&self, vip: u32) -> Option<String> {
+        let anchor = self
+            .fhrp
+            .elected
+            .get(&vip)
+            .and_then(|id| self.group_for(vip, id))
+            .map(|g| g.auth.clone());
+        let members: Vec<&FhrpGroup> = self
+            .fhrp
+            .groups
+            .iter()
+            .filter(|g| g.vip == vip && self.is_powered(&g.device))
+            .filter(|g| {
+                self.devices.iter().find(|d| d.id == g.device).is_some_and(|d| {
+                    d.ports.iter().any(|p| p.name == g.port && p.up && p.ip.is_some_and(|ip| ip != vip))
+                })
+            })
+            .filter(|g| anchor.as_ref().map_or(true, |a| &g.auth == a))
+            .collect();
+        let best_auth = members.iter().max_by_key(|g| g.priority).and_then(|g| g.auth.clone());
+        members
+            .into_iter()
+            .filter(|g| g.auth.as_ref() == best_auth.as_ref())
+            .max_by_key(|g| (g.priority, std::cmp::Reverse(g.device.clone())))
+            .map(|g| g.device.clone())
+    }
+
+    /// The master shown by routing and `show vrrp`, including hold-down after
+    /// the master dies: the backup takes over after 3 adverts plus skew.
+    pub(super) fn fhrp_owner(&self, vip: u32) -> Option<String> {
+        let elected = self.fhrp.elected.get(&vip)?.clone();
+        let live_winner = self.raw_fhrp_winner(vip);
+        let elected_live = self.is_powered(&elected);
+        if !elected_live {
+            return Some(elected);
+        }
+        if let Some(winner) = live_winner {
+            return Some(winner);
+        }
+        Some(elected)
+    }
+
+    pub(super) fn reconcile_fhrp(&mut self, now: f64) {
+        let vips: Vec<u32> = self.fhrp.elected.keys().copied().collect();
+        for vip in vips {
+            let Some(elected) = self.fhrp.elected.get(&vip).cloned() else {
+                continue;
+            };
+            if self.is_powered(&elected) {
+                if let Some(winner) = self.raw_fhrp_winner(vip) {
+                    self.fhrp.elected.insert(vip, winner);
+                }
+                self.fhrp.pending.remove(&vip);
+                continue;
+            }
+            let since = *self.fhrp.pending.entry(vip).or_insert(now);
+            let advert = self.group_for(vip, &elected).map_or(1000, |g| g.advert_ms.max(1));
+            let skew = self.group_for(vip, &elected).map_or(1.0, |g| (256.0 - f64::from(g.priority)) / 256.0);
+            let hold = (3.0 * f64::from(advert) / 1000.0 + skew).max(0.001);
+            if now - since >= hold {
+                if let Some(winner) = self.raw_fhrp_winner(vip) {
+                    self.fhrp.elected.insert(vip, winner);
+                }
+                self.fhrp.pending.remove(&vip);
+            }
+        }
+    }
+
+    /// A power cut starts the hold-down clock at the current sim time.
+    pub(super) fn note_power_loss(&mut self, device: &str) {
+        let now = f64::from(self.sim_time);
+        let vips: Vec<u32> = self
+            .fhrp
+            .elected
+            .iter()
+            .filter(|(_, id)| id.as_str() == device)
+            .map(|(vip, _)| *vip)
+            .collect();
+        for vip in vips {
+            self.fhrp.pending.entry(vip).or_insert(now);
+        }
+    }
+
+    pub fn set_fhrp_timer(&mut self, device: &str, group: u8, advert_ms: u32) {
+        for g in self.fhrp.groups.iter_mut().filter(|g| g.device == device && g.group == group) {
+            g.advert_ms = advert_ms.clamp(100, 60_000);
+        }
+    }
+
+    pub fn set_fhrp_auth(&mut self, device: &str, group: u8, auth: Option<String>) {
+        for g in self.fhrp.groups.iter_mut().filter(|g| g.device == device && g.group == group) {
+            g.auth = auth.clone();
+        }
+        self.fhrp.pending.clear();
     }
 
     pub fn fhrp_disable(&mut self, device: &str, group: u8) {
@@ -67,6 +183,13 @@ impl Workspace {
             .cloned()
             .collect();
         self.fhrp.groups.retain(|g| !(g.device == device && g.group == group));
+        let vips: Vec<u32> = self.fhrp.elected.keys().copied().collect();
+        for vip in vips {
+            if self.group_for(vip, &device).is_none() {
+                self.fhrp.elected.remove(&vip);
+                self.fhrp.pending.remove(&vip);
+            }
+        }
         for g in removed {
             if let Some(members) = self.shared_gateways.get_mut(&g.vip) {
                 members.retain(|(id, _)| id != device);
@@ -84,7 +207,7 @@ impl Workspace {
             return "% no VRRP groups\n".into();
         }
         let mut out = String::from(
-            "Interface        Grp  Prio  State   Virtual IP      Owner\n",
+            "Interface        Grp  Prio  State   Virtual IP      Owner           Adv(ms) Auth\n",
         );
         for g in groups {
             let owner_id = self.shared_gateway_owner(g.vip);
@@ -98,12 +221,15 @@ impl Workspace {
             let state = if owner_id.as_deref() == Some(g.device.as_str()) { "Master" } else { "Backup" };
             let kind = if g.hsrp { " (standby)" } else { "" };
             out.push_str(&format!(
-                "{:<17}{:<5}{:<6}{:<8}{:<16}{owner}{kind}\n",
+                "{:<17}{:<5}{:<6}{:<8}{:<16}{:<16}{:<8}{}{kind}\n",
                 g.port,
                 g.group,
                 g.priority,
                 state,
-                crate::model::ipv4_string(g.vip)
+                crate::model::ipv4_string(g.vip),
+                owner,
+                g.advert_ms,
+                g.auth.as_deref().unwrap_or("-")
             ));
         }
         out
@@ -114,27 +240,45 @@ impl Workspace {
         rows.sort_by_key(|g| (g.device.clone(), g.port.clone(), g.group));
         let mut out = String::new();
         for g in rows {
+            let auth = g.auth.as_deref().map_or("-".to_string(), |a| {
+                a.chars().map(|c| if c.is_whitespace() { '_' } else { c }).collect()
+            });
             out.push_str(&format!(
-                "fhrp\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                "fhrp\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                 g.device,
                 g.port,
                 g.group,
                 crate::model::ipv4_string(g.vip),
                 g.priority,
-                u8::from(g.hsrp)
+                u8::from(g.hsrp),
+                g.advert_ms,
+                auth
             ));
         }
         out
     }
 
     pub(super) fn fhrp_load(&mut self, f: &[&str]) {
-        if let ["fhrp", device, port, group, vip, priority, hsrp] = f {
-            if let (Ok(group), Some(vip), Ok(priority)) = (
-                group.parse::<u8>(),
-                crate::model::parse_ipv4(vip),
-                priority.parse::<u8>(),
-            ) {
-                self.set_fhrp(device, port, group, vip, priority, *hsrp == "1");
+        let (device, port, group, vip, priority, hsrp, advert, auth) = match f {
+            [device, port, group, vip, priority, hsrp] => {
+                (*device, *port, *group, *vip, *priority, *hsrp, "1000", "-")
+            }
+            [device, port, group, vip, priority, hsrp, advert, auth] => {
+                (*device, *port, *group, *vip, *priority, *hsrp, *advert, *auth)
+            }
+            _ => return,
+        };
+        if let (Ok(group), Some(vip), Ok(priority)) = (
+            group.parse::<u8>(),
+            crate::model::parse_ipv4(vip),
+            priority.parse::<u8>(),
+        ) {
+            self.set_fhrp(device, port, group, vip, priority, hsrp == "1");
+            if let Ok(ms) = advert.parse::<u32>() {
+                self.set_fhrp_timer(device, group, ms);
+            }
+            if auth != "-" {
+                self.set_fhrp_auth(device, group, Some(auth.to_string()));
             }
         }
     }

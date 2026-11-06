@@ -42,6 +42,7 @@ impl Workspace {
         for table in self.tables.arps.values_mut() {
             table.expire(now);
         }
+        self.reconcile_fhrp(now);
         self.emit_ospf_hellos() + self.emit_stp_announcements()
     }
 

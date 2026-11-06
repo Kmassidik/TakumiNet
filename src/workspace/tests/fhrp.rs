@@ -18,6 +18,8 @@ fn the_highest_priority_live_router_owns_the_virtual_address() {
     let vip = crate::model::parse_ipv4("10.60.0.1").unwrap();
     assert_eq!(ws.shared_gateway_owner(vip), Some(r0.clone()));
     ws.set_power(&r0, false);
+    assert_eq!(ws.shared_gateway_owner(vip), Some(r0.clone()), "hold-down keeps the old master");
+    ws.advance(4.0);
     assert_eq!(ws.shared_gateway_owner(vip), Some(r1.clone()));
     ws.set_power(&r0, true);
     assert_eq!(ws.shared_gateway_owner(vip), Some(r0), "preempt puts the higher priority back");
@@ -51,4 +53,51 @@ fn the_cli_configures_a_vrrp_group_on_the_interface() {
     }
     let table = cli_run(&mut ws, &r0, &mut s, "show standby brief");
     assert!(table.contains("10.60.0.9") && table.contains("110"), "{table}");
+}
+
+#[test]
+fn a_longer_advertisement_interval_is_honoured() {
+    let (mut ws, r0, r1) = pair();
+    let vip = crate::model::parse_ipv4("10.60.0.1").unwrap();
+    ws.set_fhrp_timer(&r0, 1, 400);
+    ws.set_power(&r0, false);
+    ws.advance(1.0);
+    assert_eq!(ws.shared_gateway_owner(vip), Some(r0), "3 x 400 ms plus skew is not over yet");
+    ws.advance(0.9);
+    assert_eq!(ws.shared_gateway_owner(vip), Some(r1), "backup takes over after the timer");
+}
+
+#[test]
+fn a_mismatched_authentication_word_blocks_takeover() {
+    let (mut ws, r0, r1) = pair();
+    let vip = crate::model::parse_ipv4("10.60.0.1").unwrap();
+    ws.set_fhrp_auth(&r0, 1, Some("alpha".into()));
+    ws.set_fhrp_auth(&r1, 1, Some("beta".into()));
+    ws.set_power(&r0, false);
+    ws.advance(10.0);
+    assert_eq!(ws.shared_gateway_owner(vip), Some(r0.clone()), "a peer with another password is ignored");
+    ws.set_power(&r0, true);
+    assert_eq!(ws.shared_gateway_owner(vip), Some(r0));
+}
+
+#[test]
+fn timer_and_auth_survive_a_save_and_open_round_trip() {
+    let (ws, r0, _) = pair();
+    let mut ws = ws;
+    ws.set_fhrp_timer(&r0, 1, 250);
+    ws.set_fhrp_auth(&r0, 1, Some("secret".into()));
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    let group = back.fhrp_groups(&r0).first().cloned().expect("group");
+    assert_eq!((group.advert_ms, group.auth.clone()), (250, Some("secret".into())));
+}
+
+#[test]
+fn the_cli_sets_the_timer_and_authentication() {
+    let (mut ws, r0, _) = pair();
+    let mut s = Session::default();
+    for line in ["enable", "configure terminal", "interface GigabitEthernet0/0", "vrrp 1 timers advertise 250", "vrrp 1 authentication text secret", "end"] {
+        cli_run(&mut ws, &r0, &mut s, line);
+    }
+    let table = cli_run(&mut ws, &r0, &mut s, "show vrrp brief");
+    assert!(table.contains("250") && table.contains("secret"), "{table}");
 }

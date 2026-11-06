@@ -428,6 +428,26 @@ fn fhrp_command(ws: &mut Workspace, id: &str, s: &mut Session, _line: &str, lowe
     let Some(group) = words.get(1).and_then(|v| v.parse::<u8>().ok()) else {
         return "ERROR: group must be 1-255\n".into();
     };
+    if words.get(2) == Some(&"timers") && words.get(3) == Some(&"advertise") {
+        let Some(ms) = words.get(4).and_then(|v| v.parse::<u32>().ok()) else {
+            return "ERROR: need 'timers advertise <100-60000>'\n".into();
+        };
+        ws.set_fhrp_timer(id, group, ms);
+        return String::new();
+    }
+    if words.get(2) == Some(&"authentication") {
+        match (words.get(3), words.get(4)) {
+            (Some(&"text"), Some(secret)) => {
+                ws.set_fhrp_auth(id, group, Some(secret.to_string()));
+                return String::new();
+            }
+            (Some(&"none"), _) => {
+                ws.set_fhrp_auth(id, group, None);
+                return String::new();
+            }
+            _ => return "ERROR: need 'authentication text <word>'\n".into(),
+        }
+    }
     let Some(ip) = words.iter().position(|w| *w == "ip").and_then(|i| words.get(i + 1)) else {
         return "ERROR: need 'ip <address>'\n".into();
     };

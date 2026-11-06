@@ -21,6 +21,7 @@ impl Workspace {
             self.powered_off.remove(id);
         } else {
             self.powered_off.insert(id.to_string());
+            self.note_power_loss(id);
         }
         self.recompute_routing();
         true
