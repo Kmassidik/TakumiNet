@@ -124,6 +124,7 @@ fn auto_roaming_moves_to_the_nearer_controller_and_reports_fast_transition() {
     ws.wlan_add(&wlc1, "LAB-WIFI", "supersecret").unwrap();
     ws.wlan_add(&wlc2, "LAB-WIFI", "supersecret").unwrap();
     ws.wifi_join(&tablet, "LAB-WIFI", "supersecret").unwrap();
+    ws.wifi_roam(&tablet, &wlc1).unwrap();
     ws.set_roam_features(&wlc1, false, true, true);
     ws.set_roam_features(&wlc2, true, true, true);
     let note = ws.wifi_roam_auto(&tablet).unwrap();
