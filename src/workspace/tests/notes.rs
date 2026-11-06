@@ -39,3 +39,18 @@ fn notes_with_empty_text_are_refused() {
     assert_eq!(ws.add_note(0.0, 0.0, "#fff3b0", "   "), "");
     assert!(ws.notes.is_empty());
 }
+
+#[test]
+fn the_two_prototype_templates_carry_their_explanation_on_the_canvas() {
+    for (text, phrase, x) in [
+        (include_str!("../../../web/templates/tpl-connect.xml"), "No switch or router sits", 260.0),
+        (include_str!("../../../web/templates/tpl-l2-rtrw-small.xml"), "Three homes log in over PPPoE", 900.0),
+    ] {
+        let ws = Workspace::from_tnet(text).expect("prototype template loads");
+        assert_eq!(ws.notes.len(), 1, "{phrase}");
+        let note = &ws.notes[0];
+        assert_eq!(note.x, x);
+        assert!(note.text.contains(phrase), "{}", note.text);
+        assert!(note.text.contains("Try:"), "{}", note.text);
+    }
+}

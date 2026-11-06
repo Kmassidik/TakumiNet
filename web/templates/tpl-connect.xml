@@ -2,6 +2,7 @@
   <device id="pc0" kind="pc" model="PC" x="180" y="240" name="PC0" ip="192.168.1.10" prefix="24"/>
   <device id="pc1" kind="pc" model="PC" x="500" y="240" name="PC1" ip="192.168.1.11" prefix="24"/>
   <link a="pc0" a_port="Fa0" b="pc1" b_port="Fa0" kind="eCross"/>
+  <note id="note1" x="260" y="300" color="#fff3b0" text="No switch or router sits between these two network cards. They share 192.168.1.0/24, so PC0 and PC1 answer each other directly. Try: press Play, then ping PC1 from PC0; unplug the cable and ping again."/>
   <demo kind="ping" from="pc0" to="pc1" url=""/>
   <demo kind="ping" from="pc1" to="pc0" url=""/>
 </takumi>

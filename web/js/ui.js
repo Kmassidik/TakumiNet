@@ -775,7 +775,13 @@
       return this.camera.toWorld({ x: this.cssWidth / 2, y: this.cssHeight / 2 });
     }
     fit() {
-      const boxes = [...this.scene.devices, ...this.scene.groups].map((d) => d.box);
+      const boxes = [
+        ...[...this.scene.devices, ...this.scene.groups].map((d) => d.box),
+        ...(this.state?.notes ?? []).map((note) => {
+          const box = noteBox(note);
+          return { x: box.x, y: box.y, w: box.w, h: box.h };
+        })
+      ];
       if (!boxes.length) {
         this.camera.zoom = 1;
         this.camera.x = 0;

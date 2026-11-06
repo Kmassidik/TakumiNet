@@ -292,6 +292,7 @@ async function openTemplate(id, resetting = false) {
   setSelection([]);
   resetLessonState();
   renderLesson();
+  if (typeof workspaceCanvas !== 'undefined' && workspaceCanvas) workspaceCanvas.fit();
   hideGallery();
   const title = response.lesson ? response.lesson.title : id;
   status(resetting ? `Reset ${title}` : `Opened ${title}`);

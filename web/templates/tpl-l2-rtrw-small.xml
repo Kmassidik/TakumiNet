@@ -42,4 +42,5 @@
   <demo kind="ping" from="home0" to="gw0" url=""/>
   <demo kind="ping" from="home1" to="gw0" url=""/>
   <demo kind="ping" from="home2" to="gw0" url=""/>
+  <note id="note1" x="900" y="250" color="#fff3b0" text="Three homes log in over PPPoE and share this gateway's one upstream line through NAT. The pole radio carries each home without a cable run. Try: ping the example site from Laptop0, then open Flows to see the shared line."/>
 </takumi>
