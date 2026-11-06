@@ -403,6 +403,7 @@ impl Workspace {
             ["mirror", rest @ ..] if rest.len() == 4 => self.mirror_load(rest),
             ["pending", src, dst] => self.pending_load(src, dst),
             ["fhrp", rest @ ..] if rest.len() == 6 => self.fhrp_load(rest),
+            ["wififeat", wlc, r, k, v] => self.set_roam_features(wlc, *r == "1", *k == "1", *v == "1"),
             ["qosport", rest @ ..] => {
                 let mut row = vec![f[0]]; row.extend_from_slice(rest); self.qos_load(&row)
             }

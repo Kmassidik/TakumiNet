@@ -27,8 +27,8 @@ impl Workspace {
         if ssid.is_empty() || ssid.contains(' ') {
             return Err("invalid SSID".into());
         }
-        if security == "WPA2-PSK" && psk.len() < 8 {
-            return Err("WPA2-PSK needs at least 8 characters".into());
+        if matches!(security.as_str(), "WPA2-PSK" | "WPA3-SAE") && psk.len() < 8 {
+            return Err(format!("{security} needs at least 8 characters"));
         }
         let list = self.wlans.entry(wlc.to_string()).or_default();
         if list.iter().any(|w| w.ssid == ssid) {
@@ -138,6 +138,11 @@ impl Workspace {
                 }
             }
             "Open" => {}
+            "WPA3-SAE" => {
+                if wlan.secret != secret {
+                    return Err("authentication failed (SAE)".into());
+                }
+            }
             _ => {
                 if wlan.secret != secret {
                     return Err("authentication failed".into());
@@ -199,14 +204,40 @@ impl Workspace {
         self.wifi.get(client).cloned()
     }
 
-    /// Signal bars, 0 to 4, from the canvas distance between the client and the
-    /// device whose network it joined. A teaching model, not radio physics.
-    pub fn wifi_signal(&self, client: &str) -> Option<u8> {
+    /// A controller's fast-roaming (802.11r), neighbour report (802.11k) and
+    /// BSS transition (802.11v) switches.
+    pub fn set_roam_features(&mut self, wlc: &str, fast: bool, neighbor: bool, transition: bool) {
+        self.wifi_features.insert(wlc.to_string(), (fast, neighbor, transition));
+    }
+
+    pub fn roam_features(&self, wlc: &str) -> (bool, bool, bool) {
+        self.wifi_features.get(wlc).copied().unwrap_or((false, false, false))
+    }
+
+    /// Nearest access point that belongs to the controller, falling back to the
+    /// controller itself when no AP has joined it.
+    fn wifi_anchor_distance(&self, client: &str) -> Option<f32> {
         let (_, wlc) = self.wifi.get(client)?;
         let place = |id: &str| self.devices.iter().find(|d| d.id == id).map(|d| (d.x, d.y));
         let (cx, cy) = place(client)?;
-        let (wx, wy) = place(wlc)?;
-        let distance = (cx - wx).hypot(cy - wy);
+        let mut anchors: Vec<&str> = self
+            .capwap
+            .iter()
+            .filter(|(_, controller)| *controller == wlc)
+            .map(|(ap, _)| ap.as_str())
+            .collect();
+        anchors.push(wlc);
+        anchors
+            .into_iter()
+            .filter_map(place)
+            .map(|(x, y)| (cx - x).hypot(cy - y))
+            .min_by(|a, b| a.total_cmp(b))
+    }
+
+    /// Signal bars, 0 to 4, from the canvas distance to the nearest AP or the
+    /// controller. A teaching model, not radio physics.
+    pub fn wifi_signal(&self, client: &str) -> Option<u8> {
+        let distance = self.wifi_anchor_distance(client)?;
         Some(match distance {
             d if d <= 150.0 => 4,
             d if d <= 250.0 => 3,
@@ -214,5 +245,52 @@ impl Workspace {
             d if d <= 450.0 => 1,
             _ => 0,
         })
+    }
+}
+
+impl Workspace {
+    /// Automatic roaming: move to a nearer controller that advertises the same
+    /// SSID. 802.11k gives the neighbour list and 802.11v lets the controller
+    /// steer; without either, a client still roams on a weak signal.
+    pub fn wifi_roam_auto(&mut self, client: &str) -> Result<String, String> {
+        let (ssid, current) = self.wifi.get(client).cloned().ok_or("not associated")?;
+        let place = |id: &str| self.devices.iter().find(|d| d.id == id).map(|d| (d.x, d.y));
+        let (cx, cy) = place(client).ok_or("unknown client")?;
+        let here = place(&current).map_or(f32::MAX, |(x, y)| (cx - x).hypot(cy - y));
+        let mut best: Option<(String, f32)> = None;
+        for (wlc, list) in &self.wlans {
+            if *wlc == current || !list.iter().any(|w| w.ssid == ssid) {
+                continue;
+            }
+            let Some((wx, wy)) = place(wlc) else { continue };
+            let distance = (cx - wx).hypot(cy - wy);
+            if distance < here && best.as_ref().map_or(true, |(_, d)| distance < *d) {
+                best = Some((wlc.clone(), distance));
+            }
+        }
+        let Some((target, _)) = best else {
+            return Err("already on the best controller".into());
+        };
+        let (_, _, transition) = self.roam_features(&current);
+        let (fast, neighbor, _) = self.roam_features(&target);
+        if !neighbor && self.wifi_signal(client).unwrap_or(0) > 2 && !transition {
+            return Err("signal is still good and no 802.11k/v report points elsewhere".into());
+        }
+        let note = if fast { " (fast transition, 802.11r)" } else { "" };
+        self.wifi.insert(client.to_string(), (ssid, target.clone()));
+        Ok(format!("Roamed to {target}{note}"))
+    }
+}
+
+impl Workspace {
+    pub(super) fn wifi_feature_records(&self) -> String {
+        let mut ids: Vec<_> = self.wifi_features.keys().collect();
+        ids.sort();
+        let mut out = String::new();
+        for id in ids {
+            let (r, k, v) = self.wifi_features[id];
+            out.push_str(&format!("wififeat\t{id}\t{}\t{}\t{}\n", u8::from(r), u8::from(k), u8::from(v)));
+        }
+        out
     }
 }

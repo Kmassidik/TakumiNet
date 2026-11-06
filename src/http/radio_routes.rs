@@ -42,6 +42,7 @@ fn handle_wifi_wlan(ctx: &Ctx, query: &str) -> (&'static str, Vec<u8>) {
     let security = query_value(query, "security");
     let (out, _) = apply(ctx, |ws| match security.as_deref() {
         Some("WPA2-Enterprise") => ws.wlan_add_with(&id, &ssid, "", "WPA2-Enterprise".into()),
+        Some("WPA3-SAE") => ws.wlan_add_with(&id, &ssid, &pass, "WPA3-SAE".into()),
         _ => ws.wlan_add(&id, &ssid, &pass),
     });
     (json, out.into_bytes())

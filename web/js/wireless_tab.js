@@ -55,7 +55,7 @@ async function loadWireless(box, d) {
     for (const w of wlans) list.appendChild(wlanRow(d, w, note, redraw));
     box.appendChild(list);
   }
-  box.appendChild(wlanAddForm(d, note, redraw));
+  if (d.kind !== 'ap' && d.kind !== 'hotspot-ap') box.appendChild(wlanAddForm(d, note, redraw));
   if (controller !== null) box.appendChild(controllerRow(d, controller, note, redraw));
   if (d.kind === 'ap' || d.kind === 'hotspot-ap') box.appendChild(channelSection(d, redraw, note));
   box.appendChild(note);
@@ -121,11 +121,27 @@ function wlanAddForm(d, note, redraw) {
   };
   const ssid = field('Network name', 'text');
   const pass = field('Password (empty for open)', 'password');
+  const secLabel = document.createElement('label');
+  secLabel.className = 'kw-field';
+  secLabel.textContent = 'Security';
+  const sec = document.createElement('select');
+  sec.className = 'kw-input';
+  sec.setAttribute('aria-label', 'Security');
+  for (const name of ['WPA2-PSK', 'WPA3-SAE']) {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    sec.appendChild(option);
+  }
+  secLabel.appendChild(sec);
+  form.appendChild(secLabel);
   const add = document.createElement('button');
   add.className = 'btn';
   add.textContent = 'Add network';
   add.onclick = async () => {
-    const r = await api('/api/wifi/wlan', { id: d.id, ssid: ssid.value.trim(), pass: pass.value });
+    const params = { id: d.id, ssid: ssid.value.trim(), pass: pass.value };
+    if (sec.value === 'WPA3-SAE') params.security = sec.value;
+    const r = await api('/api/wifi/wlan', params);
     if (r.error) { note.textContent = r.error; return; }
     redraw();
   };

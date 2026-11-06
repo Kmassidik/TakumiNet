@@ -90,3 +90,54 @@ fn industrial_protocols_and_cell_tower_work() {
     assert_eq!(back.ptp_status(&ioe).unwrap().0, plc);
     assert_eq!(back.cell_status(&phone).as_deref(), Some(tower.as_str()));
 }
+
+#[test]
+fn wpa3_sae_needs_eight_characters_and_the_right_passphrase() {
+    let mut ws = Workspace::new();
+    let wlc = ws.add("WLC", 800.0, 100.0).unwrap();
+    assert!(ws.wlan_add_with(&wlc, "SAFE", "short", "WPA3-SAE".into()).is_err());
+    ws.wlan_add_with(&wlc, "SAFE", "longenough", "WPA3-SAE".into()).unwrap();
+    assert_eq!(ws.wlan_list(&wlc)[0].1, "WPA3-SAE");
+    assert!(ws.wifi_join("pc0", "SAFE", "wrongpass").is_err());
+    assert_eq!(ws.wifi_join("pc0", "SAFE", "longenough").unwrap(), wlc);
+}
+
+#[test]
+fn signal_strength_uses_the_nearest_access_point() {
+    let mut ws = Workspace::new();
+    let wlc = ws.add("WLC", 0.0, 0.0).unwrap();
+    let ap = ws.add("Access Point", 900.0, 0.0).unwrap();
+    let tablet = ws.add("Tablet", 850.0, 0.0).unwrap();
+    ws.wlan_add(&wlc, "LAB-WIFI", "supersecret").unwrap();
+    ws.wifi_join(&tablet, "LAB-WIFI", "supersecret").unwrap();
+    assert_eq!(ws.wifi_signal(&tablet), Some(0), "far from the controller, no AP yet");
+    ws.capwap_join(&ap, &wlc).unwrap();
+    assert_eq!(ws.wifi_signal(&tablet), Some(4), "the nearby AP carries the signal");
+}
+
+#[test]
+fn auto_roaming_moves_to_the_nearer_controller_and_reports_fast_transition() {
+    let mut ws = Workspace::new();
+    let wlc1 = ws.add("WLC", 0.0, 0.0).unwrap();
+    let wlc2 = ws.add("WLC", 900.0, 0.0).unwrap();
+    let tablet = ws.add("Tablet", 850.0, 0.0).unwrap();
+    ws.wlan_add(&wlc1, "LAB-WIFI", "supersecret").unwrap();
+    ws.wlan_add(&wlc2, "LAB-WIFI", "supersecret").unwrap();
+    ws.wifi_join(&tablet, "LAB-WIFI", "supersecret").unwrap();
+    ws.set_roam_features(&wlc1, false, true, true);
+    ws.set_roam_features(&wlc2, true, true, true);
+    let note = ws.wifi_roam_auto(&tablet).unwrap();
+    assert!(note.contains(&wlc2) && note.contains("802.11r"), "{note}");
+    assert_eq!(ws.wifi_status(&tablet).unwrap().1, wlc2);
+    assert_eq!(ws.roam_features(&wlc2), (true, true, true));
+    assert!(ws.wifi_roam_auto(&tablet).is_err(), "already best");
+}
+
+#[test]
+fn roaming_features_survive_a_round_trip() {
+    let mut ws = Workspace::new();
+    let wlc = ws.add("WLC", 800.0, 100.0).unwrap();
+    ws.set_roam_features(&wlc, true, false, true);
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.roam_features(&wlc), (true, false, true));
+}
