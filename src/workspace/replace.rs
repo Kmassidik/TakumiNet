@@ -25,6 +25,46 @@ fn family(kind: &str) -> Option<&'static str> {
     }
 }
 
+fn moved_ports(old: &Device, new_ports: &[crate::workspace::PortCfg]) -> std::collections::HashMap<String, String> {
+    let names: Vec<String> = new_ports.iter().map(|p| p.name.clone()).collect();
+    let mut map = std::collections::HashMap::new();
+    for (index, prev) in old.ports.iter().enumerate() {
+        let shifted = if names.contains(&prev.name) { prev.name.clone() } else { names.get(index).cloned().unwrap_or_default() };
+        if !shifted.is_empty() {
+            map.insert(prev.name.clone(), shifted);
+        }
+    }
+    map
+}
+
+fn migrate_tab_set(map: &mut std::collections::HashSet<String>, id: &str, moved: &std::collections::HashMap<String, String>, label: &str, cleared: &mut Vec<String>) {
+    let prefix = format!("{id}\t");
+    let taken: Vec<String> = map.iter().filter(|k| k.starts_with(&prefix)).cloned().collect();
+    for key in taken {
+        map.remove(&key);
+        let port = &key[prefix.len()..];
+        match moved.get(port) {
+            Some(new_port) => { map.insert(format!("{id}\t{new_port}")); }
+            None if !cleared.iter().any(|c| c == label) => cleared.push(label.to_string()),
+            None => {}
+        }
+    }
+}
+
+fn migrate_tab_keys<T>(map: &mut std::collections::HashMap<String, T>, id: &str, moved: &std::collections::HashMap<String, String>, label: &str, cleared: &mut Vec<String>) {
+    let prefix = format!("{id}\t");
+    let keys: Vec<String> = map.keys().filter(|k| k.starts_with(&prefix)).cloned().collect();
+    let taken: Vec<(String, T)> = keys.into_iter().filter_map(|k| map.remove(&k).map(|v| (k, v))).collect();
+    for (key, value) in taken {
+        let port = &key[prefix.len()..];
+        match moved.get(port) {
+            Some(new_port) => { map.insert(format!("{id}\t{new_port}"), value); }
+            None if !cleared.iter().any(|c| c == label) => cleared.push(label.to_string()),
+            None => {}
+        }
+    }
+}
+
 impl Workspace {
     /// Compatible palette labels for replacing `id`, for the context menu.
     pub fn replace_options(&self, id: &str) -> Vec<String> {
@@ -51,32 +91,32 @@ impl Workspace {
         let Some((_, _, kind)) = CATALOG.iter().find(|(label, _, _)| *label == model) else {
             return Vec::new();
         };
-        if family(&old.kind) != family(kind) || *kind != "hub" {
+        if family(&old.kind) != family(kind) {
             return Vec::new();
         }
+        let new_ports = palette::default_ports(kind);
+        let moved = moved_ports(old, &new_ports);
         let key = |name: &str| name.starts_with(&format!("{id}\t"));
+        let port_lost = |k: &str| moved.get(&k[format!("{id}\t").len()..]).is_none();
         let mut out = Vec::new();
-        if self.link_settings.keys().any(|k| key(k)) {
+        if self.link_settings.keys().any(|k| key(k) && port_lost(k)) {
             out.push("Interface speed and duplex settings".to_string());
         }
-        if self.l2_guard.portfast.iter().any(|k| key(k))
-            || self.l2_guard.bpduguard.iter().any(|k| key(k))
-            || self.l2_guard.errdisabled.keys().any(|k| key(k))
-            || self.l2_guard.storm_level.keys().any(|k| key(k))
+        if self.l2_guard.portfast.iter().any(|k| key(k) && port_lost(k))
+            || self.l2_guard.bpduguard.iter().any(|k| key(k) && port_lost(k))
+            || self.l2_guard.storm_level.keys().any(|k| key(k) && port_lost(k))
         {
             out.push("Layer-2 guard settings".to_string());
         }
-        if self.snoop.dhcp_on.contains(id)
-            || self.snoop.arp_on.contains(id)
-            || self.snoop.trusted.iter().any(|k| key(k))
-            || self.snoop.bindings.iter().any(|b| b.switch == id)
-        {
+        if self.snoop.trusted.iter().any(|k| key(k) && port_lost(k)) {
             out.push("DHCP snooping and ARP inspection".to_string());
         }
-        if self.mirror.sessions.contains_key(id) {
+        if self.mirror.sessions.get(id).is_some_and(|sessions| {
+            sessions.values().any(|s| s.source.as_ref().is_some_and(|(port, _)| moved.get(port).is_none()) || s.dest.as_ref().is_some_and(|port| moved.get(port).is_none()))
+        }) {
             out.push("Port mirroring".to_string());
         }
-        if self.fhrp.groups.iter().any(|g| g.device == id) {
+        if self.fhrp.groups.iter().any(|g| g.device == id && moved.get(&g.port).is_none()) {
             out.push("VRRP groups".to_string());
         }
         out
@@ -107,7 +147,7 @@ impl Workspace {
             return Err("that is the same model".into());
         }
 
-        let cleared = self.replace_clears(id, model);
+        let mut cleared = self.replace_clears(id, model);
         let mut replacement = old.clone();
         replacement.model = model.to_string();
         replacement.kind = kind.to_string();
@@ -135,9 +175,6 @@ impl Workspace {
             replacement.gateway = None;
             replacement.dns = None;
         }
-        replacement.dot1x = false;
-        replacement.dot1x_user = None;
-        replacement.dot1x_pass = None;
         *self.devices.iter_mut().find(|d| d.id == id).unwrap() = replacement;
 
         let mut report = ReplaceReport::default();
@@ -174,24 +211,45 @@ impl Workspace {
             self.links.remove(index);
         }
 
-        // Configuration that no longer applies goes away, not half-valid.
-        if old_family != "router" {
-            self.routing.remove(id);
-            self.bgp.remove(id);
+        // Per-port configuration follows the cable: same name first, else the
+        // same position. Only settings whose port disappeared are reported.
+        let moved = moved_ports(&old, &self.devices.iter().find(|d| d.id == id).unwrap().ports);
+        let mut lost: Vec<String> = Vec::new();
+        migrate_tab_keys(&mut self.link_settings, id, &moved, "Interface speed and duplex settings", &mut lost);
+        migrate_tab_set(&mut self.l2_guard.portfast, id, &moved, "Layer-2 guard settings", &mut lost);
+        migrate_tab_set(&mut self.l2_guard.bpduguard, id, &moved, "Layer-2 guard settings", &mut lost);
+        migrate_tab_keys(&mut self.l2_guard.errdisabled, id, &moved, "Layer-2 guard settings", &mut lost);
+        migrate_tab_keys(&mut self.l2_guard.storm_level, id, &moved, "Layer-2 guard settings", &mut lost);
+        migrate_tab_keys(&mut self.l2_guard.storm_seen, id, &moved, "Layer-2 guard settings", &mut lost);
+        migrate_tab_keys(&mut self.l2_guard.storm_drops, id, &moved, "Layer-2 guard settings", &mut lost);
+        migrate_tab_set(&mut self.snoop.trusted, id, &moved, "DHCP snooping and ARP inspection", &mut lost);
+        if let Some(sessions) = self.mirror.sessions.get_mut(id) {
+            for session in sessions.values_mut() {
+                if let Some((port, dir)) = session.source.clone() {
+                    match moved.get(&port) { Some(p) => session.source = Some((p.clone(), dir)), None => { session.source = None; if !lost.iter().any(|l| l == "Port mirroring") { lost.push("Port mirroring".into()); } } }
+                }
+                if let Some(port) = session.dest.clone() {
+                    match moved.get(&port) { Some(p) => session.dest = Some(p.clone()), None => { session.dest = None; if !lost.iter().any(|l| l == "Port mirroring") { lost.push("Port mirroring".into()); } } }
+                }
+            }
         }
-        if old_family != "switch" {
-            self.link_settings.retain(|key, _| !key.starts_with(&format!("{id}\t")));
-            self.l2_guard.portfast.retain(|k| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.bpduguard.retain(|k| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.errdisabled.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.storm_level.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.storm_seen.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.storm_drops.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.snoop.dhcp_on.remove(id);
-            self.snoop.arp_on.remove(id);
-            self.snoop.trusted.retain(|k| !k.starts_with(&format!("{id}\t")));
-            self.snoop.bindings.retain(|b| b.switch != id);
-            self.mirror.sessions.remove(id);
+        for group in self.fhrp.groups.iter_mut().filter(|g| g.device == id) {
+            if let Some(port) = moved.get(&group.port) { group.port = port.clone(); }
+            else if !lost.iter().any(|l| l == "VRRP groups") { lost.push("VRRP groups".into()); }
+        }
+        if let Some(ports) = self.dot1x.ports.get_mut(id) {
+            let taken: Vec<(String, _)> = ports.drain().collect();
+            for (port, value) in taken {
+                if let Some(new_port) = moved.get(&port) { ports.insert(new_port.clone(), value); }
+                else if !lost.iter().any(|l| l == "802.1X port control") { lost.push("802.1X port control".into()); }
+            }
+        }
+        if let Some(ports) = self.qos.ports.get_mut(id) {
+            let taken: Vec<(String, _)> = ports.drain().collect();
+            for (port, value) in taken {
+                if let Some(new_port) = moved.get(&port) { ports.insert(new_port.clone(), value); }
+                else if !lost.iter().any(|l| l == "QoS settings") { lost.push("QoS settings".into()); }
+            }
         }
         if old_family != "wireless" {
             self.wifi_radios.remove(id);
@@ -199,20 +257,10 @@ impl Workspace {
         if old_family != "host" {
             self.host_firewalls.remove(id);
         }
-        if *kind == "hub" {
-            self.link_settings.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.portfast.retain(|k| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.bpduguard.retain(|k| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.errdisabled.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.storm_level.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.storm_seen.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.l2_guard.storm_drops.retain(|k, _| !k.starts_with(&format!("{id}\t")));
-            self.fhrp.groups.retain(|g| g.device != id);
-            self.snoop.dhcp_on.remove(id);
-            self.snoop.arp_on.remove(id);
-            self.snoop.trusted.retain(|k| !k.starts_with(&format!("{id}\t")));
-            self.snoop.bindings.retain(|b| b.switch != id);
-            self.mirror.sessions.remove(id);
+        for label in lost {
+            if !cleared.iter().any(|c| *c == label) {
+                cleared.push(label);
+            }
         }
         report.cleared = cleared;
         self.recompute_routing();

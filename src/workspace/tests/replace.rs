@@ -80,25 +80,48 @@ fn a_router_swap_keeps_routes_and_reports_nothing_cleared() {
 }
 
 #[test]
-fn a_switch_to_hub_swap_reports_the_guard_settings_it_removes() {
+fn a_switch_to_hub_swap_moves_the_guard_settings_to_the_same_position() {
     let mut ws = Workspace::empty();
     let sw = ws.add("Switch 24", 200.0, 100.0).unwrap();
     ws.set_portfast(&sw, "FastEthernet0/1", true);
     ws.set_storm_level(&sw, "FastEthernet0/1", 40);
     let clears = ws.replace_clears(&sw, "Hub");
-    assert!(clears.iter().any(|c| c.contains("guard")), "{clears:?}");
+    assert!(clears.is_empty(), "{clears:?}");
     let report = ws.replace(&sw, "Hub").unwrap();
-    assert!(report.cleared.iter().any(|c| c.contains("guard")));
+    assert!(report.cleared.is_empty(), "{:?}", report.cleared);
+    assert!(ws.portfast(&sw, "FastEthernet0"), "migrated to the same position");
+    assert_eq!(ws.storm_level(&sw, "FastEthernet0"), Some(40));
     assert!(!ws.portfast(&sw, "FastEthernet0/1"));
-    assert_eq!(ws.storm_level(&sw, "FastEthernet0/1"), None);
 }
 
 #[test]
-fn workspace_json_lists_what_a_swap_would_clear() {
+fn a_setting_whose_port_disappears_is_reported_and_dropped() {
     let mut ws = Workspace::empty();
-    let sw = ws.add("Switch 24", 200.0, 100.0).unwrap();
-    ws.set_portfast(&sw, "FastEthernet0/1", true);
+    let sw = ws.add("Switch L3", 200.0, 100.0).unwrap();
+    ws.set_portfast(&sw, "GigabitEthernet0/12", true);
+    let report = ws.replace(&sw, "Hub").unwrap();
+    assert!(report.cleared.iter().any(|c| c.contains("guard")), "{:?}", report.cleared);
+    assert!(!ws.portfast(&sw, "GigabitEthernet0/12"));
+}
+
+#[test]
+fn workspace_json_lists_only_settings_that_cannot_move() {
+    let mut ws = Workspace::empty();
+    let sw = ws.add("Switch L3", 200.0, 100.0).unwrap();
+    ws.set_portfast(&sw, "GigabitEthernet0/12", true);
     let json = ws.json();
     assert!(json.contains("replaceClears"), "{json}");
     assert!(json.contains("Layer-2 guard settings"), "{json}");
+}
+
+#[test]
+fn qos_and_8021x_follow_the_port_position_too() {
+    let mut ws = Workspace::empty();
+    let sw = ws.add("Switch 24", 200.0, 100.0).unwrap();
+    ws.set_qos_port(&sw, "FastEthernet0/2", |q| q.police_mbit = Some(30));
+    ws.set_dot1x_port(&sw, "FastEthernet0/2", crate::workspace::Dot1xMode::Auto).unwrap();
+    let report = ws.replace(&sw, "Hub").unwrap();
+    assert!(report.cleared.is_empty(), "{:?}", report.cleared);
+    assert_eq!(ws.qos_port(&sw, "FastEthernet1").police_mbit, Some(30));
+    assert_eq!(ws.dot1x_port(&sw, "FastEthernet1").mode, crate::workspace::Dot1xMode::Auto);
 }
