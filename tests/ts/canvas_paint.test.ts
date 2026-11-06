@@ -100,6 +100,7 @@ test("a packet is drawn in its protocol colour", () => {
     packets: [{ at: { x: 200, y: 100 }, color: "#e8590c" }],
   });
   expect(paint.arcFills.at(-1)).toBe("#e8590c");
+  expect(paint.fills.slice(-2)).toEqual(["#ffffff", "#ffffff"]);
 });
 
 test("a packet moves at the playback speed and finishes after its last hop", () => {

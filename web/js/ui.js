@@ -434,10 +434,42 @@
   }
   function drawPacket(ctx, packet, camera) {
     const p = camera.toScreen(packet.at);
-    ctx.fillStyle = packet.color;
+    if (packet.from) {
+      const tail = camera.toScreen(packet.from);
+      if (Math.hypot(p.x - tail.x, p.y - tail.y) > 0.5) {
+        ctx.strokeStyle = packet.color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(tail.x, tail.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+    const w = 18;
+    const h = 11;
+    const r = 3;
+    const x = p.x - w / 2;
+    const y = p.y - h / 2;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arc(x + w - r, y + r, r, -Math.PI / 2, 0);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arc(x + w - r, y + h - r, r, 0, Math.PI / 2);
+    ctx.lineTo(x + r, y + h);
+    ctx.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
+    ctx.lineTo(x, y + r);
+    ctx.arc(x + r, y + r, r, Math.PI, Math.PI * 1.5);
+    ctx.fillStyle = packet.color;
     ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.fillStyle = HALO;
+    ctx.fillRect(x + 5, y + 3, 8, 1.5);
+    ctx.fillRect(x + 5, y + 6.5, 5, 1.5);
   }
 
   // web/ts/canvas/packets.ts
@@ -897,7 +929,9 @@
           run.onDone?.();
           return false;
         }
-        live.push({ at, color: run.color });
+        const elapsed = now - start;
+        const from = packetAt(run.points, Math.max(0, elapsed - 60), run.segmentMs) ?? at;
+        live.push({ at, from, color: run.color });
         return true;
       });
       return live;

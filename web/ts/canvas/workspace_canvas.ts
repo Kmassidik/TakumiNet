@@ -267,7 +267,9 @@ export class WorkspaceCanvas {
         run.onDone?.();
         return false;
       }
-      live.push({ at, color: run.color });
+      const elapsed = now - start;
+      const from = packetAt(run.points, Math.max(0, elapsed - 60), run.segmentMs) ?? at;
+      live.push({ at, from, color: run.color });
       return true;
     });
     return live;
