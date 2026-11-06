@@ -47,7 +47,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("snoopbind", &["switch", "port", "mac", "ip", "vlan"]),
     ("arpinspect", &["dev"]),
     ("fhrp", &["dev", "port", "group", "vip", "priority", "hsrp"]),
-    ("mirror", &["dev", "source", "dest"]),
+    ("mirror", &["dev", "session", "source", "dest"]),
     ("pending", &["source", "target"]),
     ("linkset", &["dev", "port", "speed", "duplex"]),
     ("ufw", &["dev", "enabled", "default"]),

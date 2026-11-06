@@ -12,6 +12,7 @@ pub(super) const SHOW_COMMANDS: &[(&str, &str)] = &[
     ("show mac address-table", "MAC address table"),
     ("show power inline", "PoE budget and the ports supplying power (IEEE 802.3af/at)"),
     ("show errdisable", "Ports shut by a guard, and the reason"),
+    ("show monitor session 1", "Port mirroring sessions on this switch"),
     ("show vrrp brief", "Virtual gateway groups, priority and state"),
     ("show ip dhcp snooping binding", "Learned DHCP bindings per switch"),
     ("show ip arp inspection", "ARP inspection state and drop count"),
@@ -42,6 +43,8 @@ pub(super) fn commands(mode: Mode) -> Vec<(&'static str, &'static str)> {
         ],
         Mode::Config => vec![
             ("ip dhcp snooping", "Turn on DHCP snooping on this switch"),
+            ("monitor session 1 source interface PORT [rx|tx|both]", "Copy a port to a Sniffer (Cisco SPAN)"),
+            ("monitor session 1 destination interface PORT", "Port that receives the mirrored copy"),
             ("ip dhcp snooping vlan N", "Apply snooping to one VLAN"),
             ("ip arp inspection vlan N", "Inspect ARP replies on one VLAN"),
             ("banner motd DELIM TEXT DELIM", "Set the login banner"),
