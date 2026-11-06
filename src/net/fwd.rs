@@ -206,7 +206,7 @@ where
         // the path is the destination of this frame.
         let next_l3 = next_l3_id(ws, &path, i, dst);
         let src_mac = cur_src;
-        let dst_mac = Mac::for_device(&next_l3);
+        let dst_mac = mac::frame_mac(ws, &path, i, dip);
         capture.size = 14 + 20 + packet.payload_len();
         capture.frame = Some(Frame::ipv4(dst_mac, src_mac, packet.clone()));
 
@@ -683,6 +683,6 @@ pub(crate) fn routed_path(
     Ok(path)
 }
 
-mod frames;
+mod frames; mod mac;
 use frames::*;
 pub use frames::reachable;

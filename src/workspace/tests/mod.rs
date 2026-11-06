@@ -38,6 +38,7 @@ mod snooping;
 mod fhrp;
 mod dot1x_eap;
 mod qos_police;
+mod arp_delivery;
 mod mirror;
 mod replace;
 mod pending;
