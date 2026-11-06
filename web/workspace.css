@@ -506,8 +506,6 @@ html, body {
 .lesson-card strong { font-size: 14px; }
 .lesson-card-goal { color: var(--muted-2); line-height: 1.4; }
 .lesson-card-meta { color: var(--muted); font-size: 10px; }
-.lesson-card-what { color: var(--ink-2); font-size: 12px; line-height: 1.45; }
-.lesson-card-try { color: var(--accent-ink); font-size: 11px; line-height: 1.4; }
 .lesson-card-action { margin-top: auto; padding-top: 7px; color: var(--accent); font-weight: 600; }
 .gallery-note { min-height: 18px; margin: 16px 0 0; color: var(--muted-2); text-align: center; }
 .gallery-start { display: flex; justify-content: center; gap: 8px; margin-top: 16px; padding-top: 18px; border-top: 1px solid var(--line-soft); }

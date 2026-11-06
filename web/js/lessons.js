@@ -47,18 +47,6 @@ function galleryCard(kind, item) {
   goal.className = 'lesson-card-goal';
   goal.textContent = item.goal;
   card.appendChild(goal);
-  if (item.what) {
-    const what = document.createElement('span');
-    what.className = 'lesson-card-what';
-    what.textContent = item.what;
-    card.appendChild(what);
-  }
-  if (item.tryThis) {
-    const hint = document.createElement('span');
-    hint.className = 'lesson-card-try';
-    hint.textContent = `Try: ${item.tryThis}`;
-    card.appendChild(hint);
-  }
   const meta = document.createElement('span');
   meta.className = 'lesson-card-meta';
   meta.textContent = kind === 'template'

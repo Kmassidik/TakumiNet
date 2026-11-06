@@ -101,8 +101,6 @@ fn e2e_lesson_templates_blank_new_and_checks() {
     assert!(body.contains("\"title\":\"API lesson\""), "{body}");
     assert!(body.contains("\"stepCount\":2"), "{body}");
     assert!(body.contains("\"id\":\"tpl-connect\""), "{body}");
-    assert!(body.contains("\"tryThis\":"), "prototype note present: {body}");
-    assert!(body.contains("\"id\":\"tpl-star\"") && !body.contains("\"id\":\"tpl-star\",\"title\":\"Three computers on a switch\",\"goal\":\"PC0, PC1 and PC2 ready to talk through Switch0\",\"what\""), "other cards stay plain: {body}");
 
     let (status, _, body) = s.post("/api/new");
     assert_eq!(status, 200, "{body}");
