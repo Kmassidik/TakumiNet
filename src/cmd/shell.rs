@@ -27,6 +27,8 @@ pub(super) fn run_extra(ws: &mut Workspace, id: &str, verb: &str, args: &[&str],
             ping(ws, id, &swapped)
         }
         "ssh" | "console" => connect(ws, id, verb, args).0,
+        "ssh-keygen" => ssh_keygen(ws, id),
+        "ssh-copy-id" => ssh_copy_id(ws, id, args),
         _ => return None,
     })
 }
@@ -84,18 +86,66 @@ pub fn connect(ws: &mut Workspace, id: &str, verb: &str, args: &[&str]) -> (Stri
             ),
         };
     }
-    let target = args.last().copied().unwrap_or("");
-    let host = target.rsplit('@').next().unwrap_or(target);
+    let password = args
+        .iter()
+        .position(|a| *a == "-p" || *a == "-P")
+        .and_then(|i| args.get(i + 1))
+        .copied();
+    let target = args
+        .iter()
+        .enumerate()
+        .find(|(i, a)| !a.starts_with('-') && !(*i > 0 && matches!(args[i - 1], "-p" | "-P")))
+        .map(|(_, a)| *a)
+        .unwrap_or("");
+    let (user, host) = match target.split_once('@') {
+        Some((user, host)) => (user, host),
+        None => ("", target),
+    };
     if verb == "telnet" {
         return super::telnet(ws, id, host);
     }
     if host.is_empty() {
-        return ("Usage: ssh [user@]<host>\n".into(), None);
+        return ("Usage: ssh [-p PASSWORD] [user@]<host>\n".into(), None);
     }
     let (text, peer) = super::telnet(ws, id, host);
-    match peer {
-        Some(_) => (format!("Connected to {host}.\n\n"), peer),
-        None if text.contains("Connection closed") => (format!("ssh: connect to host {host} port 22: No route to host\n"), None),
-        None => (format!("ssh: connect to host {host} port 22: Connection refused\n"), None),
+    let Some(peer) = peer else {
+        return if text.contains("Connection closed") {
+            (format!("ssh: connect to host {host} port 22: No route to host\n"), None)
+        } else {
+            (format!("ssh: connect to host {host} port 22: Connection refused\n"), None)
+        };
+    };
+    if !ws.ssh_enabled(&peer) {
+        return (format!("ssh: connect to host {host} port 22: Connection refused (sshd is off)\n"), None);
+    }
+    match ws.ssh_authenticate(id, &peer, user, password) {
+        Ok(()) => (format!("Connected to {host}.\n\n"), Some(peer)),
+        Err(reason) => (format!("{user}@{host}: {reason}\nHint: run ssh-copy-id {user}@{host}, or pass -p PASSWORD.\n"), None),
+    }
+}
+
+fn ssh_keygen(ws: &mut Workspace, id: &str) -> String {
+    if !dev(ws, id).is_some_and(|d| d.kind == "pc") {
+        return "ssh-keygen: run this on a PC or laptop\n".into();
+    }
+    let key = ws.generate_client_key(id);
+    format!("Generating public/private key pair...\nYour identification has been saved in ~/.ssh/id_ed25519\nYour public key has been saved in ~/.ssh/id_ed25519.pub\nThe key fingerprint is:\n{key} {}\n", prompt(ws, id))
+}
+
+fn ssh_copy_id(ws: &mut Workspace, id: &str, args: &[&str]) -> String {
+    let Some(target) = args.iter().find(|a| !a.starts_with('-')) else {
+        return "Usage: ssh-copy-id [user@]<host>\n".into();
+    };
+    let (user, host) = match target.split_once('@') {
+        Some((user, host)) => (user, host),
+        None => ("", *target),
+    };
+    let (text, peer) = super::telnet(ws, id, host);
+    let Some(peer) = peer else {
+        return if text.contains("Connection closed") { format!("ssh-copy-id: no route to {host}\n") } else { format!("ssh-copy-id: connection refused by {host}\n") };
+    };
+    match ws.ssh_copy_id(id, &peer, user) {
+        Ok(line) => line,
+        Err(reason) => format!("ssh-copy-id: {reason}\n"),
     }
 }

@@ -316,3 +316,65 @@ fn long_help_summaries_wrap_under_the_description_column() {
         "continuation line should be indented to the description column: {out}"
     );
 }
+
+fn ssh_configured() -> Workspace {
+    let mut ws = Workspace::new();
+    let mut s = crate::cli::Session::default();
+    for line in [
+        "enable", "configure terminal", "username admin password secret",
+        "crypto key generate rsa", "ip ssh version 2", "end",
+    ] {
+        crate::cli::run(&mut ws, "router0", &mut s, line);
+    }
+    ws
+}
+
+#[test]
+fn a_configured_target_rejects_ssh_until_the_key_is_trusted() {
+    let mut ws = ssh_configured();
+    let (text, peer) = connect(&mut ws, "pc0", "ssh", &["admin@192.168.1.1"]);
+    assert!(text.contains("Permission denied"), "{text}");
+    assert!(peer.is_none());
+    assert!(run(&mut ws, "pc0", "ssh-keygen").contains("SHA256:"));
+    assert!(run(&mut ws, "pc0", "ssh-copy-id admin@192.168.1.1").contains("added: 1"));
+    let (text, peer) = connect(&mut ws, "pc0", "ssh", &["admin@192.168.1.1"]);
+    assert!(text.contains("Connected"), "{text}");
+    assert!(peer.is_some());
+}
+
+#[test]
+fn the_password_also_opens_ssh_and_a_wrong_one_does_not() {
+    let mut ws = ssh_configured();
+    let (text, peer) = connect(&mut ws, "pc0", "ssh", &["-p", "wrong", "admin@192.168.1.1"]);
+    assert!(text.contains("Permission denied"), "{text}");
+    assert!(peer.is_none());
+    let (text, peer) = connect(&mut ws, "pc0", "ssh", &["-p", "secret", "admin@192.168.1.1"]);
+    assert!(text.contains("Connected"), "{text}");
+    assert!(peer.is_some());
+}
+
+#[test]
+fn ssh_users_keys_and_sshd_state_survive_a_round_trip() {
+    let mut ws = ssh_configured();
+    run(&mut ws, "pc0", "ssh-keygen");
+    run(&mut ws, "pc0", "ssh-copy-id admin@192.168.1.1");
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert!(back.ssh_authenticate("pc0", "router0", "admin", None).is_ok());
+    assert!(back.ssh_authenticate("pc1", "router0", "admin", None).is_err());
+    assert!(back.host_key("router0").is_some());
+    assert!(back.client_key("pc0").is_some());
+}
+
+#[test]
+fn ssh_copy_id_needs_a_host_key_and_a_real_user() {
+    let mut ws = Workspace::new();
+    let mut s = crate::cli::Session::default();
+    for line in ["enable", "configure terminal", "username admin password secret", "end"] {
+        crate::cli::run(&mut ws, "router0", &mut s, line);
+    }
+    run(&mut ws, "pc0", "ssh-keygen");
+    let out = run(&mut ws, "pc0", "ssh-copy-id admin@192.168.1.1");
+    assert!(out.contains("no host key"), "{out}");
+    let out = run(&mut ws, "pc0", "ssh-copy-id nobody@192.168.1.1");
+    assert!(out.contains("no such user"), "{out}");
+}

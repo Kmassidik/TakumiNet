@@ -20,6 +20,7 @@ mod replace;
 mod pending;
 mod duplicate_ip;
 mod fhrp;
+mod ssh;
 mod json;
 mod router_admin;
 mod port_forward;
@@ -79,6 +80,7 @@ pub use wifi_channels::WifiRadio;
 pub use l2_guard::L2GuardConfig;
 pub use snooping::{SnoopBinding, SnoopConfig};
 pub use fhrp::{FhrpConfig, FhrpGroup};
+pub use ssh::{SshConfig, SshDevice, SshUser};
 pub use mirror::{MirrorConfig, MirrorSession};
 pub use replace::ReplaceReport;
 pub use link_speed::*;
@@ -163,6 +165,7 @@ impl Workspace {
                 l2_guard: L2GuardConfig::default(),
                 snoop: SnoopConfig::default(),
                 fhrp: FhrpConfig::default(),
+                ssh: SshConfig::default(),
                 mirror: MirrorConfig::default(),
                 pending_pdu: Vec::new(),
                 wlan_guest: Default::default(),
@@ -401,6 +404,7 @@ impl Workspace {
                 l2_guard: L2GuardConfig::default(),
                 snoop: SnoopConfig::default(),
                 fhrp: FhrpConfig::default(),
+                ssh: SshConfig::default(),
                 mirror: MirrorConfig::default(),
                 pending_pdu: Vec::new(),
                 wlan_guest: Default::default(),

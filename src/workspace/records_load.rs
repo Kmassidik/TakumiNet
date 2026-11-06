@@ -403,6 +403,9 @@ impl Workspace {
             ["mirror", rest @ ..] if rest.len() == 4 => self.mirror_load(rest),
             ["pending", src, dst] => self.pending_load(src, dst),
             ["fhrp", rest @ ..] if rest.len() == 6 => self.fhrp_load(rest),
+            ["sshenable" | "sshhost" | "sshuser" | "sshauth" | "sshclient", rest @ ..] => {
+                let mut row = vec![f[0]]; row.extend_from_slice(rest); self.ssh_load(&row)
+            },
             ["fhrp", rest @ ..] if rest.len() == 8 => self.fhrp_load(rest),
             ["dhcpsnoop", dev] => self.snoop_load(&["dhcpsnoop", dev]),
             ["snoopvlan", dev, vlan] => self.snoop_load(&["snoopvlan", dev, vlan]),

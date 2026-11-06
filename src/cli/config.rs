@@ -1,4 +1,5 @@
 use super::*;
+use super::ssh::{crypto, ip_ssh, username};
 pub(super) use crate::workspace::mirror::command as mirror_session;
 
 type Handler = fn(&mut Workspace, &str, &mut Session, &str, &str) -> String;
@@ -15,6 +16,9 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("no ip nat inside source"), nat_clear),
     (|l| l.starts_with("access-list "), access_list),
     (|l| l.starts_with("hostname "), hostname),
+    (|l| l.starts_with("username ") || l.starts_with("no username "), username),
+    (|l| l.starts_with("crypto key generate rsa"), crypto),
+    (|l| l.starts_with("ip ssh ") || l.starts_with("no ip ssh"), ip_ssh),
     (|l| iface_arg(l).is_some(), enter_interface),
     (|l| l == "ip dhcp snooping" || l == "no ip dhcp snooping" || l.starts_with("ip dhcp snooping vlan "), dhcp_snooping),
     (|l| l.starts_with("ip arp inspection vlan "), arp_inspection_vlan),
