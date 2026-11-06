@@ -20,3 +20,15 @@ fn show_lldp_neighbors_lists_live_cables_with_capabilities() {
         assert_eq!(run(&mut lone, "r1", &mut s, "show lldp neighbors"), "% no LLDP neighbors\n");
     }
 }
+
+#[test]
+fn show_cdp_neighbors_labels_the_vendor_protocol() {
+    use crate::cli::{run, Session};
+    let mut ws = Workspace::new();
+    let mut s = Session::default();
+    run(&mut ws, "switch0", &mut s, "enable");
+    let out = run(&mut ws, "switch0", &mut s, "show cdp neighbors");
+    assert!(out.contains("Cisco proprietary"), "{out}");
+    assert!(out.contains("IEEE 802.1AB"), "{out}");
+    assert!(out.contains("Router0") || out.contains("Switch1"), "{out}");
+}

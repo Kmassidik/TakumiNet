@@ -8,6 +8,7 @@ pub(super) const SHOW_COMMANDS: &[(&str, &str)] = &[
     ("show ip interface brief", "Interface summary"),
     ("show ip route", "Routing table"),
     ("show lldp neighbors", "Neighbours seen over IEEE 802.1AB LLDP"),
+    ("show cdp neighbors", "Neighbours seen over Cisco Discovery Protocol (Cisco proprietary)"),
     ("show mac address-table", "MAC address table"),
     ("show power inline", "PoE budget and the ports supplying power (IEEE 802.3af/at)"),
     ("show errdisable", "Ports shut by a guard, and the reason"),

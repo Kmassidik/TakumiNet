@@ -392,3 +392,14 @@ pub(super) fn power_inline_table(ws: &Workspace, id: &str) -> String {
     }
     out
 }
+
+/// `show cdp neighbors`: Cisco's own discovery protocol. LLDP is the IEEE one.
+pub(crate) fn cdp_neighbors(ws: &Workspace, id: &str) -> String {
+    let table = lldp_neighbors(ws, id);
+    if table.starts_with('%') {
+        return "% no CDP neighbors\n".into();
+    }
+    format!(
+        "Cisco Discovery Protocol (Cisco proprietary; LLDP is the IEEE 802.1AB standard)\n\n{table}"
+    )
+}
