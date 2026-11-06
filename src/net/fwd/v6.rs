@@ -44,19 +44,17 @@ pub(crate) fn l2_path(ws: &Workspace, src: &str, dst: &str) -> Option<Vec<String
 }
 
 /// Build one hop per device so the Capture dock can show the v6 walk.
-pub(crate) fn v6_hops(ws: &Workspace, path: &[String], src: &str, dst: &str) -> Vec<Hop> {
+pub(crate) fn v6_hops(ws: &Workspace, path: &[String], src: &str, dst: &str, proto: &str, port: Option<u16>) -> Vec<Hop> {
+    let (next_header, transport, detail) = transport_layers(proto, port);
     let src_mac = Mac::for_device(src);
     let dst_mac = Mac::for_device(dst);
     let layers = vec![
         Layer::new("IPv6", vec![
             ("Version".into(), "6".into()),
-            ("Next header".into(), "ICMPv6".into()),
+            ("Next header".into(), next_header),
             ("Hop limit".into(), "64".into()),
         ]),
-        Layer::new("ICMPv6", vec![
-            ("Type".into(), "128 (echo request)".into()),
-            ("Code".into(), "0".into()),
-        ]),
+        Layer::new(transport, detail),
     ];
     path.iter()
         .enumerate()
@@ -77,8 +75,39 @@ pub(crate) fn v6_hops(ws: &Workspace, path: &[String], src: &str, dst: &str) -> 
                 src_ip: 0,
                 dst_ip: 0,
                 layers: layers.clone(),
-                note: "IPv6 echo".into(),
+                note: format!("IPv6 {proto}"),
             }
         })
         .collect()
+}
+
+fn transport_layers(proto: &str, port: Option<u16>) -> (String, String, Vec<(String, String)>) {
+    match proto {
+        "tcp" => (
+            "TCP".into(),
+            "TCP".into(),
+            vec![
+                ("Source port".into(), "49152".into()),
+                ("Destination port".into(), port.map_or("0".into(), |p| p.to_string())),
+                ("Flags".into(), "SYN".into()),
+            ],
+        ),
+        "udp" => (
+            "UDP".into(),
+            "UDP".into(),
+            vec![
+                ("Source port".into(), "49152".into()),
+                ("Destination port".into(), port.map_or("0".into(), |p| p.to_string())),
+                ("Length".into(), "8".into()),
+            ],
+        ),
+        _ => (
+            "ICMPv6".into(),
+            "ICMPv6".into(),
+            vec![
+                ("Type".into(), "128 (echo request)".into()),
+                ("Code".into(), "0".into()),
+            ],
+        ),
+    }
 }

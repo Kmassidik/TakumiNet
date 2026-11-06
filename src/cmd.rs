@@ -50,6 +50,7 @@ pub fn run(ws: &mut Workspace, id: &str, line: &str) -> String {
         "ipconfig" | "ifconfig" => ipconfig(ws, id),
         "ping" => ping(ws, id, &args),
         "ping6" => ping6(ws, id, &args),
+        "nc6" => nc6(ws, id, &args),
         "tracert" | "traceroute" => tracert(ws, id, &args),
         "arp" => arp(ws, id, arg),
         "route" => match arg.to_ascii_lowercase().as_str() {
@@ -132,6 +133,18 @@ fn ipconfig_release(ws: &mut Workspace, id: &str) -> String {
 }
 
 /// `ping6 <address>`: an IPv6 echo over one live L2 segment.
+fn nc6(ws: &mut Workspace, id: &str, args: &[&str]) -> String {
+    let udp = args.iter().any(|a| *a == "-u");
+    let plain: Vec<&str> = args.iter().copied().filter(|a| !a.starts_with('-')).collect();
+    let (Some(target), Some(port)) = (plain.first(), plain.get(1)) else {
+        return "Usage: nc6 [-u] <address> <port>\n".into();
+    };
+    let Ok(port) = port.parse::<u16>() else {
+        return format!("nc6: bad port '{port}'\n");
+    };
+    ws.nc6(id, target, port, if udp { "udp" } else { "tcp" }, udp)
+}
+
 fn ping6(ws: &mut Workspace, id: &str, args: &[&str]) -> String {
     let Some(target) = args.iter().find(|a| !a.starts_with('-')) else {
         return "Usage: ping6 <address>\n".into();

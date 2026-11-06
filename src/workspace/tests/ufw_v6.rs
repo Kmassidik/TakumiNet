@@ -60,3 +60,36 @@ fn the_router_cli_does_not_use_ufw() {
     let mut ws = lab();
     assert!(run(&mut ws, "router0", &mut crate::cli::Session::default(), "sudo ufw status").contains("Invalid input"));
 }
+
+#[test]
+fn nc6_respects_a_v6_deny_by_port_and_protocol() {
+    let mut ws = lab();
+    cmd_run(&mut ws, "pc1", "sudo ufw enable");
+    let denied = cmd_run(&mut ws, "pc0", "nc6 2001:db8::2 22");
+    assert!(denied.contains("denied tcp/22"), "{denied}");
+    assert!(cmd_run(&mut ws, "pc1", "sudo ufw allow 22/tcp from 2001:db8::1").contains("Rules updated"));
+    let allowed = cmd_run(&mut ws, "pc0", "nc6 2001:db8::2 22");
+    assert!(allowed.contains("ufw allowed"), "{allowed}");
+    let other = cmd_run(&mut ws, "pc0", "nc6 2001:db8::2 80");
+    assert!(other.contains("denied tcp/80"), "{other}");
+}
+
+#[test]
+fn nc6_speaks_udp_and_the_rule_separates_it_from_tcp() {
+    let mut ws = lab();
+    cmd_run(&mut ws, "pc1", "sudo ufw enable");
+    cmd_run(&mut ws, "pc1", "sudo ufw allow 53/udp from 2001:db8::1");
+    assert!(cmd_run(&mut ws, "pc0", "nc6 -u 2001:db8::2 53").contains("ufw allowed"));
+    let tcp = cmd_run(&mut ws, "pc0", "nc6 2001:db8::2 53");
+    assert!(tcp.contains("denied tcp/53"), "{tcp}");
+}
+
+#[test]
+fn deleting_the_port_rule_blocks_the_v6_connection_again() {
+    let mut ws = lab();
+    cmd_run(&mut ws, "pc1", "sudo ufw enable");
+    cmd_run(&mut ws, "pc1", "sudo ufw allow 443/tcp from 2001:db8::1");
+    assert!(cmd_run(&mut ws, "pc0", "nc6 2001:db8::2 443").contains("ufw allowed"));
+    cmd_run(&mut ws, "pc1", "sudo ufw delete allow 443/tcp from 2001:db8::1");
+    assert!(cmd_run(&mut ws, "pc0", "nc6 2001:db8::2 443").contains("denied tcp/443"));
+}

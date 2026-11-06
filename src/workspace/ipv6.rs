@@ -192,9 +192,9 @@ impl Workspace {
             return format!("Pinging {target_ip} with 32 bytes of data:\n\nRequest timed out.\n\nPing statistics for {target_ip}:\n    Packets: Sent = 1, Received = 0, Lost = 1 (100% loss),\n\n");
         };
         let dst_name = self.devices.iter().find(|d| d.id == dst).map(|d| d.name.clone()).unwrap_or_default();
-        let hops = crate::net::v6::v6_hops(self, &path, src, &dst);
+        let hops = crate::net::v6::v6_hops(self, &path, src, &dst, "icmp6", None);
         self.next_event += 1;
-        let blocked = self.ufw_blocks_v6(&dst, src_ip);
+        let blocked = self.ufw_blocks_v6(&dst, src_ip, "icmp6", None);
         let ok = blocked.is_none();
         self.push_event(Event {
             id: self.next_event,
@@ -216,5 +216,56 @@ impl Workspace {
             return format!("Pinging {target_ip} with 32 bytes of data:\n\nRequest timed out. (ufw denied {label})\n\nPing statistics for {target_ip}:\n    Packets: Sent = 1, Received = 0, Lost = 1 (100% loss),\n\n");
         }
         format!("Pinging {target_ip} with 32 bytes of data:\n\nReply from {target_ip}: bytes=32 time=1ms TTL=64\n\nPing statistics for {target_ip}:\n    Packets: Sent = 1, Received = 1, Lost = 0 (0% loss),\n\n")
+    }
+
+    /// `nc6`: one TCP or UDP datagram to an IPv6 host on the same live L2
+    /// segment. The destination ufw decides by protocol and port.
+    pub fn nc6(&mut self, src: &str, target: &str, port: u16, proto: &str, udp: bool) -> String {
+        let proto = if udp { "udp" } else { proto };
+        let Some(sdev) = self.devices.iter().find(|d| d.id == src) else {
+            return "nc6: unknown device\n".into();
+        };
+        let Some(src_ip) = sdev.ipv6.as_deref().and_then(|t| t.parse::<std::net::Ipv6Addr>().ok()) else {
+            return format!("nc6: {} has no IPv6 address set\n", sdev.name);
+        };
+        let Ok(target_ip) = target.parse::<std::net::Ipv6Addr>() else {
+            return format!("nc6: cannot resolve {target}\n");
+        };
+        let Some(dst) = self
+            .devices
+            .iter()
+            .find(|d| d.ipv6.as_deref().and_then(|t| t.parse::<std::net::Ipv6Addr>().ok()) == Some(target_ip))
+            .map(|d| d.id.clone())
+        else {
+            return format!("nc6: {target_ip} is not in this lab\n");
+        };
+        let Some(path) = crate::net::v6::l2_path(self, src, &dst) else {
+            return format!("nc6: no path to {target_ip}\n");
+        };
+        let dst_name = self.devices.iter().find(|d| d.id == dst).map(|d| d.name.clone()).unwrap_or_default();
+        let hops = crate::net::v6::v6_hops(self, &path, src, &dst, proto, Some(port));
+        let blocked = self.ufw_blocks_v6(&dst, src_ip, proto, Some(port));
+        let ok = blocked.is_none();
+        self.next_event += 1;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: sdev.name.clone(),
+            at: dst_name.clone(),
+            kind: proto.to_ascii_uppercase(),
+            proto: proto.to_ascii_uppercase(),
+            path,
+            hops,
+            layers: Vec::new(),
+            status: if ok { "Successful" } else { "Dropped" }.into(),
+            reason: blocked.clone().map(|label| format!("ufw on {dst_name} denied {label}")),
+            note: if ok { format!("{dst_name} accepted {proto}/{port}") } else { format!("ufw on {dst_name} refused {proto}/{port}") },
+            bytes: Vec::new(),
+            size: 0,
+        });
+        match blocked {
+            Some(label) => format!("nc6: connection refused: ufw on {dst_name} denied {label}\n"),
+            None => format!("nc6: connected to [{target_ip}]:{port} ({proto}, ufw allowed)\n"),
+        }
     }
 }

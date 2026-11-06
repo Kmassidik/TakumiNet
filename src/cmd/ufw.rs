@@ -59,7 +59,22 @@ fn parse_rule(allow: bool, words: &[&str]) -> Result<UfwRule, String> {
         }
         return Ok(rule);
     }
-    let mut i = 0;
+    let mut start = 0;
+    if !matches!(words[0], "from" | "proto" | "port" | "to") {
+        let first = words[0];
+        if let Some((port, proto)) = service(first) {
+            rule.port = Some(port);
+            rule.proto = Some(proto.to_string());
+        } else {
+            let (port, proto) = first.split_once('/').unwrap_or((first, ""));
+            rule.port = Some(port.parse().map_err(|_| format!("ERROR: Bad port '{first}'"))?);
+            if !proto.is_empty() {
+                rule.proto = parse_proto(proto)?;
+            }
+        }
+        start = 1;
+    }
+    let mut i = start;
     while i < words.len() {
         let value = words.get(i + 1).copied();
         match (words[i], value) {

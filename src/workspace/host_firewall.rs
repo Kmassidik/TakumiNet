@@ -38,9 +38,13 @@ impl UfwRule {
 
     /// An IPv6 ping. A rule written for IPv4 does not apply to a v6 source,
     /// and the protocol keyword `icmp` covers `icmp6`.
-    fn matches6(&self, src: Ipv6Addr) -> bool {
-        self.port.is_none()
-            && self.proto.as_deref().map_or(true, |p| p == "icmp" || p == "icmp6" || p == "ipv6")
+    fn matches6(&self, proto: &str, port: Option<u16>, src: Ipv6Addr) -> bool {
+        let proto_ok = self.proto.as_deref().map_or(true, |p| match p {
+            "icmp" | "icmp6" | "ipv6" => proto == "icmp6",
+            other => other == proto,
+        });
+        proto_ok
+            && self.port.map_or(true, |p| port == Some(p))
             && match self.from6 {
                 Some((net, prefix)) => {
                     let bits = u128::from(net) >> (128 - prefix.min(128) as u32);
@@ -102,14 +106,22 @@ impl Workspace {
 
     /// Whether an IPv6 echo from `src` is refused, and the label to show.
     /// A stock host answers ping, so only an explicit deny rule blocks it.
-    pub fn ufw_blocks_v6(&self, id: &str, src: Ipv6Addr) -> Option<String> {
+    pub fn ufw_blocks_v6(&self, id: &str, src: Ipv6Addr, proto: &str, port: Option<u16>) -> Option<String> {
         let firewall = self.host_firewalls.get(id).filter(|f| f.enabled)?;
+        let label = match port {
+            Some(p) => format!("{proto}/{p}"),
+            None => proto.to_string(),
+        };
         for rule in &firewall.rules {
-            if rule.matches6(src) {
-                return if rule.allow { None } else { Some("icmp6".into()) };
+            if rule.matches6(proto, port, src) {
+                return if rule.allow { None } else { Some(label) };
             }
         }
-        None
+        if proto == "icmp6" || firewall.default_allow {
+            None
+        } else {
+            Some(label)
+        }
     }
 
     pub(super) fn ufw_records(&self) -> String {
