@@ -333,6 +333,21 @@ const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
     ("tpl-l4-campus-ospf", "Campus with OSPF", "Four routers in a diamond learn each other's networks and survive one cut"),
 ];
 
+/// Longer notes for the first prototype cards. The rest stay untouched until
+/// the layout is approved.
+const TEMPLATE_NOTES: &[(&str, &str, &str)] = &[
+    (
+        "tpl-connect",
+        "No switch or router sits between the two network cards. They share 192.168.1.0/24, so a ping goes straight across the cable.",
+        "Press Play, then ping PC1 from PC0. Unplug the cable and ping again.",
+    ),
+    (
+        "tpl-l2-rtrw-small",
+        "Three homes log in over PPPoE and share the gateway's single upstream line through NAT. The pole radio carries each home without a cable run.",
+        "Ping the example site from Laptop0, then open Flows to see the shared line.",
+    ),
+];
+
 fn template_text(ctx: &Ctx, id: &str) -> Result<String, ()> {
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -399,9 +414,16 @@ fn handle_templates(ctx: &Ctx) -> (&'static str, Vec<u8>) {
     )).collect::<Vec<_>>().join(",");
     let template_cards = TEMPLATE_CARDS.iter()
         .filter(|(id, _, _)| templates.iter().any(|name| name.ends_with(&format!("{id}.xml")) || name == id))
-        .map(|(id, title, goal)| format!(
-            "{{\"id\":{},\"title\":{},\"goal\":{}}}", json_str(id), json_str(title), json_str(goal),
-        )).collect::<Vec<_>>().join(",");
+        .map(|(id, title, goal)| {
+            let note = TEMPLATE_NOTES.iter().find(|(note_id, _, _)| note_id == id);
+            let extra = match note {
+                Some((_, what, hint)) => format!(",\"what\":{},\"tryThis\":{}", json_str(what), json_str(hint)),
+                None => String::new(),
+            };
+            format!(
+                "{{\"id\":{},\"title\":{},\"goal\":{}{extra}}}", json_str(id), json_str(title), json_str(goal),
+            )
+        }).collect::<Vec<_>>().join(",");
     (json, format!("{{\"lessons\":[{lesson_cards}],\"templates\":[{template_cards}]}}").into_bytes())
 }
 

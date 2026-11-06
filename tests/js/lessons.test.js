@@ -187,6 +187,27 @@ test('the first-visit window still shows both lists', async () => {
   assert.deepEqual(cardIds(elements), ['tpl-star', 't1', 't2']);
 });
 
+test('a template note explains what the network is and what to try', async () => {
+  const { context, elements } = harness({ '/api/templates': {
+    lessons: [],
+    templates: [{
+      id: 'tpl-connect',
+      title: 'Two computers',
+      goal: 'PC0 and PC1 on one cable, ready to ping',
+      what: 'Two computers, one copper cable, no switch.',
+      tryThis: 'Press Play, then ping PC1 from PC0.',
+    }],
+  } });
+  await context.ACTIONS['show-templates']();
+  const text = [];
+  const walk = (el) => { if (el.className === 'lesson-card-what' || el.className === 'lesson-card-try') text.push(el.textContent); el.children.forEach(walk); };
+  walk(elements['gallery-cards']);
+  assert.deepEqual(text, [
+    'Two computers, one copper cable, no switch.',
+    'Try: Press Play, then ping PC1 from PC0.',
+  ]);
+});
+
 test('clicking a card opens that template or lesson', async () => {
   const opened = [];
   const { context, elements } = harness({ '/api/templates': catalog });
