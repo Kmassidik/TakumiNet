@@ -227,6 +227,14 @@ impl Workspace {
                     );
                 }
             }
+            "eCopper" | "eCross" => {
+                if !ethernet(&ka) || !ethernet(&kb) {
+                    return Err("an Ethernet cable needs network interfaces on both ends".into());
+                }
+                if let Some(reason) = crate::workspace::mdi::pairing_problem(&ka, &kb, kind) {
+                    return Err(reason);
+                }
+            }
             _ => {
                 if !ethernet(&ka) || !ethernet(&kb) {
                     return Err("an Ethernet cable needs network interfaces on both ends".into());
