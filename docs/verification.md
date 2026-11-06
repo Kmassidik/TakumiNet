@@ -34,13 +34,20 @@ bend tests/bend/proof_menu_steps.bend       # prints 0
 bun test tests/ts/menu_nav.test.ts
 ```
 
+## Cable pairing
+
+`tests/bend/proof_cable_pairing.bend` checks the 16 combinations of auto-MDI-X
+and fixed ports. `tests/workspace/tests/cabling.rs` runs the same table against
+every pair of palette models. See `docs/cabling.md`.
+
 ## Scope
 
 Verified:
 
 - all enabled patterns up to five items, all starts, both directions;
 - skip, wrap, nearest enabled item, empty menu, and disabled landing;
-- the TypeScript implementation over the same finite domain.
+- the TypeScript implementation over the same finite domain;
+- the copper pairing table for every catalog pair and both cable types.
 
 Not verified:
 

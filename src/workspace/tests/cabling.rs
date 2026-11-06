@@ -51,3 +51,27 @@ fn the_pairing_table_is_symmetric() {
         }
     }
 }
+
+#[test]
+fn the_fixed_port_rule_holds_for_every_catalog_model_pair() {
+    use crate::workspace::palette::CATALOG;
+    let mut kinds: Vec<&str> = Vec::new();
+    for (_, _, kind) in CATALOG {
+        if !kinds.contains(kind) {
+            kinds.push(kind);
+        }
+    }
+    let mut cases = 0;
+    for a in &kinds {
+        for b in &kinds {
+            for cable in ["eCopper", "eCross"] {
+                let both_fixed = *a == "hub" && *b == "hub";
+                let expected = !both_fixed || cable == "eCross";
+                let got = crate::workspace::mdi::pairing_problem(a, b, cable).is_none();
+                assert_eq!(got, expected, "{a}/{b} {cable}");
+                cases += 1;
+            }
+        }
+    }
+    assert_eq!(cases, kinds.len() * kinds.len() * 2);
+}

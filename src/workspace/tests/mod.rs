@@ -40,6 +40,7 @@ mod dot1x_eap;
 mod qos_police;
 mod arp_delivery;
 mod cabling;
+mod kind_capabilities;
 mod mirror;
 mod replace;
 mod pending;
