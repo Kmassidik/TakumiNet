@@ -1,4 +1,5 @@
 use super::*;
+use super::qos::qos as qos_command;
 
 type Handler = fn(&mut Workspace, &str, &mut Session, &str, &str) -> String;
 
@@ -17,6 +18,7 @@ const COMMANDS: &[(fn(&str) -> bool, Handler)] = &[
     (|l| l.starts_with("switchport mode "), switchport_mode),
     (|l| l.starts_with("switchport access vlan "), switchport_access_vlan),
     (|l| l.starts_with("dot1x port-control ") || l.starts_with("no dot1x port-control"), dot1x_port_control),
+    (|l| l.starts_with("qos ") || l == "no qos", qos_command),
     (|l| l.starts_with("ip nat ") || l.starts_with("no ip nat "), ip_nat),
     (|l| l.starts_with("ip access-group ") || l.starts_with("no ip access-group "), ip_access_group),
     (|l| l.starts_with("switchport port-security"), port_security),

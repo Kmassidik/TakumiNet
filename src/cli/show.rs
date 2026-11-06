@@ -29,6 +29,7 @@ pub(super) fn show(ws: &Workspace, id: &str, what: &str) -> String {
             }
         }
         "authentication sessions" | "dot1x" | "dot1x all" => ws.show_dot1x(id),
+        "qos" => ws.qos_table(id),
         "etherchannel summary" => etherchannel_summary(ws, id),
         "interfaces trunk" => trunk_table(ws, id),
         "lldp neighbors" | "lldp neighbor" | "lldp" => lldp_neighbors(ws, id),

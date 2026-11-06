@@ -22,6 +22,7 @@ mod duplicate_ip;
 mod fhrp;
 mod ssh;
 mod dot1x;
+mod qos;
 mod json;
 mod router_admin;
 mod port_forward;
@@ -83,6 +84,7 @@ pub use snooping::{SnoopBinding, SnoopConfig};
 pub use fhrp::{FhrpConfig, FhrpGroup};
 pub use ssh::{SshConfig, SshDevice, SshUser};
 pub use dot1x::{Dot1xConfig, Dot1xMode, Dot1xPort};
+pub use qos::{cos_to_dscp, QosConfig, QosPort};
 pub use mirror::{MirrorConfig, MirrorSession};
 pub use replace::ReplaceReport;
 pub use link_speed::*;
@@ -169,6 +171,7 @@ impl Workspace {
                 fhrp: FhrpConfig::default(),
                 ssh: SshConfig::default(),
                 dot1x: Dot1xConfig::default(),
+                qos: QosConfig::default(),
                 mirror: MirrorConfig::default(),
                 pending_pdu: Vec::new(),
                 wlan_guest: Default::default(),
@@ -409,6 +412,7 @@ impl Workspace {
                 fhrp: FhrpConfig::default(),
                 ssh: SshConfig::default(),
                 dot1x: Dot1xConfig::default(),
+                qos: QosConfig::default(),
                 mirror: MirrorConfig::default(),
                 pending_pdu: Vec::new(),
                 wlan_guest: Default::default(),

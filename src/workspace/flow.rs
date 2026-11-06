@@ -39,6 +39,8 @@ impl Workspace {
         let mut out = Vec::new();
         for (from, to, mbit) in &self.flows {
             let Some(path) = self.flow_route(from, to, None) else { continue };
+            let (policed, _dropped) = self.flow_policed_mbit(from, to, *mbit);
+            let mbit = &(policed.round() as u32);
             if self.flow_spread {
                 let other = path.iter().find_map(|skip| {
                     self.flow_route(from, to, Some(*skip)).filter(|p| *p != path)
@@ -54,7 +56,7 @@ impl Workspace {
         out
     }
 
-    fn flow_route(&self, from: &str, to: &str, without_link: Option<usize>) -> Option<Vec<usize>> {
+    pub(super) fn flow_route(&self, from: &str, to: &str, without_link: Option<usize>) -> Option<Vec<usize>> {
         let src = self.devices.iter().find(|d| d.id == from)?;
         let dst = self.devices.iter().find(|d| d.id == to)?;
         let target = dst.ip.or_else(|| dst.ports.iter().find_map(|p| p.ip))?;

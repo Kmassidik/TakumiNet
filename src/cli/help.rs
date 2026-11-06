@@ -13,6 +13,7 @@ pub(super) const SHOW_COMMANDS: &[(&str, &str)] = &[
     ("show power inline", "PoE budget and the ports supplying power (IEEE 802.3af/at)"),
     ("show errdisable", "Ports shut by a guard, and the reason"),
     ("show dot1x", "802.1X port control, status and user"),
+    ("show qos", "CoS and DSCP trust, marking and policer per port"),
     ("show authentication sessions", "Same as show dot1x"),
     ("show monitor session 1", "Port mirroring sessions on this switch"),
     ("show vrrp brief", "Virtual gateway groups, priority and state"),

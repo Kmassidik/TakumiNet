@@ -16,6 +16,7 @@ mod line;
 mod router;
 mod show;
 mod ssh;
+mod qos;
 pub(crate) mod show_tables;
 use help::*;
 use show::*;
