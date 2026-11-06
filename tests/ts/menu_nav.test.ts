@@ -172,3 +172,36 @@ test("closing everything leaves nothing engaged, so a dialog can take the keys",
   expect(c.engaged).toBe(false);
   expect(c.key("Escape")).toBe(false);
 });
+
+test("stepItem matches a first-match scan for every pattern up to five items", () => {
+  const reference = (enabled: boolean[], from: number | null, dir: 1 | -1): number | null => {
+    const n = enabled.length;
+    if (!enabled.some(Boolean)) return null;
+    let i = from === null ? (dir === 1 ? -1 : 0) : from;
+    for (let k = 0; k < n; k += 1) {
+      i = (i + dir + n) % n;
+      if (enabled[i]) return i;
+    }
+    return null;
+  };
+  let cases = 0;
+  for (let n = 0; n <= 5; n += 1) {
+    for (let mask = 0; mask < 2 ** n; mask += 1) {
+      const enabled = Array.from({ length: n }, (_, i) => (mask & (1 << i)) !== 0);
+      for (let from = -1; from < n; from += 1) {
+        for (const dir of [1, -1] as const) {
+          const got = stepItem(enabled, from < 0 ? null : from, dir);
+          expect(got).toBe(reference(enabled, from < 0 ? null : from, dir));
+          if (enabled.some(Boolean)) {
+            expect(got).not.toBeNull();
+            expect(enabled[got!]).toBe(true);
+          } else {
+            expect(got).toBeNull();
+          }
+          cases += 1;
+        }
+      }
+    }
+  }
+  expect(cases).toBe(642);
+});
