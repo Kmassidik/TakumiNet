@@ -33,6 +33,20 @@ function openIpDialog(d) {
   dialog.hidden = false;
   bringToFront(dialog);
 
+  for (const id of ['ip-addr', 'ip-mask', 'ip-gw', 'ip-dns',
+    'ip-v6addr', 'ip-v6prefix', 'ip-v6gw', 'ip-v6dns']) {
+    $(id).onkeydown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        $('ip-save').click();
+      }
+    };
+  }
+  if (!$('ip-dhcp').checked) {
+    $('ip-addr').focus();
+    $('ip-addr').select();
+  }
+
   const setV4Mode = (dhcp) => {
     $('ip-dhcp').checked = dhcp;
     $('ip-static').checked = !dhcp;

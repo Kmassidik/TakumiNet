@@ -694,7 +694,7 @@ html, body {
 .termwin .cmd-out { min-height: 260px; }
 .termwin .cmd-line { padding-top: 0; }
 .termwin #term-prompt { color: var(--accent-light); white-space: pre; }
-.termwin .cmd-line input:disabled { color: var(--faint); }
+.termwin .cmd-line input:read-only { color: var(--faint); }
 
 .editorwin, .trafficwin, .mibwin { max-width: 720px; padding: 0; }
 .editor-bar {

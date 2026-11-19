@@ -39,7 +39,10 @@ async function openTerm(d) {
   const target = d;
   termTarget = target;
 
-  input.disabled = true;
+  win.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest('button') && !input.readOnly) input.focus();
+  });
+  input.readOnly = true;
   input.onkeydown = async (e) => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -55,12 +58,12 @@ async function openTerm(d) {
       } catch { /* completion is best-effort */ }
       return;
     }
-    if (e.key !== 'Enter' || input.disabled) return;
+    if (e.key !== 'Enter' || input.readOnly) return;
     const line = input.value;
     input.value = '';
     out.textContent += `${promptEl.textContent} ${line}\n`;
     out.scrollTop = out.scrollHeight;
-    input.disabled = true;
+    input.readOnly = true;
     try {
       const r = await cliRequest('/api/cli', { id: target.id, line });
       if (r.output) out.textContent += r.output.endsWith('\n') ? r.output : `${r.output}\n`;
@@ -71,7 +74,7 @@ async function openTerm(d) {
     } catch {
       out.textContent += '% console session lost\n';
     }
-    input.disabled = false;
+    input.readOnly = false;
     out.scrollTop = out.scrollHeight;
     input.focus();
   };
@@ -85,12 +88,12 @@ async function openTerm(d) {
     if (r.output) out.textContent += r.output;
     if (r.prompt) promptEl.textContent = r.prompt;
     out.scrollTop = out.scrollHeight;
-    input.disabled = false;
+    input.readOnly = false;
     input.focus();
   }).catch(() => {
     if (termDevice !== d) return;
     out.textContent += '% console session unavailable\n';
-    input.disabled = false;
+    input.readOnly = false;
   });
 }
 
@@ -99,7 +102,7 @@ function closeTerm() {
   const input = document.getElementById('term-in');
   const target = termTarget;
   win.hidden = true;
-  input.disabled = false;
+  input.readOnly = false;
   input.value = '';
   input.onkeydown = null;
   termDevice = null;

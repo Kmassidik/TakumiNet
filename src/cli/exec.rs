@@ -54,10 +54,13 @@ pub(super) fn privileged(ws: &mut Workspace, id: &str, s: &mut Session, line: &s
 
 pub(super) fn ping(ws: &mut Workspace, id: &str, target: &str) -> String {
     let target = target.trim();
+    let Some(ip) = crate::model::parse_ipv4(target).or_else(|| ws.resolve_name_captured(id, target)) else {
+        return format!("% Translating \"{target}\"\n% Unrecognized host or address\n");
+    };
     let Some(dst) = ws
         .devices
         .iter()
-        .find(|d| d.ip.map(ipv4_string).as_deref() == Some(target))
+        .find(|d| d.ip == Some(ip) || d.ports.iter().any(|p| p.ip == Some(ip)))
         .map(|d| d.id.clone())
     else {
         return format!(

@@ -18,6 +18,8 @@ class Element {
     this.scrollHeight = 100;
   }
   focus() {}
+  addEventListener() {}
+  querySelector() { return null; }
 }
 
 test('command prompt ping answers immediately then captures and animates its real path', async () => {
@@ -44,7 +46,7 @@ test('command prompt ping answers immediately then captures and animates its rea
   elements['cmd-in'].value = 'ping -n 1 192.168.2.10';
   await elements['cmd-in'].onkeydown({ key: 'Enter' });
   assert.match(elements['cmd-out'].textContent, /Reply from 192\.168\.2\.10/);
-  assert.equal(elements['cmd-in'].disabled, false);
+  assert.equal(elements['cmd-in'].readOnly, false);
   assert.equal(refreshes.length, 1);
   assert.equal(snapshots.length, 0, 'command output must not wait for the capture refresh');
 

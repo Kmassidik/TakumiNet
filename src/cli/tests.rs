@@ -427,3 +427,25 @@ fn unknown_no_forms_keep_the_ios_error() {
     assert!(bare.contains("Invalid input"), "{bare}");
 }
 
+
+#[test]
+fn router_ping_resolves_names_through_dns_like_the_pc_terminal() {
+    let mut ws = Workspace::new();
+    let mut s = session();
+    let server = ws.add("Server", 200.0, 200.0).unwrap();
+    let client = ws.add("PC", 300.0, 200.0).unwrap();
+    ws.link(&server, &client).unwrap();
+    ws.set_ip(&server, "10.0.0.1", 24).unwrap();
+    ws.set_ip(&client, "10.0.0.2", 24).unwrap();
+    ws.set_dns_record(&server, "www.lab", "10.0.0.1").unwrap();
+    if let Some(d) = ws.devices.iter_mut().find(|d| d.id == client) {
+        d.dns = Some(crate::model::parse_ipv4("10.0.0.1").unwrap());
+    }
+
+    run(&mut ws, &client, &mut s, "enable");
+    let out = run(&mut ws, &client, &mut s, "ping www.lab");
+    assert!(out.contains("Success rate is 100 percent"), "{out}");
+
+    let miss = run(&mut ws, &client, &mut s, "ping nothere.lab");
+    assert!(miss.contains("Unrecognized host or address"), "{miss}");
+}

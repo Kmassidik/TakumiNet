@@ -38,6 +38,9 @@ function openCmd(d) {
   input.value = '';
   win.hidden = false;
   bringToFront(win);
+  win.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest('button') && !input.readOnly) input.focus();
+  });
   input.focus();
 
   const showPrompt = () => {
@@ -71,7 +74,7 @@ function openCmd(d) {
       return;
     }
 
-    input.disabled = true;
+    input.readOnly = true;
     try {
       if (telnetPeer) {
         const r = await cliRequest('/api/cli', { id: telnetPeer, line });
@@ -93,7 +96,7 @@ function openCmd(d) {
       append(telnetPeer ? '% connection closed' : 'The terminal lost its connection to the simulator.');
     }
     showPrompt();
-    input.disabled = false;
+    input.readOnly = false;
     out.scrollTop = out.scrollHeight;
     input.focus();
   };
@@ -121,7 +124,7 @@ function openCmd(d) {
       input.value = cmdHistory[cmdHistoryAt] || '';
       return;
     }
-    if (e.key !== 'Enter' || input.disabled) return;
+    if (e.key !== 'Enter' || input.readOnly) return;
     const line = input.value;
     input.value = '';
     await runLine(line);

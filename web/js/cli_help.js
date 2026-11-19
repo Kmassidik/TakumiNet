@@ -41,6 +41,7 @@ function cliHelpSection(title, rows, pick) {
 function openCliHelp(pick) {
   const win = document.getElementById('cli-help-dialog');
   const body = document.getElementById('cli-help-body');
+  const opener = document.activeElement;
   body.replaceChildren();
   const tips = document.createElement('p');
   tips.className = 'kw-note';
@@ -48,9 +49,13 @@ function openCliHelp(pick) {
   body.appendChild(tips);
   body.appendChild(cliHelpSection('Where you are', CLI_MODES, null));
   body.appendChild(cliHelpSection('Commands to start with', CLI_STARTERS, (code) => {
-    pick(code);
     win.hidden = true;
+    pick(code);
   }));
   win.hidden = false;
   bringToFront(win);
+  win.querySelector('button.cli-help-row')?.focus();
+  win.addEventListener('dialog-closed', () => {
+    if (opener && typeof opener.focus === 'function') opener.focus();
+  }, { once: true });
 }

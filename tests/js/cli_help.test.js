@@ -19,6 +19,9 @@ class Node {
   appendChild(child) { this.children.push(child); return child; }
   append(...kids) { this.children.push(...kids); }
   replaceChildren() { this.children = []; }
+  querySelector() { return null; }
+  addEventListener() {}
+  focus() {}
 }
 
 function walk(node, found = []) {
