@@ -10,6 +10,7 @@
   <link a="ioe0" a_port="IoT0" b="switch0" b_port="Fa0/4" kind="eIoT"/>
   <iot dev="thing0" addr="2" value="73"/>
   <iot dev="ioe0" addr="0" value="5"/>
+  <note id="note0" x="-56" y="66" color="#fff3b0" text="An OT cell: PLC, sensors and an operator station share one industrial switch, talking Modbus TCP registers — real plants, though serious ones segment OT from IT. Try: open the PLC window, read the tank register, then press Play."/>
   <demo kind="ping" from="pc0" to="plc0" url=""/>
   <demo kind="ping" from="pc0" to="thing0" url=""/>
   <demo kind="ping" from="ioe0" to="pc0" url=""/>

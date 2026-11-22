@@ -27,6 +27,7 @@
   <wifi client="phone0" ssid="CafeNet" wlc="hotspot0"/>
   <wifi client="phone1" ssid="CafeNet" wlc="hotspot0"/>
   <voucher dev="gw0" code="LUNCH-4821" minutes="60" used="-"/>
+  <note id="note0" x="-116" y="6" color="#fff3b0" text="A café hotspot sells time with vouchers behind one NAT gateway — the same model cafés and campuses run. Try: press Play to browse out through the gateway, then open the hotspot window to issue a voucher."/>
   <demo kind="http" from="phone0" to="" url="http://www.example.lab/"/>
   <demo kind="ping" from="phone1" to="phone0" url=""/>
   <demo kind="http" from="laptop0" to="" url="http://www.example.lab/"/>

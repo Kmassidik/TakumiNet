@@ -25,6 +25,7 @@
   <acl dev="asa0" num="120" action="deny" src="203.0.113.0" swc="0.0.0.255" dip="172.16.10.0" dwc="0.0.0.255"/>
   <acl dev="asa0" num="120" action="permit" src="0.0.0.0" swc="255.255.255.255" dip="0.0.0.0" dwc="255.255.255.255"/>
   <aclbind dev="asa0" iface="GigabitEthernet1/2" num="120" dir="in"/>
+  <note id="note0" x="-96" y="26" color="#fff3b0" text="The classic enterprise edge: outside, DMZ and inside legs on one firewall, with an ACL denying the DMZ a straight path into the inside LAN. Try: browse the public site from both sides, then try to reach the inside server from the DMZ."/>
   <demo kind="http" from="pc1" to="" url="http://203.0.113.10/"/>
   <demo kind="http" from="pc0" to="" url="http://203.0.113.10/"/>
   <demo kind="ping" from="pc0" to="server1" url=""/>

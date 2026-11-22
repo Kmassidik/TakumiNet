@@ -12,6 +12,7 @@
   <link a="ioe1" a_port="IoT0" b="switch1" b_port="Fa0/2" kind="eIoT"/>
   <cell client="ioe0" tower="tower0"/>
   <cell client="ioe1" tower="tower0"/>
+  <note id="note0" x="-176" y="86" color="#fff3b0" text="Cellular backup keeps two sites talking when the fibre is gone: both site gateways ride the carrier's tower network, and the IoT units carry sensor traffic cell-to-cell. Try: press Play, then open Flows to see the tower carry both sites."/>
   <demo kind="ping" from="pc0" to="ioe0" url=""/>
   <demo kind="ping" from="server0" to="ioe1" url=""/>
   <demo kind="ping" from="ioe0" to="pc0" url=""/>

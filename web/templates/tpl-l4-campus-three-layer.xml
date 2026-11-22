@@ -41,6 +41,7 @@
   <net id="pc1" gw="172.17.20.1" dns=""/>
   <net id="pc2" gw="172.18.10.1" dns=""/>
   <net id="server0" gw="172.16.0.1" dns=""/>
+  <note id="note0" x="-116" y="6" color="#fff3b0" text="Campus LANs layer access, distribution and core: access switches trunk VLANs, distribution routers gate them, the core rides /30 point-to-point links. Try: ping between floors and then to the campus server to see each layer forward."/>
   <demo kind="ping" from="pc0" to="server0" url=""/>
   <demo kind="ping" from="pc2" to="server0" url=""/>
   <demo kind="ping" from="pc1" to="pc0" url=""/>

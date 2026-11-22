@@ -10,6 +10,7 @@
   <net id="pc1" gw="" dns="192.168.1.100"/>
   <dns id="server0" name="www.takumi.lab" ip="192.168.1.100"/>
   <page id="server0" body="Server0 website"/>
+  <note id="note0" x="-136" y="76" color="#fff3b0" text="Before a browser can open a page it asks DNS for the number behind the name — exactly what your laptop does with google.com. Try: press Play and read the DNS row, then the HTTP row, in the capture."/>
   <demo kind="dns" from="pc0" to="" url="www.takumi.lab"/>
   <demo kind="http" from="pc0" to="" url="http://www.takumi.lab/"/>
   <demo kind="ping" from="pc1" to="server0" url=""/>

@@ -10,6 +10,7 @@
   <pool id="server0" network="192.168.1.0" prefix="24" gw="192.168.1.1" dns="192.168.1.2"/>
   <net id="pc0" gw="192.168.1.1" dns="192.168.1.2"/>
   <page id="server0" body="Server0 home page"/>
+  <note id="note0" x="-136" y="66" color="#fff3b0" text="A home network: the router shares one internet line with every device, DHCP hands out addresses, and the server holds the family files. Try: press Play to watch Laptop0 lease an address, then load the page."/>
   <demo kind="dhcp" from="laptop0" to="" url=""/>
   <demo kind="http" from="laptop0" to="" url="http://192.168.1.2/"/>
   <demo kind="ping" from="pc0" to="server0" url=""/>

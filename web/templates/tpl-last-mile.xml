@@ -33,7 +33,7 @@
   <page id="server0" body="The ISP welcome page"/>
   <net id="pc0" gw="192.168.1.1" dns="203.0.113.2"/>
   <net id="pc1" gw="192.168.2.1" dns="203.0.113.2"/>
-  <note id="note0" x="40" y="460" color="#fff3b0" text="Two last miles: the top house rides the TV cable (DOCSIS, coax into a modem that becomes Ethernet); the bottom house rides the phone line (DSL). Each gateway holds the one public address and NATs its private LAN — the way every real house works. Try: press Play and watch the NAT note on the path."/>
+  <note id="note0" x="-156" y="66" color="#fff3b0" text="Two last miles: the top house rides the TV cable (DOCSIS, coax into a modem that becomes Ethernet); the bottom house rides the phone line (DSL). Each gateway holds the one public address and NATs its private LAN — the way every real house works. Try: press Play and watch the NAT note on the path."/>
   <demo kind="ping" from="pc0" to="server0" url=""/>
   <demo kind="ping" from="pc1" to="server0" url=""/>
   <demo kind="http" from="pc0" to="" url="http://203.0.113.2/"/>

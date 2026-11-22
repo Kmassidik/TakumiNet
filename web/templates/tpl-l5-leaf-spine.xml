@@ -44,6 +44,7 @@
   <routing dev="s2" proto="ospf" process_id="1"/>
   <routenet dev="s2" net="10.200.12.0" prefix="30" area="0"/>
   <routenet dev="s2" net="10.200.22.0" prefix="30" area="0"/>
+  <note id="note0" x="-16" y="6" color="#fff3b0" text="A leaf-spine fabric gives every rack two equal-cost paths — no rack is ever more than two hops from another. Try: press Play twice and compare which spine each ping took in Flows."/>
   <demo kind="ping" from="server0" to="server2" url=""/>
   <demo kind="ping" from="server3" to="server1" url=""/>
   <demo kind="ping" from="server1" to="server0" url=""/>

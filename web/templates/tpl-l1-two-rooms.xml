@@ -11,6 +11,7 @@
   <net id="laptop0" gw="192.168.1.1" dns="192.168.1.1"/>
   <net id="phone0" gw="192.168.1.1" dns="192.168.1.1"/>
   <net id="tablet0" gw="192.168.1.1" dns="192.168.1.1"/>
+  <note id="note0" x="-136" y="146" color="#fff3b0" text="Wi-Fi to a far room uses an access point wired back to the router — the cable carries the frames the radio picks up. Try: open the access point's Wireless tab to see the network, then press Play."/>
   <demo kind="ping" from="phone0" to="laptop0" url=""/>
   <demo kind="ping" from="tablet0" to="phone0" url=""/>
   <demo kind="ping" from="laptop0" to="tablet0" url=""/>

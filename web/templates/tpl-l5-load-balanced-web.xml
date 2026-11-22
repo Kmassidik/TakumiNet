@@ -22,6 +22,7 @@
   <lbpool dev="lb0" member="server0"/>
   <lbpool dev="lb0" member="server1"/>
   <lbpool dev="lb0" member="server2"/>
+  <note id="note0" x="-156" y="26" color="#fff3b0" text="A load balancer publishes one address (the VIP) and spreads requests over healthy web servers — what F5 and HAProxy do for a living. Try: press Play three times and read which server answered each time."/>
   <demo kind="http" from="pc0" to="" url="http://203.0.113.80/"/>
   <demo kind="http" from="pc0" to="" url="http://203.0.113.80/"/>
   <demo kind="http" from="pc0" to="" url="http://203.0.113.80/"/>

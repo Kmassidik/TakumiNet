@@ -15,6 +15,7 @@
   <phone phone="phone1" cm="10.20.0.5" ext="2001"/>
   <phone phone="phone2" cm="10.20.0.5" ext="2002"/>
   <call from="2001" to="2002" state="established"/>
+  <note id="note0" x="-76" y="66" color="#fff3b0" text="IP telephony: phones register with the call manager, and a call is just software between two extensions. Try: open either phone's window and place the call, then check the other phone rings."/>
   <demo kind="ping" from="phone1" to="server0" url=""/>
   <demo kind="ping" from="phone2" to="server0" url=""/>
   <demo kind="ping" from="phone1" to="phone2" url=""/>

@@ -18,6 +18,7 @@
   <net id="pc1" gw="192.168.1.1" dns=""/>
   <net id="pc2" gw="192.168.2.1" dns=""/>
   <net id="pc3" gw="192.168.2.1" dns=""/>
+  <note id="note0" x="-176" y="46" color="#fff3b0" text="Two LANs, one router: a router joins broadcast domains and its routing table says where to send a packet next. TTL drops by one at every router hop. Try: press Play, then open the ping event to check the TTL."/>
   <demo kind="ping" from="pc0" to="pc3" url=""/>
   <demo kind="ping" from="pc2" to="pc1" url=""/>
   <demo kind="ping" from="pc1" to="pc0" url=""/>

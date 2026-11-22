@@ -48,6 +48,7 @@
   <vnet2 dev="server2" vni="100"/>
   <vnet2 dev="server1" vni="200"/>
   <vnet2 dev="server3" vni="200"/>
+  <note id="note0" x="-16" y="6" color="#fff3b0" text="An overlay splits one physical fabric into virtual networks: same segment talks, cross-segment is blocked — the VXLAN tenant model cloud providers run. Try: ping within a segment, then across segments, and read both outcomes."/>
   <demo kind="ping" from="server0" to="server2" url=""/>
   <demo kind="ping" from="server2" to="server0" url=""/>
   <demo kind="ping" from="server1" to="server3" url=""/>

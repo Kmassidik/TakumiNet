@@ -76,7 +76,7 @@ impl Workspace {
                     match outcome {
                         Some(reason) => {
                             if self.events.len() == before {
-                                self.record_drop(&inner.from, &inner.to, "Blocked", crate::net::fwd::DeliveryError {
+                                let _ = self.record_drop(&inner.from, &inner.to, "Blocked", crate::net::fwd::DeliveryError {
                                     reason: reason.clone(),
                                     path: vec![inner.from.clone(), inner.to.clone()],
                                     hops: Vec::new(),

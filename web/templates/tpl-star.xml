@@ -6,6 +6,7 @@
   <link a="switch0" a_port="Fa0/1" b="pc0" b_port="Fa0" kind="eCopper"/>
   <link a="switch0" a_port="Fa0/2" b="pc1" b_port="Fa0" kind="eCopper"/>
   <link a="switch0" a_port="Fa0/3" b="pc2" b_port="Fa0" kind="eCopper"/>
+  <note id="note0" x="-136" y="76" color="#fff3b0" text="A switched star is what every office LAN still is: one switch, one cable per desk, and the switch learns which address lives on which port. Try: press Play and open Flows to see the switch forward each ping."/>
   <demo kind="ping" from="pc0" to="pc2" url=""/>
   <demo kind="ping" from="pc1" to="pc0" url=""/>
   <demo kind="ping" from="pc2" to="pc1" url=""/>

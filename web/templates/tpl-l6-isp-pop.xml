@@ -40,6 +40,7 @@
   <bgprouter dev="up0" as="64601"/>
   <bgpneighbor dev="up0" peer="10.0.0.1" as="64501"/>
   <bgpnet dev="up0" net="203.0.113.0" prefix="24"/>
+  <note id="note0" x="-176" y="26" color="#fff3b0" text="An ISP point of presence: eBGP to an upstream, a resolver for the customers, CGNAT for the neighbourhood gateway, and AAA for logins. Try: press Play to browse through the whole chain, then run show ip bgp on the border."/>
   <demo kind="http" from="laptop0" to="" url="http://www.news.lab/"/>
   <demo kind="ping" from="laptop0" to="resolver0" url=""/>
   <demo kind="ping" from="login0" to="web0" url=""/>

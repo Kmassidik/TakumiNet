@@ -21,6 +21,7 @@
   <net id="tv0" gw="192.168.1.1" dns="192.168.1.2"/>
   <pool id="server0" network="192.168.1.0" prefix="24" gw="192.168.1.1" dns="192.168.1.2"/>
   <page id="server0" body="Family page"/>
+  <note id="note0" x="-136" y="-14" color="#fff3b0" text="A cable-internet home: coax into the modem, the modem into the router, and the router shares the line over its LAN — the same chain your provider installs. Try: press Play to load the family page, then check who answered."/>
   <demo kind="http" from="laptop0" to="" url="http://192.168.1.2/"/>
   <demo kind="ping" from="phone0" to="tv0" url=""/>
   <demo kind="ping" from="printer0" to="server0" url=""/>

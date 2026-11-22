@@ -24,6 +24,7 @@
   <page id="server0" body="Office files"/>
   <tunnel dev="router1" peer="203.0.113.2" key="office-key-1"/>
   <tunnel dev="router0" peer="203.0.113.1" key="office-key-1"/>
+  <note id="note0" x="-176" y="26" color="#fff3b0" text="A site-to-site VPN lets two office LANs talk privately across the internet: private traffic may only cross a cloud inside a tunnel. Try: ping across from either side, then pull the tunnel down on one router and ping again."/>
   <demo kind="ping" from="laptop0" to="server0" url=""/>
   <demo kind="http" from="laptop0" to="" url="http://192.168.20.2/"/>
   <demo kind="ping" from="pc0" to="laptop0" url=""/>

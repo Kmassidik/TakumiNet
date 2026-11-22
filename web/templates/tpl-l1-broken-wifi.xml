@@ -8,7 +8,7 @@
   <wifi client="laptop0" ssid="HomeWifi4821" wlc="homerouter0"/>
   <net id="laptop0" gw="192.168.9.1" dns="192.168.1.1"/>
   <net id="phone0" gw="192.168.1.1" dns="192.168.1.1"/>
-  <note id="note0" x="60" y="40" color="#fff3b0" text="Laptop0 rides the home Wi-Fi (HomeWifi4821); Phone0 is on a cable. Laptop0's default gateway is wrong: 192.168.9.1 instead of 192.168.1.1. Same-subnet pings still work — try Play, then fix the gateway in IP Configuration to reach everything."/>
+  <note id="note0" x="-76" y="66" color="#fff3b0" text="Laptop0 rides the home Wi-Fi (HomeWifi4821); Phone0 is on a cable. Laptop0's default gateway is wrong: 192.168.9.1 instead of 192.168.1.1. Same-subnet pings still work — try Play, then fix the gateway in IP Configuration to reach everything."/>
   <demo kind="ping" from="phone0" to="laptop0" url=""/>
   <demo kind="ping" from="laptop0" to="phone0" url=""/>
   <demo kind="ping" from="phone0" to="homerouter0" url=""/>

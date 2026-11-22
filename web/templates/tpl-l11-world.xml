@@ -48,7 +48,7 @@
 <bgpneighbor dev="gwc" peer="172.20.3.2" as="64512"/>
 <bgpnet dev="gwc" net="10.30.3.0" prefix="24"/>
 <dns id="server0" name="dns.world.lab" ip="203.0.115.10"/>
-<note id="note0" x="40" y="40" color="#fff3b0" text="Three countries, three submarine cables, three routing domains. Countries do not share one routing protocol — each gateway speaks eBGP to its neighbours and advertises only its own prefix (private AS 64512–64514). ResidentCountryB's resolver sits in country A: try Play, then nslookup www.world.lab after adding a record on the name server."/>
+<note id="note0" x="-196" y="-14" color="#fff3b0" text="Three countries, three submarine cables, three routing domains. Countries do not share one routing protocol — each gateway speaks eBGP to its neighbours and advertises only its own prefix (private AS 64512–64514). ResidentCountryB's resolver sits in country A: try Play, then nslookup www.world.lab after adding a record on the name server."/>
 <demo kind="ping" from="laptopc" to="server0" url=""/>
 <demo kind="ping" from="laptopb" to="server0" url=""/>
 <demo kind="ping" from="laptopb" to="laptopc" url=""/>
