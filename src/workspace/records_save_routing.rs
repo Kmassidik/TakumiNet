@@ -14,7 +14,12 @@ impl Workspace {
         shared.sort();
         for (vip, members) in shared {
             for (device, priority) in members {
-                out.push_str(&format!("sharedgw\t{}\t{}\t{}\n", device, crate::model::ipv4_string(*vip), priority));
+                out.push_str(&format!(
+                    "sharedgw\t{}\t{}\t{}\n",
+                    device,
+                    crate::model::ipv4_string(*vip),
+                    priority
+                ));
             }
         }
         let mut routing: Vec<_> = self.routing.iter().collect();
@@ -44,7 +49,12 @@ impl Workspace {
         let mut bgp: Vec<_> = self.bgp.iter().collect();
         bgp.sort_by_key(|(id, _)| id.as_str());
         for (dev, config) in bgp {
-            out.push_str(&format!("bgprouter\t{}\t{}\n", dev, config.local_as));
+            out.push_str(&format!(
+                "bgprouter\t{}\t{}{}\n",
+                dev,
+                config.local_as,
+                if config.no_transit { "\t1" } else { "" }
+            ));
             for neighbor in &config.neighbors {
                 out.push_str(&format!(
                     "bgpneighbor\t{}\t{}\t{}\n",

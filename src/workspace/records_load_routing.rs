@@ -8,28 +8,23 @@ impl Workspace {
                 load_routing_protocol(self, dev, proto, 1);
             }
             ["routing", dev, proto, process_id] => {
-                load_routing_protocol(
-                    self,
-                    dev,
-                    proto,
-                    process_id.parse::<u32>().unwrap_or(1),
-                );
+                load_routing_protocol(self, dev, proto, process_id.parse::<u32>().unwrap_or(1));
             }
             ["routenet", dev, net, prefix] => {
                 load_routing_network(self, dev, net, prefix, 0);
             }
             ["routenet", dev, net, prefix, area] => {
-                load_routing_network(
-                    self,
-                    dev,
-                    net,
-                    prefix,
-                    area.parse::<u32>().unwrap_or(0),
-                );
+                load_routing_network(self, dev, net, prefix, area.parse::<u32>().unwrap_or(0));
             }
             ["bgprouter", dev, local_as] => {
                 if let Ok(local_as) = local_as.parse::<u32>() {
                     let _ = self.bgp_config(dev, local_as);
+                }
+            }
+            ["bgprouter", dev, local_as, no_transit] => {
+                if let Ok(local_as) = local_as.parse::<u32>() {
+                    let _ = self.bgp_config(dev, local_as);
+                    let _ = self.bgp_set_transit(dev, no_transit != &"1".to_string());
                 }
             }
             ["bgpneighbor", dev, peer, peer_as] => {
@@ -38,12 +33,16 @@ impl Workspace {
                 }
             }
             ["bgpnet", dev, net, prefix] => {
-                if let (Some(net), Ok(prefix)) = (crate::model::parse_ipv4(net), prefix.parse::<u8>()) {
+                if let (Some(net), Ok(prefix)) =
+                    (crate::model::parse_ipv4(net), prefix.parse::<u8>())
+                {
                     let _ = self.bgp_network(dev, net, prefix);
                 }
             }
             ["bgpdeny", dev, net, prefix] => {
-                if let (Some(net), Ok(prefix)) = (crate::model::parse_ipv4(net), prefix.parse::<u8>()) {
+                if let (Some(net), Ok(prefix)) =
+                    (crate::model::parse_ipv4(net), prefix.parse::<u8>())
+                {
                     let _ = self.bgp_deny(dev, net, prefix);
                 }
             }
@@ -72,11 +71,17 @@ impl Workspace {
     }
 }
 
-pub(super) fn load_route(ws: &mut Workspace, id: &str, net: &str, prefix: &str, via: &str, ad: &str) {
-    let (Some(network), Some(next_hop)) = (
-        crate::model::parse_ipv4(net),
-        crate::model::parse_ipv4(via),
-    ) else {
+pub(super) fn load_route(
+    ws: &mut Workspace,
+    id: &str,
+    net: &str,
+    prefix: &str,
+    via: &str,
+    ad: &str,
+) {
+    let (Some(network), Some(next_hop)) =
+        (crate::model::parse_ipv4(net), crate::model::parse_ipv4(via))
+    else {
         return;
     };
     if let Some(device) = ws.devices.iter_mut().find(|d| d.id == id) {
@@ -92,33 +97,42 @@ pub(super) fn load_route(ws: &mut Workspace, id: &str, net: &str, prefix: &str, 
 fn load_routing_protocol(ws: &mut Workspace, id: &str, protocol: &str, process_id: u32) {
     let protocol = match protocol.to_ascii_lowercase().as_str() {
         "ospf" => RoutingProtocol::Ospf { process_id },
-        "eigrp" => RoutingProtocol::Eigrp { as_number: process_id },
+        "eigrp" => RoutingProtocol::Eigrp {
+            as_number: process_id,
+        },
         "ospfv3" => RoutingProtocol::Ospfv3 { process_id },
         _ => RoutingProtocol::RipV2,
     };
-    let config = ws.routing.entry(id.to_string()).or_insert_with(|| RoutingConfig {
-        protocol: RoutingProtocol::RipV2,
-        networks: Vec::new(),
-    });
+    let config = ws
+        .routing
+        .entry(id.to_string())
+        .or_insert_with(|| RoutingConfig {
+            protocol: RoutingProtocol::RipV2,
+            networks: Vec::new(),
+        });
     config.protocol = protocol;
 }
 
 fn load_routing_network(ws: &mut Workspace, id: &str, net: &str, prefix: &str, area: u32) {
-    let (Some(network), Ok(prefix)) = (
-        crate::model::parse_ipv4(net),
-        prefix.parse::<u8>(),
-    ) else {
+    let (Some(network), Ok(prefix)) = (crate::model::parse_ipv4(net), prefix.parse::<u8>()) else {
         return;
     };
-    let config = ws.routing.entry(id.to_string()).or_insert_with(|| RoutingConfig {
-        protocol: RoutingProtocol::RipV2,
-        networks: Vec::new(),
-    });
+    let config = ws
+        .routing
+        .entry(id.to_string())
+        .or_insert_with(|| RoutingConfig {
+            protocol: RoutingProtocol::RipV2,
+            networks: Vec::new(),
+        });
     if !config
         .networks
         .iter()
         .any(|n| n.network == network && n.prefix == prefix && n.area == area)
     {
-        config.networks.push(NetworkStatement { network, prefix, area });
+        config.networks.push(NetworkStatement {
+            network,
+            prefix,
+            area,
+        });
     }
 }

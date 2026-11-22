@@ -20,7 +20,7 @@
 <device id="cca" kind="submarine-cable" model="Submarine Cable" x="600" y="240" name="CableCA" ip="" prefix="24"/>
 <port id="cca" name="FastEthernet0" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
 <port id="cca" name="FastEthernet1" up="1" ip="" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="100000" delay_us="60000"/>
-<device id="server0" kind="server" model="Server" x="660" y="40" name="WorldNameRoot" ip="203.0.115.10" prefix="24"/>
+<device id="server0" kind="server" model="Server" x="660" y="40" name="CountryANameServer" ip="203.0.115.10" prefix="24"/>
 <net id="server0" gw="203.0.115.1" dns=""/>
 <device id="laptopb" kind="laptop" model="Laptop" x="40" y="560" name="ResidentCountryB" ip="10.30.2.20" prefix="24"/>
 <net id="laptopb" gw="10.30.2.1" dns="203.0.115.10"/>
@@ -35,28 +35,20 @@
 <link a="gwa" a_port="Gig0/2" b="server0" b_port="Fa0" kind="eCross"/>
 <link a="gwb" a_port="Gig0/2" b="laptopb" b_port="Fa0" kind="eCross"/>
 <link a="gwc" a_port="Gig0/2" b="laptopc" b_port="Fa0" kind="eCross"/>
-<routing dev="gwa" proto="ospf" process_id="1"/>
-<routenet dev="gwa" net="172.20.1.0" prefix="24" area="0"/>
-<routenet dev="gwa" net="172.20.2.0" prefix="24" area="0"/>
-<routenet dev="gwa" net="172.20.3.0" prefix="24" area="0"/>
-<routenet dev="gwa" net="203.0.115.0" prefix="24" area="0"/>
-<routenet dev="gwa" net="10.30.2.0" prefix="24" area="0"/>
-<routenet dev="gwa" net="10.30.3.0" prefix="24" area="0"/>
-<routing dev="gwb" proto="ospf" process_id="1"/>
-<routenet dev="gwb" net="172.20.1.0" prefix="24" area="0"/>
-<routenet dev="gwb" net="172.20.2.0" prefix="24" area="0"/>
-<routenet dev="gwb" net="172.20.3.0" prefix="24" area="0"/>
-<routenet dev="gwb" net="203.0.115.0" prefix="24" area="0"/>
-<routenet dev="gwb" net="10.30.2.0" prefix="24" area="0"/>
-<routenet dev="gwb" net="10.30.3.0" prefix="24" area="0"/>
-<routing dev="gwc" proto="ospf" process_id="1"/>
-<routenet dev="gwc" net="172.20.1.0" prefix="24" area="0"/>
-<routenet dev="gwc" net="172.20.2.0" prefix="24" area="0"/>
-<routenet dev="gwc" net="172.20.3.0" prefix="24" area="0"/>
-<routenet dev="gwc" net="203.0.115.0" prefix="24" area="0"/>
-<routenet dev="gwc" net="10.30.2.0" prefix="24" area="0"/>
-<routenet dev="gwc" net="10.30.3.0" prefix="24" area="0"/>
+<bgprouter dev="gwa" as="64512"/>
+<bgpneighbor dev="gwa" peer="172.20.1.2" as="64513"/>
+<bgpneighbor dev="gwa" peer="172.20.3.1" as="64514"/>
+<bgpnet dev="gwa" net="203.0.115.0" prefix="24"/>
+<bgprouter dev="gwb" as="64513"/>
+<bgpneighbor dev="gwb" peer="172.20.1.1" as="64512"/>
+<bgpneighbor dev="gwb" peer="172.20.2.2" as="64514"/>
+<bgpnet dev="gwb" net="10.30.2.0" prefix="24"/>
+<bgprouter dev="gwc" as="64514"/>
+<bgpneighbor dev="gwc" peer="172.20.2.1" as="64513"/>
+<bgpneighbor dev="gwc" peer="172.20.3.2" as="64512"/>
+<bgpnet dev="gwc" net="10.30.3.0" prefix="24"/>
 <dns id="server0" name="dns.world.lab" ip="203.0.115.10"/>
+<note id="note0" x="40" y="40" color="#fff3b0" text="Three countries, three submarine cables, three routing domains. Countries do not share one routing protocol — each gateway speaks eBGP to its neighbours and advertises only its own prefix (private AS 64512–64514). ResidentCountryB's resolver sits in country A: try Play, then nslookup www.world.lab after adding a record on the name server."/>
 <demo kind="ping" from="laptopc" to="server0" url=""/>
 <demo kind="ping" from="laptopb" to="server0" url=""/>
 <demo kind="ping" from="laptopb" to="laptopc" url=""/>

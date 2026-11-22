@@ -27,7 +27,10 @@ fn the_backbone_ring_survives_any_single_cut() {
     for (device, port) in cuts {
         let mut ws = Workspace::from_tnet(RING).unwrap();
         assert!(ws.set_port_up(device, port, false));
-        assert!(ws.send_pdu("pop3", "server0").is_ok(), "cut {device} {port}");
+        assert!(
+            ws.send_pdu("pop3", "server0").is_ok(),
+            "cut {device} {port}"
+        );
     }
 }
 
@@ -43,8 +46,14 @@ fn the_ring_lesson_fails_open_and_passes_once_the_ring_closes() {
     let text = include_str!("../../../web/templates/les-l9-01-ring-cut.xml");
     let mut ws = Workspace::from_tnet(text).unwrap();
     let before = passes(&mut ws);
-    assert_eq!(before[0], false, "an open ring cannot heal the Makassar cut");
-    assert_eq!(before[1], false, "an open ring cannot heal the Parepare cut");
+    assert_eq!(
+        before[0], false,
+        "an open ring cannot heal the Makassar cut"
+    );
+    assert_eq!(
+        before[1], false,
+        "an open ring cannot heal the Parepare cut"
+    );
     ws.set_port_up("pop5", "GigabitEthernet0/1", true);
     ws.set_port_up("pop1", "GigabitEthernet0/1", true);
     assert_eq!(passes(&mut ws), vec![true, true, true, true]);
@@ -56,7 +65,10 @@ fn the_national_template_serves_the_overseas_page() {
     let page = crate::webapp::fetch(&mut ws, "laptop0", "http://www.world.lab/").unwrap();
     assert_eq!(page.title, "OverseasServer");
     let ms = ws.path_latency_ms("laptop0", "server0").unwrap();
-    assert!((50.0..120.0).contains(&ms), "{ms} ms: the submarine cable must dominate the delay");
+    assert!(
+        (50.0..120.0).contains(&ms),
+        "{ms} ms: the submarine cable must dominate the delay"
+    );
 }
 
 #[test]
@@ -73,7 +85,11 @@ fn the_gateway_lesson_fails_without_the_inland_backup_and_passes_with_it() {
     let text = include_str!("../../../web/templates/les-l10-01-gateway-down.xml");
     let mut ws = Workspace::from_tnet(text).unwrap();
     let before = passes(&mut ws);
-    assert_eq!(&before[..2], &[false, false], "without the backup every inland packet dies with the gateway");
+    assert_eq!(
+        &before[..2],
+        &[false, false],
+        "without the backup every inland packet dies with the gateway"
+    );
     ws.set_port_up("popsul", "GigabitEthernet0/2", true);
     ws.set_port_up("popjawa", "GigabitEthernet0/2", true);
     assert_eq!(passes(&mut ws), vec![true, true, true]);
@@ -104,7 +120,10 @@ fn the_world_triangle_survives_the_loss_of_any_one_cable() {
 fn the_world_triangle_stays_under_its_latency_band() {
     let ws = Workspace::from_tnet(WORLD).unwrap();
     let ms = ws.path_latency_ms("laptopc", "server0").unwrap();
-    assert!((100.0..200.0).contains(&ms), "{ms} ms: one intercontinental crossing");
+    assert!(
+        (100.0..200.0).contains(&ms),
+        "{ms} ms: one intercontinental crossing"
+    );
 }
 
 #[test]
@@ -112,7 +131,11 @@ fn the_cable_lesson_fails_dark_and_passes_once_the_triangle_closes() {
     let text = include_str!("../../../web/templates/les-l11-01-cable-cut.xml");
     let mut ws = Workspace::from_tnet(text).unwrap();
     let before = passes(&mut ws);
-    assert_eq!(&before[..2], &[false, false], "two cables are a line, not a triangle");
+    assert_eq!(
+        &before[..2],
+        &[false, false],
+        "two cables are a line, not a triangle"
+    );
     ws.set_port_up("cbc", "FastEthernet0", true);
     ws.set_port_up("cbc", "FastEthernet1", true);
     assert_eq!(passes(&mut ws), vec![true, true, true, true]);
@@ -130,3 +153,9 @@ fn the_three_templates_survive_a_save_and_open_round_trip() {
         assert_eq!(kinds, back);
     }
 }
+
+
+
+
+
+
