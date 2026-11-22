@@ -46,3 +46,4 @@ mod replace;
 mod pending;
 mod duplicate_ip;
 mod lesson_coverage;
+mod formal;
