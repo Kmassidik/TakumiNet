@@ -153,19 +153,45 @@
       <div class="say">
         <h2 id="wire">Wire it up</h2>
         <p>Pick a category, drag a device onto the canvas, then connect two devices with the right cable: copper straight-through, crossover, serial, fiber or console. Set addresses in the device window, like on real equipment.</p>
-        <div class="card flat tiles" aria-hidden="true">
-          <div class="tabs"><span>Routers</span><span>Switches</span><span class="on">End devices</span><span>Wireless</span></div>
+        <div class="card flat tiles">
+          <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="false" type="button">Routers</button><button class="tab" role="tab" aria-selected="false" type="button">Switches</button><button class="tab" role="tab" aria-selected="true" type="button">End devices</button><button class="tab" role="tab" aria-selected="false" type="button">Wireless</button></div>
           <div class="tilerow">
-            <span><img src="/art3d/devices/pc.webp" alt="" width="40" height="40" loading="lazy">PC-PT</span>
-            <span><img src="/art3d/devices/laptop.webp" alt="" width="40" height="40" loading="lazy">Laptop</span>
-            <span><img src="/art3d/devices/server.webp" alt="" width="40" height="40" loading="lazy">Server</span>
-            <span><img src="/art3d/devices/printer.webp" alt="" width="40" height="40" loading="lazy">Printer</span>
+            <button type="button" class="tile"><img src="/art3d/devices/pc.webp" alt="" width="40" height="40" loading="lazy">PC-PT</button>
+            <button type="button" class="tile"><img src="/art3d/devices/laptop.webp" alt="" width="40" height="40" loading="lazy">Laptop</button>
+            <button type="button" class="tile"><img src="/art3d/devices/server.webp" alt="" width="40" height="40" loading="lazy">Server</button>
+            <button type="button" class="tile"><img src="/art3d/devices/printer.webp" alt="" width="40" height="40" loading="lazy">Printer</button>
           </div>
         </div>
       </div>
       <div class="slot"><img src="/landing/takumi-idle.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
     </div>
   </section>
+
+  <script>
+  (function() {
+    var workspace = "/workspace";
+    function openWorkspace(model) {
+      var w = window.open(workspace, "_blank", "noopener");
+      if (!w) return;
+      w.addEventListener("load", function() {
+        try { w.postMessage({ type: "takumi-landing-pick", model: model }, "*"); } catch (e) {}
+      });
+    }
+    document.querySelectorAll(".tabs .tab").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".tabs .tab").forEach(function (b) {
+          b.setAttribute("aria-selected", "false");
+        });
+        btn.setAttribute("aria-selected", "true");
+      });
+    });
+    document.querySelectorAll(".tilerow .tile").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        openWorkspace(btn.textContent.trim());
+      });
+    });
+  })();
+  </script>
 
   <section class="block teal" aria-labelledby="follow">
     <div class="block-grid flip">

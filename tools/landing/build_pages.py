@@ -161,8 +161,8 @@ def landing(t):
         f'          <li><a href="/workspace?open={lid}"><strong>{esc(t["lessons"][i][0])}</strong><span>{esc(t["lessons"][i][1])}</span></a></li>'
         for i, lid in enumerate(LESSONS) if lid in FEATURED_LESSONS)
     more = esc(t["more_in_workspace"].format(examples=len(EXAMPLES), lessons=len(LESSONS)))
-    tabs = "".join(f'<span class="on">{esc(x)}</span>' if i == 2 else f"<span>{esc(x)}</span>" for i, x in enumerate(t["tabs"]))
-    tiles = "\n".join(f'            <span><img src="/art3d/devices/{f}.webp" alt="" width="40" height="40" loading="lazy">{esc(n)}</span>'
+    tabs = "".join(f'<button class="tab" role="tab" aria-selected="true" type="button">{esc(x)}</button>' if i == 2 else f'<button class="tab" role="tab" aria-selected="false" type="button">{esc(x)}</button>' for i, x in enumerate(t["tabs"]))
+    tiles = "\n".join(f'            <button type="button" class="tile"><img src="/art3d/devices/{f}.webp" alt="" width="40" height="40" loading="lazy">{esc(n)}</button>'
                       for f, n in zip(["pc", "laptop", "server", "printer"], t["tiles"]))
     faq = "\n".join(f'        <details><summary>{esc(q)}</summary><p>{esc(a)}</p></details>' for q, a in t["faq"])
     c = t["checks"]
@@ -187,8 +187,8 @@ def landing(t):
       <div class="say">
         <h2 id="wire">{esc(t["wire_h"])}</h2>
         <p>{esc(t["wire_p"])}</p>
-        <div class="card flat tiles" aria-hidden="true">
-          <div class="tabs">{tabs}</div>
+        <div class="card flat tiles">
+          <div class="tabs" role="tablist">{tabs}</div>
           <div class="tilerow">
 {tiles}
           </div>
@@ -197,6 +197,32 @@ def landing(t):
       <div class="slot">{img("idle", "")}</div>
     </div>
   </section>
+
+  <script>
+  (function() {{
+    var workspace = "/workspace";
+    function openWorkspace(model) {{
+      var w = window.open(workspace, "_blank", "noopener");
+      if (!w) return;
+      w.addEventListener("load", function() {{
+        try {{ w.postMessage({{ type: "takumi-landing-pick", model: model }}, "*"); }} catch (e) {{}}
+      }});
+    }}
+    document.querySelectorAll(".tabs .tab").forEach(function (btn) {{
+      btn.addEventListener("click", function () {{
+        document.querySelectorAll(".tabs .tab").forEach(function (b) {{
+          b.setAttribute("aria-selected", "false");
+        }});
+        btn.setAttribute("aria-selected", "true");
+      }});
+    }});
+    document.querySelectorAll(".tilerow .tile").forEach(function (btn) {{
+      btn.addEventListener("click", function () {{
+        openWorkspace(btn.textContent.trim());
+      }});
+    }});
+  }})();
+  </script>
 
   <section class="block teal" aria-labelledby="follow">
     <div class="block-grid flip">

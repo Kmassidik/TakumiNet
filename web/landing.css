@@ -89,10 +89,14 @@ h2 { font-size: clamp(2.3rem, 6vw, 5.4rem); line-height: .92; }
 .block.free .say > p { max-width: 46ch; }
 
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-.tabs span { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--text-2); font-size: 13px; }
-.tabs .on { border-color: var(--ink-block); background: var(--brand-soft); font-weight: 700; }
+.tabs .tab { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--text-2); font-size: 13px; background: transparent; cursor: pointer; }
+.tabs .tab:hover { border-color: var(--ink-block); }
+.tabs .tab:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.tabs .tab[aria-selected="true"] { border-color: var(--ink-block); background: var(--brand-soft); font-weight: 700; }
 .tilerow { display: flex; gap: 8px; margin-top: 12px; }
-.tilerow span { display: grid; justify-items: center; gap: 2px; flex: 1; padding: 8px 4px; border: 1px solid var(--line-soft); border-radius: var(--r-m); background: var(--bg); font-size: 12px; }
+.tilerow .tile { display: grid; justify-items: center; gap: 2px; flex: 1; padding: 8px 4px; border: 1px solid var(--line-soft); border-radius: var(--r-m); background: var(--bg); font-size: 12px; cursor: pointer; }
+.tilerow .tile:hover { border-color: var(--brand); background: var(--brand-soft); }
+.tilerow .tile:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .mini { width: 100%; border-collapse: collapse; font-size: 14px; }
 .mini th { padding: 6px 10px; border-bottom: 2px solid var(--ink-block); color: var(--muted-2); font-weight: 700; text-align: left; }
