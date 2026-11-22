@@ -70,7 +70,7 @@ const TEMPLATES: [(&str, &str); 35] = [
 ];
 
 /// The engine implements exactly these kinds; anything else is P7 violation.
-const DEMO_KINDS: [&str; 2] = ["ping", "http"];
+const DEMO_KINDS: [&str; 5] = ["ping", "http", "dns", "dhcp", "expect"];
 
 /// A device is addressable if the device itself, any port, or its `<net>`
 /// DHCP record carries an address — the same rule `run_demo` applies.
@@ -100,15 +100,35 @@ fn p1_p7_every_demo_step_references_live_addressed_endpoints() {
                         ws.devices.iter().any(|d| d.id == step.to),
                         "{name} step {i}: ping to '{}' is not a device", step.to
                     );
+                    // A client addressed by an earlier `dhcp` step in the same
+                    // demo is legitimate; only flag endpoints nothing can
+                    // address (no dhcp step anywhere for it).
                     for who in [&step.from, &step.to] {
+                        let dhcp_covered = ws.demo.iter().any(|s| s.kind == "dhcp" && s.from == *who);
                         assert!(
-                            addressable(&ws, who),
+                            dhcp_covered || addressable(&ws, who),
                             "{name} step {i}: '{}' has no address anywhere", who
                         );
                     }
                 }
                 "http" => {
                     assert!(!step.url.is_empty(), "{name} step {i}: http with empty url");
+                }
+                "dns" => {
+                    assert!(!step.url.is_empty(), "{name} step {i}: dns with empty name");
+                }
+                "dhcp" => {
+                    assert!(
+                        ws.devices.iter().any(|d| d.id == step.from),
+                        "{name} step {i}: dhcp client '{}' is not a device", step.from
+                    );
+                    // The client may start unaddressed — that is the point.
+                }
+                "expect" => {
+                    assert!(
+                        ["ping", "http", "dns"].contains(&step.to.as_str()),
+                        "{name} step {i}: expect wraps unknown kind '{}'", step.to
+                    );
                 }
                 _ => unreachable!("kind list above"),
             }
@@ -369,3 +389,4 @@ fn p10_demo_runs_are_deterministic() {
         assert_eq!(shape_a, shape_b, "{name}: two runs of the same demo differ");
     }
 }
+

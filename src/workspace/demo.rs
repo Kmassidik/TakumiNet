@@ -50,6 +50,48 @@ impl Workspace {
                     crate::webapp::fetch(self, &step.from, &step.url)
                         .map_err(|error| format!("Built-in page request from {} failed: {error}", self.name_of(&step.from)))?;
                 }
+                "dns" => {
+                    flush(self, &mut wave)?;
+                    let name = step.url.trim().trim_start_matches("http://").trim_end_matches('/').to_string();
+                    self.resolve_name_captured(&step.from, &name)
+                        .ok_or_else(|| format!("Built-in lookup from {} failed: no DNS record answers {name}", self.name_of(&step.from)))?;
+                }
+                "dhcp" => {
+                    flush(self, &mut wave)?;
+                    self.acquire_dhcp(&step.from)
+                        .map_err(|error| format!("Built-in lease from {} failed: {error}", self.name_of(&step.from)))?;
+                }
+                "expect" => {
+                    flush(self, &mut wave)?;
+                    // A deliberate negative demo: run the wrapped step and keep the
+                    // failure as the capture, not as an abort.
+                    let inner = Demo { kind: step.to.clone(), from: step.from.clone(), to: step.url.clone(), url: step.url.clone() };
+                    let before = self.events.len();
+                    let outcome = match inner.kind.as_str() {
+                        "ping" => self.send_pdu(&inner.from, &inner.to).err(),
+                        "http" => crate::webapp::fetch(self, &inner.from, &inner.url).err(),
+                        "dns" => if self.resolve_name_captured(&inner.from, &inner.url.trim().trim_start_matches("http://")).is_some() { None } else { Some("no DNS record answers".to_string()) },
+                        other => Some(format!("unknown wrapped kind '{other}'")),
+                    };
+                    match outcome {
+                        Some(reason) => {
+                            if self.events.len() == before {
+                                self.record_drop(&inner.from, &inner.to, "Blocked", crate::net::fwd::DeliveryError {
+                                    reason: reason.clone(),
+                                    path: vec![inner.from.clone(), inner.to.clone()],
+                                    hops: Vec::new(),
+                                    frame: None,
+                                    arp: None,
+                                    size: 0,
+                                    finished_at: self.sim_time as f64,
+                                });
+                            }
+                        }
+                        None => {
+                            return Err(format!("Built-in step {} expected failure, but {} → {} succeeded", index + 1, self.name_of(&inner.from), self.name_of(&inner.to)));
+                        }
+                    }
+                }
                 other => {
                     flush(self, &mut wave)?;
                     return Err(format!("Built-in traffic step {} has an unknown kind '{other}'", index + 1));
