@@ -158,8 +158,6 @@ def landing(t):
     tiles = "\n".join(f'            <span><img src="/art3d/devices/{f}.webp" alt="" width="40" height="40" loading="lazy">{esc(n)}</span>'
                       for f, n in zip(["pc", "laptop", "server", "printer"], t["tiles"]))
     faq = "\n".join(f'        <details><summary>{esc(q)}</summary><p>{esc(a)}</p></details>' for q, a in t["faq"])
-    ch = t["cap_head"]
-    mh = t["mini_head"]
     c = t["checks"]
     return head(t, "landing") + top(t, "landing") + f'''
 <main id="main">
@@ -174,16 +172,6 @@ def landing(t):
 
     <div class="peek">
       <div class="slot slot-hero">{img("wave", t["wave_alt"], eager=True)}</div>
-      <div class="card hard cap-card">
-        <table class="cap" aria-label="Example captured packets">
-          <thead><tr><th>{ch[0]}</th><th>{ch[1]}</th><th>{ch[2]}</th><th>{ch[3]}</th><th>{ch[4]}</th></tr></thead>
-          <tbody>
-            <tr><td>0.003</td><td>PC0</td><td>Router0</td><td class="t-arp">ARP</td><td>{esc(t["cap_rows"][0])}</td></tr>
-            <tr><td>0.006</td><td>Router0</td><td>PC0</td><td class="t-arp">ARP</td><td>{esc(t["cap_rows"][1])}</td></tr>
-            <tr class="now"><td>0.009</td><td>PC0</td><td>PC3</td><td class="t-icmp">ICMP</td><td>{esc(t["cap_rows"][2])}</td></tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   </section>
 
@@ -209,16 +197,7 @@ def landing(t):
       <div class="say">
         <h2 id="follow">{esc(t["follow_h"])}</h2>
         <p>{esc(t["follow_p"])}</p>
-        <div class="card flat" aria-hidden="true">
-          <table class="mini">
-            <thead><tr><th>{mh[0]}</th><th>{mh[1]}</th><th>{mh[2]}</th><th>{mh[3]}</th></tr></thead>
-            <tbody>
-              <tr><td>0.003</td><td>PC0</td><td>Switch0</td><td class="t-dns">DNS</td></tr>
-              <tr><td>0.007</td><td>Switch0</td><td>Server0</td><td class="t-arp">ARP</td></tr>
-              <tr class="now"><td>0.011</td><td>PC0</td><td>Server0</td><td class="t-http">HTTP</td></tr>
-            </tbody>
-          </table>
-        </div>
+
       </div>
     </div>
   </section>

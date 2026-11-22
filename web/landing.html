@@ -145,16 +145,6 @@
 
     <div class="peek">
       <div class="slot slot-hero"><img src="/landing/takumi-wave.webp" alt="Takumi the bear waving hello" width="512" height="512" fetchpriority="high"></div>
-      <div class="card hard cap-card">
-        <table class="cap" aria-label="Example captured packets">
-          <thead><tr><th>Time</th><th>From</th><th>At</th><th>Type</th><th>Info</th></tr></thead>
-          <tbody>
-            <tr><td>0.003</td><td>PC0</td><td>Router0</td><td class="t-arp">ARP</td><td>PC0 asks who has 192.168.1.1</td></tr>
-            <tr><td>0.006</td><td>Router0</td><td>PC0</td><td class="t-arp">ARP</td><td>Router0 answers with its address</td></tr>
-            <tr class="now"><td>0.009</td><td>PC0</td><td>PC3</td><td class="t-icmp">ICMP</td><td>Echo request arrives with TTL 127</td></tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   </section>
 
@@ -183,16 +173,7 @@
       <div class="say">
         <h2 id="follow">Follow the packet</h2>
         <p>Press Play and each device makes its decision in turn: ARP, DNS, ping, a web page. Open any captured frame to read its layers and its bytes, and filter the list by protocol.</p>
-        <div class="card flat" aria-hidden="true">
-          <table class="mini">
-            <thead><tr><th>Time</th><th>Last device</th><th>At device</th><th>Type</th></tr></thead>
-            <tbody>
-              <tr><td>0.003</td><td>PC0</td><td>Switch0</td><td class="t-dns">DNS</td></tr>
-              <tr><td>0.007</td><td>Switch0</td><td>Server0</td><td class="t-arp">ARP</td></tr>
-              <tr class="now"><td>0.011</td><td>PC0</td><td>Server0</td><td class="t-http">HTTP</td></tr>
-            </tbody>
-          </table>
-        </div>
+
       </div>
     </div>
   </section>

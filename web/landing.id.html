@@ -145,16 +145,6 @@
 
     <div class="peek">
       <div class="slot slot-hero"><img src="/landing/takumi-wave.webp" alt="Takumi si beruang melambaikan tangan" width="512" height="512" fetchpriority="high"></div>
-      <div class="card hard cap-card">
-        <table class="cap" aria-label="Example captured packets">
-          <thead><tr><th>Waktu</th><th>Dari</th><th>Di</th><th>Tipe</th><th>Info</th></tr></thead>
-          <tbody>
-            <tr><td>0.003</td><td>PC0</td><td>Router0</td><td class="t-arp">ARP</td><td>PC0 bertanya siapa pemilik 192.168.1.1</td></tr>
-            <tr><td>0.006</td><td>Router0</td><td>PC0</td><td class="t-arp">ARP</td><td>Router0 menjawab dengan alamatnya</td></tr>
-            <tr class="now"><td>0.009</td><td>PC0</td><td>PC3</td><td class="t-icmp">ICMP</td><td>Permintaan echo tiba dengan TTL 127</td></tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   </section>
 
@@ -183,16 +173,7 @@
       <div class="say">
         <h2 id="follow">Ikuti paketnya</h2>
         <p>Tekan Play dan setiap perangkat mengambil keputusannya satu per satu: ARP, DNS, ping, halaman web. Buka frame mana pun untuk melihat lapisan dan byte-nya, lalu saring daftar berdasarkan protokol.</p>
-        <div class="card flat" aria-hidden="true">
-          <table class="mini">
-            <thead><tr><th>Waktu</th><th>Perangkat terakhir</th><th>Di perangkat</th><th>Tipe</th></tr></thead>
-            <tbody>
-              <tr><td>0.003</td><td>PC0</td><td>Switch0</td><td class="t-dns">DNS</td></tr>
-              <tr><td>0.007</td><td>Switch0</td><td>Server0</td><td class="t-arp">ARP</td></tr>
-              <tr class="now"><td>0.011</td><td>PC0</td><td>Server0</td><td class="t-http">HTTP</td></tr>
-            </tbody>
-          </table>
-        </div>
+
       </div>
     </div>
   </section>
