@@ -19,16 +19,16 @@
   <link a="border0" a_port="Gig0/2" b="upb0" b_port="Gig0/0" kind="eCopper"/>
   <link a="upa0" a_port="Gig0/2" b="upb0" b_port="Gig0/2" kind="eCopper"/>
   <link a="upa0" a_port="Gig0/1" b="server0" b_port="Fa0" kind="eCross"/>
-  <bgprouter dev="border0" as="64500"/>
+  <bgprouter dev="border0" as="64501"/>
   <bgpneighbor dev="border0" peer="10.1.1.2" as="64601"/>
   <bgpneighbor dev="border0" peer="10.1.2.2" as="64602"/>
   <bgpnet dev="border0" net="192.168.50.0" prefix="24"/>
   <bgprouter dev="upa0" as="64601" no_transit="1"/>
-  <bgpneighbor dev="upa0" peer="10.1.1.1" as="64500"/>
+  <bgpneighbor dev="upa0" peer="10.1.1.1" as="64501"/>
   <bgpneighbor dev="upa0" peer="10.1.3.2" as="64602"/>
   <bgpnet dev="upa0" net="203.0.113.0" prefix="24"/>
   <bgprouter dev="upb0" as="64602" no_transit="1"/>
-  <bgpneighbor dev="upb0" peer="10.1.2.1" as="64500"/>
+  <bgpneighbor dev="upb0" peer="10.1.2.1" as="64501"/>
   <bgpneighbor dev="upb0" peer="10.1.3.1" as="64601"/>
   <bgpnet dev="upb0" net="203.0.113.0" prefix="24"/>
   <bgpnet dev="upb0" net="192.168.50.0" prefix="24"/>

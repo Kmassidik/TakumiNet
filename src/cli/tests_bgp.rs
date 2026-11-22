@@ -17,7 +17,7 @@ fn configure(ws: &mut Workspace, s: &mut Session, lines: &[&str]) {
 #[test]
 fn router_bgp_brings_sessions_up_and_announces() {
     let (mut ws, mut s) = border();
-    configure(&mut ws, &mut s, &["enable", "configure terminal", "router bgp 64500"]);
+    configure(&mut ws, &mut s, &["enable", "configure terminal", "router bgp 64501"]);
     assert_eq!(s.mode, Mode::Router);
     assert_eq!(s.router.as_deref(), Some("bgp"));
     assert!(run(&mut ws, "border0", &mut s, "").is_empty());
@@ -38,7 +38,7 @@ fn router_bgp_brings_sessions_up_and_announces() {
     let out = run(&mut ws, "border0", &mut s, "end");
     assert_eq!(s.mode, Mode::Priv, "{out}");
     let table = run(&mut ws, "border0", &mut s, "show ip bgp");
-    assert!(table.contains("BGP local autonomous system 64500"), "{table}");
+    assert!(table.contains("BGP local autonomous system 64501"), "{table}");
     assert!(table.contains("10.1.1.2"), "{table}");
     assert!(table.contains("established"), "{table}");
     assert!(table.contains("192.168.50.0/24"), "{table}");
@@ -53,7 +53,7 @@ fn slash_networks_and_no_forms_round_trip() {
         &[
             "enable",
             "configure terminal",
-            "router bgp 64500",
+            "router bgp 64501",
             "neighbor 10.1.1.2 remote-as 64601",
             "network 192.168.50.0/24",
         ],
@@ -79,7 +79,7 @@ fn deny_filters_a_prefix_and_shows_it() {
         &[
             "enable",
             "configure terminal",
-            "router bgp 64500",
+            "router bgp 64501",
             "neighbor 10.1.2.2 remote-as 64602",
             "deny 192.168.0.0/16",
         ],
@@ -109,7 +109,7 @@ fn bgp_entry_and_arguments_are_validated() {
     assert!(out.contains("autonomous system must be"), "{out}");
     assert_eq!(s.mode, Mode::Config);
 
-    run(&mut ws, "border0", &mut s, "router bgp 64500");
+    run(&mut ws, "border0", &mut s, "router bgp 64501");
     let out = run(&mut ws, "border0", &mut s, "neighbor 10.1.1.2 remote-as x");
     assert!(out.contains("% Invalid autonomous system"), "{out}");
     let out = run(&mut ws, "border0", &mut s, "neighbor 10.1.1.2 64601");
@@ -139,7 +139,7 @@ fn a_host_cannot_enter_bgp() {
     let mut s = Session::default();
     run(&mut ws, "pc0", &mut s, "enable");
     run(&mut ws, "pc0", &mut s, "configure terminal");
-    let out = run(&mut ws, "pc0", &mut s, "router bgp 64500");
+    let out = run(&mut ws, "pc0", &mut s, "router bgp 64501");
     assert!(out.contains("only routing devices speak BGP"), "{out}");
     assert_eq!(s.mode, Mode::Config);
 }

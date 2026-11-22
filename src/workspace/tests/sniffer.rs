@@ -132,7 +132,35 @@ fn the_wiring_closet_pings_through_the_panel_and_the_sniffer_records_the_frames(
     ws.send_addressed_pdu("pc0", "server0").expect("ping from the desk to the server");
     let event = ws.events.iter().find(|e| e.proto == "ICMP").expect("captured delivery");
     assert!(event.path.contains(&"panel0".to_string()), "the frame crosses the panel: {:?}", event.path);
-    assert!(event.path.contains(&"sniffer0".to_string()), "the frame crosses the sniffer: {:?}", event.path);
-    assert!(ws.sniffer_match_count("sniffer0", "icmp", "192.168.20.5") >= 1, "the sniffer holds the ping");
+    // The sniffer is a SPAN destination now, not an inline hop: real practice keeps
+    // monitoring gear out of the traffic path.
+    assert!(!event.path.contains(&"sniffer0".to_string()), "the sniffer stays out of the path: {:?}", event.path);
+    assert!(ws.sniffer_match_count("sniffer0", "icmp", "192.168.20.5") >= 1, "the SPAN copy reaches the sniffer");
     assert!(!ws.tables.sniffer_rows("sniffer0").is_empty());
+}
+
+#[test]
+fn debug_span_rows() {
+    let mut ws = Workspace::from_tnet(CLOSET).unwrap();
+    ws.send_addressed_pdu("pc0", "server0").unwrap();
+    println!("span rows: {:?}", ws.tables.sniffer_rows("sniffer0"));
+}
+
+#[test]
+fn debug_span_session() {
+    let ws = Workspace::from_tnet(CLOSET).unwrap();
+    println!("source: {:?} dest: {:?}", ws.mirror_source("switch0"), ws.mirror_dest("switch0"));
+}
+
+#[test]
+fn debug_span_peer() {
+    let ws = Workspace::from_tnet(CLOSET).unwrap();
+    println!("peer of Fa0/9: {:?}", ws.peer_port("switch0", "Fa0/9"));
+}
+
+#[test]
+fn debug_span_mirror2() {
+    let mut ws = Workspace::from_tnet(CLOSET).unwrap();
+    ws.send_addressed_pdu("pc0", "server0").unwrap();
+    println!("source: {:?} dest: {:?} peer: {:?}", ws.mirror_source("switch0"), ws.mirror_dest("switch0"), ws.peer_port("switch0", "Fa0/9"));
 }

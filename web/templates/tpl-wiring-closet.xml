@@ -6,12 +6,13 @@
   <device id="pc0" kind="pc" model="PC" x="260" y="480" name="Desk1" ip="192.168.20.11" prefix="24"/>
   <device id="pc1" kind="pc" model="PC" x="580" y="480" name="Desk2" ip="192.168.20.12" prefix="24"/>
   <device id="laptop0" kind="laptop" model="Laptop" x="200" y="140" name="AdminLaptop" ip="" prefix="24"/>
-  <link a="switch0" a_port="Fa0/1" b="panel0" b_port="Fa0" kind="eCopper"/>
-  <link a="switch0" a_port="Fa0/2" b="panel0" b_port="Fa1" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/1" b="panel0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/2" b="panel0" b_port="Fa1" kind="eCopper"/>
   <link a="panel0" a_port="Fa2" b="pc0" b_port="Fa0" kind="eCopper"/>
   <link a="panel0" a_port="Fa3" b="pc1" b_port="Fa0" kind="eCopper"/>
-  <link a="switch0" a_port="Fa0/3" b="sniffer0" b_port="Fa0" kind="eCopper"/>
-  <link a="sniffer0" a_port="Fa1" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/3" b="server0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/9" b="sniffer0" b_port="FastEthernet0" kind="eCopper"/>
+  <mirror dev="switch0" session="1" source="FastEthernet0/3:both" dest="FastEthernet0/9"/>
   <link a="laptop0" a_port="RS-232" b="switch0" b_port="Console" kind="eConsole"/>
   <note id="note1" x="640" y="420" color="#fff3b0" text="Structured cabling runs each desk's wall cable to a numbered jack on the patch panel, and a short patch cord joins that jack to the switch, so a move or a repair never touches the cable in the wall. The panel is passive and the sniffer only listens, so the same IEEE 802.3 Ethernet frames cross both unchanged on their way to the server."/>
   <demo kind="ping" from="pc0" to="server0" url=""/>

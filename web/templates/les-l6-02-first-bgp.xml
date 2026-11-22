@@ -20,17 +20,17 @@
   <link a="upa0" a_port="Gig0/2" b="upb0" b_port="Gig0/2" kind="eCopper"/>
   <link a="upa0" a_port="Gig0/1" b="server0" b_port="Fa0" kind="eCross"/>
   <bgprouter dev="upa0" as="64601"/>
-  <bgpneighbor dev="upa0" peer="10.1.1.1" as="64500"/>
+  <bgpneighbor dev="upa0" peer="10.1.1.1" as="64501"/>
   <bgpneighbor dev="upa0" peer="10.1.3.2" as="64602"/>
   <bgpnet dev="upa0" net="203.0.113.0" prefix="24"/>
   <bgprouter dev="upb0" as="64602"/>
-  <bgpneighbor dev="upb0" peer="10.1.2.1" as="64500"/>
+  <bgpneighbor dev="upb0" peer="10.1.2.1" as="64501"/>
   <bgpneighbor dev="upb0" peer="10.1.3.1" as="64601"/>
   <bgpnet dev="upb0" net="203.0.113.0" prefix="24"/>
   <bgpnet dev="upb0" net="192.168.50.0" prefix="24"/>
   <lesson id="les-l6-02-first-bgp" title="Your first BGP sessions" level="6" minutes="15" goal="BorderISP peers with both upstream providers and CustomerPC reaches FarServer"/>
   <step n="1" text="Both providers already point a neighbor entry at BorderISP, but BorderISP says nothing back. Ping FarServer from CustomerPC and read the failure."/>
-  <step n="2" text="On BorderISP open the CLI and start BGP: router bgp 64500."/>
+  <step n="2" text="On BorderISP open the CLI and start BGP: router bgp 64501."/>
   <step n="3" text="Name the first provider: neighbor 10.1.1.2 remote-as 64601. The session to UpstreamNorth comes up." check="c1"/>
   <step n="4" text="Name the second provider: neighbor 10.1.2.2 remote-as 64602. The session to UpstreamSouth comes up." check="c2"/>
   <step n="5" text="Announce your own customer network: network 192.168.50.0 mask 255.255.255.0. Then ping FarServer from CustomerPC." check="c3"/>

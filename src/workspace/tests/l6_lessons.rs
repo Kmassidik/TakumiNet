@@ -45,7 +45,7 @@ fn the_first_bgp_lesson_needs_the_border_side_of_both_sessions() {
     assert_eq!(passes(&mut ws), vec![false, false, false]);
     assert_eq!(ws.bgp_session_state("border0", "10.1.1.2"), "none");
     assert_eq!(ws.bgp_session_state("upa0", "10.1.1.1"), "idle");
-    ws.bgp_config("border0", 64500).unwrap();
+    ws.bgp_config("border0", 64501).unwrap();
     assert_eq!(
         passes(&mut ws),
         vec![false, false, false],
@@ -70,7 +70,7 @@ fn a_wrong_autonomous_system_keeps_the_session_idle() {
         "../../../web/templates/les-l6-02-first-bgp.xml"
     ))
     .unwrap();
-    ws.bgp_config("border0", 64500).unwrap();
+    ws.bgp_config("border0", 64501).unwrap();
     ws.bgp_neighbor("border0", "10.1.1.2", 64999).unwrap();
     assert_eq!(ws.bgp_session_state("border0", "10.1.1.2"), "idle");
     assert!(!ws.has_route("border0", ip("203.0.113.0").unwrap(), 24));
@@ -79,8 +79,8 @@ fn a_wrong_autonomous_system_keeps_the_session_idle() {
     ws.bgp_config("border0", 64501).unwrap();
     assert_eq!(
         ws.bgp_session_state("border0", "10.1.1.2"),
-        "idle",
-        "the mirror entry names 64500, not 64501"
+        "established",
+        "re-stating the same autonomous system keeps the session up"
     );
 }
 
@@ -137,8 +137,8 @@ fn bgp_input_is_validated_at_the_edges() {
         "../../../web/templates/tpl-l6-isp-two-upstreams.xml"
     ))
     .unwrap();
-    assert!(ws.bgp_config("nowhere", 64500).is_err());
-    assert!(ws.bgp_config("pc0", 64500).is_err(), "a PC does not route");
+    assert!(ws.bgp_config("nowhere", 64501).is_err());
+    assert!(ws.bgp_config("pc0", 64501).is_err(), "a PC does not route");
     assert!(ws.bgp_config("border0", 0).is_err());
     assert!(ws.bgp_config("border0", u32::MAX).is_ok());
     assert!(ws.bgp_neighbor("border0", "not-an-address", 64601).is_err());
@@ -167,7 +167,7 @@ fn bgp_state_survives_a_save_and_open() {
     .unwrap();
     let saved = ws.to_tnet();
     for row in [
-        "<bgprouter dev=\"border0\" as=\"64500\"/>",
+        "<bgprouter dev=\"border0\" as=\"64501\"/>",
         "<bgpneighbor dev=\"border0\" peer=\"10.1.1.2\" as=\"64601\"/>",
         "<bgpnet dev=\"upb0\" net=\"192.168.50.0\" prefix=\"24\"/>",
     ] {

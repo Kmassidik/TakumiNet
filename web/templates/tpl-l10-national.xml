@@ -33,35 +33,49 @@
 <link a="cable0" a_port="Fa1" b="server0" b_port="Fa0" kind="eCross"/>
 <routing dev="popsul" proto="ospf" process_id="1"/>
 <routenet dev="popsul" net="10.10.1.0" prefix="24" area="0"/>
-<routenet dev="popsul" net="10.10.2.0" prefix="24" area="0"/>
 <routenet dev="popsul" net="10.20.1.0" prefix="24" area="0"/>
-<routenet dev="popsul" net="10.20.2.0" prefix="24" area="0"/>
-<routenet dev="popsul" net="10.20.3.0" prefix="24" area="0"/>
 <routenet dev="popsul" net="10.20.4.0" prefix="24" area="0"/>
-<routenet dev="popsul" net="203.0.114.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.10.1.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.10.1.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.10.1.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="popsul" net="10.20.4.0" prefix="24" area="0"/>
 <routing dev="popjawa" proto="ospf" process_id="1"/>
-<routenet dev="popjawa" net="10.10.1.0" prefix="24" area="0"/>
-<routenet dev="popjawa" net="10.10.2.0" prefix="24" area="0"/>
-<routenet dev="popjawa" net="10.20.1.0" prefix="24" area="0"/>
-<routenet dev="popjawa" net="10.20.2.0" prefix="24" area="0"/>
-<routenet dev="popjawa" net="10.20.3.0" prefix="24" area="0"/>
 <routenet dev="popjawa" net="10.20.4.0" prefix="24" area="0"/>
-<routenet dev="popjawa" net="203.0.114.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.10.2.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.2.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.10.2.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.2.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.10.2.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.2.0" prefix="24" area="0"/>
+<routenet dev="popjawa" net="10.20.4.0" prefix="24" area="0"/>
 <routing dev="gw0" proto="ospf" process_id="1"/>
-<routenet dev="gw0" net="10.10.1.0" prefix="24" area="0"/>
-<routenet dev="gw0" net="10.10.2.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.2.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.2.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.2.0" prefix="24" area="0"/>
 <routenet dev="gw0" net="10.20.1.0" prefix="24" area="0"/>
 <routenet dev="gw0" net="10.20.2.0" prefix="24" area="0"/>
 <routenet dev="gw0" net="10.20.3.0" prefix="24" area="0"/>
-<routenet dev="gw0" net="10.20.4.0" prefix="24" area="0"/>
-<routenet dev="gw0" net="203.0.114.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.1.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.2.0" prefix="24" area="0"/>
+<routenet dev="gw0" net="10.20.3.0" prefix="24" area="0"/>
 <routing dev="ix0" proto="ospf" process_id="1"/>
-<routenet dev="ix0" net="10.10.1.0" prefix="24" area="0"/>
-<routenet dev="ix0" net="10.10.2.0" prefix="24" area="0"/>
-<routenet dev="ix0" net="10.20.1.0" prefix="24" area="0"/>
-<routenet dev="ix0" net="10.20.2.0" prefix="24" area="0"/>
 <routenet dev="ix0" net="10.20.3.0" prefix="24" area="0"/>
-<routenet dev="ix0" net="10.20.4.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.20.3.0" prefix="24" area="0"/>
+<routenet dev="ix0" net="10.20.3.0" prefix="24" area="0"/>
 <routenet dev="ix0" net="203.0.114.0" prefix="24" area="0"/>
 <dns id="server0" name="www.world.lab" ip="203.0.114.10"/>
 <page id="server0" body="A page from across the sea"/>
