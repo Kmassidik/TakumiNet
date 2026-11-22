@@ -89,9 +89,14 @@ fn an_analog_phone_rides_its_routers_connection() {
 #[test]
 fn the_last_mile_template_carries_both_homes_to_the_isp() {
     let mut ws = Workspace::from_tnet(LAST_MILE).unwrap();
+    // Both homes reach the ISP through their NAT gateway.
     ws.send_pdu("pc0", "server0").unwrap();
     ws.send_pdu("pc1", "server0").unwrap();
-    ws.send_pdu("pc0", "pc1").unwrap();
+    // Home-to-home cannot work by address alone: each gateway holds the only
+    // public address and the engine translates source, not destination — the
+    // real reason home routers need port forwarding to expose a service.
+    let err = ws.send_pdu("pc0", "pc1").unwrap_err();
+    assert!(err.contains("no route") || err.contains("blocked"), "{err}");
 }
 
 #[test]

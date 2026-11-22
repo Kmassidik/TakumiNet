@@ -59,7 +59,10 @@ impl Workspace {
     }
 
     /// Private traffic does not cross the internet cloud without a tunnel between
-    /// the routers on both sides of it.
+    /// the routers on both sides of it — unless a NAT gateway sits between the
+    /// source and the cloud: real providers drop private addresses, and a home
+    /// gateway masquerading its LAN is exactly what makes private hosts able to
+    /// reach the internet.
     pub(super) fn tunnel_blocked(&self, src: &str, dst: &str) -> Option<String> {
         let private = |id: &str| {
             self.devices.iter().find(|d| d.id == id).and_then(|d| d.ip).is_some_and(|ip| {
@@ -76,6 +79,15 @@ impl Workspace {
         let at = path.iter().position(|id| kind(id) == "cloud")?;
         let (before, after) = (path.get(at.checked_sub(1)?)?, path.get(at + 1)?);
         if self.tunnel_state(before) == "up" && self.tunnel_state(after) == "up" {
+            return None;
+        }
+        // A NAT gateway between the source and the cloud rewrites the source to
+        // a public address, so the internet never sees the private one.
+        let nat_gateway = path[..at]
+            .iter()
+            .rev()
+            .find(|id| self.nat_rules.get(*id).is_some_and(|r| !r.is_empty()));
+        if nat_gateway.is_some() {
             return None;
         }
         Some(format!(

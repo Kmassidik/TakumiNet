@@ -303,7 +303,7 @@ const TEMPLATE_CARDS: &[(&str, &str, &str)] = &[
     ("tpl-web", "Website by name", "PC0 looks up www.takumi.lab and opens the site"),
     ("tpl-l1-wifi-home", "Family home", "A modem, a router and five devices, ready to share one page"),
     ("tpl-l1-two-rooms", "Two rooms", "A second access point carries the signal to the far room"),
-    ("tpl-l1-broken-wifi", "Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
+    ("tpl-l1-broken-wifi", "Broken home network", "Laptop0 rides the Wi-Fi but its gateway is wrong. Same-subnet pings still pass - find out why"),
     ("tpl-l2-rtrw-small", "RT/RW Net with three homes", "A neighbourhood shares one line through a gateway, a pole radio and three homes"),
     ("tpl-l2-rtrw-busy", "RT/RW Net with a full line", "Four homes share one line and one of them fills it"),
     ("tpl-l2-rtrw-hotspot", "Hotspot at the cafe", "Visitors join an open hotspot and pay with vouchers"),

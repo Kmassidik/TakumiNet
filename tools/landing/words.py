@@ -37,7 +37,7 @@ T = {
             ("Website by name", "PC0 looks up www.takumi.lab and opens the site"),
             ("Family home", "A modem, a router and five devices, ready to share one page"),
             ("Two rooms", "A second access point carries the signal to the far room"),
-            ("Broken home network", "The laptop cannot reach the phone. Find the wrong gateway"),
+            ("Broken home network", "Laptop0 rides the Wi-Fi but its gateway is wrong. Same-subnet pings still pass - find out why"),
             ("Office with three VLANs", "Staff, servers and a printer on three VLANs, joined by one router cable"),
             ("Campus with OSPF", "Four routers in a diamond learn each other's networks and survive one cut"),
             ("Office with a home tunnel", "OwnerLaptop reaches the office file server through a tunnel over the internet"),
