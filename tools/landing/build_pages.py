@@ -136,11 +136,18 @@ def top(t, kind):
   <nav aria-label="Site">
     <a href="{about if kind == "landing" else home}">{esc(t["nav_about"] if kind == "landing" else t["nav_home"])}</a>
     <a href="{REPO}" rel="noopener noreferrer">GitHub</a>
-    <a class="lang" href="{switch}" hreflang="{other["code"]}" lang="{other["code"]}" title="{esc(t["nav_lang"])}">{other["code"].upper()}</a>
+    <a class="lang" href="{switch}" hreflang="{other["code"]}" lang="{other["code"]}" title="{esc(t["nav_lang"])}"><svg width="16" height="11" viewBox="0 0 16 11" style="display:inline;vertical-align:middle;margin-right:4px">{flag_svg(other["code"])}</svg>{other["code"].upper()}</a>
     <a class="pill solid small only-computer" href="/workspace">{esc(t["nav_cta"])}</a>
   </nav>
 </header>
 '''
+
+def flag_svg(code):
+    if code == "id":
+        return '<rect width="16" height="5.5" y="0" fill="#ce1126"/><rect width="16" height="5.5" y="5.5" fill="#fff"/>'
+    if code == "en":
+        return '<rect width="16" height="11" fill="#012169"/><path d="M0 0 L16 11 M0 11 L16 0" stroke="#fff" stroke-width="2"/><path d="M0 0 L16 11 M0 11 L16 0" stroke="#c8102e" stroke-width="1.2"/><rect x="6" y="0" width="4" height="11" fill="#fff"/><rect x="0" y="3.5" width="16" height="4" fill="#fff"/><rect x="7" y="0" width="2" height="11" fill="#c8102e"/><rect x="0" y="4" width="16" height="3" fill="#c8102e"/>'
+    return ''
 
 def img(pose, alt, eager=False):
     load = ' fetchpriority="high"' if eager else ' loading="lazy" decoding="async"'
@@ -233,7 +240,7 @@ def landing(t):
         </ul>
       </div>
     </div>
-    <p class="more"><a href="/workspace">{more}</a></p>
+    <p class="more" style="margin-top: 32px;"><a href="/workspace">{more}</a></p>
   </section>
 
   <section class="start faq" aria-labelledby="faq">
