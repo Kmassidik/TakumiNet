@@ -327,6 +327,14 @@ impl Workspace {
             }
             o.push_str("],\"layers\":");
             json_layers(o, &e.layers);
+            o.push_str(",\"bytes\":[");
+            for (j, byte) in e.bytes.iter().enumerate() {
+                if j > 0 {
+                    o.push(',');
+                }
+                o.push_str(&format!("{byte}"));
+            }
+            o.push(']');
             o.push('}');
         }
     }
