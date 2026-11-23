@@ -36,6 +36,7 @@
 <route id="rh0" net="192.168.82.0" prefix="24" via="10.80.2.2" admin_distance="1"/>
 <route id="pop0" net="0.0.0.0" prefix="0" via="10.80.1.1" admin_distance="1"/>
 <route id="pop1" net="0.0.0.0" prefix="0" via="10.80.2.1" admin_distance="1"/>
+<note id="note0" x="-116" y="26" color="#fff3b0" text="Remote Indonesian regencies ride microwave chains for nearby villages and VSAT for the far ones — the delays in this network are the real ones. Try: press Play from both villages and compare the round trips in Flows."/>
 <demo kind="ping" from="pc0" to="server0" url=""/>
 <demo kind="ping" from="pc1" to="server0" url=""/>
 <demo kind="ping" from="pc0" to="pc1" url=""/>

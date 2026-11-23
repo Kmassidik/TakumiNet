@@ -65,6 +65,7 @@
 <routenet dev="router3" net="10.0.3.0" prefix="24" area="0"/>
 <routenet dev="router3" net="10.0.4.0" prefix="24" area="0"/>
 <routenet dev="router3" net="192.168.2.0" prefix="24" area="0"/>
+<note id="note0" x="-196" y="66" color="#fff3b0" text="A campus core of four routers running OSPF: every router learns the whole network from its neighbours, so traffic flows around any single failure. Try: press Play, then shut one ring link and ping again."/>
 <demo kind="ping" from="pc0" to="server0" url=""/>
 <demo kind="ping" from="server0" to="pc0" url=""/>
 <demo kind="ping" from="pc0" to="router3" url=""/>

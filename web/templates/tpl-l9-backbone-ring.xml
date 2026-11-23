@@ -45,6 +45,7 @@
 <routenet dev="pop5" net="10.9.51.0" prefix="24" area="0"/>
 <routing dev="ix0" proto="ospf" process_id="1"/>
 <routenet dev="ix0" net="10.9.100.0" prefix="24" area="0"/>
+<note id="note0" x="-176" y="6" color="#fff3b0" text="An island backbone: five POPs ring a province, and an exchange point is the fabric where peers meet — real exchanges are layer-2, so the content sits behind a member POP. Try: press Play from the farthest POP to the content server."/>
 <demo kind="ping" from="pop3" to="server0" url=""/>
 <demo kind="ping" from="pop5" to="server0" url=""/>
 <demo kind="ping" from="server0" to="pop3" url=""/>

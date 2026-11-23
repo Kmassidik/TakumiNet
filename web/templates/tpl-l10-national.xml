@@ -79,6 +79,7 @@
 <routenet dev="ix0" net="203.0.114.0" prefix="24" area="0"/>
 <dns id="server0" name="www.world.lab" ip="203.0.114.10"/>
 <page id="server0" body="A page from across the sea"/>
+<note id="note0" x="-196" y="6" color="#fff3b0" text="A national backbone: island POPs feed one gateway that rides a submarine cable overseas. Real cables run a fraction of this delay but the shape is the same. Try: press Play and watch the path cross the cable to the overseas site."/>
 <demo kind="http" from="laptop0" to="" url="http://www.world.lab/"/>
 <demo kind="ping" from="pcjawa" to="server0" url=""/>
 <demo kind="ping" from="laptop0" to="pcjawa" url=""/>
