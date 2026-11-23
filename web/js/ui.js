@@ -434,6 +434,10 @@
   }
   function drawPacket(ctx, packet, camera) {
     const p = camera.toScreen(packet.at);
+    if (packet.burst !== undefined) {
+      drawDropBurst(ctx, p, packet.color, packet.burst);
+      return;
+    }
     if (packet.from) {
       const tail = camera.toScreen(packet.from);
       if (Math.hypot(p.x - tail.x, p.y - tail.y) > 0.5) {
@@ -470,6 +474,24 @@
     ctx.fillStyle = HALO;
     ctx.fillRect(x + 5, y + 3, 8, 1.5);
     ctx.fillRect(x + 5, y + 6.5, 5, 1.5);
+  }
+  function drawDropBurst(ctx, p, color, phase) {
+    const ring = 6 + 18 * phase;
+    ctx.globalAlpha = 1 - phase;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, ring, 0, Math.PI * 2);
+    ctx.stroke();
+    const arm = 7;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(p.x - arm, p.y - arm);
+    ctx.lineTo(p.x + arm, p.y + arm);
+    ctx.moveTo(p.x + arm, p.y - arm);
+    ctx.lineTo(p.x - arm, p.y + arm);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   // web/ts/canvas/packets.ts
@@ -926,6 +948,14 @@
       this.packets = this.packets.filter(({ run, start }) => {
         const at = packetAt(run.points, now - start, run.segmentMs);
         if (!at) {
+          if (run.dropped) {
+            const end = run.points[run.points.length - 1];
+            const since = now - start - (run.points.length - 1) * run.segmentMs;
+            if (since < 500) {
+              live.push({ at: end, color: run.color, burst: 1 - since / 500 });
+              return true;
+            }
+          }
           run.onDone?.();
           return false;
         }

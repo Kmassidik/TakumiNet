@@ -169,16 +169,32 @@ function showTip(e, text) {
 }
 function hideTip() { tipEl.hidden = true; }
 
-function animatePath(ids, proto = 'ICMP', onComplete) {
+function animatePath(ids, proto = 'ICMP', onComplete, event) {
   const pts = ids
     .map((id) => data.devices.find((d) => d.id === id))
     .filter(Boolean)
     .map((d) => ({ x: d.x, y: d.y }));
-  if (pts.length < 2) { if (onComplete) onComplete(); return; }
+  if (pts.length < 2) {
+    /* A packet dropped at its first hop still dies visibly: burst at the source. */
+    if (pts.length === 1 && event && event.status === 'Dropped') {
+      workspaceCanvas.runPacket({
+        points: [pts[0], { x: pts[0].x + 0.01, y: pts[0].y }],
+        color: '#b42318',
+        segmentMs: 300,
+        dropped: true,
+        onDone: onComplete,
+      });
+      return;
+    }
+    if (onComplete) onComplete();
+    return;
+  }
+  const dropped = event ? event.status === 'Dropped' : false;
   workspaceCanvas.runPacket({
     points: pts,
-    color: typeof protocolColor === 'function' ? protocolColor(proto) : '#e8590c',
+    color: dropped ? '#b42318' : (typeof protocolColor === 'function' ? protocolColor(proto) : '#e8590c'),
     segmentMs: 420 / (typeof playbackSpeed === 'number' ? playbackSpeed : 1),
+    dropped,
     onDone: onComplete,
   });
 }

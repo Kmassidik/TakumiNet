@@ -112,7 +112,7 @@ function openCmd(d) {
       else {
         simCursor = event.id;
         renderEvents();
-        animatePath(event.path, event.proto);
+        animatePath(event.path, event.proto, undefined, event);
       }
     });
   };

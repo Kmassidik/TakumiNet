@@ -29,6 +29,8 @@ export interface Packet {
   at: Point;
   from?: Point;
   color: string;
+  /** 0→1 while a dropped packet bursts at its last hop. */
+  burst?: number;
 }
 
 export interface DrawOptions {
@@ -260,6 +262,10 @@ function drawGroupLabels(ctx: Canvas2D, group: Scene["groups"][number], camera: 
    protocol colour, a dark outline, and two pale payload lines. */
 function drawPacket(ctx: Canvas2D, packet: Packet, camera: Camera): void {
   const p = camera.toScreen(packet.at);
+  if (packet.burst !== undefined) {
+    drawDropBurst(ctx, p, packet.color, packet.burst);
+    return;
+  }
   if (packet.from) {
     const tail = camera.toScreen(packet.from);
     if (Math.hypot(p.x - tail.x, p.y - tail.y) > 0.5) {
@@ -296,4 +302,25 @@ function drawPacket(ctx: Canvas2D, packet: Packet, camera: Camera): void {
   ctx.fillStyle = HALO;
   ctx.fillRect(x + 5, y + 3, 8, 1.5);
   ctx.fillRect(x + 5, y + 6.5, 5, 1.5);
+}
+
+/* A dropped packet dies at its last hop: a fading ring plus an X, so the
+   failure is visible on canvas rather than the token silently vanishing. */
+function drawDropBurst(ctx: Canvas2D, p: Point, color: string, phase: number): void {
+  const ring = 6 + 18 * phase;
+  ctx.globalAlpha = 1 - phase;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, ring, 0, Math.PI * 2);
+  ctx.stroke();
+  const arm = 7;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(p.x - arm, p.y - arm);
+  ctx.lineTo(p.x + arm, p.y + arm);
+  ctx.moveTo(p.x + arm, p.y - arm);
+  ctx.lineTo(p.x - arm, p.y + arm);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
 }

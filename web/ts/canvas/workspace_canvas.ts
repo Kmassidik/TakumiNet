@@ -28,6 +28,8 @@ export interface PacketRun {
   points: Point[];
   color: string;
   segmentMs: number;
+  /** A dropped PDU: the token dies at the last hop with a visible burst. */
+  dropped?: boolean;
   onDone?: () => void;
 }
 
@@ -264,6 +266,15 @@ export class WorkspaceCanvas {
     this.packets = this.packets.filter(({ run, start }) => {
       const at = packetAt(run.points, now - start, run.segmentMs);
       if (!at) {
+        if (run.dropped) {
+          /* The token dies at the last hop: hold the burst for half a second. */
+          const end = run.points[run.points.length - 1]!;
+          const since = now - start - (run.points.length - 1) * run.segmentMs;
+          if (since < 500) {
+            live.push({ at: end, color: run.color, burst: 1 - since / 500 });
+            return true;
+          }
+        }
         run.onDone?.();
         return false;
       }

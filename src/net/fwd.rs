@@ -158,7 +158,11 @@ where
     // destination, then each leg becomes an L2 path. Without addresses the
     // packet is a bare L2 walk, which is what an unaddressed lab looks like.
     let data_path = match (src_ip, dst_ip) {
-        (Some(_), Some(dip)) => routed_path(ws, &sdev, &ddev, dip)?,
+        (Some(_), Some(dip)) => routed_path(ws, &sdev, &ddev, dip).map_err(|(reason, partial)| {
+            // Keep the hops so far: the drop dies at the last reachable device.
+            capture.path = partial;
+            reason
+        })?,
         _ => match usable_path(ws, src, dst) {
             Some(p) => p,
             None => return Err(blocked_reason(ws, src, dst)),
@@ -608,12 +612,7 @@ fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
 
 /// Control-plane walk: follow next hops until the destination, then stitch the
 /// VLAN-constrained L2 legs into the exact device and cable path.
-pub(crate) fn routed_path(
-    ws: &Workspace,
-    sdev: &Device,
-    ddev: &Device,
-    dst_ip: u32,
-) -> Result<DataPath, String> {
+pub(crate) fn routed_path(ws: &Workspace, sdev: &Device, ddev: &Device, dst_ip: u32) -> Result<DataPath, (String, Vec<String>)> {
     let mut chain: Vec<String> = vec![sdev.id.clone()];
     let mut leg_vlans = Vec::new();
     let mut current = sdev.clone();
@@ -625,7 +624,8 @@ pub(crate) fn routed_path(
                 break;
             }
             NextHop::Via(ip, vlan) => (ip, vlan),
-            NextHop::NoRoute(msg) => return Err(msg),
+            // Dead first hop: keep the chain so the drop animation dies somewhere.
+            NextHop::NoRoute(msg) => return Err((msg, chain)),
         };
 
         let shared = ws.shared_gateway_owner(next);
@@ -638,14 +638,13 @@ pub(crate) fn routed_path(
             })
             .cloned()
             .ok_or_else(|| {
-                format!(
-                    "no route to {}: gateway {} is not a configured router interface",
-                    ipv4_string(dst_ip),
-                    ipv4_string(next)
+                (
+                    format!("no route to {}: gateway {} is not a configured router interface", ipv4_string(dst_ip), ipv4_string(next)),
+                    chain.clone(),
                 )
             })?;
         if chain.iter().any(|id| *id == peer.id) {
-            return Err(format!("routing loop at {}", peer.name));
+            return Err((format!("routing loop at {}", peer.name), chain.clone()));
         }
         let peer_tag = peer
             .ports
@@ -655,23 +654,23 @@ pub(crate) fn routed_path(
         let vlan = next_vlan.or(peer_tag);
         let from = chain.last().cloned().unwrap_or_default();
         if usable_path_vlan(ws, &from, &peer.id, vlan).is_none() {
-            return Err(blocked_reason(ws, &from, &peer.id));
+            return Err((blocked_reason(ws, &from, &peer.id), chain.clone()));
         }
         leg_vlans.push(vlan);
         chain.push(peer.id.clone());
         current = peer;
     }
     if chain.last().map(|id| id != &ddev.id).unwrap_or(true) {
-        return Err(format!(
-            "no route to {}: routing loop or hop limit exceeded",
-            ipv4_string(dst_ip)
+        return Err((
+            format!("no route to {}: routing loop or hop limit exceeded", ipv4_string(dst_ip)),
+            chain.clone(),
         ));
     }
 
     let mut path = DataPath { devices: vec![chain[0].clone()], links: Vec::new() };
     for (idx, pair) in chain.windows(2).enumerate() {
         let leg = usable_path_vlan(ws, &pair[0], &pair[1], leg_vlans[idx])
-            .ok_or_else(|| blocked_reason(ws, &pair[0], &pair[1]))?;
+            .ok_or_else(|| (blocked_reason(ws, &pair[0], &pair[1]), chain.clone()))?;
         for id in leg.devices.into_iter().skip(1) {
             if path.devices.last() != Some(&id) {
                 path.devices.push(id);

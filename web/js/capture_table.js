@@ -93,7 +93,7 @@
         if (simCursor !== event.id) return;
         narrationState = event.status === 'Dropped' ? 'error' : 'happy';
         renderNarration(event);
-      });
+      }, event);
     } else {
       narrationState = event.status === 'Dropped' ? 'error' : 'happy';
       renderNarration(event);
