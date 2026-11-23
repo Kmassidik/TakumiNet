@@ -65,7 +65,7 @@
 <routenet dev="router3" net="10.0.3.0" prefix="24" area="0"/>
 <routenet dev="router3" net="10.0.4.0" prefix="24" area="0"/>
 <routenet dev="router3" net="192.168.2.0" prefix="24" area="0"/>
-<note id="note0" x="-196" y="66" color="#fff3b0" text="A campus core of four routers running OSPF: every router learns the whole network from its neighbours, so traffic flows around any single failure. Try: press Play, then shut one ring link and ping again."/>
+<note id="note0" x="-196" y="66" color="#fff3b0" text="A campus core of four routers running OSPF. When you cut one ring link, the packet keeps flowing the other way around the ring — that is the reroute working, not a bug. To kill the traffic, cut two links so no path remains: shut router0 GigabitEthernet0/1 and GigabitEthernet0/2 in the terminal, then ping again."/>
 <demo kind="ping" from="pc0" to="server0" url=""/>
 <demo kind="ping" from="server0" to="pc0" url=""/>
 <demo kind="ping" from="pc0" to="router3" url=""/>
