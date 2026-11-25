@@ -142,3 +142,17 @@ fn roaming_features_survive_a_round_trip() {
     let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.roam_features(&wlc), (true, false, true));
 }
+
+#[test]
+fn the_wireless_demo_captures_both_associations() {
+    // Staff and guest both join over the air in the play: the capture shows
+    // the handshakes instead of the links being silent config.
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l4-campus-wireless.xml")).unwrap();
+    assert_eq!(ws.run_demo().unwrap(), ws.demo.len());
+    let logins: Vec<_> = ws.events.iter().filter(|e| e.proto == "Wifi").collect();
+    assert_eq!(logins.len(), 2, "both associations are captured");
+    assert!(logins.iter().any(|e| e.note.contains("CampusStaff")));
+    assert!(logins.iter().any(|e| e.note.contains("CampusGuest")));
+    assert!(logins.iter().all(|e| e.status == "Successful"));
+    assert!(ws.wifi.contains_key("laptop0") && ws.wifi.contains_key("phone0"));
+}

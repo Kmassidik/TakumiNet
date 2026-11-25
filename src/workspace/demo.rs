@@ -96,6 +96,10 @@ impl Workspace {
                     flush(self, &mut wave)?;
                     self.demo_pppoe_login(&step.from)?;
                 }
+                "wifi" => {
+                    flush(self, &mut wave)?;
+                    self.demo_wifi_association(&step.from)?;
+                }
                 other => {
                     flush(self, &mut wave)?;
                     return Err(format!("Built-in traffic step {} has an unknown kind '{other}'", index + 1));
@@ -165,6 +169,56 @@ impl Workspace {
             ),
             bytes: Vec::new(),
             size: 76,
+        });
+        Ok(())
+    }
+
+    /// One Wi-Fi association in the play: the client joins its configured
+    /// SSID with the network's own secret, and the handshake is captured so
+    /// going wireless is visible instead of being silent config.
+    fn demo_wifi_association(&mut self, client: &str) -> Result<(), String> {
+        let (ssid, current_wlc) = self.wifi.get(client).cloned().ok_or_else(|| {
+            format!("Built-in Wi-Fi from {} failed: the client has no SSID configured", self.name_of(client))
+        })?;
+        let (secret, security) = self
+            .wlans
+            .values()
+            .flat_map(|list| list.iter())
+            .find(|w| w.ssid == ssid)
+            .map(|w| (w.secret.clone(), w.security.clone()))
+            .ok_or_else(|| format!("Built-in Wi-Fi from {} failed: no network advertises {ssid}", self.name_of(client)))?;
+        // The association handshake travels over the air to the AP that
+        // serves the controller; the capture path runs client → controller.
+        let path = self.path(client, &current_wlc).unwrap_or_else(|| vec![client.to_string(), current_wlc.clone()]);
+        self.wifi_join(client, &ssid, &secret)?;
+        self.next_event += 1;
+        self.sim_time += 0.001;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(client),
+            at: self.name_of(&current_wlc),
+            kind: "Wifi".into(),
+            proto: "Wifi".into(),
+            path,
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                "Wifi",
+                vec![
+                    ("Capture".into(), "Association".into()),
+                    ("SSID".into(), ssid.clone()),
+                    ("Security".into(), security.clone()),
+                    ("Result".into(), "Associated".into()),
+                ],
+            )],
+            status: "Successful".into(),
+            reason: None,
+            note: format!(
+                "{} associates with {ssid} ({security})",
+                self.name_of(client)
+            ),
+            bytes: Vec::new(),
+            size: 64,
         });
         Ok(())
     }

@@ -70,7 +70,7 @@ const TEMPLATES: [(&str, &str); 35] = [
 ];
 
 /// The engine implements exactly these kinds; anything else is P7 violation.
-const DEMO_KINDS: [&str; 6] = ["ping", "http", "dns", "dhcp", "expect", "pppoe"];
+const DEMO_KINDS: [&str; 7] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi"];
 
 /// A device is addressable if the device itself, any port, or its `<net>`
 /// DHCP record carries an address — the same rule `run_demo` applies.
@@ -134,6 +134,12 @@ fn p1_p7_every_demo_step_references_live_addressed_endpoints() {
                     assert!(
                         ws.pppoe.contains_key(&step.from),
                         "{name} step {i}: pppoe client '{}' has no provider configured", step.from
+                    );
+                }
+                "wifi" => {
+                    assert!(
+                        ws.wifi.contains_key(&step.from),
+                        "{name} step {i}: wifi client '{}' has no SSID configured", step.from
                     );
                 }
                 _ => unreachable!("kind list above"),

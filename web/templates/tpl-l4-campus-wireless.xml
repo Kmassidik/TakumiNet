@@ -24,9 +24,12 @@
   <capwap ap="ap1" wlc="wlc0"/>
   <capwap ap="ap2" wlc="wlc0"/>
   <wifi client="laptop0" ssid="CampusStaff" wlc="wlc0"/>
-  <note id="note0" x="-116" y="26" color="#fff3b0" text="A campus WLAN: access points join a controller over CAPWAP, and staff and guest SSIDs separate who reaches what. Try: open the WLC window to see the APs, then ping from the staff laptop across the fabric."/>
+  <wifi client="phone0" ssid="CampusGuest" wlc="wlc0"/>
+  <note id="note0" x="-116" y="26" color="#fff3b0" text="A campus WLAN: access points join a controller over CAPWAP, and staff and guest SSIDs separate who reaches what. In the play both clients associate over the air first; the staff laptop reaches the file server while the guest phone is isolated — it can only reach the controller."/>
+  <demo kind="wifi" from="laptop0" to="" url=""/>
+  <demo kind="wifi" from="phone0" to="" url=""/>
   <demo kind="ping" from="laptop0" to="server0" url=""/>
-  <demo kind="ping" from="phone0" to="server0" url=""/>
+  <demo kind="ping" from="phone0" to="wlc0" url=""/>
   <demo kind="ping" from="server0" to="laptop0" url=""/>
   <demo kind="ping" from="laptop0" to="wlc0" url=""/>
 </takumi>
