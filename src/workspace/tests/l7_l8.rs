@@ -30,6 +30,42 @@ fn the_city_ring_survives_any_single_fibre_cut() {
 }
 
 #[test]
+fn the_city_ring_drops_when_pc0s_district_loses_both_fibres() {
+    // South is only attached to the ring through two fibres; both down
+    // means no path remains, exactly what the template note warns about.
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l7-city-ring.xml")).unwrap();
+    assert!(ws.set_port_up("selatan", "GigabitEthernet0/1", false));
+    assert!(ws.set_port_up("selatan", "GigabitEthernet0/2", false));
+    assert!(
+        ws.send_pdu("pc0", "server0").is_err(),
+        "both fibres down isolates the south district"
+    );
+}
+
+#[test]
+fn the_city_ring_survives_two_cuts_that_leave_a_path() {
+    // The exchange cx0 hangs off utara only (utara Gig0/3), and pc0 hangs off
+    // selatan. Pairs must leave selatan one ring fibre and utara attached.
+    for pair in [
+        // North-east arc severed: south reaches the exchange via barat.
+        [("utara", "GigabitEthernet0/1"), ("timur", "GigabitEthernet0/2")],
+        // South-west arc severed: south reaches the exchange via timur.
+        [("utara", "GigabitEthernet0/2"), ("barat", "GigabitEthernet0/1")],
+        // District-east isolated entirely; the rest of the ring stays whole.
+        [("timur", "GigabitEthernet0/1"), ("timur", "GigabitEthernet0/2")],
+    ] {
+        let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l7-city-ring.xml")).unwrap();
+        for (dev, port) in pair {
+            assert!(ws.set_port_up(dev, port, false), "{dev} {port}");
+        }
+        assert!(
+            ws.send_pdu("pc0", "server0").is_ok(),
+            "cuts {pair:?} leave a path; delivery must survive"
+        );
+    }
+}
+
+#[test]
 fn ring_heals_lesson_fails_open_and_passes_once_the_ring_is_closed() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l7-01-ring-heals.xml")).unwrap();
     assert_eq!(passes(&mut ws), vec![false, false], "the Barat to Utara segment ships switched off");

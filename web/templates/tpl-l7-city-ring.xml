@@ -92,7 +92,7 @@
 <routenet dev="cx0" net="10.70.5.0" prefix="24" area="0"/>
 <routenet dev="cx0" net="10.70.5.0" prefix="24" area="0"/>
 <routenet dev="cx0" net="192.168.70.0" prefix="24" area="0"/>
-<note id="note0" x="-136" y="-14" color="#fff3b0" text="A city network is a fibre ring: any two districts always have two ways around, so one cut never blackholes a neighbourhood. Try: press Play, then cut any ring link and press Play again."/>
+<note id="note0" x="-136" y="-14" color="#fff3b0" text="A city network is a fibre ring: any two districts always have two ways around, so one cut never blackholes a neighbourhood — the packet keeps flowing the other way, and that reroute is the ring working, not a bug. To kill the traffic, cut both fibres of one district (for example shut selatan GigabitEthernet0/1 and GigabitEthernet0/2): the packet then dies at the source with a red burst."/>
 <demo kind="ping" from="pc0" to="server0" url=""/>
 <demo kind="ping" from="server0" to="pc0" url=""/>
 <demo kind="ping" from="pc0" to="timur" url=""/>
