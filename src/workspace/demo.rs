@@ -104,6 +104,15 @@ impl Workspace {
                     flush(self, &mut wave)?;
                     self.demo_voucher_portal(&step.from)?;
                 }
+                "call" => {
+                    flush(self, &mut wave)?;
+                    let (from_ext, to_ext) = step
+                        .url
+                        .split_once(':')
+                        .and_then(|(a, b)| Some((a.parse::<u16>().ok()?, b.parse::<u16>().ok()?)))
+                        .ok_or_else(|| format!("Built-in call step {} needs extensions as 'from:to' in the url, like 2001:2002", index + 1))?;
+                    self.call(from_ext, to_ext).map_err(|e| format!("Built-in call step {} failed: {e}", index + 1))?;
+                }
                 other => {
                     flush(self, &mut wave)?;
                     return Err(format!("Built-in traffic step {} has an unknown kind '{other}'", index + 1));

@@ -18,4 +18,5 @@
   <demo kind="ping" from="phone1" to="server0" url=""/>
   <demo kind="ping" from="router0" to="server0" url=""/>
   <demo kind="ping" from="phone1" to="router0" url=""/>
+  <demo kind="call" from="phone1" to="" url="2101:2102"/>
 </takumi>

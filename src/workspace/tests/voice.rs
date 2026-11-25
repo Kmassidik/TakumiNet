@@ -140,3 +140,20 @@ fn the_home_phone_template_registers_the_analog_line_and_calls_over_ip() {
     let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
     assert_eq!(back.call_of(2102).unwrap(), (2102, 2101, "established".into()));
 }
+
+#[test]
+fn the_voice_demos_capture_the_call_as_a_sip_event() {
+    // Both voice templates end their play with a real dial: the SIP exchange
+    // lands in the capture instead of the call being pre-seeded state.
+    for (name, text) in [("office", OFFICE), ("home", HOME_PHONE)] {
+        let mut ws = Workspace::from_tnet(text).unwrap();
+        let calls_before = ws.events.iter().filter(|e| e.proto == "SIP").count();
+        assert_eq!(ws.run_demo().unwrap(), ws.demo.len(), "{name}: every step runs");
+        let sips: Vec<_> = ws.events.iter().filter(|e| e.proto == "SIP").collect();
+        assert!(
+            sips.len() > calls_before,
+            "{name}: the demo dials at least one fresh call"
+        );
+        assert!(sips.iter().all(|e| e.status == "Successful"));
+    }
+}

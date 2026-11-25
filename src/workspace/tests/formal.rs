@@ -70,7 +70,7 @@ const TEMPLATES: [(&str, &str); 35] = [
 ];
 
 /// The engine implements exactly these kinds; anything else is P7 violation.
-const DEMO_KINDS: [&str; 8] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher"];
+const DEMO_KINDS: [&str; 9] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher", "call"];
 
 /// A device is addressable if the device itself, any port, or its `<net>`
 /// DHCP record carries an address — the same rule `run_demo` applies.
@@ -150,6 +150,18 @@ fn p1_p7_every_demo_step_references_live_addressed_endpoints() {
                     assert!(
                         ws.vouchers.values().any(|list| list.iter().any(|v| v.used_by.is_none() || v.used_by.as_deref() == Some(&step.from))),
                         "{name} step {i}: no free voucher for '{}' anywhere", step.from
+                    );
+                }
+                "call" => {
+                    let parsed = step.url.split_once(':').and_then(|(a, b)| Some((a.parse::<u16>().ok()?, b.parse::<u16>().ok()?)));
+                    assert!(
+                        parsed.is_some(),
+                        "{name} step {i}: call url '{}' is not 'from:to' extensions", step.url
+                    );
+                    let (from_ext, to_ext) = parsed.unwrap();
+                    assert!(
+                        ws.phones.values().any(|(_, e)| *e == from_ext) && ws.phones.values().any(|(_, e)| *e == to_ext),
+                        "{name} step {i}: call extensions {from_ext}/{to_ext} are not registered"
                     );
                 }
                 _ => unreachable!("kind list above"),
