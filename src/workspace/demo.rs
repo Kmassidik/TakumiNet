@@ -92,6 +92,10 @@ impl Workspace {
                         }
                     }
                 }
+                "pppoe" => {
+                    flush(self, &mut wave)?;
+                    self.demo_pppoe_login(&step.from)?;
+                }
                 other => {
                     flush(self, &mut wave)?;
                     return Err(format!("Built-in traffic step {} has an unknown kind '{other}'", index + 1));
@@ -110,5 +114,58 @@ impl Workspace {
             }
         }
         Ok(steps.len())
+    }
+
+    /// One PPPoE login in the play: the client redials its configured session
+    /// with the account the gateway knows, and the exchange is captured so the
+    /// login is visible in the capture instead of being silent config.
+    fn demo_pppoe_login(&mut self, client: &str) -> Result<(), String> {
+        let (server, user) = self.pppoe.get(client).cloned().ok_or_else(|| {
+            format!("Built-in PPPoE from {} failed: the client has no provider configured", self.name_of(client))
+        })?;
+        let owner = self
+            .devices
+            .iter()
+            .find(|d| d.ip == crate::model::parse_ipv4(&server) || d.ports.iter().any(|p| p.ip == crate::model::parse_ipv4(&server)))
+            .map(|d| d.id.clone())
+            .ok_or_else(|| format!("Built-in PPPoE from {} failed: no device at {server}", self.name_of(client)))?;
+        let pass = self
+            .aaa_users
+            .get(&owner)
+            .and_then(|users| users.iter().find(|(u, _)| u == &user).map(|(_, p)| p.clone()))
+            .ok_or_else(|| format!("Built-in PPPoE from {} failed: the gateway holds no account for {user}", self.name_of(client)))?;
+        let path = self.path(client, &owner).unwrap_or_else(|| vec![client.to_string(), owner.clone()]);
+        self.pppoe_connect(client, &server, &user, &pass)?;
+        self.next_event += 1;
+        self.sim_time += 0.001;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(client),
+            at: self.name_of(&owner),
+            kind: "PPPoE".into(),
+            proto: "PPPoE".into(),
+            path,
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                "PPPoE",
+                vec![
+                    ("Capture".into(), "Session login".into()),
+                    ("User".into(), user.clone()),
+                    ("Gateway".into(), server.clone()),
+                    ("Result".into(), "Session established".into()),
+                ],
+            )],
+            status: "Successful".into(),
+            reason: None,
+            note: format!(
+                "{} logs in to {} as {user}; the provider grants the session",
+                self.name_of(client),
+                self.name_of(&owner)
+            ),
+            bytes: Vec::new(),
+            size: 76,
+        });
+        Ok(())
     }
 }

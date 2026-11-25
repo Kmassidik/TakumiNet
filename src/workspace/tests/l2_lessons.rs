@@ -17,6 +17,23 @@ fn the_small_rtrw_template_serves_a_home_laptop() {
 }
 
 #[test]
+fn the_rtrw_demo_captures_the_pppoe_login() {
+    // The login is part of the play: the capture shows the session coming up
+    // instead of the credentials being silent config.
+    let mut ws = Workspace::from_tnet(SMALL).unwrap();
+    assert_eq!(ws.run_demo().unwrap(), ws.demo.len());
+    let login = ws
+        .events
+        .iter()
+        .find(|e| e.proto == "PPPoE")
+        .expect("the PPPoE login is captured");
+    assert_eq!(login.status, "Successful");
+    assert!(login.path.contains(&"home0".to_string()) && login.path.contains(&"gw0".to_string()));
+    assert!(login.note.contains("home0"), "{}", login.note);
+    assert!(ws.pppoe_status("home0").is_some(), "the session is up after the play");
+}
+
+#[test]
 fn the_first_gateway_lesson_blocks_private_homes_until_nat_exists() {
     let mut ws = Workspace::from_tnet(GATEWAY).unwrap();
     assert_eq!(passes(&mut ws), vec![false, false, false]);
