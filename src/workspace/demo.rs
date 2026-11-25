@@ -113,6 +113,16 @@ impl Workspace {
                         .ok_or_else(|| format!("Built-in call step {} needs extensions as 'from:to' in the url, like 2001:2002", index + 1))?;
                     self.call(from_ext, to_ext).map_err(|e| format!("Built-in call step {} failed: {e}", index + 1))?;
                 }
+                "modbus" => {
+                    flush(self, &mut wave)?;
+                    let (dev, addr) = step
+                        .url
+                        .split_once(':')
+                        .and_then(|(d, a)| Some((d.to_string(), a.parse::<u16>().ok()?)))
+                        .ok_or_else(|| format!("Built-in modbus step {} needs 'device:register' in the url, like thing0:2", index + 1))?;
+                    self.demo_modbus_read(&step.from, &dev, addr)
+                        .map_err(|e| format!("Built-in modbus step {} failed: {e}", index + 1))?;
+                }
                 other => {
                     flush(self, &mut wave)?;
                     return Err(format!("Built-in traffic step {} has an unknown kind '{other}'", index + 1));
@@ -302,5 +312,51 @@ impl Workspace {
         } else {
             Err(format!("Built-in voucher from {} failed: the voucher did not redeem", self.name_of(client)))
         }
+    }
+
+    /// One Modbus TCP read in the play: the operator polls a register on the
+    /// device across the OT network, and the exchange is captured — the
+    /// registers stop being numbers only the device window knows.
+    fn demo_modbus_read(&mut self, reader: &str, dev: &str, addr: u16) -> Result<(), String> {
+        if !self.devices.iter().any(|d| d.id == reader) {
+            return Err(format!("'{}' is not a device here", reader));
+        }
+        let value = self.iot_read(dev, addr).map_err(|e| format!("{dev}: {e}"))?;
+        let path = self.path(reader, dev).unwrap_or_else(|| vec![reader.to_string(), dev.to_string()]);
+        // The exchange must really traverse the OT network, not just look it up.
+        self.clone()
+            .send_addressed_pdu(reader, dev)
+            .map_err(|e| format!("{} cannot reach {dev}: {e}", self.name_of(reader)))?;
+        self.next_event += 1;
+        self.sim_time += 0.001;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(reader),
+            at: self.name_of(dev),
+            kind: "Modbus".into(),
+            proto: "Modbus".into(),
+            path,
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                "Modbus",
+                vec![
+                    ("Capture".into(), "Read holding register".into()),
+                    ("Unit".into(), self.name_of(dev)),
+                    ("Register".into(), addr.to_string()),
+                    ("Value".into(), value.to_string()),
+                ],
+            )],
+            status: "Successful".into(),
+            reason: None,
+            note: format!(
+                "{} reads register {addr} on {} = {value}",
+                self.name_of(reader),
+                self.name_of(dev)
+            ),
+            bytes: Vec::new(),
+            size: 60,
+        });
+        Ok(())
     }
 }

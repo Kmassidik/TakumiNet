@@ -92,3 +92,22 @@ fn the_cell_check_names_the_wrong_tower_and_the_backup_template_ships_joined() {
     assert!(!verdict.0);
     assert_eq!(verdict.1, "joined to RegencyTower, not ClinicSwitch");
 }
+
+#[test]
+fn the_factory_demo_captures_the_modbus_register_read() {
+    // The operator polls the tank sensor across the OT network: the capture
+    // shows the Modbus exchange with the live value, not silent registers.
+    let mut ws = Workspace::from_tnet(FACTORY).unwrap();
+    assert_eq!(ws.run_demo().unwrap(), ws.demo.len());
+    let read = ws
+        .events
+        .iter()
+        .find(|e| e.proto == "Modbus")
+        .expect("the register read is captured");
+    assert_eq!(read.status, "Successful");
+    assert!(read.note.contains("register 2"), "{}", read.note);
+    assert!(read.note.contains("= 73"), "{}", read.note);
+    assert!(read.path.contains(&"pc0".to_string()) && read.path.contains(&"thing0".to_string()));
+    // The network leg is real: the exchange also produced ordinary traffic.
+    assert!(ws.events.iter().any(|e| e.proto == "ICMP" && e.status == "Successful"));
+}

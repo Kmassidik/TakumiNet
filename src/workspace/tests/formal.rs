@@ -70,7 +70,7 @@ const TEMPLATES: [(&str, &str); 35] = [
 ];
 
 /// The engine implements exactly these kinds; anything else is P7 violation.
-const DEMO_KINDS: [&str; 9] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher", "call"];
+const DEMO_KINDS: [&str; 10] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher", "call", "modbus"];
 
 /// A device is addressable if the device itself, any port, or its `<net>`
 /// DHCP record carries an address — the same rule `run_demo` applies.
@@ -163,6 +163,22 @@ fn p1_p7_every_demo_step_references_live_addressed_endpoints() {
                         ws.phones.values().any(|(_, e)| *e == from_ext) && ws.phones.values().any(|(_, e)| *e == to_ext),
                         "{name} step {i}: call extensions {from_ext}/{to_ext} are not registered"
                     );
+                }
+                "modbus" => {
+                    let parsed = step
+                        .url
+                        .split_once(':')
+                        .and_then(|(d, a)| Some((d.to_string(), a.parse::<u16>().ok()?)));
+                    assert!(
+                        parsed.is_some(),
+                        "{name} step {i}: modbus url '{}' is not 'device:register'", step.url
+                    );
+                    let (dev, addr) = parsed.unwrap();
+                    assert!(
+                        ws.devices.iter().any(|d| d.id == dev && matches!(d.kind.as_str(), "plc" | "thing" | "ioe" | "server" | "pc" | "laptop")),
+                        "{name} step {i}: modbus device '{}' holds no registers", dev
+                    );
+                    assert!(addr <= 255, "{name} step {i}: register {addr} out of range");
                 }
                 _ => unreachable!("kind list above"),
             }
