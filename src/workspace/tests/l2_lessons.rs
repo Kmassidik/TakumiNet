@@ -170,6 +170,28 @@ fn voucher_input_is_validated() {
 }
 
 #[test]
+fn the_hotspot_demo_captures_the_portal_then_the_browse() {
+    // The play is the café deal: the guest is held at the captive portal,
+    // redeems the voucher, and only then does the page load.
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")).unwrap();
+    // Without a voucher the guest cannot even reach the site: the gate is real.
+    let refused = ws.send_pdu("phone0", "server0").unwrap_err();
+    assert!(refused.contains("until a voucher is redeemed"), "{refused}");
+    assert_eq!(ws.run_demo().unwrap(), ws.demo.len());
+    let portal = ws
+        .events
+        .iter()
+        .find(|e| e.proto == "Portal")
+        .expect("the captive portal is captured");
+    assert_eq!(portal.status, "Successful");
+    assert!(portal.note.contains("LUNCH-4821"), "{}", portal.note);
+    // Redemption was real: the same PDU now goes through.
+    let mut after = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")).unwrap();
+    after.run_demo().unwrap();
+    assert!(after.send_pdu("phone0", "server0").is_ok(), "the voucher opens the internet");
+}
+
+#[test]
 fn far_house_lesson_swaps_one_long_shot_for_two_short_hops() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/les-l2-05-far-house.xml")).unwrap();
     assert_eq!(passes(&mut ws), vec![false, true], "reachable, but far too slow");

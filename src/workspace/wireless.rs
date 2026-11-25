@@ -73,9 +73,20 @@ impl Workspace {
         };
         for (client, other) in [(src, dst), (dst, src)] {
             if let Some((ssid, wlc)) = guest_of(client) {
-                if other != wlc {
-                    return Some(format!("blocked: {ssid} is a guest network and can only reach {}", self.name_of(wlc)));
+                if other == wlc {
+                    continue;
                 }
+                // A redeemed voucher opens the gateway's outward path for this
+                // visitor — the café-portal deal: pay, then browse.
+                let redeemed = self
+                    .vouchers
+                    .values()
+                    .flatten()
+                    .any(|v| v.used_by.as_deref() == Some(client));
+                if redeemed {
+                    continue;
+                }
+                return Some(format!("blocked: {ssid} is a guest network and can only reach {} until a voucher is redeemed", self.name_of(wlc)));
             }
         }
         None

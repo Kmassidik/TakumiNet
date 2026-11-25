@@ -100,6 +100,10 @@ impl Workspace {
                     flush(self, &mut wave)?;
                     self.demo_wifi_association(&step.from)?;
                 }
+                "voucher" => {
+                    flush(self, &mut wave)?;
+                    self.demo_voucher_portal(&step.from)?;
+                }
                 other => {
                     flush(self, &mut wave)?;
                     return Err(format!("Built-in traffic step {} has an unknown kind '{other}'", index + 1));
@@ -221,5 +225,73 @@ impl Workspace {
             size: 64,
         });
         Ok(())
+    }
+
+    /// The café-portal play for one visitor: the client's first attempt at the
+    /// internet is captured as the captive portal stopping it, the voucher is
+    /// redeemed (the code comes from the gateway's own voucher list, first
+    /// unused), and the retry succeeds — pay, then browse.
+    fn demo_voucher_portal(&mut self, client: &str) -> Result<(), String> {
+        let target = self
+            .devices
+            .iter()
+            .find(|d| d.kind == "cloud")
+            .map(|d| d.id.clone())
+            .unwrap_or_else(|| "server0".to_string());
+        // 1. The portal stops the guest.
+        let (ssid, wlc) = self.wifi.get(client).cloned().ok_or_else(|| {
+            format!("Built-in voucher from {} failed: the client has no SSID configured", self.name_of(client))
+        })?;
+        let blocked_reason = self.guest_blocked(client, &target);
+        // 2. Redeem: the portal runs on the NAT gateway toward the internet,
+        // which is also where the voucher list lives. First free voucher wins.
+        let portal_dev = self
+            .vouchers
+            .iter()
+            .find(|(_, list)| list.iter().any(|v| v.used_by.is_none() || v.used_by.as_deref() == Some(client)))
+            .map(|(gw, _)| gw.clone())
+            .unwrap_or_else(|| wlc.clone());
+        let code = self
+            .vouchers
+            .get(&portal_dev)
+            .and_then(|list| list.iter().find(|v| v.used_by.is_none() || v.used_by.as_deref() == Some(client)))
+            .map(|v| v.code.clone())
+            .ok_or_else(|| format!("Built-in voucher from {} failed: the hotspot holds no free voucher", self.name_of(client)))?;
+        let redeemed = self.voucher_redeem(&portal_dev, client, &code).is_ok();
+        self.next_event += 1;
+        self.sim_time += 0.001;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(client),
+            at: self.name_of(&portal_dev),
+            kind: "Portal".into(),
+            proto: "Portal".into(),
+            path: vec![client.to_string(), wlc.clone()],
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                "Portal",
+                vec![
+                    ("Capture".into(), "Captive portal".into()),
+                    ("SSID".into(), ssid),
+                    ("Voucher".into(), code.clone()),
+                    ("Result".into(), if redeemed { "Access granted".into() } else { "Still blocked".into() }),
+                ],
+            )],
+            status: if redeemed { "Successful".into() } else { "Dropped".into() },
+            reason: blocked_reason,
+            note: if redeemed {
+                format!("{} redeems {code} at the portal; the hotspot opens the internet", self.name_of(client))
+            } else {
+                format!("{} is held at the portal; the voucher did not redeem", self.name_of(client))
+            },
+            bytes: Vec::new(),
+            size: 72,
+        });
+        if redeemed {
+            Ok(())
+        } else {
+            Err(format!("Built-in voucher from {} failed: the voucher did not redeem", self.name_of(client)))
+        }
     }
 }

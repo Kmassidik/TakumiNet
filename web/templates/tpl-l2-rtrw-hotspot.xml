@@ -24,11 +24,12 @@
   <natrole dev="gw0" iface="Ether1" dir="outside"/>
   <natrule dev="gw0" num="1" iface="Ether1"/>
   <wlan wlc="hotspot0" ssid="CafeNet" psk="" security="Open"/>
+  <guestnet wlc="hotspot0" ssid="CafeNet"/>
   <wifi client="phone0" ssid="CafeNet" wlc="hotspot0"/>
   <wifi client="phone1" ssid="CafeNet" wlc="hotspot0"/>
   <voucher dev="gw0" code="LUNCH-4821" minutes="60" used="-"/>
-  <note id="note0" x="-116" y="6" color="#fff3b0" text="A café hotspot sells time with vouchers behind one NAT gateway — the same model cafés and campuses run. Try: press Play to browse out through the gateway, then open the hotspot window to issue a voucher."/>
+  <note id="note0" x="-116" y="6" color="#fff3b0" text="A café hotspot sells time with vouchers behind one NAT gateway — the same model cafés and campuses run. In the play the guest is held at the captive portal, redeems the voucher LUNCH-4821, and only then gets out through the gateway NAT."/>
+  <demo kind="voucher" from="phone0" to="" url=""/>
   <demo kind="http" from="phone0" to="" url="http://www.example.lab/"/>
-  <demo kind="ping" from="phone1" to="phone0" url=""/>
   <demo kind="http" from="laptop0" to="" url="http://www.example.lab/"/>
 </takumi>
