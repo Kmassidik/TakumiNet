@@ -30,4 +30,5 @@
   <demo kind="http" from="pc0" to="" url="http://203.0.113.10/"/>
   <demo kind="ping" from="pc0" to="server1" url=""/>
   <demo kind="ping" from="server1" to="pc0" url=""/>
+  <demo kind="expect" from="server0" to="ping" url="server1"/>
 </takumi>

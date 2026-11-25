@@ -41,6 +41,19 @@ fn the_dmz_template_ships_with_the_fence_already_up() {
 }
 
 #[test]
+fn the_dmz_demo_captures_the_acl_deny_as_a_expected_failure() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l4-campus-dmz.xml")).unwrap();
+    let steps = ws.run_demo().unwrap();
+    assert_eq!(steps, ws.demo.len(), "the expect step must not abort the run");
+    let denied = ws
+        .events
+        .iter()
+        .find(|e| e.status == "Dropped" && e.reason.as_deref().unwrap_or("").contains("ACL denied"))
+        .expect("the denied ping is captured, not swallowed");
+    assert_eq!(denied.path, vec!["server0", "switch0", "asa0", "switch1", "server1"]);
+}
+
+#[test]
 fn the_three_layer_template_routes_floor_to_server() {
     let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l4-campus-three-layer.xml")).unwrap();
     assert!(ws.send_pdu("pc0", "server0").is_ok());
