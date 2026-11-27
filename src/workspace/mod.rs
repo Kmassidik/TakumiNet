@@ -29,6 +29,7 @@ mod router_admin;
 mod port_forward;
 mod queues;
 mod vouchers;
+pub(crate) use vouchers::Voucher;
 mod shared_gateway;
 mod sniffer;
 mod stp_state;

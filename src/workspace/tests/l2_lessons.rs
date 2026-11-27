@@ -185,10 +185,91 @@ fn the_hotspot_demo_captures_the_portal_then_the_browse() {
         .expect("the captive portal is captured");
     assert_eq!(portal.status, "Successful");
     assert!(portal.note.contains("LUNCH-4821"), "{}", portal.note);
-    // Redemption was real: the same PDU now goes through.
+    // Redemption was real, and the expiry step closed the arc: right after
+    // the play the clock sits past the validity, so the guest is held again
+    // until a new voucher — exactly what the capture showed.
     let mut after = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")).unwrap();
     after.run_demo().unwrap();
-    assert!(after.send_pdu("phone0", "server0").is_ok(), "the voucher opens the internet");
+    assert!(
+        after.send_pdu("phone0", "server0").is_err(),
+        "the play runs the full deal: pay, browse, then the session runs out"
+    );
+    assert!(after.send_pdu("phone1", "server0").is_err(), "phone1 never redeemed, so it stays held");
+    assert!(after.voucher_rows("gw0").is_empty(), "the portal retired the lapsed voucher");
+}
+
+/// Vouchers are sold by the clock: a redeemed session lives exactly its
+/// minutes of sim time, then the guest is held again and the lapse itself is
+/// captured so the play shows the deal ending.
+#[test]
+fn a_voucher_session_runs_out_and_blocks_the_guest_again() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")).unwrap();
+    ws.voucher_redeem("gw0", "phone0", "LUNCH-4821").unwrap();
+    assert!(ws.send_pdu("phone0", "server0").is_ok(), "a fresh session opens the internet");
+    // A second voucher stays in the printer: nobody redeems it.
+    ws.voucher_create("gw0", "CODE-9999", 120).unwrap();
+
+    // Two of the sixty minutes go by: still inside the paid window.
+    ws.advance(120.0);
+    assert!(ws.send_pdu("phone0", "server0").is_ok(), "the session outlives part of its validity");
+
+    // The clock passes the validity: 60 minutes from redemption.
+    let capture_before = ws.events.len();
+    ws.advance(3600.0 - 120.0 + 1.0);
+    let lapse = ws.events.iter().skip(capture_before)
+        .find(|e| e.proto == "Portal" && e.status == "Info")
+        .expect("the lapse is captured as the clock passes the validity");
+    assert!(lapse.note.contains("expired") || lapse.note.contains("run out"), "{}", lapse.note);
+    let refused = ws.send_pdu("phone0", "server0").unwrap_err();
+    assert!(refused.contains("until a voucher is redeemed"), "the gate is closed again: {refused}");
+    assert_eq!(ws.voucher_rows("gw0"), vec![("CODE-9999".to_string(), 120, None)], "the portal retires only the lapsed voucher");
+
+    // An unused voucher never lapses, however long the clock runs.
+    ws.advance(60.0 * 60.0 * 24.0 * 7.0);
+    assert_eq!(ws.voucher_rows("gw0"), vec![("CODE-9999".to_string(), 120, None)], "unused vouchers do not expire");
+}
+
+/// The lapse is part of the capture, not silent state: advancing the clock
+/// past the validity emits a 'voucher expired' Portal event that names the
+/// voucher, its validity and the guest it locked out.
+#[test]
+fn advancing_the_clock_captures_the_voucher_expiry() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")).unwrap();
+    ws.voucher_redeem("gw0", "phone0", "LUNCH-4821").unwrap();
+    let before = ws.events.len();
+    ws.advance(60.0 * 60.0 + 1.0);
+    let lapse = ws
+        .events
+        .iter()
+        .skip(before)
+        .find(|e| e.proto == "Portal" && e.status == "Info")
+        .expect("the expiry is captured");
+    let text = format!("{} {}", lapse.note, lapse.layers.iter().map(|l| format!("{l:?}")).collect::<String>());
+    assert!(text.contains("expired"), "{text}");
+    assert!(text.contains("LUNCH-4821"), "{text}");
+    assert!(text.contains("60 min"), "{text}");
+    assert!(text.contains("Phone0"), "{text}");
+    // The engine's clock is minutes-to-hours scale, not years: the template
+    // sells 60 minutes and the play advances past it in one step.
+    assert_eq!(ws.sim_time, 3601.0);
+    // Retiring the voucher reopened the gate: a second session needs a new
+    // voucher, exactly what the portal demo would hand the guest next.
+    assert!(ws.send_pdu("phone0", "server0").is_err());
+}
+
+/// The session clock survives save and open: a voucher opened before the file
+/// was written still runs out at its original moment, not at the load moment.
+#[test]
+fn a_redeemed_voucher_keeps_its_session_clock_across_save_and_open() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-l2-rtrw-hotspot.xml")).unwrap();
+    ws.voucher_redeem("gw0", "phone0", "LUNCH-4821").unwrap();
+    ws.advance(1800.0); // half the hour is spent
+    let text = ws.to_tnet();
+    assert!(text.contains("spent=\"1800\""), "the consumed window is written: {text}");
+    let mut back = Workspace::from_tnet(&text).unwrap();
+    assert!(back.send_pdu("phone0", "server0").is_ok(), "the saved session is still open");
+    back.advance(1801.0);
+    assert!(back.send_pdu("phone0", "server0").is_err(), "the reopened session still runs out on time");
 }
 
 #[test]

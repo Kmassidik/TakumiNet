@@ -77,16 +77,23 @@ impl Workspace {
                     continue;
                 }
                 // A redeemed voucher opens the gateway's outward path for this
-                // visitor — the café-portal deal: pay, then browse.
+                // visitor — the café-portal deal: pay, then browse. The deal
+                // runs out: once the voucher's minutes of sim time are spent,
+                // the session lapses and the guest is held at the portal again.
                 let redeemed = self
                     .vouchers
                     .values()
                     .flatten()
-                    .any(|v| v.used_by.as_deref() == Some(client));
+                    .any(|v| v.used_by.as_deref() == Some(client) && !v.lapsed(self.sim_time as f64));
                 if redeemed {
                     continue;
                 }
-                return Some(format!("blocked: {ssid} is a guest network and can only reach {} until a voucher is redeemed", self.name_of(wlc)));
+                return Some(match self.vouchers.values().flatten().any(|v| v.used_by.as_deref() == Some(client)) {
+                    true => format!(
+                        "blocked: {ssid} is a guest network and the voucher session expired — redeem a new voucher to get back online"
+                    ),
+                    false => format!("blocked: {ssid} is a guest network and can only reach {} until a voucher is redeemed", self.name_of(wlc)),
+                });
             }
         }
         None

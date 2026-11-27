@@ -53,11 +53,22 @@ impl Workspace {
                 let list: Vec<String> = members.split(',').map(str::to_string).collect();
                 let _ = self.collapse(&unescape_field(name), &list);
             }
-            ["voucher", dev, code, minutes, used] => {
+            ["voucher", dev, code, minutes, used, spent] => {
                 if let Ok(m) = minutes.parse() {
                     let _ = self.voucher_create(dev, &unescape_field(code), m);
                     if *used != "-" {
                         let _ = self.voucher_redeem(dev, used, &unescape_field(code));
+                        // Restore how much of the paid window the session has
+                        // already consumed: the reopened session runs out at
+                        // the same wall moment, not a full validity later.
+                        if let Ok(elapsed) = spent.parse::<f64>() {
+                            let redeemed = unescape_field(code);
+                            if let Some(v) = self.vouchers.get_mut(&dev.to_string()).into_iter().flatten()
+                                .find(|v| v.code == redeemed.trim())
+                            {
+                                v.started_at = Some(self.sim_time as f64 - elapsed.max(0.0));
+                            }
+                        }
                     }
                 }
             }

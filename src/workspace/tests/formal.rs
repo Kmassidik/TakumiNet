@@ -70,7 +70,7 @@ const TEMPLATES: [(&str, &str); 35] = [
 ];
 
 /// The engine implements exactly these kinds; anything else is P7 violation.
-const DEMO_KINDS: [&str; 12] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher", "call", "modbus", "expire", "congestion"];
+const DEMO_KINDS: [&str; 13] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher", "call", "modbus", "expire", "congestion", "ike"];
 
 /// A device is addressable if the device itself, any port, or its `<net>`
 /// DHCP record carries an address — the same rule `run_demo` applies.
@@ -195,6 +195,12 @@ fn p1_p7_every_demo_step_references_live_addressed_endpoints() {
                         "{name} step {i}: modbus device '{}' holds no registers", dev
                     );
                     assert!(addr <= 255, "{name} step {i}: register {addr} out of range");
+                }
+                "ike" => {
+                    assert!(
+                        ws.tunnels.contains_key(&step.from),
+                        "{name} step {i}: ike gateway '{}' holds no tunnel", step.from
+                    );
                 }
                 _ => unreachable!("kind list above"),
             }

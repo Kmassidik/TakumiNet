@@ -76,7 +76,7 @@ pub(super) const RECORDS: &[(&str, &[&str])] = &[
     ("demand", &["client", "mbit"]),
     ("queue", &["dev", "user", "mbit"]),
     ("qparent", &["dev", "mbit"]),
-    ("voucher", &["dev", "code", "minutes", "used"]),
+    ("voucher", &["dev", "code", "minutes", "used", "spent"]),
     ("sharedgw", &["dev", "vip", "priority"]),
     ("lbpool", &["dev", "member"]),
     ("group", &["gid", "name", "members"]),

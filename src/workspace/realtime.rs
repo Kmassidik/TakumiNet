@@ -43,7 +43,49 @@ impl Workspace {
             table.expire(now);
         }
         self.reconcile_fhrp(now);
-        self.emit_ospf_hellos() + self.emit_stp_announcements()
+        let control = self.emit_ospf_hellos() + self.emit_stp_announcements();
+        self.expire_vouchers_captured();
+        control
+    }
+
+    /// Retire vouchers whose sessions ran out and capture each lapse so the
+    /// play shows the guest being locked out again — the hotspot deal ends
+    /// when the paid minutes are spent.
+    pub(super) fn expire_vouchers_captured(&mut self) {
+        for (gateway, code, minutes, guest) in self.expire_vouchers() {
+            let Some(dev) = self.devices.iter().find(|d| d.id == gateway) else {
+                continue;
+            };
+            let gateway_name = dev.name.clone();
+            self.next_event += 1;
+            self.push_event(Event {
+                id: self.next_event,
+                time: self.sim_time,
+                last: gateway_name.clone(),
+                at: guest.as_deref().map(|g| self.name_of(g)).unwrap_or(gateway_name.clone()),
+                kind: "Portal".into(),
+                proto: "Portal".into(),
+                path: guest.iter().map(String::as_str).chain(std::iter::once(gateway.as_str())).map(str::to_string).collect(),
+                hops: Vec::new(),
+                layers: vec![Layer::new(
+                    "Portal",
+                    vec![
+                        ("Capture".into(), "Voucher expired".into()),
+                        ("Voucher".into(), code.clone()),
+                        ("Validity".into(), format!("{minutes} min")),
+                        ("Result".into(), "Session ended — guest blocked again".into()),
+                    ],
+                )],
+                status: "Info".into(),
+                reason: None,
+                note: format!(
+                    "Voucher {code} on {gateway_name} has run out of its {minutes} minutes; {}held at the captive portal again",
+                    guest.as_deref().map(|g| format!("{} is ", self.name_of(g))).unwrap_or_else(|| "the visitor is ".into())
+                ),
+                bytes: Vec::new(),
+                size: 0,
+            });
+        }
     }
 
     fn ospf_enabled(&self, id: &str) -> bool {

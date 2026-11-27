@@ -465,14 +465,7 @@ pub struct Workspace {
     pub load_problems: Vec<Problem>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Voucher {
-    pub code: String,
-    pub minutes: u32,
-    pub used_by: Option<String>,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Mail {
     pub from: String,
     pub to: String,

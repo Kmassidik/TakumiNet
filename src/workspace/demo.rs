@@ -110,6 +110,10 @@ impl Workspace {
                     flush(self, &mut wave)?;
                     self.demo_voucher_portal(&step.from)?;
                 }
+                "expire" => {
+                    flush(self, &mut wave)?;
+                    self.demo_voucher_expired(&step.from, &step.to)?;
+                }
                 "call" => {
                     flush(self, &mut wave)?;
                     let (from_ext, to_ext) = step
@@ -128,6 +132,11 @@ impl Workspace {
                         .ok_or_else(|| format!("Built-in modbus step {} needs 'device:register' in the url, like thing0:2", index + 1))?;
                     self.demo_modbus_read(&step.from, &dev, addr)
                         .map_err(|e| format!("Built-in modbus step {} failed: {e}", index + 1))?;
+                }
+                "ike" => {
+                    flush(self, &mut wave)?;
+                    self.demo_ike_handshake(&step.from)
+                        .map_err(|e| format!("Built-in IKE step {} failed: {e}", index + 1))?;
                 }
                 other => {
                     flush(self, &mut wave)?;
@@ -318,6 +327,60 @@ impl Workspace {
         } else {
             Err(format!("Built-in voucher from {} failed: the voucher did not redeem", self.name_of(client)))
         }
+    }
+
+    /// The end of the café deal, played out: the clock jumps past the
+    /// voucher's validity, the portal retires the session, and the capture
+    /// shows the guest being locked out again. The engine's clock runs in
+    /// minutes-to-hours steps, so the play advances one jump, not minute by
+    /// minute.
+    fn demo_voucher_expired(&mut self, client: &str, gateway: &str) -> Result<(), String> {
+        // The guest must hold a live session to lose one.
+        let live = self.vouchers.get(gateway).into_iter().flatten()
+            .find(|v| v.used_by.as_deref() == Some(client) && !v.lapsed(self.sim_time as f64))
+            .map(|v| (v.code.clone(), v.minutes))
+            .ok_or_else(|| {
+                format!("Built-in expire from {} failed: no live voucher session on {}", self.name_of(client), self.name_of(gateway))
+            })?;
+        let (code, minutes) = live;
+        let started = self.vouchers.get(gateway).and_then(|list| list.iter().find(|v| v.used_by.as_deref() == Some(client)))
+            .and_then(|v| v.started_at)
+            .unwrap_or(self.sim_time as f64);
+        // Jump the clock just past the paid window.
+        let jump = ((started + f64::from(minutes) * 60.0) - self.sim_time as f64 + 1.0).max(1.0);
+        self.next_event += 1;
+        self.sim_time += jump as f32;
+        let expired_note = format!(
+            "{}'s voucher {code} has run out of its {minutes} minutes; the portal closes the session",
+            self.name_of(client)
+        );
+        self.expire_vouchers_captured();
+        self.next_event += 1;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(gateway),
+            at: self.name_of(client),
+            kind: "Portal".into(),
+            proto: "Portal".into(),
+            path: vec![gateway.to_string(), client.to_string()],
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                "Portal",
+                vec![
+                    ("Capture".into(), "Voucher expired".into()),
+                    ("Voucher".into(), code.clone()),
+                    ("Validity".into(), format!("{minutes} min")),
+                    ("Result".into(), "Session ended — guest blocked again".into()),
+                ],
+            )],
+            status: "Info".into(),
+            reason: None,
+            note: expired_note,
+            bytes: Vec::new(),
+            size: 0,
+        });
+        Ok(())
     }
 
     /// One Modbus TCP read in the play: the operator polls a register on the
