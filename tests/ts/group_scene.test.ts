@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { planGroups } from "../../web/ts/canvas/group_scene";
-import { buildScene } from "../../web/ts/canvas/scene";
-import { hitGroup } from "../../web/ts/canvas/hit";
+import { planGroups } from "../../web/js/mod/canvas/group_scene.js";
+import { buildScene } from "../../web/js/mod/canvas/scene.js";
+import { hitGroup } from "../../web/js/mod/canvas/hit.js";
 
 const device = (id: string, x: number, y: number) => ({
   id, name: id.toUpperCase(), model: "PC-PT", icon: "/i.webp", x, y, ip: "", prefix: 0,

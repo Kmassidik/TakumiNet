@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
-import { idsInRect, normalizedRect, rectsIntersect } from "../../web/ts/canvas/marquee";
-import { drawScene, type Canvas2D } from "../../web/ts/canvas/draw";
-import { buildScene } from "../../web/ts/canvas/scene";
-import { Camera } from "../../web/ts/canvas/camera";
+import { idsInRect, normalizedRect, rectsIntersect } from "../../web/js/mod/canvas/marquee.js";
+import { drawScene, type Canvas2D } from "../../web/js/mod/canvas/draw.js";
+import { buildScene } from "../../web/js/mod/canvas/scene.js";
+import { Camera } from "../../web/js/mod/canvas/camera.js";
 
 function recorder(): { ctx: Canvas2D; calls: string[] } {
   const calls: string[] = [];

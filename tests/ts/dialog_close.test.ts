@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { overlayToClose, wireDialogClose, type ClickTargetLike, type OverlayLike } from "../../web/ts/ui/dialog_close";
-import { ModalStack } from "../../web/ts/ui/modal_stack";
+import { overlayToClose, wireDialogClose, type ClickTargetLike, type OverlayLike } from "../../web/js/mod/ui/dialog_close.js";
+import { ModalStack } from "../../web/js/mod/ui/modal_stack.js";
 
 function overlay(id: string): OverlayLike & ClickTargetLike {
   const o: OverlayLike & ClickTargetLike = { id, hidden: false, classList: { contains: (n) => n === "overlay" }, closest: () => null };

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createButton } from "../../web/ts/ui/button";
+import { createButton } from "../../web/js/mod/ui/button.js";
 import { FakeDocument } from "./fake_dom";
 
 test("a button renders its label, title and pressed state", () => {

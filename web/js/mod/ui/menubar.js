@@ -1,0 +1,97 @@
+import { AltTracker, MenuController } from "./menu_nav.js";
+
+/* Connects the menu bar in index.html to the rules in menu_nav. A menu is a
+   `.menu` holding a head button and a `.drop` of buttons and links. */
+export function wireMenuBar(root) {
+  const menus = [...root.querySelectorAll("#menus > .menu")];
+  if (!menus.length) return;
+  const bar = root.getElementById("menus");
+  bar?.setAttribute("role", "menubar");
+
+  const head = (m) => menus[m].querySelector(":scope > button");
+  const items = (m) =>
+    [...menus[m].querySelectorAll(":scope > .drop > button, :scope > .drop > a")];
+
+  menus.forEach((menu, m) => {
+    const h = head(m);
+    h.setAttribute("aria-haspopup", "menu");
+    h.setAttribute("aria-expanded", "false");
+    menu.querySelector(":scope > .drop")?.setAttribute("role", "menu");
+    menu.querySelector(":scope > .drop")?.querySelectorAll(".sep").forEach((s) => s.setAttribute("role", "separator"));
+    items(m).forEach((el) => {
+      el.setAttribute("role", "menuitem");
+      el.setAttribute("tabindex", "-1");
+    });
+  });
+
+  const view = {
+    count: () => menus.length,
+    enabled: (m) => items(m).map((el) => !el.disabled),
+    setOpen(m) {
+      menus.forEach((menu, i) => {
+        const on = i === m;
+        menu.classList.toggle("open", on);
+        head(i).setAttribute("aria-expanded", String(on));
+        if (!on) items(i).forEach((el) => el.classList.remove("active"));
+      });
+    },
+    setActive(m, item) {
+      items(m).forEach((el, i) => el.classList.toggle("active", i === item));
+      if (item !== null) items(m)[item]?.focus();
+    },
+    choose(m, item) {
+      items(m)[item]?.click();
+    },
+    focusHead(m) {
+      if (m === null) root.activeElement?.blur?.();
+      else head(m).focus();
+    },
+  };
+  const controller = new MenuController(view);
+
+  menus.forEach((menu, m) => {
+    head(m).addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      controller.clickHead(m);
+    });
+    head(m).addEventListener("mouseenter", () => controller.hoverHead(m));
+    items(m).forEach((el, i) => {
+      el.addEventListener("mouseenter", () => controller.hoverItem(m, i));
+    });
+    // Choosing anything, including a link, ends the menu.
+    menu.querySelector(":scope > .drop")?.addEventListener("click", () => controller.closeAll());
+  });
+
+  root.addEventListener("click", (ev) => {
+    if (controller.engaged && !ev.target.closest?.("#menus")) controller.closeAll();
+  });
+  window.addEventListener("blur", () => controller.closeAll());
+
+  // A dialog owns the keyboard: the menu bar lets go and ignores every key until it closes.
+  const dialogOpen = () => !!root.querySelector(".overlay:not([hidden])");
+
+  // Alt or F10 on its own moves the keyboard to the bar, like Windows.
+  const alt = new AltTracker();
+  root.addEventListener("mousedown", () => alt.other(), true);
+  root.addEventListener("keydown", (ev) => {
+    if (dialogOpen()) {
+      alt.other();
+      if (controller.engaged) controller.closeAll();
+      return;
+    }
+    if (ev.key === "Alt") {
+      alt.down();
+      return;
+    }
+    alt.other();
+    if (ev.key === "F10" && !ev.shiftKey) {
+      ev.preventDefault();
+      controller.toggleBar();
+      return;
+    }
+    if (controller.key(ev.key)) ev.preventDefault();
+  }, true);
+  root.addEventListener("keyup", (ev) => {
+    if (ev.key === "Alt" && alt.up() && !dialogOpen()) controller.toggleBar();
+  });
+}

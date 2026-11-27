@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { renderDeviceList } from "../../web/ts/ui/device_list";
+import { renderDeviceList } from "../../web/js/mod/ui/device_list.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 
 const devices = [

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { openModal } from "../../web/ts/ui/modal";
-import { ModalStack } from "../../web/ts/ui/modal_stack";
+import { openModal } from "../../web/js/mod/ui/modal.js";
+import { ModalStack } from "../../web/js/mod/ui/modal_stack.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 
 function openedModal(doc: FakeDocument, options: { message: string; input?: string }) {

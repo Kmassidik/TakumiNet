@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { fingerprint, hasUnsaved, isEmpty } from "../../web/ts/ui/unsaved";
+import { fingerprint, hasUnsaved, isEmpty } from "../../web/js/mod/ui/unsaved.js";
 
 const pc = { id: "pc0", name: "PC0", model: "PC-PT", x: 10, y: 20, ip: "192.168.1.10", prefix: 24, gw: "" };
 const ws = { devices: [pc], links: [], notes: [] };

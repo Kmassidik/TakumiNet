@@ -3,7 +3,7 @@
 Takumi is a free, clean-room network emulator that runs in your browser.
 Build a topology, configure devices, inspect real Ethernet/IP packets, and
 follow guided labs without an account. The Rust simulation engine runs as
-WebAssembly in each tab; the interface is plain HTML and CSS, with the workspace drawn on a canvas by TypeScript modules in `web/ts/` (built by Bun into `web/js/ui.js`).
+WebAssembly in each tab; the interface is plain HTML and CSS, with the workspace drawn on a canvas by plain-JavaScript ES modules in `web/js/mod/` (loaded directly by the browser, no build step).
 All bundled artwork and sounds are original.
 
 ## Quick start with Docker

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { engineLoadingMessage } from "../../web/ts/ui/engine_loading";
+import { engineLoadingMessage } from "../../web/js/mod/ui/engine_loading.js";
 
 test("before any bytes arrive the loader says what it is loading", () => {
   expect(engineLoadingMessage(null)).toBe("Loading the Takumi engine…");

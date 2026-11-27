@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { renderGatewayWindow } from "../../web/ts/ui/gateway_window";
+import { renderGatewayWindow } from "../../web/js/mod/ui/gateway_window.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 import { allText, button, flush, inputUnder } from "./kind_test_helpers";
 

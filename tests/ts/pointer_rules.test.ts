@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { cursorFor, wheelAction } from "../../web/ts/canvas/pointer_rules";
+import { cursorFor, wheelAction } from "../../web/js/mod/canvas/pointer_rules.js";
 
 const wheel = (over: Partial<Parameters<typeof wheelAction>[0]>) =>
   wheelAction({ deltaX: 0, deltaY: 0, deltaMode: 0, ctrlKey: false, ...over });

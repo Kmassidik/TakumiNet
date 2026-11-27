@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { placeMenu, placeSubmenu } from "../../web/ts/ui/menu_place";
+import { placeMenu, placeSubmenu } from "../../web/js/mod/ui/menu_place.js";
 
 const view = { w: 800, h: 600 };
 

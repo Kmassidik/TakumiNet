@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { portDelayMs, renderRadioWindow } from "../../web/ts/ui/radio_window";
+import { portDelayMs, renderRadioWindow } from "../../web/js/mod/ui/radio_window.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 import { allText, button, flush } from "./kind_test_helpers";
 

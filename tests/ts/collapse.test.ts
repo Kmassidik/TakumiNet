@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { applyCollapsed, COLLAPSE_KEY, handleText, readCollapsed, writeCollapsed, type BarLike, type HandleLike, type StoreLike } from "../../web/ts/ui/collapse";
+import { applyCollapsed, COLLAPSE_KEY, handleText, readCollapsed, writeCollapsed, type BarLike, type HandleLike, type StoreLike } from "../../web/js/mod/ui/collapse.js";
 
 class Store implements StoreLike {
   data = new Map<string, string>();

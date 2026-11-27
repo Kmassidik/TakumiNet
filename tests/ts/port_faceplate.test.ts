@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { portCardText, portLight, portMedia, portStateText, renderPortFaceplate, type FaceplatePort } from "../../web/ts/ui/port_faceplate";
+import { portCardText, portLight, portMedia, portStateText, renderPortFaceplate, type FaceplatePort } from "../../web/js/mod/ui/port_faceplate.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 import { allText, find } from "./kind_test_helpers";
 

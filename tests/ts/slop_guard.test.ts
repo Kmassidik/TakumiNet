@@ -167,12 +167,12 @@ test("tooltips: every icon-only button in the page names itself", () => {
 });
 
 test("tooltips: the toolbar code gives each icon a title that the hover label shows", () => {
-  const toolbar = readFileSync(join(import.meta.dir, "../../web/ts/ui/button.ts"), "utf8");
+  const toolbar = readFileSync(join(import.meta.dir, "../../web/js/mod/ui/button.js"), "utf8");
   expect(toolbar).toMatch(/title/);
 });
 
 test("canvas: the drawing buffer follows the canvas box, not just the window", () => {
-  const canvas = readFileSync(join(import.meta.dir, "../../web/ts/canvas/workspace_canvas.ts"), "utf8");
+  const canvas = readFileSync(join(import.meta.dir, "../../web/js/mod/canvas/workspace_canvas.js"), "utf8");
   expect(canvas).toContain("ResizeObserver");
   expect(canvas).toContain("bufferSize(");
 });
@@ -192,13 +192,13 @@ test("palette: hiding the cable tiles always leaves cable mode", () => {
 });
 
 test("menus: the menu bar lets go of the keyboard while a dialog is open", () => {
-  const bar = readFileSync(join(import.meta.dir, "../../web/ts/ui/menubar.ts"), "utf8");
+  const bar = readFileSync(join(import.meta.dir, "../../web/js/mod/ui/menubar.js"), "utf8");
   expect(bar).toContain('.overlay:not([hidden])');
   expect(bar).toContain("new AltTracker()");
 });
 
 test("tooltips: the hover label watches for its button being replaced", () => {
-  const tip = readFileSync(join(import.meta.dir, "../../web/ts/ui/tooltip.ts"), "utf8");
+  const tip = readFileSync(join(import.meta.dir, "../../web/js/mod/ui/tooltip.js"), "utf8");
   expect(tip).toContain("MutationObserver");
   expect(tip).toContain("isConnected");
 });

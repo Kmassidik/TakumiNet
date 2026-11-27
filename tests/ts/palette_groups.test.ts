@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor, type PaletteDevice } from "../../web/ts/ui/palette_groups";
+import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor, type PaletteDevice } from "../../web/js/mod/ui/palette_groups.js";
 
 const catalog = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
 const rows = [...catalog.matchAll(/\("([^"]+)", "([^"]+)", "([a-z0-9-]+)"\),\n/g)];

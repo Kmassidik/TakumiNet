@@ -10,7 +10,7 @@ const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'web/js/phone.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/workspace.css'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
-const main = fs.readFileSync(path.join(root, 'web/js/main.js'), 'utf8');
+const main = fs.readFileSync(path.join(root, 'web/js/mod/main.js'), 'utf8');
 
 function load(matchMedia, location = { reload() {} }) {
   const context = vm.createContext({ matchMedia, location });

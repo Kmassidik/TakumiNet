@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { shouldAutoShowGallery } from "../../web/ts/ui/gallery_once";
+import { shouldAutoShowGallery } from "../../web/js/mod/ui/gallery_once.js";
 
 function memory(initial: Record<string, string> = {}) {
   const store = { ...initial };

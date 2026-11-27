@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { loadClass, parseFlows, renderFlowsWindow } from "../../web/ts/ui/flows_window";
+import { loadClass, parseFlows, renderFlowsWindow } from "../../web/js/mod/ui/flows_window.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 import { allText, button, find, flush, inputUnder } from "./kind_test_helpers";
 

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { parsePortsInfo, portDotClass, portPeerText, renderPortsPanel } from "../../web/ts/ui/ports_panel";
+import { parsePortsInfo, portDotClass, portPeerText, renderPortsPanel } from "../../web/js/mod/ui/ports_panel.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 import { allText, button, find, flush } from "./kind_test_helpers";
 

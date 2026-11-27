@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 
 const root = join(import.meta.dir, "../..");
 const LIMIT = 500;
-const ROOTS = ["src", "tests", "web/ts", "scripts", "tools"];
+const ROOTS = ["src", "tests", "web/js/mod", "scripts", "tools"];
 const EXTENSIONS = [".rs", ".ts", ".js", ".py", ".sh"];
 const SKIP = new Set(["node_modules", "target", "fixtures"]);
 

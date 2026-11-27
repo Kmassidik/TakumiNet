@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
-import { drawScene, type Canvas2D } from "../../web/ts/canvas/draw";
-import { packetAt } from "../../web/ts/canvas/packets";
-import { Camera } from "../../web/ts/canvas/camera";
-import { buildScene } from "../../web/ts/canvas/scene";
+import { drawScene, type Canvas2D } from "../../web/js/mod/canvas/draw.js";
+import { packetAt } from "../../web/js/mod/canvas/packets.js";
+import { Camera } from "../../web/js/mod/canvas/camera.js";
+import { buildScene } from "../../web/js/mod/canvas/scene.js";
 
 interface Paint {
   arcFills: string[];

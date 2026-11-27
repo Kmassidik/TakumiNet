@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { wrapText, noteBox, hitNote } from "../../web/ts/canvas/notes";
+import { wrapText, noteBox, hitNote } from "../../web/js/mod/canvas/notes.js";
 
 test("text wraps at word boundaries and keeps explicit line breaks", () => {
   expect(wrapText("one two three", 7)).toEqual(["one two", "three"]);

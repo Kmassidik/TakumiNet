@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { GRACE_MS, SHOW_DELAY_MS, TipController, placeTip, shortcutFor, tipText, type TipDeps } from "../../web/ts/ui/tooltip_rules";
+import { GRACE_MS, SHOW_DELAY_MS, TipController, placeTip, shortcutFor, tipText, type TipDeps } from "../../web/js/mod/ui/tooltip_rules.js";
 
 const vp = { w: 1000, h: 700 };
 const tip = { w: 80, h: 24 };

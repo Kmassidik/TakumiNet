@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { renderToolbar } from "../../web/ts/ui/toolbar";
+import { renderToolbar } from "../../web/js/mod/ui/toolbar.js";
 import { FakeDocument, FakeElement } from "./fake_dom";
 
 const icon = (key: string) => `/art3d/${key}.webp`;

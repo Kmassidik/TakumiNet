@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { drawScene, portLabelAt, type Canvas2D } from "../../web/ts/canvas/draw";
-import { Camera } from "../../web/ts/canvas/camera";
-import { buildScene } from "../../web/ts/canvas/scene";
+import { drawScene, portLabelAt, type Canvas2D } from "../../web/js/mod/canvas/draw.js";
+import { Camera } from "../../web/js/mod/canvas/camera.js";
+import { buildScene } from "../../web/js/mod/canvas/scene.js";
 
 function recorder(): { ctx: Canvas2D; calls: string[] } {
   const calls: string[] = [];

@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
-import { renderKindWindow, windowIdForKind } from "../../web/ts/ui/kind_windows";
-import { renderProviderWindow } from "../../web/ts/ui/provider_window";
-import { renderHotspotWindow } from "../../web/ts/ui/hotspot_window";
-import { renderFirewallWindow } from "../../web/ts/ui/firewall_window";
-import { renderL3SwitchWindow } from "../../web/ts/ui/l3switch_window";
+import { renderKindWindow, windowIdForKind } from "../../web/js/mod/ui/kind_windows.js";
+import { renderProviderWindow } from "../../web/js/mod/ui/provider_window.js";
+import { renderHotspotWindow } from "../../web/js/mod/ui/hotspot_window.js";
+import { renderFirewallWindow } from "../../web/js/mod/ui/firewall_window.js";
+import { renderL3SwitchWindow } from "../../web/js/mod/ui/l3switch_window";
 import { FakeDocument, FakeElement } from "./fake_dom";
 import { allText, button, find, flush, inputUnder } from "./kind_test_helpers";
 

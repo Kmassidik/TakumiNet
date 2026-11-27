@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { MenuController, firstItem, lastItem, stepItem, type MenuView } from "../../web/ts/ui/menu_nav";
+import { MenuController, firstItem, lastItem, stepItem, type MenuView } from "../../web/js/mod/ui/menu_nav.js";
 
 function setup(menus: boolean[][] = [[true, true, false, true], [true], [false, true]]) {
   const log: string[] = [];
@@ -133,7 +133,7 @@ test("keys that are not menu keys are left alone while a menu is open", () => {
   expect(c.key("Tab")).toBe(false);
 });
 
-import { AltTracker } from "../../web/ts/ui/menu_nav";
+import { AltTracker } from "../../web/js/mod/ui/menu_nav.js";
 
 test("Alt pressed and released on its own counts", () => {
   const alt = new AltTracker();

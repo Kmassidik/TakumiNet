@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { cableStyle, CABLE_STYLES } from "../../web/ts/canvas/cable_style";
+import { cableStyle, CABLE_STYLES } from "../../web/js/mod/canvas/cable_style.js";
 
 const kinds = ["eCopper", "eCross", "eSerial", "eFiber", "eConsole", "ePhone", "eCoax", "eIoT"];
 
@@ -31,8 +31,8 @@ test("the canvas dashes a cross-over cable and restores solid lines after it", (
   const calls: string[] = [];
   const ctx = new Proxy({}, { get: (_t, name: string) => (...args: unknown[]) => { calls.push(`${name}:${args.join(",")}`); } }) as never;
   const link = { a: "a", b: "b", from: { x: 0, y: 0 }, to: { x: 100, y: 0 }, kind: "eCross", aPort: "", bPort: "", aState: "green", bState: "green" };
-  const { drawScene } = require("../../web/ts/canvas/draw");
-  const { Camera } = require("../../web/ts/canvas/camera");
+  const { drawScene } = require("../../web/js/mod/canvas/draw.js");
+  const { Camera } = require("../../web/js/mod/canvas/camera.js");
   drawScene(ctx, { devices: [], links: [link], groups: [] }, new Camera({ x: 0, y: 0, zoom: 1 }), { grid: false, width: 200, height: 100 });
   const on = calls.indexOf("setLineDash:10,6");
   expect(on).toBeGreaterThan(-1);
