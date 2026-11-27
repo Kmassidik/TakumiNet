@@ -121,6 +121,52 @@ fn nat_overload_translates_and_persists() {
 }
 
 #[test]
+fn nat_translation_is_captured_as_its_own_event() {
+    use crate::model::parse_ipv4;
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-last-mile.xml")).unwrap();
+    let before = ws.events.len();
+    ws.send_pdu("pc0", "server0").unwrap();
+    let nat: Vec<_> = ws
+        .events
+        .iter()
+        .skip(before)
+        .filter(|e| e.proto == "NAT")
+        .collect();
+    assert_eq!(nat.len(), 1, "one translation, one NAT capture row");
+    let event = nat[0];
+    assert_eq!(event.status, "Successful");
+    assert_eq!(event.path, vec!["gw0".to_string()]);
+    assert_eq!(event.at, "203.0.113.11");
+    assert!(event.note.contains("192.168.1.10 -> 203.0.113.11"), "{}", event.note);
+    let layer = event.layers.iter().find(|l| l.name == "NAT").unwrap();
+    let field = |name: &str| layer.fields.iter().find(|(n, _)| n == name).map(|(_, v)| v.as_str());
+    assert_eq!(field("Before"), Some("192.168.1.10"));
+    assert_eq!(field("After"), Some("203.0.113.11"));
+    assert_eq!(field("Interface"), Some("GigabitEthernet0/1"));
+    // The frame itself still carries the translated source on the outside hop.
+    let icmp = ws.events.iter().rev().find(|e| e.proto == "ICMP").unwrap();
+    assert_eq!(icmp.hops.last().unwrap().src_ip, parse_ipv4("203.0.113.11").unwrap());
+    // And the workspace JSON exposes the NAT row to the page like other captures.
+    let json = ws.json();
+    assert!(json.contains("\"type\":\"NAT\""), "NAT event missing from /api/workspace json");
+}
+
+#[test]
+fn the_last_mile_demo_captures_nat_on_both_homes() {
+    let mut ws = Workspace::from_tnet(include_str!("../../../web/templates/tpl-last-mile.xml")).unwrap();
+    assert_eq!(ws.run_demo().unwrap(), ws.demo.len());
+    let nat: Vec<&str> = ws
+        .events
+        .iter()
+        .filter(|e| e.proto == "NAT")
+        .map(|e| e.note.as_str())
+        .collect();
+    assert_eq!(nat.len(), 4, "two pings + two http fetches, one translation each: {nat:?}");
+    assert!(nat.iter().any(|n| n.contains("192.168.1.10 -> 203.0.113.11")), "{nat:?}");
+    assert!(nat.iter().any(|n| n.contains("192.168.2.10 -> 203.0.113.21")), "{nat:?}");
+}
+
+#[test]
 fn mailboxes_accept_and_list_messages() {
     let mut ws = Workspace::new();
     ws.add_mail_user("server0", "alice", "pw").unwrap();

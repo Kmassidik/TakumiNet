@@ -55,10 +55,16 @@ impl Workspace {
                 }
             }
             ["natrole", dev, iface, dir] => {
-                self.nat_roles
-                    .entry(dev.to_string())
-                    .or_default()
-                    .insert(iface.to_string(), *dir == "in");
+                // Templates and lessons spell it "inside"/"outside"; the saved
+                // records spell it "in"/"out". Accept both.
+                let inside = matches!(*dir, "in" | "inside");
+                let outside = matches!(*dir, "out" | "outside");
+                if inside || outside {
+                    self.nat_roles
+                        .entry(dev.to_string())
+                        .or_default()
+                        .insert(iface.to_string(), inside);
+                }
             }
             ["natrule", dev, num, iface] => {
                 if let Ok(n) = num.parse::<u16>() {

@@ -68,6 +68,41 @@ impl Workspace {
         let list = self.nat_translations.entry(device.to_string()).or_default();
         list.retain(|(local, _)| *local != src);
         list.push((src, global));
+        // The translation becomes a capture row of its own, so the NAT step is
+        // visible in the wire view like any other exchange.
+        let before = crate::model::ipv4_string(src);
+        let after = crate::model::ipv4_string(global);
+        let name = self.name_of(device);
+        self.next_event += 1;
+        self.sim_time += 0.001;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: name.clone(),
+            at: after.clone(),
+            kind: "NAT".into(),
+            proto: "NAT".into(),
+            path: vec![device.to_string()],
+            hops: Vec::new(),
+            layers: vec![Layer::new(
+                "NAT",
+                vec![
+                    ("Capture".into(), "Inside source translated".into()),
+                    ("Before".into(), before.clone()),
+                    ("After".into(), after.clone()),
+                    ("Interface".into(), egress.to_string()),
+                    (
+                        "Rule".into(),
+                        format!("inside source list {} interface {egress} overload", matching.acl),
+                    ),
+                ],
+            )],
+            status: "Successful".into(),
+            reason: None,
+            note: format!("{name} translates {before} -> {after} leaving {egress}"),
+            bytes: Vec::new(),
+            size: 74,
+        });
         Some(global)
     }
 

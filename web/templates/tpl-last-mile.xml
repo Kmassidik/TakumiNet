@@ -37,4 +37,5 @@
   <demo kind="ping" from="pc0" to="server0" url=""/>
   <demo kind="ping" from="pc1" to="server0" url=""/>
   <demo kind="http" from="pc0" to="" url="http://203.0.113.2/"/>
+  <demo kind="http" from="pc1" to="" url="http://203.0.113.2/"/>
 </takumi>
