@@ -1,17 +1,20 @@
 name = "takumi"
-pages_build_output_dir = "web"
+compatibility_date = "2026-11-27"
+workers_dev = false
+preview_urls = false
+observability = { enabled = false }
 
-# Pages build settings (set these in the dashboard when connecting the repo):
-#   Build command:        bun run scripts/build_frontend.cjs
-#   Build output dir:     web
-#   Deploy command:       LEAVE EMPTY (Pages deploys the output dir automatically;
-#                         `wrangler deploy` is a Workers command and fails here)
-#   (the app has zero runtime and zero dev dependencies; there is no lockfile
-#    because bun deletes empty ones — the install step is skipped entirely)
-# Production domain: takumi.kurniatech.my.id, attached as a custom domain on
-# the Pages project (Cloudflare dashboard → takumi → Custom domains). The
-# kurniatech.my.id zone must live in the same Cloudflare account.
+# Production domain — declared here so `wrangler deploy` keeps it:
+routes = [
+  { pattern = "takumi.kurniatech.my.id", custom_domain = true }
+]
+
+# Static site: no Worker code, just the compiled frontend served from the edge.
+# /workspace serves index.html, /about serves about.html, etc. — Workers
+# Assets maps pretty paths to matching .html files automatically.
+[assets]
+directory = "./web"
+html_handling = "auto-trailing-slash"
 
 [vars]
-# Public site URL used for canonical links and the sitemap baked into pages.
 SITE_URL = "https://takumi.kurniatech.my.id"
