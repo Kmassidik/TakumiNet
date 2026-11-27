@@ -4,12 +4,14 @@
 
 One template, two sets of words, so the two languages can never drift apart in
 structure. Writes web/landing.html, web/landing.id.html, web/about.html and
-web/about.id.html. `{{SITE_URL}}` is replaced by the server when it sends a page.
+web/about.id.html. The production URL (takumi.kurniatech.my.id) is baked in:
+on Cloudflare Pages there is no server to fill a template slot.
 """
 import json
 from pathlib import Path
 
 WEB = Path(__file__).resolve().parents[2] / "web"
+SITE_URL = "https://takumi.kurniatech.my.id"
 REPO = "https://github.com/Kmassidik/TakumiNet"
 X = "https://x.com/KMassidik"
 
@@ -65,24 +67,24 @@ def head(t, kind):
     en_path = T["en"]["landing_path"] if kind == "landing" else T["en"]["about_path"]
     id_path = T["id"]["landing_path"] if kind == "landing" else T["id"]["about_path"]
     other = T[t["other"]]
-    og_img = f"{{{{SITE_URL}}}}/landing/og-{t['code']}.png"
+    og_img = f"{SITE_URL}/landing/og-{t['code']}.png"
     person = {"@type": "Person", "name": "Kurnia Massidik", "url": X, "sameAs": [X, "https://github.com/Kmassidik"]}
     app = {
-        "@type": "SoftwareApplication", "@id": "{{SITE_URL}}/#app", "name": "Takumi", "url": "{{SITE_URL}}" + path,
+        "@type": "SoftwareApplication", f"@id": "{SITE_URL}/#app", "name": "Takumi", "url": f"{SITE_URL}" + path,
         "description": t["app_desc"], "applicationCategory": "EducationalApplication", "operatingSystem": "Any (web browser)",
         "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "inLanguage": t["code"],
         "license": "https://opensource.org/licenses/MIT", "isAccessibleForFree": True, "image": og_img, "author": person,
         "codeRepository": REPO,
     }
     graph = [
-        {"@type": "WebSite", "@id": "{{SITE_URL}}/#site", "name": "Takumi", "url": "{{SITE_URL}}" + path, "inLanguage": t["code"]},
+        {"@type": "WebSite", f"@id": "{SITE_URL}/#site", "name": "Takumi", "url": f"{SITE_URL}" + path, "inLanguage": t["code"]},
         app,
     ]
     if kind == "landing":
         graph.append({"@type": "FAQPage", "inLanguage": t["code"], "mainEntity": [
             {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in t["faq"]]})
     else:
-        graph.append({"@type": "AboutPage", "name": title, "url": "{{SITE_URL}}" + path, "inLanguage": t["code"], "about": {"@id": "{{SITE_URL}}/#app"}})
+        graph.append({"@type": "AboutPage", "name": title, "url": f"{SITE_URL}" + path, "inLanguage": t["code"], "about": {f"@id": "{SITE_URL}/#app"}})
     ld = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, indent=2)
     return f'''<!doctype html>
 <html lang="{t["code"]}">
@@ -94,15 +96,15 @@ def head(t, kind):
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#ffffff">
 <meta name="author" content="Kurnia Massidik">
-<link rel="canonical" href="{{{{SITE_URL}}}}{path}">
-<link rel="alternate" hreflang="en" href="{{{{SITE_URL}}}}{en_path}">
-<link rel="alternate" hreflang="id" href="{{{{SITE_URL}}}}{id_path}">
-<link rel="alternate" hreflang="x-default" href="{{{{SITE_URL}}}}{en_path}">
+<link rel="canonical" href="{SITE_URL}{path}">
+<link rel="alternate" hreflang="en" href="{SITE_URL}{en_path}">
+<link rel="alternate" hreflang="id" href="{SITE_URL}{id_path}">
+<link rel="alternate" hreflang="x-default" href="{SITE_URL}{en_path}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Takumi">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
-<meta property="og:url" content="{{{{SITE_URL}}}}{path}">
+<meta property="og:url" content="{SITE_URL}{path}">
 <meta property="og:locale" content="{t["locale"]}">
 <meta property="og:locale:alternate" content="{other["locale"]}">
 <meta property="og:image" content="{og_img}">

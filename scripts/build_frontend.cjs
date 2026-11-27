@@ -17,6 +17,19 @@ execSync('bun build web/ts/mod/main.ts --target=browser --format=iife --outfile=
 
 // 2. Legacy files: strip types per file, keep everything else byte-for-byte.
 const t = new Bun.Transpiler({ loader: 'ts' });
+
+// Bake the production URL into the landing/about pages: {{SITE_URL}} is the
+// Rust server's template slot; on Pages there is no server, so the build
+// replaces it with the real domain from wrangler.toml.
+const siteUrl = 'https://takumi.kurniatech.my.id';
+const web = 'web';
+const pages = ['landing.html', 'landing.id.html', 'about.html', 'about.id.html'];
+for (const f of pages) {
+  const p = path.join(web, f);
+  if (!fs.existsSync(p)) continue;
+  fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replaceAll('{{SITE_URL}}', siteUrl));
+}
+
 fs.mkdirSync(path.join(legacyDir, 'legacy'), { recursive: true });
 for (const f of legacyTs) {
   const code = fs.readFileSync(path.join(legacyDir, f), 'utf8');

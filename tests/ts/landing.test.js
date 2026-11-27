@@ -31,19 +31,19 @@ for (const [key, p] of Object.entries(PAGES)) {
     expect(meta(page, "name", "robots")).not.toContain("noindex");
   });
   test(`${p.file}: the canonical address and both language alternates point at the right pages`, () => {
-    expect(page).toContain(`<link rel="canonical" href="{{SITE_URL}}${p.path}">`);
+    expect(page).toContain(`<link rel="canonical" href="https://takumi.kurniatech.my.id${p.path}">`);
     const en = p.lang === "en" ? p.path : p.other;
     const id = p.lang === "id" ? p.path : p.other;
-    expect(page).toContain(`<link rel="alternate" hreflang="en" href="{{SITE_URL}}${en}">`);
-    expect(page).toContain(`<link rel="alternate" hreflang="id" href="{{SITE_URL}}${id}">`);
-    expect(page).toContain(`<link rel="alternate" hreflang="x-default" href="{{SITE_URL}}${en}">`);
+    expect(page).toContain(`<link rel="alternate" hreflang="en" href="https://takumi.kurniatech.my.id${en}">`);
+    expect(page).toContain(`<link rel="alternate" hreflang="id" href="https://takumi.kurniatech.my.id${id}">`);
+    expect(page).toContain(`<link rel="alternate" hreflang="x-default" href="https://takumi.kurniatech.my.id${en}">`);
   });
   test(`${p.file}: the social card tags are complete and use the page's own language`, () => {
     const title = page.match(/<title>([^<]+)<\/title>/)[1];
     expect(meta(page, "property", "og:title")).toBe(title);
     expect(meta(page, "property", "og:description")).toBe(meta(page, "name", "description"));
-    expect(meta(page, "property", "og:url")).toBe(`{{SITE_URL}}${p.path}`);
-    expect(meta(page, "property", "og:image")).toBe(`{{SITE_URL}}/landing/og-${p.lang}.png`);
+    expect(meta(page, "property", "og:url")).toBe(`https://takumi.kurniatech.my.id${p.path}`);
+    expect(meta(page, "property", "og:image")).toBe(`https://takumi.kurniatech.my.id/landing/og-${p.lang}.png`);
     expect(meta(page, "property", "og:image:width")).toBe("1200");
     expect(meta(page, "property", "og:image:height")).toBe("630");
     expect(meta(page, "property", "og:image:alt").length).toBeGreaterThan(10);
@@ -51,7 +51,7 @@ for (const [key, p] of Object.entries(PAGES)) {
     expect(meta(page, "property", "og:locale:alternate")).toBe(p.lang === "en" ? "id_ID" : "en_US");
     expect(meta(page, "name", "twitter:card")).toBe("summary_large_image");
     expect(meta(page, "name", "twitter:creator")).toBe("@KMassidik");
-    expect(meta(page, "name", "twitter:image")).toBe(`{{SITE_URL}}/landing/og-${p.lang}.png`);
+    expect(meta(page, "name", "twitter:image")).toBe(`https://takumi.kurniatech.my.id/landing/og-${p.lang}.png`);
   });
   test(`${p.file}: the structured data is valid and says what the page is`, () => {
     const data = jsonLd(page);
@@ -107,6 +107,8 @@ test("English and Indonesian pages have the same structure, so neither falls beh
     sections: page.match(/<section/g)?.length,
     details: page.match(/<details>/g)?.length ?? 0,
     links: [...page.matchAll(/href="(\/workspace[^"]*|https:\/\/[^"]+)"/g)].map((m) => m[1])
+      // Absolute self-URLs differ by language path (/ vs /id) by design.
+      .filter((u) => !u.startsWith("https://takumi.kurniatech.my.id"))
   });
   expect(shape(html.landingId)).toEqual(shape(html.landingEn));
   expect(shape(html.aboutId)).toEqual(shape(html.aboutEn));

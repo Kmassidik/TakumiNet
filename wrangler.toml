@@ -1,0 +1,12 @@
+name = "takumi"
+pages_build_output_dir = "web"
+
+# Production domain: takumi.kurniatech.my.id, attached as a custom domain on
+# the Pages project (Cloudflare dashboard → takumi → Custom domains). The
+# kurniatech.my.id zone must live in the same Cloudflare account.
+# Set the same URL as a Pages environment variable if any page ever needs it;
+# the static pages carry canonical URLs from the templates directly.
+
+[vars]
+# Public site URL used for canonical links and the sitemap baked into pages.
+SITE_URL = "https://takumi.kurniatech.my.id"

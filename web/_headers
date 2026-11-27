@@ -1,0 +1,6 @@
+/engine.wasm
+  Cache-Control: public, max-age=31536000, immutable
+/js/app.js
+  Cache-Control: public, max-age=31536000, immutable
+/js/legacy/*
+  Cache-Control: public, max-age=31536000, immutable
