@@ -1,0 +1,52 @@
+import { expect, test } from "bun:test";
+import { buildScene } from "../../web/js/mod/canvas/scene.js";
+import { hitDevice, hitLink } from "../../web/js/mod/canvas/hit.js";
+function rng(seed) {
+  let state = seed;
+  return () => {
+    state = state * 1103515245 + 12345 & 2147483647;
+    return state / 2147483647;
+  };
+}
+var workspace = {
+  devices: [
+    { id: "a", name: "PC0", model: "PC-PT", icon: "/art3d/devices/pc.webp", x: 100, y: 100, ip: "10.0.0.2", prefix: 24 },
+    { id: "b", name: "Switch0", model: "2960", icon: "/art3d/devices/switch.webp", x: 300, y: 100, ip: "", prefix: 0 }
+  ],
+  links: [{ a: "a", b: "b", aPort: "Fa0", bPort: "Fa0/1", aState: "green", bState: "green", kind: "copper" }]
+};
+test("L38 scene purity: the same workspace always builds the same scene and needs no DOM", () => {
+  expect(typeof document).toBe("undefined");
+  const first = JSON.stringify(buildScene(workspace));
+  const second = JSON.stringify(buildScene(JSON.parse(JSON.stringify(workspace))));
+  expect(second).toBe(first);
+});
+test("a link whose device is missing is dropped from the scene", () => {
+  const scene = buildScene({ ...workspace, links: [{ ...workspace.links[0], b: "gone" }] });
+  expect(scene.links).toHaveLength(0);
+});
+test("L36 hit-test matches a brute-force scan for 1000 random devices and points", () => {
+  const next = rng(42);
+  const devices = Array.from({ length: 1000 }, (_, i) => ({
+    id: `d${i}`,
+    name: `D${i}`,
+    model: "PC-PT",
+    icon: "",
+    x: next() * 4000,
+    y: next() * 4000,
+    ip: "",
+    prefix: 0
+  }));
+  const scene = buildScene({ devices, links: [] });
+  for (let i = 0;i < 1000; i++) {
+    const p = { x: next() * 4000, y: next() * 4000 };
+    const brute = scene.devices.findLast((d) => p.x >= d.box.x && p.x <= d.box.x + d.box.w && p.y >= d.box.y && p.y <= d.box.y + d.box.h);
+    expect(hitDevice(scene, p)?.id ?? null).toBe(brute?.id ?? null);
+  }
+});
+test("a click near a link selects it; a click far from every link selects nothing", () => {
+  const scene = buildScene(workspace);
+  expect(hitLink(scene, { x: 200, y: 101 }, 6)?.aPort).toBe("Fa0");
+  expect(hitLink(scene, { x: 200, y: 140 }, 6)).toBeNull();
+  expect(hitLink(scene, { x: 40, y: 100 }, 6)).toBeNull();
+});

@@ -1,0 +1,62 @@
+import { expect, test } from "bun:test";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor } from "../../web/js/mod/ui/palette_groups.js";
+var catalog = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
+var rows = [...catalog.matchAll(/\("([^"]+)", "([^"]+)", "([a-z0-9-]+)"\),\n/g)];
+var palette = rows.map((m) => ({ label: m[1], icon: `/art3d/${m[3]}.webp`, kind: m[3], blurb: m[2] }));
+var groupsSrc = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
+var groupLabels = [...groupsSrc.slice(groupsSrc.indexOf("GROUPS")).matchAll(/\("([A-Za-z ]+)", "\/art3d/g)].map((m) => m[1]);
+test("the catalog is read from the engine source (sanity)", () => {
+  expect(palette.length).toBe(43);
+});
+test("every device carries a one-line plain-language description", () => {
+  for (const device of palette) {
+    expect(device.blurb, device.label).not.toBe("-");
+    expect(device.blurb.length, device.label).toBeGreaterThan(20);
+    expect(device.blurb.endsWith("."), device.label).toBe(true);
+  }
+});
+test("every device in the palette belongs to exactly one category", () => {
+  for (const device of palette) {
+    const owners = Object.entries(GROUP_KINDS).filter(([, kinds]) => kinds.includes(device.kind));
+    expect(owners.length, `${device.label} (${device.kind})`).toBe(1);
+  }
+});
+test("a category shows only its own devices, and together they cover the whole palette", () => {
+  let total = 0;
+  for (const group of Object.keys(GROUP_KINDS)) {
+    const tiles = tilesFor(group, palette);
+    total += tiles.length;
+    for (const tile of tiles)
+      expect(groupForKind(tile.kind)).toBe(group);
+  }
+  expect(total).toBe(palette.length);
+});
+test("the server's category list matches the one the page filters with", () => {
+  expect(new Set(groupLabels)).toEqual(new Set(Object.keys(GROUP_KINDS)));
+});
+test("Connections holds cables, not devices, and an unknown category is empty", () => {
+  expect(tilesFor(CONNECTIONS, palette)).toEqual([]);
+  expect(tilesFor("Nope", palette)).toEqual([]);
+  expect(tilesFor("Routers", [])).toEqual([]);
+});
+test("the page opens on a category that exists", () => {
+  const labels = Object.keys(GROUP_KINDS);
+  expect(startGroup(null, labels)).toBe(DEFAULT_GROUP);
+  expect(startGroup("Routers", labels)).toBe("Routers");
+  expect(startGroup("Gone", labels)).toBe(DEFAULT_GROUP);
+  expect(startGroup(undefined, ["A", "B"])).toBe("A");
+});
+test("only the Connections category keeps cable mode on", () => {
+  expect(keepsCableMode(CONNECTIONS)).toBe(true);
+  for (const group of Object.keys(GROUP_KINDS))
+    if (group !== CONNECTIONS)
+      expect(keepsCableMode(group), group).toBe(false);
+  expect(keepsCableMode("Nope")).toBe(false);
+});
+test("the IoT category icon is its own, not the note tool's", () => {
+  const iot = groupsSrc.match(/\("IoT", "([^"]+)"\)/);
+  expect(iot?.[1]).toBe("/art3d/devices/thing.webp");
+  expect(iot?.[1]).not.toContain("notes.webp");
+});
