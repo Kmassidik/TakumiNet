@@ -93,3 +93,27 @@ fn the_shipped_busy_template_ends_its_play_in_congestion() {
     assert_eq!(demand.len(), 4, "the finale captured the rush");
     assert!(ws.events.iter().any(|e| e.status == "Dropped"), "the play shows the drop");
 }
+
+/// Two plays must tell the same story: the beat's login redials and Demand
+/// rows come out in session order, never in HashMap order.
+#[test]
+fn two_runs_of_the_beat_record_the_identical_story() {
+    let mut ws = Workspace::from_tnet(BUSY).unwrap();
+    ws.run_demo().unwrap();
+    ws.demo_congestion_beat("gw0", "Ether1").unwrap();
+    let first: Vec<String> = ws.events.iter()
+        .filter(|e| e.kind == "Demand")
+        .map(|e| format!("{} {} {}", e.last, e.status, e.reason.clone().unwrap_or_default()))
+        .collect();
+    let mut ws = Workspace::from_tnet(BUSY).unwrap();
+    ws.run_demo().unwrap();
+    ws.demo_congestion_beat("gw0", "Ether1").unwrap();
+    let second: Vec<String> = ws.events.iter()
+        .filter(|e| e.kind == "Demand")
+        .map(|e| format!("{} {} {}", e.last, e.status, e.reason.clone().unwrap_or_default()))
+        .collect();
+    assert_eq!(first, second, "the beat must replay identically");
+    let order: Vec<&str> = first.iter().map(|row| row.split(' ').next().unwrap()).collect();
+    assert_eq!(order, ["Home0", "Home1", "Home2", "Home3", "Home0", "Home1", "Home2", "Home3"],
+        "each play walks the sessions in order");
+}

@@ -70,7 +70,7 @@ const TEMPLATES: [(&str, &str); 35] = [
 ];
 
 /// The engine implements exactly these kinds; anything else is P7 violation.
-const DEMO_KINDS: [&str; 10] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher", "call", "modbus"];
+const DEMO_KINDS: [&str; 12] = ["ping", "http", "dns", "dhcp", "expect", "pppoe", "wifi", "voucher", "call", "modbus", "expire", "congestion"];
 
 /// A device is addressable if the device itself, any port, or its `<net>`
 /// DHCP record carries an address — the same rule `run_demo` applies.
@@ -136,6 +136,14 @@ fn p1_p7_every_demo_step_references_live_addressed_endpoints() {
                         "{name} step {i}: pppoe client '{}' has no provider configured", step.from
                     );
                 }
+                "congestion" => {
+                    // The beat plays the gateway's own sessions; the gateway
+                    // must hold at least one PPPoE login to crowd.
+                    assert!(
+                        ws.pppoe.values().any(|(server, _)| ws.devices.iter().any(|d| d.ip == crate::model::parse_ipv4(server) || d.ports.iter().any(|p| p.ip == crate::model::parse_ipv4(server)))),
+                        "{name} step {i}: congestion gateway '{}' holds no PPPoE sessions", step.from
+                    );
+                }
                 "wifi" => {
                     assert!(
                         ws.wifi.contains_key(&step.from),
@@ -150,6 +158,14 @@ fn p1_p7_every_demo_step_references_live_addressed_endpoints() {
                     assert!(
                         ws.vouchers.values().any(|list| list.iter().any(|v| v.used_by.is_none() || v.used_by.as_deref() == Some(&step.from))),
                         "{name} step {i}: no free voucher for '{}' anywhere", step.from
+                    );
+                }
+                "expire" => {
+                    // The lapse only shows if the guest redeemed a voucher in
+                    // an earlier step of the same play.
+                    assert!(
+                        ws.demo.iter().any(|s| s.kind == "voucher" && s.from == step.from),
+                        "{name} step {i}: expire client '{}' redeems nothing earlier in the play", step.from
                     );
                 }
                 "call" => {

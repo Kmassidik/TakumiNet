@@ -53,7 +53,6 @@
   <qparent dev="gw0" mbit="100"/>
   <note id="note0" x="-116" y="6" color="#fff3b0" text="An RT/RW Net is how Indonesian neighbourhoods really get online: PPPoE logins at one gateway, NAT sharing the upstream, and speed limits per home. In the evening every home piles on: 110 Mbit/s of demand on a 100 Mbit/s line means congestion — queue drop and queue delay on the busy homes, while small homes ride through. Press Play and read the Demand rows on the path to the gateway. The beat is steady-state math (drop share and queue delay per session), not per-packet simulation."/>
   <demo kind="http" from="laptop0" to="" url="http://www.example.lab/"/>
-  <demo kind="pppoe" from="home0" to="" url=""/>
   <demo kind="ping" from="pc0" to="server0" url=""/>
   <demo kind="ping" from="home0" to="gw0" url=""/>
   <demo kind="ping" from="home1" to="gw0" url=""/>

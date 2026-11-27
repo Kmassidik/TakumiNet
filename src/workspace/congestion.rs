@@ -97,7 +97,10 @@ impl Workspace {
         if !self.devices.iter().any(|d| d.id == gateway) {
             return Err(format!("no such device {gateway}"));
         }
-        let clients: Vec<String> = self.pppoe.keys().cloned().collect();
+        let mut clients: Vec<String> = self.pppoe.keys().cloned().collect();
+        // HashMap order is not stable between runs; the beat replays the same
+        // story every time, in session order.
+        clients.sort();
         if clients.is_empty() {
             return Err(format!("{} holds no PPPoE sessions", self.name_of(gateway)));
         }
