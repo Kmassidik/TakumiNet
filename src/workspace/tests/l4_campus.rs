@@ -128,3 +128,50 @@ fn shared_gateway_input_is_validated() {
     ws.set_shared_gateway("d1", "172.20.0.1", 10).unwrap();
     assert!(ws.remove_shared_gateway("d1", "172.20.0.1"));
 }
+
+const THREE_LAYER: &str = include_str!("../../../web/templates/tpl-l4-campus-three-layer.xml");
+
+#[test]
+fn the_three_layer_template_gates_each_floor_with_vrrp() {
+    let mut ws = Workspace::from_tnet(THREE_LAYER).unwrap();
+    assert_eq!(ws.fhrp_groups("d1").len(), 3, "DistA serves all three floor VLANs");
+    assert_eq!(ws.fhrp_groups("d2").len(), 3, "DistB backs all three floor VLANs");
+    // Hosts point at the virtual addresses, which no port owns directly.
+    assert_eq!(ws.gateway_of("pc0"), Some(ip("172.17.10.1").unwrap()));
+    assert_eq!(ws.gateway_of("pc1"), Some(ip("172.17.20.1").unwrap()));
+    assert_eq!(ws.gateway_of("pc2"), Some(ip("172.18.10.1").unwrap()));
+    assert_eq!(ws.shared_gateway_owner(ip("172.17.10.1").unwrap()).as_deref(), Some("d1"), "priority 110 beats 100");
+    assert_eq!(ws.shared_gateway_owner(ip("172.17.20.1").unwrap()).as_deref(), Some("d1"));
+    assert_eq!(ws.shared_gateway_owner(ip("172.18.10.1").unwrap()).as_deref(), Some("d2"));
+    assert!(ws.send_pdu("pc0", "server0").is_ok());
+    assert!(ws.send_pdu("pc2", "server0").is_ok());
+    assert!(ws.send_pdu("pc0", "pc1").is_ok(), "two VLANs on one floor route through the virtual gateway");
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.fhrp_groups("d1").len(), 3, "VRRP membership survives save and open");
+    assert_eq!(back.shared_gateway_owner(ip("172.17.10.1").unwrap()).as_deref(), Some("d1"));
+}
+
+#[test]
+fn the_three_layer_campus_survives_losing_the_preferred_gateway() {
+    let mut ws = Workspace::from_tnet(THREE_LAYER).unwrap();
+    assert!(ws.send_pdu("pc0", "server0").is_ok());
+    let both = ip("172.17.10.1").unwrap();
+    assert_eq!(ws.shared_gateway_owner(both).as_deref(), Some("d1"));
+    // Cutting DistA's floor link hands every virtual gateway to DistB, and the
+    // PC keeps its settings: the virtual address answers either way.
+    ws.set_port_up("d1", "GigabitEthernet0/2", false);
+    assert_eq!(ws.shared_gateway_owner(both).as_deref(), Some("d2"), "floor-a failover");
+    assert_eq!(ws.shared_gateway_owner(ip("172.17.20.1").unwrap()).as_deref(), Some("d2"));
+    assert!(ws.send_pdu("pc0", "server0").is_ok(), "traffic rides DistB while DistA's floor leg is down");
+    let path = ws.events.last().expect("the ping is captured").path.clone();
+    assert!(path.contains(&"d2".to_string()), "the capture names DistB, not the dead DistA: {path:?}");
+    assert!(!path.contains(&"d1".to_string()), "{path:?}");
+    // A full power cut starts the master-down hold timer instead.
+    ws.set_port_up("d1", "GigabitEthernet0/2", true);
+    ws.set_power("d1", false);
+    assert_eq!(ws.shared_gateway_owner(both).as_deref(), Some("d1"), "the backup waits for the hold timer");
+    ws.advance(4.0);
+    assert_eq!(ws.shared_gateway_owner(both).as_deref(), Some("d2"), "DistB answers after the master-down timer");
+    assert!(ws.send_pdu("pc0", "server0").is_ok(), "OSPF reroutes the return path over the DistB link");
+    assert!(ws.send_pdu("pc2", "server0").is_ok());
+}

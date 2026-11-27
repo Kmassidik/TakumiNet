@@ -97,6 +97,15 @@ impl Workspace {
             })
             .filter(|g| anchor.as_ref().map_or(true, |a| &g.auth == a))
             .collect();
+        // A member whose interface lost its line (cable pulled, parent port
+        // shut) stops answering for the group; when nothing is on the line —
+        // a fixture with no cables — the admin state alone still decides.
+        let on_line: Vec<&FhrpGroup> = members
+            .iter()
+            .copied()
+            .filter(|g| self.port_state(&g.device, &g.port).line_up)
+            .collect();
+        let members = if on_line.is_empty() { members } else { on_line };
         let best_auth = members.iter().max_by_key(|g| g.priority).and_then(|g| g.auth.clone());
         members
             .into_iter()
