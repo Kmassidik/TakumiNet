@@ -194,6 +194,10 @@ where
     // fabric tunnels the inner packet between the leaf VTEPs, and every hop
     // between them sees the outer headers, not the tenant packet.
     let encap = crate::net::vxlan::overlay_plan(ws, path, src, dst);
+    // IPSec state: when the path crosses the internet between routers holding
+    // an up site-to-site tunnel, the gateways encapsulate the private packet
+    // in ESP, and every WAN hop sees the outer headers, not the private ones.
+    let esp = crate::net::ipsec::tunnel_plan(ws, path, src, dst);
 
     for (i, dev_id) in path.iter().enumerate() {
         let dev = find(ws, dev_id)?.clone();
@@ -219,10 +223,18 @@ where
         // A hop inside the tunnel captures the encapsulated frame: the size
         // and the recorded layers show the outer headers, not the tenant's.
         let tunneled = encap.as_ref().is_some_and(|e| e.ingress_idx < i && i < e.egress_idx);
+        // Inside the ESP tunnel the capture shows the tunnel, not the payload.
+        let esp_tunneled = esp.as_ref().is_some_and(|e| e.ingress_idx < i && i < e.egress_idx);
         if let Some(e) = encap.as_ref().filter(|_| tunneled) {
             capture.size = e.wire_size(&packet);
             // On the wire the frame points at the egress VTEP: the underlay
             // routes to the remote leaf, which strips the headers.
+            capture.frame = Some(Frame::ipv4(Mac::for_device(&path[e.egress_idx]), src_mac, packet.clone()));
+        }
+        if let Some(e) = esp.as_ref().filter(|_| esp_tunneled) {
+            capture.size = e.wire_size(&packet);
+            // On the wire the frame points at the egress gateway: the internet
+            // routes to the remote VPN box, which strips the tunnel.
             capture.frame = Some(Frame::ipv4(Mac::for_device(&path[e.egress_idx]), src_mac, packet.clone()));
         }
 
@@ -242,7 +254,9 @@ where
                     dst_mac,
                     src_ip: packet.src,
                     dst_ip: packet.dst,
-                    layers: if let Some(e) = encap.as_ref().filter(|_| tunneled) {
+                    layers: if let Some(e) = esp.as_ref().filter(|_| esp_tunneled) {
+                        crate::net::ipsec::decap_layers(src_mac, dst_mac, e, decode_layers(src_mac, dst_mac, &packet))
+                    } else if let Some(e) = encap.as_ref().filter(|_| tunneled) {
                         crate::net::vxlan::decap_layers(src_mac, dst_mac, e, decode_layers(src_mac, dst_mac, &packet))
                     } else {
                         decode_layers(src_mac, dst_mac, &packet)
@@ -331,6 +345,19 @@ where
                             note = format!(
                                 "{} decapsulates VXLAN VNI {} from {} and delivers the inner packet to {}",
                                 dev.name, e.vni, ipv4_string(e.vtep_src), ipv4_string(packet.dst)
+                            );
+                        }
+                    }
+                    if let Some(e) = esp.as_ref() {
+                        if i == e.ingress_idx {
+                            note = format!(
+                                "{} encapsulates for ESP SPI 0x{:08x} — outer {} → {} (IP protocol 50), then the internet carries the tunnel",
+                                dev.name, e.spi, ipv4_string(e.gw_src), ipv4_string(e.gw_dst)
+                            );
+                        } else if i == e.egress_idx {
+                            note = format!(
+                                "{} decapsulates ESP SPI 0x{:08x} from {} and delivers the protected packet to {}",
+                                dev.name, e.spi, ipv4_string(e.gw_src), ipv4_string(packet.dst)
                             );
                         }
                     }
@@ -423,7 +450,11 @@ where
             "patchpanel" => note = format!("{} passes the frame through, port to port", dev.name),
             "sniffer" => {
                 note = format!("{} records the frame and passes it on", dev.name);
-                if let Some(e) = encap.as_ref().filter(|_| tunneled) {
+                if let Some(e) = esp.as_ref().filter(|_| esp_tunneled) {
+                    crate::net::ipsec::sniff_encapsulated(
+                        ws, dev_id, data_started_at + i as f64 * 0.001, src_mac, dst_mac, e, &packet,
+                    );
+                } else if let Some(e) = encap.as_ref().filter(|_| tunneled) {
                     crate::net::vxlan::sniff_encapsulated(
                         ws, dev_id, data_started_at + i as f64 * 0.001, src_mac, dst_mac, e, &packet,
                     );
@@ -450,7 +481,9 @@ where
             dst_mac,
             src_ip: packet.src,
             dst_ip: packet.dst,
-            layers: if let Some(e) = encap.as_ref().filter(|_| tunneled) {
+            layers: if let Some(e) = esp.as_ref().filter(|_| esp_tunneled) {
+                crate::net::ipsec::decap_layers(src_mac, dst_mac, e, decode_layers(src_mac, dst_mac, &packet))
+            } else if let Some(e) = encap.as_ref().filter(|_| tunneled) {
                 crate::net::vxlan::decap_layers(src_mac, dst_mac, e, decode_layers(src_mac, dst_mac, &packet))
             } else {
                 decode_layers(src_mac, dst_mac, &packet)

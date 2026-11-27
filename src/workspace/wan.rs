@@ -58,6 +58,72 @@ impl Workspace {
         if up { "up" } else { "down" }
     }
 
+    /// One IKE handshake in the play: the gateways of the site-to-site tunnel
+    /// this router belongs to run the two-phase exchange — phase 1 negotiates
+    /// the shared key, phase 2 agrees the SPI the ESP headers then carry —
+    /// and the exchange is captured so bringing the VPN up is visible instead
+    /// of being silent config. Fails the step when this end's tunnel is not up.
+    pub fn demo_ike_handshake(&mut self, device: &str) -> Result<(), String> {
+        let Some((peer, key)) = self.tunnels.get(device).cloned() else {
+            return Err(format!("Built-in IKE from {} failed: the gateway has no tunnel configured", self.name_of(device)));
+        };
+        if self.tunnel_state(device) != "up" {
+            return Err(format!("Built-in IKE from {} failed: the tunnel end is down — the peer must point back with the same key", self.name_of(device)));
+        }
+        let responder = self.devices.iter().find(|d| {
+            d.ip == Some(peer) || d.ports.iter().any(|p| p.ip == Some(peer))
+        }).map(|d| d.id.clone())
+        .ok_or_else(|| format!("Built-in IKE from {} failed: no device at {}", self.name_of(device), crate::model::ipv4_string(peer)))?;
+        let wan_ip = self.devices.iter().find(|d| d.id == device)
+            .and_then(|d| d.ip.or_else(|| d.ports.iter().find_map(|p| p.ip)))
+            .unwrap_or_default();
+        let initiator = device.to_string();
+        let spi = crate::net::ipsec::spi_from_key(&key);
+        let path = self.path(&initiator, &responder)
+            .unwrap_or_else(|| vec![initiator.clone(), responder.clone()]);
+        self.next_event += 1;
+        self.sim_time += 0.001;
+        self.push_event(Event {
+            id: self.next_event,
+            time: self.sim_time,
+            last: self.name_of(&initiator),
+            at: self.name_of(&responder),
+            kind: "IKE".into(),
+            proto: "IKE".into(),
+            path,
+            hops: Vec::new(),
+            layers: vec![
+                Layer::new(
+                    "IKE SA INIT",
+                    vec![
+                        ("Initiator".into(), format!("{} ({})", self.name_of(&initiator), crate::model::ipv4_string(wan_ip))),
+                        ("Responder".into(), format!("{} ({})", self.name_of(&responder), crate::model::ipv4_string(peer))),
+                        ("Exchange".into(), "IKE_SA_INIT".into()),
+                        ("Result".into(), "Phase 1: shared key agreed".into()),
+                    ],
+                ),
+                Layer::new(
+                    "IKE QUICK MODE",
+                    vec![
+                        ("SPI".into(), format!("0x{spi:08x}")),
+                        ("Tunnel".into(), format!("{} ↔ {}", self.name_of(&initiator), self.name_of(&responder))),
+                        ("Result".into(), "Phase 2: ESP tunnel up".into()),
+                    ],
+                ),
+            ],
+            status: "Successful".into(),
+            reason: None,
+            note: format!(
+                "{} and {} complete the IKE handshake; ESP packets on this tunnel carry SPI 0x{spi:08x}",
+                self.name_of(&initiator),
+                self.name_of(&responder)
+            ),
+            bytes: Vec::new(),
+            size: 0,
+        });
+        Ok(())
+    }
+
     /// Private traffic does not cross the internet cloud without a tunnel between
     /// the routers on both sides of it — unless a NAT gateway sits between the
     /// source and the cloud: real providers drop private addresses, and a home

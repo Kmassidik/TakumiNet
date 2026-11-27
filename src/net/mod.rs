@@ -1,4 +1,5 @@
 pub mod fwd;
+pub mod ipsec;
 pub mod packet;
 pub mod sched;
 pub mod sim;
