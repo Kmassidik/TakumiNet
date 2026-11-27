@@ -1,9 +1,1 @@
-{
-  "name": "takumi-web",
-  "private": true,
-  "description": "Front-end tooling only. The shipped app has no runtime dependencies.",
-  "scripts": {
-    "test": "node --test tests/js/*.test.js",
-    "test:ts": "bun test tests/ts"
-  }
-}
+{"name":"takumi-web","private":true,"description":"Front-end tooling only. The shipped app has no runtime dependencies.","scripts":{"test":"node --test tests/js/*.test.js","test:ts":"bun test tests/ts"}}

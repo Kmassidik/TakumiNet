@@ -1,11 +1,15 @@
 name = "takumi"
 pages_build_output_dir = "web"
 
+# Pages build settings (set these in the dashboard when connecting the repo):
+#   Install command:      echo "no dependencies"
+#   Build command:        bun run scripts/build_frontend.cjs
+#   Build output dir:     web
+#   (the app has zero runtime and zero dev dependencies; there is no lockfile
+#    because bun deletes empty ones — the install step is skipped entirely)
 # Production domain: takumi.kurniatech.my.id, attached as a custom domain on
 # the Pages project (Cloudflare dashboard → takumi → Custom domains). The
 # kurniatech.my.id zone must live in the same Cloudflare account.
-# Set the same URL as a Pages environment variable if any page ever needs it;
-# the static pages carry canonical URLs from the templates directly.
 
 [vars]
 # Public site URL used for canonical links and the sitemap baked into pages.
