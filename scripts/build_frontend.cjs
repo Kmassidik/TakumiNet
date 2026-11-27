@@ -35,4 +35,9 @@ for (const f of legacyTs) {
   const code = fs.readFileSync(path.join(legacyDir, f), 'utf8');
   fs.writeFileSync(path.join(legacyDir, 'legacy', f.replace(/\.ts$/, '.js')), t.transformSync(code));
 }
+
+// 3. Art: the pages and code reference /art3d/<group>/<name>.webp; the Rust
+//    server rewrote that to art/3d/. A static host serves files as-is, so copy
+//    the tree to where the URLs point.
+fs.cpSync(path.join(web, 'art', '3d'), path.join(web, 'art3d'), { recursive: true });
 console.log(`app.js bundled; ${legacyTs.length} legacy files compiled to web/js/legacy/`);

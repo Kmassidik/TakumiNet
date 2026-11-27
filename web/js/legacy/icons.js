@@ -1,1 +1,3 @@
-const icon3d = (key) => "/art3d/" + key + ".webp";
+function icon3d(key) {
+  return "/art3d/" + key + ".webp";
+}

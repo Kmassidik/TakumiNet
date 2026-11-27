@@ -46,7 +46,9 @@ globalThis.paletteStartGroup = startGroup;
 globalThis.PALETTE_CONNECTIONS = CONNECTIONS;
 globalThis.buildRunLog = buildRunLog;
 globalThis.formatLogLine = formatLogLine;
-globalThis.renderToolbar = (bar, items) => renderToolbar(document, bar, items, (key) => globalThis.icon3d(key));
+/* icon3d is defined (and hoisted to globalThis) by web/js/legacy/icons.ts,
+   which loads before this bundle in index.html. */
+globalThis.renderToolbar = (bar, items) => renderToolbar(document, bar, items, icon3d);
 globalThis.makeWindowMovable = makeWindowMovable;
 
 const postJson = async (path) => (await (await fetch(path, { method: "POST" })).json());
