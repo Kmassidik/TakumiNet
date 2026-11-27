@@ -96,6 +96,12 @@ impl Workspace {
                     flush(self, &mut wave)?;
                     self.demo_pppoe_login(&step.from)?;
                 }
+                "congestion" => {
+                    flush(self, &mut wave)?;
+                    let port = if step.to.is_empty() { "Ether1" } else { step.to.as_str() };
+                    self.demo_congestion_beat(&step.from, port)
+                        .map_err(|e| format!("Built-in congestion step {} failed: {e}", index + 1))?;
+                }
                 "wifi" => {
                     flush(self, &mut wave)?;
                     self.demo_wifi_association(&step.from)?;
@@ -146,7 +152,7 @@ impl Workspace {
     /// One PPPoE login in the play: the client redials its configured session
     /// with the account the gateway knows, and the exchange is captured so the
     /// login is visible in the capture instead of being silent config.
-    fn demo_pppoe_login(&mut self, client: &str) -> Result<(), String> {
+    pub(super) fn demo_pppoe_login(&mut self, client: &str) -> Result<(), String> {
         let (server, user) = self.pppoe.get(client).cloned().ok_or_else(|| {
             format!("Built-in PPPoE from {} failed: the client has no provider configured", self.name_of(client))
         })?;

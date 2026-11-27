@@ -48,3 +48,5 @@ mod pending;
 mod duplicate_ip;
 mod lesson_coverage;
 mod formal;
+mod queues_tests;
+mod voucher_probe;
