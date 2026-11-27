@@ -206,7 +206,7 @@ test("the pictures of Takumi exist, the first one is the hero, and no 3D library
     expect(html[key]).toContain('fetchpriority="high"');
   }
   const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-  expect(Object.keys(pkg.devDependencies)).toEqual(["typescript"]);
+  expect(pkg.devDependencies).toBeUndefined();
   expect(existsSync(join(web, "js/landing.js"))).toBe(false);
 });
 
