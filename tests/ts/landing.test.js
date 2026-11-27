@@ -222,7 +222,7 @@ test("the About pages are written in plain words and share the landing styles", 
   }
 });
 test("the workspace page is kept out of search results, and the sitemap and robots rules exist in the server", () => {
-  expect(read("index.html")).toContain('<meta name="robots" content="noindex,follow">');
+  expect(read("workspace.html")).toContain('<meta name="robots" content="noindex,follow">');
   const routes = readFileSync(join(root, "src/http/static_routes.rs"), "utf8");
   expect(routes).toContain("Disallow: /workspace");
   expect(routes).toContain("Disallow: /api/");

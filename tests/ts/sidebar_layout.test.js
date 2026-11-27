@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
 var css = readFileSync(join(import.meta.dir, "../../web/workspace.css"), "utf8");
-var index = readFileSync(join(import.meta.dir, "../../web/index.html"), "utf8");
+var index = readFileSync(join(import.meta.dir, "../../web/workspace.html"), "utf8");
 function widths(selectorPattern) {
   return [...css.matchAll(selectorPattern)].map((m) => Number(m[1]));
 }
