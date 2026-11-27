@@ -142,7 +142,7 @@ test('precache manifest contains every production file and no documentation asse
 
 test('every static HTML asset is present in the precache manifest', () => {
   const worker = loadWorker();
-  const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(root, 'web/workspace.html'), 'utf8');
   const urls = Array.from(html.matchAll(/(?:src|href)="(\/[^"]+)"/g), (match) => match[1])
     .filter((url) => !url.startsWith('/api/'));
   for (const url of urls) assert.ok(worker.urls.includes(url), `${url} is not precached`);

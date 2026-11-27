@@ -336,10 +336,10 @@ def about(t):
 '''
 
 PAGES = {
-    "landing.html": lambda: landing(T["en"]),
-    "landing.id.html": lambda: landing(T["id"]),
+    "index.html": lambda: landing(T["en"]),
+    "id.html": lambda: landing(T["id"]),
     "about.html": lambda: about(T["en"]),
-    "about.id.html": lambda: about(T["id"]),
+    "id/about.html": lambda: about(T["id"]),
 }
 
 if __name__ == "__main__":
@@ -350,5 +350,5 @@ if __name__ == "__main__":
         print("stale:", stale if stale else "none")
         sys.exit(1 if stale else 0)
     for name, make in PAGES.items():
-        (WEB / name).write_text(make())
+        (WEB / name).parent.mkdir(parents=True, exist_ok=True) or (WEB / name).write_text(make())
     print("wrote", len(PAGES), "pages")

@@ -4,9 +4,9 @@ use super::*;
 pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option<(&'static str, Vec<u8>)> {
     let html = "text/html; charset=utf-8";
     let reply = match (method, path) {
-        ("GET", "/") => (html, page(ctx, "landing.html")?),
-        ("GET", "/id") => (html, page(ctx, "landing.id.html")?),
-        ("GET", "/workspace") => (html, file_bytes(&ctx.web_root, "index.html")?),
+        ("GET", "/") => (html, file_bytes(&ctx.web_root, "index.html")?),
+        ("GET", "/id") => (html, file_bytes(&ctx.web_root, "id.html")?),
+        ("GET", "/workspace") => (html, file_bytes(&ctx.web_root, "workspace.html")?),
         ("GET", "/robots.txt") => ("text/plain; charset=utf-8", robots(ctx).into_bytes()),
         ("GET", "/sitemap.xml") => ("application/xml; charset=utf-8", sitemap(ctx).into_bytes()),
         ("GET", "/landing/og-en.png") => ("image/png", file_bytes(&ctx.web_root, "landing/og-en.png")?),
@@ -21,8 +21,8 @@ pub(super) fn route(ctx: &Ctx, method: &str, path: &str, _query: &str) -> Option
             }
         }
         ("GET", "/landing.css") => ("text/css; charset=utf-8", file_bytes(&ctx.web_root, "landing.css")?),
-        ("GET", "/about") => (html, page(ctx, "about.html")?),
-        ("GET", "/id/about") => (html, page(ctx, "about.id.html")?),
+        ("GET", "/about") => (html, file_bytes(&ctx.web_root, "about.html")?),
+        ("GET", "/id/about") => (html, file_bytes(&ctx.web_root, "id/about.html")?),
         // The old address keeps working: it points to the clean one.
         ("GET", "/about.html") => (REDIRECT, b"/about".to_vec()),
         ("GET", p) if p.starts_with("/sounds/") => {

@@ -241,7 +241,7 @@ test('the sections are wired into the config tab and the services tab', () => {
   assert.match(tabs, /configSections\(box, d\);/);
   const services = fs.readFileSync(path.join(root, 'web/js/legacy/services_tab.js'), 'utf8');
   assert.match(services, /dhcpPoolsSection\(d, ['"]services['"]\)/);
-  const index = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
+  const index = fs.readFileSync(path.join(root, 'web/workspace.html'), 'utf8');
   assert.match(index, /\/js\/legacy\/config_sections\.js/);
   assert.match(index, /\/js\/legacy\/browser_pages\.js/);
 });

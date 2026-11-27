@@ -129,7 +129,7 @@ test('every Desktop app dispatches to its real handler', () => {
 });
 
 test('device window exposes only the supported tabs', () => {
-  const html = source('web/index.html');
+  const html = source('web/workspace.html');
   const markup = html.match(/<div class="devwin-tabs" id="dw-tabs">([\s\S]*?)<\/div>/);
   assert.ok(markup);
   const tabs = Array.from(markup[1].matchAll(/data-tab="([^"]+)"/g), (match) => match[1]);
@@ -137,19 +137,19 @@ test('device window exposes only the supported tabs', () => {
 });
 
 test('every static image has a real source before its window opens', () => {
-  const html = source('web/index.html');
+  const html = source('web/workspace.html');
   const images = Array.from(html.matchAll(/<img\b[^>]*>/g), (match) => match[0]);
   const missing = images.filter((image) => !/\bsrc="[^"]+"/.test(image));
   assert.deepEqual(missing, []);
 });
 
 test('loading mascot is preloaded before the gallery can replace it', () => {
-  const html = source('web/index.html');
+  const html = source('web/workspace.html');
   assert.match(html, /<link rel="preload" as="image" href="\/art3d\/mascot\/think\.webp">/);
 });
 
 test('the protocol filter explains itself under a plain title', () => {
-  const html = source('web/index.html');
+  const html = source('web/workspace.html');
   assert.doesNotMatch(html, /Event List Filters/);
   assert.match(html, /<span>Show these protocols<\/span>/);
   assert.match(html, /<p class="filter-blurb">Captured events stay in the list above; untick a protocol to hide its rows\.<\/p>/);
@@ -158,7 +158,7 @@ test('the protocol filter explains itself under a plain title', () => {
 });
 
 test('the device window explains the model in one muted line under its title', () => {
-  const html = source('web/index.html');
+  const html = source('web/workspace.html');
   assert.match(html, /<p class="dw-blurb" id="dw-blurb" hidden><\/p>\n\s*<div class="devwin-tabs"/);
 
   const windowSource = source('web/js/legacy/device_window.js');

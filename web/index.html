@@ -3,637 +3,241 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Takumi workspace</title>
-<meta name="description" content="The Takumi workspace: build a network, send packets and follow them.">
-<meta name="robots" content="noindex,follow">
+<title>Takumi: free network lab in your browser</title>
+<meta name="description" content="Build networks with routers, switches and computers, then follow every packet. Free, no account, works offline in your browser.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#ffffff">
+<meta name="author" content="Kurnia Massidik">
+<link rel="canonical" href="https://takumi.kurniatech.my.id/">
+<link rel="alternate" hreflang="en" href="https://takumi.kurniatech.my.id/">
+<link rel="alternate" hreflang="id" href="https://takumi.kurniatech.my.id/id">
+<link rel="alternate" hreflang="x-default" href="https://takumi.kurniatech.my.id/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Takumi">
+<meta property="og:title" content="Takumi: free network lab in your browser">
+<meta property="og:description" content="Build networks with routers, switches and computers, then follow every packet. Free, no account, works offline in your browser.">
+<meta property="og:url" content="https://takumi.kurniatech.my.id/">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="id_ID">
+<meta property="og:image" content="https://takumi.kurniatech.my.id/landing/og-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Takumi the bear next to the words Takumi, a network lab in your browser">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@KMassidik">
+<meta name="twitter:title" content="Takumi: free network lab in your browser">
+<meta name="twitter:description" content="Build networks with routers, switches and computers, then follow every packet. Free, no account, works offline in your browser.">
+<meta name="twitter:image" content="https://takumi.kurniatech.my.id/landing/og-en.png">
 <link rel="icon" type="image/webp" href="/art3d/mascot/idle.webp">
-<link rel="preload" as="image" href="/art3d/mascot/think.webp">
+<link rel="preload" as="image" href="/landing/takumi-wave.webp" type="image/webp" fetchpriority="high">
 <link rel="stylesheet" href="/tokens.css">
-<link rel="stylesheet" href="/workspace.css">
+<link rel="stylesheet" href="/landing.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{SITE_URL}/#site",
+      "name": "Takumi",
+      "url": "https://takumi.kurniatech.my.id/",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "{SITE_URL}/#app",
+      "name": "Takumi",
+      "url": "https://takumi.kurniatech.my.id/",
+      "description": "A free network lab in the browser: build networks, follow every packet, and check your work with guided lessons.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any (web browser)",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "inLanguage": "en",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "image": "https://takumi.kurniatech.my.id/landing/og-en.png",
+      "author": {
+        "@type": "Person",
+        "name": "Kurnia Massidik",
+        "url": "https://x.com/KMassidik",
+        "sameAs": [
+          "https://x.com/KMassidik",
+          "https://github.com/Kmassidik"
+        ]
+      },
+      "codeRepository": "https://github.com/Kmassidik/TakumiNet"
+    },
+    {
+      "@type": "FAQPage",
+      "inLanguage": "en",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Takumi free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. It is free to use and open source under the MIT licence."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need an account or an install?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Open it in your browser and start building. There is nothing to install."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. After your first visit the page, the network engine and the pictures are saved in your browser, so it keeps working without a connection."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where are my networks saved?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "On your own computer. Save a network as an .xml file and open it again later. Nothing is uploaded."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use it to teach a class?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The guided lessons and ready-made example networks are made for classrooms, and you can share any network as an .xml file."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
-<section id="phone-block" class="phone-block" role="alert">
-  <img src="/art3d/mascot/sleep.webp" alt="" width="96" height="96">
-  <h1>Open Takumi on a wider screen</h1>
-  <p>Building and tracing networks needs a bigger screen and a mouse or keyboard. Open this page on a computer or a tablet, or make this window wider.</p>
-  <p><a href="/about">About Takumi</a></p>
-</section>
-<div id="engine-loading" class="engine-loading" role="status" aria-live="polite">
-  <img src="/art3d/mascot/think.webp" alt="" width="72" height="72">
-  <p id="engine-loading-text">Loading the Takumi engine…</p>
-  <div class="engine-bar"><span id="engine-bar-fill"></span></div>
-</div>
-<div class="app">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="brand" href="/"><img src="/art3d/mascot/idle.webp" alt="" width="34" height="34">Takumi</a>
+  <nav aria-label="Site">
+    <a href="/about">About</a>
+    <a href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">GitHub</a>
+    <a class="lang" href="/id" hreflang="id" lang="id" title="Bahasa Indonesia"><svg width="16" height="11" viewBox="0 0 16 11" style="display:inline;vertical-align:middle;margin-right:4px"><rect width="16" height="5.5" y="0" fill="#ce1126"/><rect width="16" height="5.5" y="5.5" fill="#fff"/></svg>ID</a>
+    <a class="pill solid small only-computer" href="/workspace">Open the workspace</a>
+  </nav>
+</header>
 
-  <div class="menubar">
-    <span class="brand"><img src="/art3d/mascot/idle.webp" alt="">Takumi</span>
-    <nav id="menus">
-      <div class="menu">
-        <button>File</button>
-        <div class="drop">
-          <button data-action="new">New</button>
-          <button data-action="open">Open…</button>
-          <button data-action="save">Save…</button>
-          <button data-action="import">Import…</button>
-          <button data-action="export">Export…</button>
-          <div class="sep"></div>
-          <button data-action="print">Print…</button>
-        </div>
-      </div>
-      <div class="menu">
-        <button>Edit</button>
-        <div class="drop">
-          <button data-action="undo">Undo</button>
-          <button data-action="redo">Redo</button>
-          <div class="sep"></div>
-          <button data-action="copy">Copy</button>
-          <button data-action="paste">Paste</button>
-          <button data-action="delete">Delete</button>
-        </div>
-      </div>
-      <div class="menu">
-        <button>Options</button>
-        <div class="drop">
-          <button data-action="preferences">Preferences…</button>
-        </div>
-      </div>
-      <div class="menu">
-        <button>View</button>
-        <div class="drop">
-          <button title="Add a note to the canvas" data-action="add-note">Note</button>
-        <button data-action="zoom-in">Zoom In</button>
-          <button data-action="zoom-out">Zoom Out</button>
-          <button data-action="zoom-reset">Reset Zoom</button>
-          <div class="sep"></div>
-          <button data-action="toggle-palette">Toggle Palette</button>
-          <button data-action="toggle-grid">Toggle Grid</button>
-        </div>
-      </div>
-      <div class="menu" id="examples-menu">
-        <button>Examples</button>
-        <div class="drop">
-          <button data-action="show-lessons">Lessons</button>
-          <button data-action="show-templates">Example templates</button>
-        </div>
-      </div>
-      <div class="menu">
-        <button>Tools</button>
-        <div class="drop">
-          <button data-action="pdu">Simple PDU</button>
-          <button data-action="pdu">Complex PDU</button>
-          <div class="sep"></div>
-          <button data-action="build-bus">Build Bus Topology…</button>
-          <button data-action="mesh">Create Full Mesh</button>
-          <div class="sep"></div>
-          <button data-action="collapse-group">Collapse into one node</button>
-          <button data-action="flows">Flows…</button>
-          <div class="sep"></div>
-          <button data-action="reset-sim">Reset Simulation</button>
-          <button data-action="custom-device">Custom Device…</button>
-        </div>
-      </div>
-      <div class="menu">
-        <button>Help</button>
-        <div class="drop">
-          <a href="/about">About</a>
-        </div>
-      </div>
-    </nav>
-  </div>
+<main id="main">
+  <section class="hero">
+    <h1>Build a network and watch it work.</h1>
+    <p class="lede">A free network lab in your browser. Drop in routers, switches and computers, run a cable between them, then follow every packet from one device to the next.</p>
+    <p class="actions only-computer">
+      <a class="pill solid" href="/workspace">Open the workspace</a>
+      <a class="pill line" href="/workspace?open=tpl-routed">Try two networks and a router</a>
+    </p>
+    <p class="phone-note">The workspace needs a computer or a tablet. Open this page there to start building.</p>
 
-  <div id="prefs-dialog" class="overlay" hidden>
-    <div class="preview prefs">
-      <div class="devwin-title"><span>Preferences</span><span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span></div>
-      <div class="prefs-body">
-        <label><input type="checkbox" id="pref-grid"> Show canvas grid</label>
-        <label><input type="checkbox" id="pref-sound"> Sound effects</label>
-        <label><input type="checkbox" id="pref-confirm"> Confirm before deleting a device</label>
-        <p class="meta" id="prefs-note">Stored in this browser.</p>
+    <div class="peek">
+      <div class="slot slot-hero"><img src="/landing/takumi-wave.webp" alt="Takumi the bear waving hello" width="512" height="512" fetchpriority="high"></div>
+    </div>
+  </section>
+
+  <section class="block ink" aria-labelledby="wire">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="wire">Wire it up</h2>
+        <p>Pick a category, drag a device onto the canvas, then connect two devices with the right cable: copper straight-through, crossover, serial, fiber or console. Set addresses in the device window, like on real equipment.</p>
+      </div>
+      <div class="slot"><img src="/landing/takumi-idle.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
+    </div>
+  </section>
+
+  <section class="block teal" aria-labelledby="follow">
+    <div class="block-grid flip">
+      <div class="slot"><img src="/landing/takumi-think.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
+      <div class="say">
+        <h2 id="follow">Follow the packet</h2>
+        <p>Press Play and each device makes its decision in turn: ARP, DNS, ping, a web page. Open any captured frame to read its layers and its bytes, and filter the list by protocol.</p>
+
       </div>
     </div>
-  </div>
-  <div class="bar" data-collapsible="toolbar-primary">
-    <div class="toolbar primary" id="toolbar-primary"></div>
-    <button class="collapse-handle" data-collapse-for="toolbar-primary" data-label="Toolbar" type="button">−</button>
-  </div>
-  <div class="bar" data-collapsible="toolbar-secondary">
-    <div class="toolbar secondary" id="toolbar-secondary"></div>
-    <button class="collapse-handle" data-collapse-for="toolbar-secondary" data-label="Tools" type="button">−</button>
-  </div>
+  </section>
 
-  <div class="main">
-    <section class="workspace">
-      <div class="tabs">
-        <button class="tab active" data-sfx="topologyTab" data-view="logical">Logical</button>
-        <button class="tab" data-sfx="topologyTab" data-view="physical"><span class="dot"></span><span id="physical-tab">Physical</span></button>
+  <section class="block grey" aria-labelledby="check">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="check">Check your work</h2>
+        <p>Guided lessons give you steps to do, and checks that read the live network. When something fails you see what was expected, what the network did, and a hint.</p>
+        <ul class="card flat checks" aria-hidden="true">
+          <li class="pass"><span></span>PC0 reaches PC3 through Router0</li>
+          <li class="pass"><span></span>The router decrements the delivered TTL to 127</li>
+          <li class="todo"><span></span>Router0 has the left connected prefix<small>Not checked yet</small></li>
+        </ul>
       </div>
-
-      <div class="canvas-wrap">
-        <canvas id="topology" class="workspace-canvas" aria-label="Network workspace"></canvas>
-        <ul id="device-list" class="sr-only" aria-label="Devices in this workspace"></ul>
-        <div id="link-toast" class="link-toast" role="status" hidden></div>
-        <div id="cable-chip" class="cable-chip" role="status" hidden></div>
-      </div>
-
-      <div class="modebar">
-        <span class="clock" id="clock">00:00:00.0</span>
-        <span class="playgroup">
-          <button title="Reset simulation" data-sfx="movieControlButton" data-sim="reset"><img src="/art3d/sim/reset.webp" alt="reset"></button>
-          <button title="Play" id="play-btn" data-sim="play"><img src="/art3d/sim/play.webp" alt="play"></button>
-          <button title="Step" data-sfx="movieControlButton" data-sim="step"><img src="/art3d/sim/stepa.webp" alt="step"></button>
-          <span id="pdu-queue" class="pdu-queue" role="status" hidden></span>
-        </span>
-        <label class="playback-speed" title="Playback speed (Space play/pause, Left back, Right step)">
-          <span>Speed</span>
-          <input id="playback-speed" type="range" min="0" max="3" step="1" value="2" aria-label="Playback speed">
-          <output id="playback-speed-value" for="playback-speed">1×</output>
-        </label>
-        <div class="modes">
-          <button class="mode active" data-sfx="topologyTab">Realtime</button>
-          <button class="mode" data-sfx="simulationTab">Simulation</button>
-        </div>
-      </div>
-    </section>
-
-    <button class="sidebar-restore" id="sidebar-restore" type="button" title="Show sidebar" aria-label="Show sidebar" hidden>+ Sidebar</button>
-    <div class="splitter" id="sidebar-splitter" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
-    <aside class="sim" id="sidebar" aria-label="Sidebar">
-      <nav class="sidebar-tabs" role="tablist">
-        <button class="active" data-side-tab="events" role="tab">Events</button>
-        <button data-side-tab="lesson" role="tab">Lesson</button>
-        <button data-side-tab="capture" role="tab">Capture</button>
-        <button data-side-tab="log" role="tab">Log</button>
-        <button class="collapse-handle sidebar-handle" data-collapse-for="sidebar" data-label="Sidebar" type="button">−</button>
-      </nav>
-      <div class="sidebar-body">
-      <div data-panel="lesson" hidden><p class="lesson-empty" id="lesson-empty">No lesson is open. Pick one from Examples &gt; Lessons to start a guided lab.</p><section class="lesson-panel" id="lesson-panel" hidden>
-        <div class="lesson-heading">
-          <img id="lesson-mascot" src="/art3d/mascot/wave.webp" alt="Takumi mascot" width="52" height="52">
-          <div><span class="lesson-kicker">Guided lab</span><h2 id="lesson-title"></h2><span class="lesson-meta" id="lesson-meta"></span></div>
-        </div>
-        <p class="lesson-goal" id="lesson-goal"></p>
-        <ol class="lesson-steps" id="lesson-steps"></ol>
-        <div class="lesson-checks" id="lesson-checks"></div>
-        <p class="lesson-hint" id="lesson-hint" role="status"></p>
-        <div class="lesson-actions">
-          <button class="btn lesson-check-button" id="check-work" data-action="check-work">Check my work</button>
-          <button class="btn" data-action="reset-lesson">Reset lesson</button>
-        </div>
-      </section>
-      </div>
-      <div data-panel="events" class="panel-events">
-        <div class="sim-head">Simulation Panel</div>
-        <div class="events-wrap">
-          <table class="events">
-            <colgroup><col class="c-vis"><col class="c-time"><col class="c-last"><col class="c-at"><col class="c-type"></colgroup>
-            <thead>
-              <tr><th>Vis.</th><th>Time</th><th>Last device</th><th>At device</th><th>Type</th></tr>
-            </thead>
-            <tbody id="events"></tbody>
-          </table>
-        </div>
-        <div class="sim-row">
-          <button class="btn" data-action="reset-sim">Reset Simulation</button>
-          <label class="check"><input type="checkbox" id="const-delay"> Constant Delay</label>
-          <span class="capture" id="captured">Captured: 0/0</span>
-        </div>
-        <div class="playbar">
-          <button title="Back" data-sfx="movieControlButton" data-sim="back"><img src="/art3d/sim/back.webp" alt="back"></button>
-          <button title="Play" data-sim="play2"><img src="/art3d/sim/play.webp" alt="play"></button>
-          <button title="Forward" data-sfx="movieControlButton" data-sim="forward"><img src="/art3d/sim/stepb.webp" alt="forward"></button>
-          <button title="Fast forward" data-sfx="movieControlButton" data-sim="ffw"><img src="/art3d/sim/fastforward.webp" alt="ffw"></button>
-        </div>
-        <section class="filter-section" aria-label="Show these protocols">
-          <div class="filter-head">
-            <span>Show these protocols</span>
-            <span class="right">
-              <button class="mini" id="show-all" title="Tick every protocol so all captured events show">Show All</button>
-              <button class="mini" id="show-none" title="Untick every protocol so no captured events show">Hide All</button>
-            </span>
-          </div>
-          <p class="filter-blurb">Captured events stay in the list above; untick a protocol to hide its rows.</p>
-          <div class="filters" id="filters"></div>
-        </section>
-      </div>
-      <div data-panel="log" hidden><div class="run-log-head">Run log <input id="run-log-filter" type="search" placeholder="filter device or text" spellcheck="false"></div>
-      <ol id="run-log" class="run-log"></ol>
-      </div>
-      <div data-panel="capture" hidden>
-<section class="capture-dock" id="capture-dock" aria-label="Network engineer view">
-        <div class="capture-toolbar">
-          <div class="capture-tabs" role="tablist">
-            <button class="active" data-engineer-tab="capture" role="tab">Capture</button>
-            <button data-engineer-tab="flow" role="tab">Flow</button>
-          </div>
-          <label class="display-filter-label">Display filter
-            <input id="display-filter" type="text" spellcheck="false" placeholder="icmp && ttl < 128" aria-describedby="filter-error">
-          </label>
-          <span id="capture-count" class="capture-count">0 / 0 frames</span>
-          <a class="save-capture" id="save-capture" href="/api/capture/export" download="capture.pcap">Save capture</a>
-        </div>
-        <div id="filter-error" class="filter-error" role="status"></div>
-        <div id="capture-view" class="capture-view">
-          <div class="capture-table-wrap">
-            <table class="capture-table">
-              <thead><tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Length</th><th>Info</th></tr></thead>
-              <tbody id="capture-rows"></tbody>
-            </table>
-          </div>
-          <div class="packet-inspector">
-            <section><h3>Packet Details</h3><div id="packet-details" class="packet-details">Select a packet in Capture or Flow.</div></section>
-            <section><h3>Packet Bytes</h3><div id="packet-bytes" class="packet-bytes">Select a captured frame to inspect its bytes.</div></section>
-          </div>
-        </div>
-        <div id="flow-view" class="flow-view" hidden><svg id="flow-graph" role="img" aria-label="Packet flow ladder"></svg></div>
-        <div class="narration" aria-live="polite">
-          <img id="narration-mascot" src="/art3d/mascot/think.webp" alt="Takumi mascot think" width="36" height="36">
-          <span id="narration-text">Step through a capture to watch each device make its decision.</span>
-        </div>
-      </section>
-
-      
-      </div>
-      </div>
-    </aside>
-  </div>
-
-  <div class="palette" id="palette-bar" data-collapsible="palette">
-    <div class="groups" id="groups"></div>
-    <div class="devices" id="palette"></div>
-    <button class="collapse-handle" data-collapse-for="palette" data-label="Devices" type="button">−</button>
-  </div>
-
-  <div class="statusbar">
-    <span><img id="status-icon" src="/art3d/mascot/error.webp" alt="" width="18" height="18" hidden> <span id="status-msg">Ready</span></span>
-    <span id="status-mode">Realtime</span>
-  </div>
-
-</div>
-
-<div id="lesson-gallery" class="overlay gallery-overlay" hidden>
-  <main class="preview gallery" aria-labelledby="gallery-title">
-    <button class="dlg-close dlg-close-float" data-dialog-close title="Close" aria-label="Close">×</button>
-    <header class="gallery-hero">
-      <img class="gallery-network" src="/art3d/misc/network.webp" alt="" width="88" height="88">
-      <div><span class="gallery-kicker">Takumi learning lab</span><h1 id="gallery-title">Build a network. See it work.</h1><p>Hands-on lessons use the same packets, commands, and network state as your own labs.</p></div>
-      <img class="gallery-mascot" id="gallery-mascot" src="/art3d/mascot/wave.webp" alt="Takumi mascot" width="104" height="104">
-    </header>
-    <div class="gallery-cards" id="gallery-cards"></div>
-    <p class="gallery-note" id="gallery-note" role="status">Loading lessons…</p>
-    <div class="gallery-start">
-      <button class="btn gallery-new" data-action="new"><img src="/art3d/toolbar/new.webp" alt="">New blank</button>
-      <button class="btn" data-action="open"><img src="/art3d/toolbar/open.webp" alt="">Open file</button>
-      <button class="btn" data-action="import"><img src="/art3d/toolbar/open.webp" alt="">Import</button>
+      <div class="slot"><img src="/landing/takumi-happy.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
     </div>
-  </main>
-</div>
+  </section>
 
-<div id="ip-dialog" class="overlay" hidden>
-  <div class="preview ip-dialog">
-    <div class="devwin-title"><span id="ip-title">IP Configuration</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-
-    <div class="ip-body">
-      <p id="ip-warning" class="ip-warning" hidden></p>
-      <label class="ipfield"><span>Interface</span>
-        <select id="ip-iface"><option>FastEthernet0</option></select>
-      </label>
-
-      <fieldset class="ip-group">
-        <legend>IP Configuration</legend>
-        <div class="ip-modes">
-          <label class="ip-radio"><input type="radio" name="ipv4mode" id="ip-dhcp"> DHCP</label>
-          <label class="ip-radio"><input type="radio" name="ipv4mode" id="ip-static" checked> Static</label>
-        </div>
-        <label class="ipfield"><span>IPv4 Address</span><input id="ip-addr" placeholder="0.0.0.0" spellcheck="false"></label>
-        <label class="ipfield"><span>Subnet Mask</span><input id="ip-mask" placeholder="255.255.255.0" spellcheck="false"></label>
-        <label class="ipfield"><span>Default Gateway</span><input id="ip-gw" placeholder="0.0.0.0" spellcheck="false"></label>
-        <label class="ipfield"><span>DNS Server</span><input id="ip-dns" placeholder="0.0.0.0" spellcheck="false"></label>
-      </fieldset>
-
-      <fieldset class="ip-group" id="ip-pool-group" hidden>
-        <legend>DHCP Pool</legend>
-        <label class="ipfield"><span>Network</span><input id="ip-pool-net" placeholder="192.168.1.0" spellcheck="false"></label>
-        <label class="ipfield"><span>Subnet Mask</span><input id="ip-pool-mask" placeholder="255.255.255.0" spellcheck="false"></label>
-        <label class="ipfield"><span>Default Gateway</span><input id="ip-pool-gw" spellcheck="false"></label>
-        <label class="ipfield"><span>DNS Server</span><input id="ip-pool-dns" spellcheck="false"></label>
-        <div class="ip-actions"><button class="btn" id="ip-pool-save">Save Pool</button>
-          <span id="ip-pool-note" class="meta"></span></div>
-      </fieldset>
-
-      <fieldset class="ip-group">
-        <legend>IPv6 Configuration</legend>
-        <div class="ip-modes">
-          <label class="ip-radio"><input type="radio" name="ipv6mode" id="ip-v6auto"> Automatic</label>
-          <label class="ip-radio"><input type="radio" name="ipv6mode" id="ip-v6static" checked> Static</label>
-        </div>
-        <label class="ipfield"><span>IPv6 Address</span>
-          <span class="ip-split">
-            <input id="ip-v6addr" placeholder="" spellcheck="false">
-            <span class="ip-slash">/</span>
-            <input id="ip-v6prefix" class="ip-prefix" value="64" spellcheck="false">
-          </span>
-        </label>
-        <label class="ipfield"><span>Link Local Address</span><input id="ip-v6ll" disabled></label>
-        <label class="ipfield"><span>Default Gateway</span><input id="ip-v6gw" spellcheck="false"></label>
-        <label class="ipfield"><span>DNS Server</span><input id="ip-v6dns" spellcheck="false"></label>
-      </fieldset>
-
-      <fieldset class="ip-group">
-        <legend>802.1X</legend>
-        <label class="ip-radio"><input type="checkbox" id="ip-8021x"> Use 802.1X Security</label>
-        <label class="ipfield"><span>Authentication</span>
-          <select id="ip-8021x-auth" disabled><option>MD5</option></select></label>
-        <label class="ipfield"><span>Username</span><input id="ip-8021x-user" spellcheck="false"></label>
-        <label class="ipfield"><span>Password</span><input id="ip-8021x-pass" type="password"></label>
-      </fieldset>
-
-      <div class="ip-actions">
-        <button class="btn" id="ip-save">Apply</button>
-        <span id="ip-note" class="meta"></span>
+  <section class="start" aria-labelledby="start">
+    <h2 id="start">Start from a network that already runs</h2>
+    <div class="lists">
+      <div class="card hard">
+        <h3>Example networks</h3>
+        <ul>
+          <li><a href="/workspace?open=tpl-home"><strong>Home network</strong><span>Laptop0 and PC0 reach Server0's web page</span></a></li>
+          <li><a href="/workspace?open=tpl-l4-campus-ospf"><strong>Campus with OSPF</strong><span>Four routers in a diamond learn each other's networks and survive one cut</span></a></li>
+          <li><a href="/workspace?open=tpl-l2-rtrw-small"><strong>RT/RW Net with three homes</strong><span>A neighbourhood shares one line through a gateway, a pole radio and three homes</span></a></li>
+        </ul>
+      </div>
+      <div class="card hard">
+        <h3>Guided lessons</h3>
+        <ul>
+          <li><a href="/workspace?open=t1"><strong>Connect two computers</strong><span>PC0 can ping PC1</span></a></li>
+          <li><a href="/workspace?open=les-l1-02-wifi-name"><strong>Give the Wi-Fi your own name</strong><span>Phone0 joins a WPA2 network named FamilyNet with your own password</span></a></li>
+          <li><a href="/workspace?open=les-l2-01-first-gateway"><strong>Bring the neighbourhood online</strong><span>A laptop in a home opens an outside page through the gateway</span></a></li>
+        </ul>
       </div>
     </div>
-  </div>
-</div>
+    <p class="more" style="margin-top: 32px;"><a href="/workspace">All 35 example networks and 73 lessons are waiting inside the workspace.</a></p>
+  </section>
 
-<div id="device-window" class="overlay" hidden>
-  <div class="preview devwin">
-    <div class="devwin-title">
-      <img id="dw-icon" src="/art3d/devices/pc.webp" alt="">
-      <span id="dw-name">PC0</span>
-      <span class="dw-btns">
-        <button id="dw-min" title="minimize">—</button>
-        <button id="dw-max" title="maximize">□</button>
-        <button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button>
-      </span>
+  <section class="start faq" aria-labelledby="faq">
+    <h2 id="faq">Questions people ask</h2>
+    <div class="faq-list">
+        <details><summary>Is Takumi free?</summary><p>Yes. It is free to use and open source under the MIT licence.</p></details>
+        <details><summary>Do I need an account or an install?</summary><p>No. Open it in your browser and start building. There is nothing to install.</p></details>
+        <details><summary>Does it work offline?</summary><p>Yes. After your first visit the page, the network engine and the pictures are saved in your browser, so it keeps working without a connection.</p></details>
+        <details><summary>Where are my networks saved?</summary><p>On your own computer. Save a network as an .xml file and open it again later. Nothing is uploaded.</p></details>
+        <details><summary>Can I use it to teach a class?</summary><p>Yes. The guided lessons and ready-made example networks are made for classrooms, and you can share any network as an .xml file.</p></details>
     </div>
-    <p class="dw-blurb" id="dw-blurb" hidden></p>
-    <div class="devwin-tabs" id="dw-tabs">
-      <button data-tab="physical">Physical</button>
-      <button data-tab="config">Config</button>
-      <button data-tab="wireless">Wireless</button>
-      <button data-tab="desktop" class="active">Desktop</button>
-      <button data-tab="cli">CLI</button>
-      <button data-tab="services">Services</button>
-    </div>
-    <div class="devwin-body">
-      <div id="dw-pane" class="dw-pane"></div>
-      <label class="dw-top"><input type="checkbox"> Top</label>
-    </div>
-  </div>
-</div>
+  </section>
 
-<div id="cmd-window" class="overlay" hidden>
-  <div class="preview cmdwin">
-    <div class="devwin-title">
-      <span id="cmd-title">Terminal</span>
-      <span class="dw-btns"><button class="btn" id="cmd-help" title="Show the commands this terminal knows">Help</button><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
+  <section class="block ink free" aria-labelledby="free">
+    <div class="block-grid">
+      <div class="say">
+        <h2 id="free">Free, and yours to change</h2>
+        <p>Takumi runs entirely in your browser, so your networks stay on your machine. It needs no account and works offline once it has loaded. The engine, the interface and every picture are original work, released under the MIT licence. Anyone can send a pull request or fork it and build their own version.</p>
+        <p class="actions">
+          <a class="pill solid brand only-computer" href="/workspace">Open the workspace</a>
+          <a class="pill line light" href="https://github.com/Kmassidik/TakumiNet" rel="noopener noreferrer">Source on GitHub</a>
+          <a class="pill line light" href="https://x.com/KMassidik" rel="noopener noreferrer">Follow the author on X</a>
+        </p>
+      </div>
+      <div class="slot"><img src="/landing/takumi-wave.webp" alt="" width="512" height="512" loading="lazy" decoding="async"></div>
     </div>
-    <pre id="cmd-out" class="cmd-out"></pre>
-    <div class="cmd-line"><span id="cmd-prompt">$</span><input id="cmd-in" autocomplete="off" spellcheck="false"></div>
-  </div>
-</div>
+  </section>
+</main>
 
-<div id="term-window" class="overlay" hidden>
-  <div class="preview cmdwin termwin">
-    <div class="devwin-title">
-      <span id="term-title">Terminal</span>
-      <span class="dw-btns"><button class="btn" id="term-help" title="Modes and commands to start with">Help</button><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <pre id="term-out" class="cmd-out"></pre>
-    <div class="cmd-line"><span id="term-prompt">&gt;</span><input id="term-in" autocomplete="off" spellcheck="false"></div>
-  </div>
-</div>
-
-<div id="web-dialog" class="overlay" hidden>
-  <div class="preview webwin">
-    <div class="devwin-title">
-      <span id="web-title">Web Browser</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="web-bar">
-      <span>http://</span>
-      <input id="web-url" placeholder="192.168.2.20" spellcheck="false" autocomplete="off">
-      <button class="btn" id="web-go">Go</button>
-    </div>
-    <div id="web-status" class="meta"></div>
-    <div id="web-body" class="web-body"></div>
-  </div>
-</div>
-
-<div id="wifi-dialog" class="overlay" hidden>
-  <div class="preview wifiwin">
-    <div class="devwin-title">
-      <span id="wifi-title">Wireless</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="wifi-body">
-      <div id="wifi-status" class="meta"></div>
-      <div id="wifi-body"></div>
-    </div>
-  </div>
-</div>
-
-<div id="editor-dialog" class="overlay" hidden>
-  <div class="preview editorwin">
-    <div class="devwin-title">
-      <span id="editor-title">Notes</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="editor-bar">
-      <button class="btn" id="editor-save">Save</button>
-      <span id="editor-status" class="meta">Your own notes, kept in this browser. They change nothing in the network.</span>
-    </div>
-    <div class="editor-body">
-      <textarea id="editor-text" class="editor-area" spellcheck="false" placeholder="What is this device for? Anything you want to remember…"></textarea>
-    </div>
-  </div>
-</div>
-
-<div id="pdu-dialog" class="overlay" hidden>
-  <div class="preview pduwin">
-    <div class="devwin-title">
-      <span id="pdu-title">PDU Detail</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div id="pdu-meta" class="pdu-meta"></div>
-    <div class="pdu-scroll"><table id="pdu-table" class="pdu-table"></table></div>
-  </div>
-</div>
-
-<div id="cli-help-dialog" class="overlay" hidden>
-  <div class="preview kindwin">
-    <div class="devwin-title">
-      <span>Command line help</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kw-pane" id="cli-help-body"></div>
-  </div>
-</div>
-
-<div id="gateway-window" class="overlay" hidden>
-  <div class="preview kindwin kindwin-wide">
-    <div class="devwin-title">
-      <span class="kindwin-name">Gateway</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="radio-window" class="overlay" hidden>
-  <div class="preview kindwin">
-    <div class="devwin-title">
-      <span class="kindwin-name">Radio</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="provider-window" class="overlay" hidden>
-  <div class="preview kindwin">
-    <div class="devwin-title">
-      <span class="kindwin-name">Provider link</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="hotspot-window" class="overlay" hidden>
-  <div class="preview kindwin">
-    <div class="devwin-title">
-      <span class="kindwin-name">Hotspot</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="firewall-window" class="overlay" hidden>
-  <div class="preview kindwin kindwin-wide">
-    <div class="devwin-title">
-      <span class="kindwin-name">Firewall</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="balancer-window" class="overlay" hidden>
-  <div class="preview kindwin kindwin-wide">
-    <div class="devwin-title">
-      <span class="kindwin-name">Load balancer</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="phone-window" class="overlay" hidden>
-  <div class="preview kindwin">
-    <div class="devwin-title">
-      <span class="kindwin-name">Phone</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="l3switch-window" class="overlay" hidden>
-  <div class="preview kindwin kindwin-wide">
-    <div class="devwin-title">
-      <span class="kindwin-name">Layer 3 switch</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="iot-window" class="overlay" hidden>
-  <div class="preview kindwin kindwin-wide">
-    <div class="devwin-title">
-      <span class="kindwin-name">Registers</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="celltower-window" class="overlay" hidden>
-  <div class="preview kindwin">
-    <div class="devwin-title">
-      <span class="kindwin-name">Cell tower</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="group-window" class="overlay" hidden>
-  <div class="preview kindwin">
-    <div class="devwin-title">
-      <span class="kindwin-name">Group</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<div id="flows-window" class="overlay" hidden>
-  <div class="preview kindwin kindwin-wide">
-    <div class="devwin-title">
-      <span class="kindwin-name">Flows</span>
-      <span class="dw-btns"><button class="dlg-close" data-dialog-close title="Close" aria-label="Close">×</button></span>
-    </div>
-    <div class="kindwin-body"></div>
-  </div>
-</div>
-
-<figure id="print-sheet" class="print-sheet" aria-hidden="true"></figure>
-
-<div id="tip" class="tip" hidden></div>
-<script src="/js/legacy/phone.js"></script>
-<script src="/js/legacy/cli_help.js"></script>
-<script src="/js/legacy/poe_control.js"></script>
-<script src="/js/legacy/engine.js"></script>
-<script src="/js/legacy/state.js"></script>
-<script src="/js/legacy/cable_feedback.js"></script>
-<script src="/js/legacy/capture_filter.js"></script>
-<script src="/js/legacy/flow.js"></script>
-<script src="/js/legacy/packet_details.js"></script>
-<script src="/js/legacy/capture_table.js"></script>
-<script src="/js/legacy/icons.js"></script>
-<script src="/js/legacy/toolbars.js"></script>
-<script src="/js/legacy/topology.js"></script>
-<script src="/js/legacy/physical.js"></script>
-<script src="/js/legacy/interaction.js"></script>
-<script src="/js/legacy/context_menu.js"></script>
-<script src="/js/legacy/port_picker.js"></script>
-<script src="/js/legacy/simulation.js"></script>
-<script src="/js/legacy/palette.js"></script>
-<script src="/js/legacy/actions.js"></script>
-<script src="/js/legacy/lessons_order.js"></script>
-<script src="/js/legacy/lessons.js"></script>
-<script src="/js/legacy/realtime.js"></script>
-<script src="/js/legacy/chrome.js"></script>
-<script src="/js/legacy/ip_dialog.js"></script>
-<script src="/js/legacy/device_window.js"></script>
-<script src="/js/legacy/services_sections.js"></script>
-<script src="/js/legacy/config_sections.js"></script>
-<script src="/js/legacy/device_tabs.js"></script>
-<script src="/js/legacy/wireless_tab.js"></script>
-<script src="/js/legacy/wifi_app.js"></script>
-<script src="/js/legacy/services_tab.js"></script>
-<script src="/js/legacy/command_prompt.js"></script>
-<script src="/js/legacy/browser_pages.js"></script>
-<script src="/js/legacy/web_apps.js"></script>
-<script src="/js/legacy/sniffer_app.js"></script>
-<script src="/js/legacy/terminal.js"></script>
-<script src="/js/legacy/boot.js"></script>
-<script src="/js/legacy/recovery.js"></script>
-<script src="/js/app.js"></script>
+<footer class="foot">
+  <span>Original code, artwork and sounds.</span>
+  <a href="/about">About Takumi</a>
+  <span>MIT licence, 2026 Kurnia Massidik</span>
+</footer>
 </body>
 </html>

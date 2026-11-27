@@ -8,7 +8,7 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'web/js/legacy/actions.js'), 'utf8');
-const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'web/workspace.html'), 'utf8');
 
 test('the Note tool arms placement and says how to place a note', () => {
   const statuses = [];

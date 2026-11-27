@@ -58,7 +58,7 @@ test('a reload with queued sends says they were cleared', () => {
 });
 
 test('the phone screen says what to do, in plain words', () => {
-  const html = read('web/index.html');
+  const html = read('web/workspace.html');
   assert.match(html, /Open Takumi on a wider screen/);
   assert.match(html, /Open this page on a computer or a tablet, or make this window wider/);
 });

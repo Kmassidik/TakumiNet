@@ -9,7 +9,7 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'web/js/legacy/actions.js'), 'utf8');
 const stateSource = fs.readFileSync(path.join(root, 'web/js/legacy/state.js'), 'utf8');
-const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'web/workspace.html'), 'utf8');
 
 /* The fake interval is controllable: tick() runs every pending callback once,
    so the auto-pause and rewind paths actually execute in the tests. */

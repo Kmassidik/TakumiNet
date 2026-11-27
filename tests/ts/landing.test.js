@@ -5,10 +5,10 @@ var root = join(import.meta.dir, "../..");
 var web = join(root, "web");
 var read = (name) => readFileSync(join(web, name), "utf8");
 var PAGES = {
-  landingEn: { file: "landing.html", lang: "en", path: "/", other: "/id" },
-  landingId: { file: "landing.id.html", lang: "id", path: "/id", other: "/" },
+  landingEn: { file: "index.html", lang: "en", path: "/", other: "/id" },
+  landingId: { file: "id.html", lang: "id", path: "/id", other: "/" },
   aboutEn: { file: "about.html", lang: "en", path: "/about", other: "/id/about" },
-  aboutId: { file: "about.id.html", lang: "id", path: "/id/about", other: "/about" }
+  aboutId: { file: "id/about.html", lang: "id", path: "/id/about", other: "/about" }
 };
 var html = Object.fromEntries(Object.entries(PAGES).map(([k, p]) => [k, read(p.file)]));
 var css = read("landing.css");
@@ -64,7 +64,7 @@ for (const [key, p] of Object.entries(PAGES)) {
     expect(app.license).toContain("MIT");
     expect(app.author.name).toBe("Kurnia Massidik");
     expect(JSON.stringify(data)).not.toMatch(/aggregateRating|review/i);
-    expect(types).toContain(p.file.startsWith("landing") ? "FAQPage" : "AboutPage");
+    expect(types).toContain(p.file === "index.html" || p.file === "id.html" ? "FAQPage" : "AboutPage");
   });
   test(`${p.file}: one main heading, a skip link, named sections, sized pictures`, () => {
     expect(page.match(/<h1>/g)?.length).toBe(1);

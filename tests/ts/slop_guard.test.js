@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 var web = join(import.meta.dir, "../../web");
 var root = join(web, "..");
-var index = readFileSync(join(web, "index.html"), "utf8");
+var index = readFileSync(join(web, "workspace.html"), "utf8");
 var jsDir = join(web, "js", "legacy");
 var sources = readdirSync(jsDir).filter((n) => n.endsWith(".js") && n !== "ui.js").map((n) => ({ name: n, text: readFileSync(join(jsDir, n), "utf8") }));
 function overlays() {
@@ -85,7 +85,7 @@ test("files: .xml is the file type; .tnet appears only where old files are read"
 });
 test("the service worker precaches every script and template the app uses", () => {
   const sw = readFileSync(join(web, "sw.js"), "utf8");
-  const html = readFileSync(join(web, "index.html"), "utf8");
+  const html = readFileSync(join(web, "workspace.html"), "utf8");
   const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map((m) => m[1]);
   const templates = readdirSync(join(web, "templates")).filter((n) => n.endsWith(".xml"));
   for (const asset of [...scripts, ...templates.map((n) => `/templates/${n}`)]) {
