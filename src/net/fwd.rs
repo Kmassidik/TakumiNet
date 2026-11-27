@@ -190,6 +190,10 @@ where
     let mut cur_src = Mac::for_device(src);
     // 802.1Q state: `None` until a switch access port pins the frame to a VLAN.
     let mut vlan: Option<u16> = None;
+    // VXLAN state: when both ends sit in the same tenant network the routed
+    // fabric tunnels the inner packet between the leaf VTEPs, and every hop
+    // between them sees the outer headers, not the tenant packet.
+    let encap = crate::net::vxlan::overlay_plan(ws, path, src, dst);
 
     for (i, dev_id) in path.iter().enumerate() {
         let dev = find(ws, dev_id)?.clone();
@@ -212,6 +216,15 @@ where
         let dst_mac = mac::frame_mac(ws, &path, i, dip);
         capture.size = 14 + 20 + packet.payload_len();
         capture.frame = Some(Frame::ipv4(dst_mac, src_mac, packet.clone()));
+        // A hop inside the tunnel captures the encapsulated frame: the size
+        // and the recorded layers show the outer headers, not the tenant's.
+        let tunneled = encap.as_ref().is_some_and(|e| e.ingress_idx < i && i < e.egress_idx);
+        if let Some(e) = encap.as_ref().filter(|_| tunneled) {
+            capture.size = e.wire_size(&packet);
+            // On the wire the frame points at the egress VTEP: the underlay
+            // routes to the remote leaf, which strips the headers.
+            capture.frame = Some(Frame::ipv4(Mac::for_device(&path[e.egress_idx]), src_mac, packet.clone()));
+        }
 
         let mut note = String::new();
 
@@ -229,7 +242,11 @@ where
                     dst_mac,
                     src_ip: packet.src,
                     dst_ip: packet.dst,
-                    layers: decode_layers(src_mac, dst_mac, &packet),
+                    layers: if let Some(e) = encap.as_ref().filter(|_| tunneled) {
+                        crate::net::vxlan::decap_layers(src_mac, dst_mac, e, decode_layers(src_mac, dst_mac, &packet))
+                    } else {
+                        decode_layers(src_mac, dst_mac, &packet)
+                    },
                     note: reason.clone(),
                 });
                 return Err(reason);
@@ -301,12 +318,29 @@ where
                     }
                 }
                 if i > 0 && i < last {
+                    // The ingress VTEP wraps the tenant packet for the
+                    // underlay; the egress VTEP strips the tunnel headers.
+                    if let Some(e) = encap.as_ref() {
+                        if i == e.ingress_idx {
+                            note = format!(
+                                "{} encapsulates for VXLAN VNI {} — outer {} → {} (UDP {}), then routes the underlay",
+                                dev.name, e.vni, ipv4_string(e.vtep_src), ipv4_string(e.vtep_dst),
+                                crate::net::vxlan::UDP_PORT
+                            );
+                        } else if i == e.egress_idx {
+                            note = format!(
+                                "{} decapsulates VXLAN VNI {} from {} and delivers the inner packet to {}",
+                                dev.name, e.vni, ipv4_string(e.vtep_src), ipv4_string(packet.dst)
+                            );
+                        }
+                    }
                     match packet.transit() {
                         Transit::Forward(next) => {
-                            note = format!(
+                            let transit_note = format!(
                                 "{} decrements TTL {} to {} and forwards",
                                 dev.name, packet.ttl, next.ttl
                             );
+                            note = if note.is_empty() { transit_note } else { format!("{note}; {transit_note}") };
                             packet = next;
                             cur_src = Mac::for_device(dev_id);
                             vlan = None; // the egress interface selects the next L2 VLAN
@@ -389,7 +423,13 @@ where
             "patchpanel" => note = format!("{} passes the frame through, port to port", dev.name),
             "sniffer" => {
                 note = format!("{} records the frame and passes it on", dev.name);
-                sniff_packet(ws, dev_id, data_started_at + i as f64 * 0.001, src_mac, dst_mac, &packet);
+                if let Some(e) = encap.as_ref().filter(|_| tunneled) {
+                    crate::net::vxlan::sniff_encapsulated(
+                        ws, dev_id, data_started_at + i as f64 * 0.001, src_mac, dst_mac, e, &packet,
+                    );
+                } else {
+                    sniff_packet(ws, dev_id, data_started_at + i as f64 * 0.001, src_mac, dst_mac, &packet);
+                }
             }
             _ if i == last && i > 0 => {
                 if let Some(label) = ws.ufw_blocks(dev_id, &packet) {
@@ -410,7 +450,11 @@ where
             dst_mac,
             src_ip: packet.src,
             dst_ip: packet.dst,
-            layers: decode_layers(src_mac, dst_mac, &packet),
+            layers: if let Some(e) = encap.as_ref().filter(|_| tunneled) {
+                crate::net::vxlan::decap_layers(src_mac, dst_mac, e, decode_layers(src_mac, dst_mac, &packet))
+            } else {
+                decode_layers(src_mac, dst_mac, &packet)
+            },
             note,
         });
     }
@@ -568,119 +612,8 @@ fn next_l3_id(ws: &Workspace, path: &[String], i: usize, dst: &str) -> String {
     dst.to_string()
 }
 
-/// What a device does with a packet for `dst`, including the 802.1Q tag of
-/// the directly connected interface used for the next L2 leg.
-enum NextHop {
-    Direct(Option<u16>),
-    Via(u32, Option<u16>),
-    NoRoute(String),
-}
 
-/// Longest-prefix/AD/metric lookup shared with `show ip route`.
-fn next_hop(ws: &Workspace, dev: &Device, dst: u32) -> NextHop {
-    use crate::model::{contains, ipv4_string};
-
-    if crate::model::routes_packets(&dev.kind) {
-        return match ws.best_route(&dev.id, dst) {
-            Some(route) => match route.next_hop {
-                None => NextHop::Direct(route.dot1q),
-                Some(via) => NextHop::Via(via, route.dot1q),
-            },
-            None => NextHop::NoRoute(format!(
-                "no route to {}: {} has no route to that network",
-                ipv4_string(dst),
-                dev.name
-            )),
-        };
-    }
-
-    let own = addr_of(dev);
-    if let Some(ip) = own {
-        if contains(dst, ip, dev.prefix) {
-            return NextHop::Direct(None);
-        }
-    }
-    match dev.gateway {
-        Some(gw) => NextHop::Via(gw, None),
-        None => NextHop::NoRoute(format!(
-            "no route to {}: {} has no default gateway",
-            ipv4_string(dst),
-            dev.name
-        )),
-    }
-}
-
-/// Control-plane walk: follow next hops until the destination, then stitch the
-/// VLAN-constrained L2 legs into the exact device and cable path.
-pub(crate) fn routed_path(ws: &Workspace, sdev: &Device, ddev: &Device, dst_ip: u32) -> Result<DataPath, (String, Vec<String>)> {
-    let mut chain: Vec<String> = vec![sdev.id.clone()];
-    let mut leg_vlans = Vec::new();
-    let mut current = sdev.clone();
-    loop {
-        let (next, next_vlan) = match next_hop(ws, &current, dst_ip) {
-            NextHop::Direct(vlan) => {
-                chain.push(ddev.id.clone());
-                leg_vlans.push(vlan);
-                break;
-            }
-            NextHop::Via(ip, vlan) => (ip, vlan),
-            // Dead first hop: keep the chain so the drop animation dies somewhere.
-            NextHop::NoRoute(msg) => return Err((msg, chain)),
-        };
-
-        let shared = ws.shared_gateway_owner(next);
-        let peer = ws
-            .devices
-            .iter()
-            .find(|d| match &shared {
-                Some(owner) => d.id == *owner,
-                None => d.ports.iter().any(|p| p.ip == Some(next)) || d.ip == Some(next),
-            })
-            .cloned()
-            .ok_or_else(|| {
-                (
-                    format!("no route to {}: gateway {} is not a configured router interface", ipv4_string(dst_ip), ipv4_string(next)),
-                    chain.clone(),
-                )
-            })?;
-        if chain.iter().any(|id| *id == peer.id) {
-            return Err((format!("routing loop at {}", peer.name), chain.clone()));
-        }
-        let peer_tag = peer
-            .ports
-            .iter()
-            .find(|p| p.ip == Some(next) || p.ip.is_some_and(|ip| shared.is_some() && crate::model::contains(next, ip, p.prefix)))
-            .and_then(|p| p.dot1q);
-        let vlan = next_vlan.or(peer_tag);
-        let from = chain.last().cloned().unwrap_or_default();
-        if usable_path_vlan(ws, &from, &peer.id, vlan).is_none() {
-            return Err((blocked_reason(ws, &from, &peer.id), chain.clone()));
-        }
-        leg_vlans.push(vlan);
-        chain.push(peer.id.clone());
-        current = peer;
-    }
-    if chain.last().map(|id| id != &ddev.id).unwrap_or(true) {
-        return Err((
-            format!("no route to {}: routing loop or hop limit exceeded", ipv4_string(dst_ip)),
-            chain.clone(),
-        ));
-    }
-
-    let mut path = DataPath { devices: vec![chain[0].clone()], links: Vec::new() };
-    for (idx, pair) in chain.windows(2).enumerate() {
-        let leg = usable_path_vlan(ws, &pair[0], &pair[1], leg_vlans[idx])
-            .ok_or_else(|| (blocked_reason(ws, &pair[0], &pair[1]), chain.clone()))?;
-        for id in leg.devices.into_iter().skip(1) {
-            if path.devices.last() != Some(&id) {
-                path.devices.push(id);
-            }
-        }
-        path.links.extend(leg.links);
-    }
-    Ok(path)
-}
-
-mod frames; mod mac;
+mod frames; mod mac; mod route;
 use frames::*;
 pub use frames::reachable;
+pub(crate) use route::{next_hop, routed_path, NextHop};

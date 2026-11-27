@@ -38,6 +38,7 @@ mod snooping;
 mod fhrp;
 mod dot1x_eap;
 mod qos_police;
+mod vxlan;
 mod arp_delivery;
 mod cabling;
 mod kind_capabilities;
