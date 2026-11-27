@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { placeMenu, placeSubmenu } from "../../web/js/mod/ui/menu_place.js";
+import { placeMenu, placeSubmenu } from "../../web/ts/mod/ui/menu_place.js";
 var view = { w: 800, h: 600 };
 test("a menu with room opens exactly at the pointer", () => {
   expect(placeMenu({ x: 100, y: 120 }, { w: 180, h: 200 }, view)).toEqual({ x: 100, y: 120 });

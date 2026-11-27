@@ -1,5 +1,5 @@
-import { cableStyle } from "./cable_style.js";
-import { noteBox } from "./notes.js";
+import { cableStyle } from "./cable_style";
+import { noteBox } from "./notes";
 
 const LED_COLORS = { green: "#0a7a3d", amber: "#c98a00", red: "#c62828" };
 /* --ok, --warn, --danger and --muted from tokens.css; canvas fills cannot read CSS variables. */

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { Camera } from "../../web/js/mod/canvas/camera.js";
-import { bufferSize, recenterShift } from "../../web/js/mod/canvas/view_size.js";
+import { Camera } from "../../web/ts/mod/canvas/camera.js";
+import { bufferSize, recenterShift } from "../../web/ts/mod/canvas/view_size.js";
 test("the buffer is the box size times the pixel ratio", () => {
   expect(bufferSize({ w: 1176, h: 501 }, 2)).toEqual({ w: 2352, h: 1002 });
   expect(bufferSize({ w: 1512, h: 413 }, 2)).toEqual({ w: 3024, h: 826 });

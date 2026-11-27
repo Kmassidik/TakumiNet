@@ -2,8 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { captureRows, applyCaptureFilter } = require('../../web/js/capture_filter.js');
-const { ladder } = require('../../web/js/flow.js');
+const { captureRows, applyCaptureFilter } = require('../../web/js/legacy/capture_filter.js');
+const { ladder } = require('../../web/js/legacy/flow.js');
 
 function packet(id, proto, extra = {}) {
   return {

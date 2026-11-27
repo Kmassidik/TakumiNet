@@ -7,8 +7,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const actionsSource = fs.readFileSync(path.join(root, 'web/js/actions.js'), 'utf8');
-const chromeSource = fs.readFileSync(path.join(root, 'web/js/chrome.js'), 'utf8');
+const actionsSource = fs.readFileSync(path.join(root, 'web/js/legacy/actions.js'), 'utf8');
+const chromeSource = fs.readFileSync(path.join(root, 'web/js/legacy/chrome.js'), 'utf8');
 
 function actionsHarness() {
   const notices = [];
@@ -33,7 +33,7 @@ function actionsHarness() {
     currentTemplate: null, currentName: 'lab1', simCursor: -1,
     async fetch(...args) { fetches.push(args); throw new Error('unexpected fetch'); },
   });
-  vm.runInContext(actionsSource, context, { filename: 'web/js/actions.js' });
+  vm.runInContext(actionsSource, context, { filename: 'web/js/legacy/actions.js' });
   return { context, notices, mascots, fetches, changes, getInput: () => input };
 }
 
@@ -119,7 +119,7 @@ test('export downloads the current name through a Blob without a server write', 
       return { ok: true, async blob() { return blob; } };
     },
   });
-  vm.runInContext(actionsSource, context, { filename: 'web/js/actions.js' });
+  vm.runInContext(actionsSource, context, { filename: 'web/js/legacy/actions.js' });
   await vm.runInContext('ACTIONS.export()', context);
   assert.equal(anchor.download, 'my lab.xml');
   assert.equal(anchor.href, 'blob:native-export');
@@ -144,7 +144,7 @@ test('workspace file drop imports the file instead of creating a palette device'
     async api() { throw new Error('file drop must not add a device'); },
     toSvg() { throw new Error('file drop must not read canvas coordinates'); },
   });
-  vm.runInContext(chromeSource, context, { filename: 'web/js/chrome.js' });
+  vm.runInContext(chromeSource, context, { filename: 'web/js/legacy/chrome.js' });
   vm.runInContext('wireCanvasDrop()', context);
   let prevented = false;
   await listeners.drop({

@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/cli_help.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/legacy/cli_help.js'), 'utf8');
 
 class Node {
   constructor(tag) {

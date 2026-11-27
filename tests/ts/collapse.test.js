@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { applyCollapsed, COLLAPSE_KEY, handleText, readCollapsed, writeCollapsed } from "../../web/js/mod/ui/collapse.js";
+import { applyCollapsed, COLLAPSE_KEY, handleText, readCollapsed, writeCollapsed } from "../../web/ts/mod/ui/collapse.js";
 
 class Store {
   data = new Map;

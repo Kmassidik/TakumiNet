@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { portDelayMs, renderRadioWindow } from "../../web/js/mod/ui/radio_window.js";
+import { portDelayMs, renderRadioWindow } from "../../web/ts/mod/ui/radio_window.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

@@ -118,7 +118,7 @@ function harness(events = []) {
     URLSearchParams,
   });
   vm.runInContext('let simCursor = -1; let lastRowClick = { id: -1, t: 0 };', context);
-  for (const file of ['web/js/simulation.js', 'web/js/actions.js', 'web/js/interaction.js']) {
+  for (const file of ['web/js/legacy/simulation.js', 'web/js/legacy/actions.js', 'web/js/legacy/interaction.js']) {
     vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
   }
   context.animatePath = () => {};

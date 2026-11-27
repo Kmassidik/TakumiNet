@@ -1,0 +1,29 @@
+const PRIMARY = [
+  ["toolbar/new", "New", "new"],
+  ["toolbar/open", "Open", "open"],
+  ["toolbar/save", "Save", "save"],
+  ["toolbar/print", "Print", "print"],
+  null,
+  ["toolbar/undo", "Undo", "undo"],
+  ["toolbar/redo", "Redo", "redo"],
+  null,
+  ["toolbar/copy", "Copy", "copy"],
+  ["toolbar/paste", "Paste", "paste"],
+  ["toolbar/delete", "Delete", "delete"],
+  null,
+  ["toolbar/zoomin", "Zoom in", "zoom-in"],
+  ["toolbar/zoomout", "Zoom out", "zoom-out"],
+  ["toolbar/zoomreset", "Zoom to fit", "zoom-fit"],
+  null,
+  ["toolbar/templates", "Palette", "toggle-palette"],
+  ["toolbar/toolbox", "Custom device", "custom-device"],
+  null,
+  ["toolbar/help", "Help", "help"]
+];
+const SECONDARY = [
+  ["toolbar/simple", "Send PDU", "pdu"],
+  null,
+  ["toolbar/grid", "Grid", "toggle-grid"],
+  null,
+  ["toolbar/home", "Home", "zoom-reset"]
+];

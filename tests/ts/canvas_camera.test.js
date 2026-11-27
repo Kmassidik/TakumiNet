@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { Camera } from "../../web/js/mod/canvas/camera.js";
+import { Camera } from "../../web/ts/mod/canvas/camera.js";
 function rng(seed) {
   let state = seed;
   return () => {

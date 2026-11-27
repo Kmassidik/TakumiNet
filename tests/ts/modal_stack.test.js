@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { ModalStack } from "../../web/js/mod/ui/modal_stack.js";
+import { ModalStack } from "../../web/ts/mod/ui/modal_stack.js";
 test("Escape closes only the top modal", () => {
   const stack = new ModalStack;
   const closed = [];

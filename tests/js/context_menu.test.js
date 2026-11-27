@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'web/js/context_menu.js'), 'utf8');
+const source = fs.readFileSync(path.join(root, 'web/js/legacy/context_menu.js'), 'utf8');
 
 function harness({ selectionIds = [], clipboard = null, pick = { port: null } } = {}) {
   const calls = { actions: [], api: [], status: [], opened: [], selections: [], portAsks: [] };

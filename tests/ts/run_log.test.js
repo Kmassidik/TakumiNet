@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { buildRunLog, formatLogLine } from "../../web/js/mod/ui/run_log.js";
+import { buildRunLog, formatLogLine } from "../../web/ts/mod/ui/run_log.js";
 var events = [
   { id: 1, time: 0.001, last: "PC0", at: "Switch0", type: "ICMP", proto: "ICMP", path: ["PC0", "Switch0"] },
   { id: 2, time: 0.004, last: "Switch0", at: "Router0", type: "ICMP", proto: "ICMP", path: [] },

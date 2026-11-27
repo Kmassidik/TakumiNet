@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const source = ['web/js/cable_feedback.js', 'web/js/palette.js', 'web/js/interaction.js']
+const source = ['web/js/legacy/cable_feedback.js', 'web/js/legacy/palette.js', 'web/js/legacy/interaction.js']
   .map((f) => fs.readFileSync(path.join(root, f), 'utf8'))
   .join('\n');
 

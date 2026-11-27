@@ -46,12 +46,12 @@ test('toolbars contain only implemented actions and tidy separators', () => {
   /* The toolbar data are consts inside two classic scripts; a small regex read
      keeps this test free of a DOM while the render side is covered by
      tests/ts/toolbar.test.ts against the same module code. */
-  const toolbars = source('web/js/toolbars.js');
-  const actions = source('web/js/actions.js');
+  const toolbars = source('web/js/legacy/toolbars.js');
+  const actions = source('web/js/legacy/actions.js');
   const list = (name) => {
     const m = toolbars.match(new RegExp(`const ${name} = \\[([\\s\\S]*?)\\];`));
     assert.ok(m, `${name} exists in toolbars.js`);
-    return [...m[1].matchAll(/\['([^']+)',\s*'([^']+)',\s*'([^']+)'\]/g)].map((x) => ({ title: x[2], action: x[3] }));
+    return [...m[1].matchAll(/\['?"?([^,'"?]+)'?"?,\s*['"]([^'"]+)['"],\s*['"]([^'"]+)['"]\]/g)].map((x) => ({ title: x[2], action: x[3] }));
   };
   const implemented = (name) => {
     const m = actions.match(new RegExp(`const ${name} = \\{([\\s\\S]*?)\\n\\};`));
@@ -95,8 +95,8 @@ test('every Desktop app dispatches to its real handler', () => {
   for (const name of new Set(Object.values(handlers))) {
     context[name] = (device) => calls.push({ name, device });
   }
-  vm.runInContext(source('web/js/device_window.js'), context);
-  vm.runInContext(source('web/js/device_tabs.js'), context);
+  vm.runInContext(source('web/js/legacy/device_window.js'), context);
+  vm.runInContext(source('web/js/legacy/device_tabs.js'), context);
 
   const apps = vm.runInContext('DESKTOP_APPS', context);
   const device = { id: 'pc0', name: 'PC0', kind: 'pc' };
@@ -161,8 +161,8 @@ test('the device window explains the model in one muted line under its title', (
   const html = source('web/index.html');
   assert.match(html, /<p class="dw-blurb" id="dw-blurb" hidden><\/p>\n\s*<div class="devwin-tabs"/);
 
-  const windowSource = source('web/js/device_window.js');
-  assert.match(windowSource, /getElementById\('dw-blurb'\)/);
+  const windowSource = source('web/js/legacy/device_window.js');
+  assert.match(windowSource, /getElementById\(["']dw-blurb["']\)/);
   const fn = windowSource.match(/function modelBlurb[\s\S]*?\n}/)[0];
   const blurb = 'The everyday branch router: routing, NAT, access lists, OSPF.';
   const context = vm.createContext({ data: { palette: [{ label: 'Router 300', blurb }] } });
@@ -172,8 +172,8 @@ test('the device window explains the model in one muted line under its title', (
 });
 
 test('the device window shows only the tabs a kind earns', () => {
-  const windowSource = fs.readFileSync(path.join(root, 'web/js/device_window.js'), 'utf8');
-  const terminal = fs.readFileSync(path.join(root, 'web/js/terminal.js'), 'utf8');
+  const windowSource = fs.readFileSync(path.join(root, 'web/js/legacy/device_window.js'), 'utf8');
+  const terminal = fs.readFileSync(path.join(root, 'web/js/legacy/terminal.js'), 'utf8');
   const context = vm.createContext({});
   const consoleKinds = terminal.match(/const CONSOLE_KINDS = new Set\(\[[\s\S]*?\]\);/)[0];
   const kinds = windowSource.match(/const DESKTOP_KINDS[\s\S]*?\n/)[0]

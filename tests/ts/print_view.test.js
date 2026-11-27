@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { Camera } from "../../web/js/mod/canvas/camera.js";
-import { boundsOf, fitCamera } from "../../web/js/mod/canvas/print_view.js";
+import { Camera } from "../../web/ts/mod/canvas/camera.js";
+import { boundsOf, fitCamera } from "../../web/ts/mod/canvas/print_view.js";
 test("an empty workspace has no bounds, so nothing is printed", () => {
   expect(boundsOf([])).toBeNull();
 });

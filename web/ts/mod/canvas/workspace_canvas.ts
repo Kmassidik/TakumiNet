@@ -1,15 +1,15 @@
-import { Camera } from "./camera.js";
-import { cursorFor, wheelAction } from "./pointer_rules.js";
-import { hitDevice, hitGroup, hitLink } from "./hit.js";
-import { drawScene } from "./draw.js";
-import { packetAt } from "./packets.js";
-import { drawRacks } from "./rack_draw.js";
-import { hitNote, noteBox } from "./notes.js";
-import { boundsOf, fitCamera } from "./print_view.js";
-import { bufferSize, recenterShift } from "./view_size.js";
-import { hitRackBox, layoutRacks } from "./rack_layout.js";
-import { buildScene } from "./scene.js";
-import { idsInRect, normalizedRect } from "./marquee.js";
+import { Camera } from "./camera";
+import { cursorFor, wheelAction } from "./pointer_rules";
+import { hitDevice, hitGroup, hitLink } from "./hit";
+import { drawScene } from "./draw";
+import { packetAt } from "./packets";
+import { drawRacks } from "./rack_draw";
+import { hitNote, noteBox } from "./notes";
+import { boundsOf, fitCamera } from "./print_view";
+import { bufferSize, recenterShift } from "./view_size";
+import { hitRackBox, layoutRacks } from "./rack_layout";
+import { buildScene } from "./scene";
+import { idsInRect, normalizedRect } from "./marquee";
 
 const LINK_TOLERANCE_PX = 6;
 

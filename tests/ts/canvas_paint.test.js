@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
-import { drawScene } from "../../web/js/mod/canvas/draw.js";
-import { packetAt } from "../../web/js/mod/canvas/packets.js";
-import { Camera } from "../../web/js/mod/canvas/camera.js";
-import { buildScene } from "../../web/js/mod/canvas/scene.js";
+import { drawScene } from "../../web/ts/mod/canvas/draw.js";
+import { packetAt } from "../../web/ts/mod/canvas/packets.js";
+import { Camera } from "../../web/ts/mod/canvas/camera.js";
+import { buildScene } from "../../web/ts/mod/canvas/scene.js";
 function paintRecorder() {
   const paint = { arcFills: [], fills: [], texts: [], fonts: [], textFills: [], images: [] };
   const ctx = {

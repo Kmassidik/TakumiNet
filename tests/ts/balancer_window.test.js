@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { renderBalancerWindow } from "../../web/js/mod/ui/balancer_window.js";
+import { renderBalancerWindow } from "../../web/ts/mod/ui/balancer_window.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

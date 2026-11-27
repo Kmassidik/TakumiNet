@@ -4,7 +4,7 @@ var __require = import.meta.require;
 import { expect, test } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { cableStyle, CABLE_STYLES } from "../../web/js/mod/canvas/cable_style.js";
+import { cableStyle, CABLE_STYLES } from "../../web/ts/mod/canvas/cable_style.js";
 var kinds = ["eCopper", "eCross", "eSerial", "eFiber", "eConsole", "ePhone", "eCoax", "eIoT"];
 test("every cable kind the engine knows has its own look", () => {
   const rust = readFileSync(join(import.meta.dir, "../../src/workspace/types.rs"), "utf8");
@@ -32,8 +32,8 @@ test("the canvas dashes a cross-over cable and restores solid lines after it", (
     calls.push(`${name}:${args.join(",")}`);
   } });
   const link = { a: "a", b: "b", from: { x: 0, y: 0 }, to: { x: 100, y: 0 }, kind: "eCross", aPort: "", bPort: "", aState: "green", bState: "green" };
-  const { drawScene } = __require("../../web/js/mod/canvas/draw.js");
-  const { Camera } = __require("../../web/js/mod/canvas/camera.js");
+  const { drawScene } = __require("../../web/ts/mod/canvas/draw.js");
+  const { Camera } = __require("../../web/ts/mod/canvas/camera.js");
   drawScene(ctx, { devices: [], links: [link], groups: [] }, new Camera({ x: 0, y: 0, zoom: 1 }), { grid: false, width: 200, height: 100 });
   const on = calls.indexOf("setLineDash:10,6");
   expect(on).toBeGreaterThan(-1);

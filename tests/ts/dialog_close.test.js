@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { overlayToClose, wireDialogClose } from "../../web/js/mod/ui/dialog_close.js";
-import { ModalStack } from "../../web/js/mod/ui/modal_stack.js";
+import { overlayToClose, wireDialogClose } from "../../web/ts/mod/ui/dialog_close.js";
+import { ModalStack } from "../../web/ts/mod/ui/modal_stack.js";
 function overlay(id) {
   const o = { id, hidden: false, classList: { contains: (n) => n === "overlay" }, closest: () => null };
   return o;

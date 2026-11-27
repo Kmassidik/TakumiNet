@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/poe_control.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/legacy/poe_control.js'), 'utf8');
 
 function node(tag) {
   return { tag, className: '', textContent: '', checked: false, children: [], attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, append(...k) { this.children.push(...k); }, appendChild(c) { this.children.push(c); } };

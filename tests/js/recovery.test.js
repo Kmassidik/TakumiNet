@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'web/js/recovery.js'), 'utf8');
+const source = fs.readFileSync(path.join(root, 'web/js/legacy/recovery.js'), 'utf8');
 
 class MemoryStorage {
   constructor() { this.values = new Map(); }
@@ -28,7 +28,7 @@ function plain(value) { return JSON.parse(JSON.stringify(value)); }
 
 function moduleHarness(storage = new MemoryStorage()) {
   const context = vm.createContext({ console });
-  vm.runInContext(source, context, { filename: 'web/js/recovery.js' });
+  vm.runInContext(source, context, { filename: 'web/js/legacy/recovery.js' });
   return { context, storage };
 }
 
@@ -69,7 +69,7 @@ function applicationHarness(serverWorkspace, fetchedWorkspace = workspace(50)) {
     }
   `, context);
   context.calls = calls;
-  vm.runInContext(source, context, { filename: 'web/js/recovery.js' });
+  vm.runInContext(source, context, { filename: 'web/js/legacy/recovery.js' });
   const flushTimers = () => {
     const pending = [...timers.values()];
     timers.clear();

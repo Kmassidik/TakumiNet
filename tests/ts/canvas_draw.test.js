@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { drawScene, portLabelAt } from "../../web/js/mod/canvas/draw.js";
-import { Camera } from "../../web/js/mod/canvas/camera.js";
-import { buildScene } from "../../web/js/mod/canvas/scene.js";
+import { drawScene, portLabelAt } from "../../web/ts/mod/canvas/draw.js";
+import { Camera } from "../../web/ts/mod/canvas/camera.js";
+import { buildScene } from "../../web/ts/mod/canvas/scene.js";
 function recorder() {
   const calls = [];
   const record = (name) => (...args) => {

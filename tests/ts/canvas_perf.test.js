@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { drawScene } from "../../web/js/mod/canvas/draw.js";
-import { Camera } from "../../web/js/mod/canvas/camera.js";
-import { buildScene } from "../../web/js/mod/canvas/scene.js";
+import { drawScene } from "../../web/ts/mod/canvas/draw.js";
+import { Camera } from "../../web/ts/mod/canvas/camera.js";
+import { buildScene } from "../../web/ts/mod/canvas/scene.js";
 var noop = new Proxy({ canvas: { width: 1200, height: 700 } }, {
   get: (target, name) => (name in target) ? target[name] : () => {},
   set: (target, name, value) => {

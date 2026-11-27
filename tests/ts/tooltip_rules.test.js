@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { GRACE_MS, SHOW_DELAY_MS, TipController, placeTip, shortcutFor, tipText } from "../../web/js/mod/ui/tooltip_rules.js";
+import { GRACE_MS, SHOW_DELAY_MS, TipController, placeTip, shortcutFor, tipText } from "../../web/ts/mod/ui/tooltip_rules.js";
 var vp = { w: 1000, h: 700 };
 var tip = { w: 80, h: 24 };
 test("the label sits below the button, centred", () => {

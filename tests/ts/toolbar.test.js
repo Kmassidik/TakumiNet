@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { renderToolbar } from "../../web/js/mod/ui/toolbar.js";
+import { renderToolbar } from "../../web/ts/mod/ui/toolbar.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

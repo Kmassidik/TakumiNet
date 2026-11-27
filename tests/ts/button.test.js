@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createButton } from "../../web/js/mod/ui/button.js";
+import { createButton } from "../../web/ts/mod/ui/button.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

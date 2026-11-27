@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { layoutRacks, hitRackBox, KIND_ORDER } from "../../web/js/mod/canvas/rack_layout.js";
+import { layoutRacks, hitRackBox, KIND_ORDER } from "../../web/ts/mod/canvas/rack_layout.js";
 var devices = [
   { id: "p1", name: "PC0", model: "PC-PT", kind: "pc" },
   { id: "r1", name: "Router0", model: "2911", kind: "router" },

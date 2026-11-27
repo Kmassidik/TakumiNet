@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
-import { windowIdForKind } from "../../web/js/mod/ui/kind_windows.js";
+import { windowIdForKind } from "../../web/ts/mod/ui/kind_windows.js";
 import {
   joinedClients,
   renderCellTowerWindow,
   renderIotWindow,
   SHOWN_REGISTERS,
   towerRows
-} from "../../web/js/mod/ui/iot_window.js";
+} from "../../web/ts/mod/ui/iot_window.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

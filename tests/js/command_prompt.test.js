@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/command_prompt.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/legacy/command_prompt.js'), 'utf8');
 
 class Element {
   constructor() {
@@ -75,7 +75,7 @@ function shell(responses) {
     getJson: () => new Promise(() => {}),
     setData() {},
   });
-  vm.runInContext(fs.readFileSync(path.resolve(__dirname, '../../web/js/terminal.js'), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.resolve(__dirname, '../../web/js/legacy/terminal.js'), 'utf8'), context);
   vm.runInContext(source, context);
   context.openCmd({ id: 'pc0', name: 'PC0', ip: '10.0.0.2' });
   return { elements, sent, context };

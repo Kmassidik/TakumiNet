@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { cursorFor, wheelAction } from "../../web/js/mod/canvas/pointer_rules.js";
+import { cursorFor, wheelAction } from "../../web/ts/mod/canvas/pointer_rules.js";
 var wheel = (over) => wheelAction({ deltaX: 0, deltaY: 0, deltaMode: 0, ctrlKey: false, ...over });
 test("a pinch (ctrl wheel) zooms in proportion to the gesture", () => {
   const small = wheel({ ctrlKey: true, deltaY: -10 });

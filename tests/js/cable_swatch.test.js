@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/palette.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../../web/js/legacy/palette.js'), 'utf8');
 
 function node(tag) {
   return { tag, attrs: {}, children: [], setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); return c; } };

@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
-import { renderKindWindow, windowIdForKind } from "../../web/js/mod/ui/kind_windows.js";
-import { renderProviderWindow } from "../../web/js/mod/ui/provider_window.js";
-import { renderHotspotWindow } from "../../web/js/mod/ui/hotspot_window.js";
-import { renderFirewallWindow } from "../../web/js/mod/ui/firewall_window.js";
-import { renderL3SwitchWindow } from "../../web/js/mod/ui/l3switch_window";
+import { renderKindWindow, windowIdForKind } from "../../web/ts/mod/ui/kind_windows.js";
+import { renderProviderWindow } from "../../web/ts/mod/ui/provider_window.js";
+import { renderHotspotWindow } from "../../web/ts/mod/ui/hotspot_window.js";
+import { renderFirewallWindow } from "../../web/ts/mod/ui/firewall_window.js";
+import { renderL3SwitchWindow } from "../../web/ts/mod/ui/l3switch_window";
 
 // tests/ts/fake_dom.js
 class FakeElement {

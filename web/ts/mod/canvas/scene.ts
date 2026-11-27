@@ -1,4 +1,4 @@
-import { planGroups } from "./group_scene.js";
+import { planGroups } from "./group_scene";
 
 const BOX = { left: 36, top: 34, size: 72 };
 

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { buildScene } from "../../web/js/mod/canvas/scene.js";
-import { hitDevice, hitLink } from "../../web/js/mod/canvas/hit.js";
+import { buildScene } from "../../web/ts/mod/canvas/scene.js";
+import { hitDevice, hitLink } from "../../web/ts/mod/canvas/hit.js";
 function rng(seed) {
   let state = seed;
   return () => {

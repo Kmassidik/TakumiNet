@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(require('node:path').resolve(__dirname, '../../web/js/engine.js'), 'utf8');
+const source = fs.readFileSync(require('node:path').resolve(__dirname, '../../web/js/legacy/engine.js'), 'utf8');
 
 function load(WebAssembly, nativeFetch, storage = {}) {
   const context = vm.createContext({ WebAssembly, Response, TextEncoder, TextDecoder, Uint8Array, DataView, ArrayBuffer, URL, performance, console });

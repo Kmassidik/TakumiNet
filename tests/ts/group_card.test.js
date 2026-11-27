@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { makeGroupPress, renderGroupCard } from "../../web/js/mod/ui/group_card.js";
+import { makeGroupPress, renderGroupCard } from "../../web/ts/mod/ui/group_card.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

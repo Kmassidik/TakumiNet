@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'web/js/lessons_order.js'), 'utf8');
+const source = fs.readFileSync(path.join(root, 'web/js/legacy/lessons_order.js'), 'utf8');
 
 function load() {
   const context = vm.createContext({});

@@ -12,7 +12,8 @@ var PAGES = {
 };
 var html = Object.fromEntries(Object.entries(PAGES).map(([k, p]) => [k, read(p.file)]));
 var css = read("landing.css");
-var phone = read("js/phone.js");
+var workspaceCss = read("workspace.css");
+var phone = read("js/legacy/phone.js");
 var templateIds = readdirSync(join(web, "templates")).map((n) => n.replace(/\.xml$/, ""));
 var meta = (page, attr, name) => page.match(new RegExp(`<meta ${attr}="${name}" content="([^"]*)">`))?.[1];
 var jsonLd = (page) => JSON.parse(page.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/)[1]);
@@ -169,7 +170,8 @@ test("the page is white, with ink, teal and grey blocks", () => {
   }
 });
 test("phones get a note instead of buttons, using the same query as the workspace", () => {
-  const query = phone.match(/PHONE_QUERY = '([^']+)'/)[1];
+  const query = phone.match(/PHONE_QUERY = ['"]([^'"]+)['"]/)[1];
+  expect(workspaceCss).toContain(`@media ${query} {`);
   expect(css).toContain(`@media ${query} {`);
   expect(css).toMatch(/\.only-computer \{ display: none !important; \}/);
   expect(html.landingEn).toContain('class="phone-note"');

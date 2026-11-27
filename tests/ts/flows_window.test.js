@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { loadClass, parseFlows, renderFlowsWindow } from "../../web/js/mod/ui/flows_window.js";
+import { loadClass, parseFlows, renderFlowsWindow } from "../../web/ts/mod/ui/flows_window.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

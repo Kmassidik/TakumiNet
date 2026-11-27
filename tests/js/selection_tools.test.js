@@ -9,8 +9,8 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 /* Objects born inside the vm have another realm's prototypes; deepEqual wants plain ones. */
 const plain = (v) => JSON.parse(JSON.stringify(v));
-const interaction = fs.readFileSync(path.join(root, 'web/js/interaction.js'), 'utf8');
-const actions = fs.readFileSync(path.join(root, 'web/js/actions.js'), 'utf8');
+const interaction = fs.readFileSync(path.join(root, 'web/js/legacy/interaction.js'), 'utf8');
+const actions = fs.readFileSync(path.join(root, 'web/js/legacy/actions.js'), 'utf8');
 
 function dragHarness(selectedIds) {
   const sel = new Set(selectedIds);

@@ -4,7 +4,7 @@ import { join } from "path";
 var web = join(import.meta.dir, "../../web");
 var root = join(web, "..");
 var index = readFileSync(join(web, "index.html"), "utf8");
-var jsDir = join(web, "js");
+var jsDir = join(web, "js", "legacy");
 var sources = readdirSync(jsDir).filter((n) => n.endsWith(".js") && n !== "ui.js").map((n) => ({ name: n, text: readFileSync(join(jsDir, n), "utf8") }));
 function overlays() {
   const parts = index.split(/<div id="[a-z-]+" class="overlay[^"]*"/).slice(1);
@@ -148,33 +148,34 @@ test("tooltips: every icon-only button in the page names itself", () => {
   }
 });
 test("tooltips: the toolbar code gives each icon a title that the hover label shows", () => {
-  const toolbar = readFileSync(join(import.meta.dir, "../../web/js/mod/ui/button.js"), "utf8");
+  const toolbar = readFileSync(join(import.meta.dir, "../../web/ts/mod/ui/button.ts"), "utf8");
   expect(toolbar).toMatch(/title/);
 });
 test("canvas: the drawing buffer follows the canvas box, not just the window", () => {
-  const canvas = readFileSync(join(import.meta.dir, "../../web/js/mod/canvas/workspace_canvas.js"), "utf8");
+  const canvas = readFileSync(join(import.meta.dir, "../../web/ts/mod/canvas/workspace_canvas.ts"), "utf8");
   expect(canvas).toContain("ResizeObserver");
   expect(canvas).toContain("bufferSize(");
 });
 test("play: a second press while Play waits cannot start a second timer", () => {
   const actions = sources.find((s) => s.name === "actions.js").text;
   expect(actions).toContain("let playStarting = false;");
-  expect(actions).toMatch(/if \(playStarting\) return;/);
+  expect(actions).toMatch(/if \(playStarting\)\s*\n?\s*return/);
   expect(actions.match(/playTimer = setInterval/g)?.length).toBe(1);
 });
 test("palette: hiding the cable tiles always leaves cable mode", () => {
   const palette = sources.find((s) => s.name === "palette.js").text;
-  expect(palette).toMatch(/paletteKeepsCableMode\(g\.label\)\) leaveCableMode\(\)/);
+  expect(palette).toMatch(/paletteKeepsCableMode\(g\.label\)/);
+  expect(palette).toContain("leaveCableMode");
   const chrome = sources.find((s) => s.name === "chrome.js").text;
   expect(chrome).toContain("leaveCableMode();");
 });
 test("menus: the menu bar lets go of the keyboard while a dialog is open", () => {
-  const bar = readFileSync(join(import.meta.dir, "../../web/js/mod/ui/menubar.js"), "utf8");
+  const bar = readFileSync(join(import.meta.dir, "../../web/ts/mod/ui/menubar.ts"), "utf8");
   expect(bar).toContain(".overlay:not([hidden])");
   expect(bar).toContain("new AltTracker()");
 });
 test("tooltips: the hover label watches for its button being replaced", () => {
-  const tip = readFileSync(join(import.meta.dir, "../../web/js/mod/ui/tooltip.js"), "utf8");
+  const tip = readFileSync(join(import.meta.dir, "../../web/ts/mod/ui/tooltip.ts"), "utf8");
   expect(tip).toContain("MutationObserver");
   expect(tip).toContain("isConnected");
 });

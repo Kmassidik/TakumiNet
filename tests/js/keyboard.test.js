@@ -7,8 +7,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const chrome = fs.readFileSync(path.join(root, 'web/js/chrome.js'), 'utf8');
-const actions = fs.readFileSync(path.join(root, 'web/js/actions.js'), 'utf8');
+const chrome = fs.readFileSync(path.join(root, 'web/js/legacy/chrome.js'), 'utf8');
+const actions = fs.readFileSync(path.join(root, 'web/js/legacy/actions.js'), 'utf8');
 
 function keyboardContext(extra = {}) {
   const calls = [];

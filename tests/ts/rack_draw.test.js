@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { drawRacks } from "../../web/js/mod/canvas/rack_draw.js";
-import { layoutRacks } from "../../web/js/mod/canvas/rack_layout.js";
-import { Camera } from "../../web/js/mod/canvas/camera.js";
+import { drawRacks } from "../../web/ts/mod/canvas/rack_draw.js";
+import { layoutRacks } from "../../web/ts/mod/canvas/rack_layout.js";
+import { Camera } from "../../web/ts/mod/canvas/camera.js";
 function textRecorder() {
   const texts = [];
   const ctx = {

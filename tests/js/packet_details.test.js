@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { bytesFromHex, layerRange, formatByteRows } = require('../../web/js/packet_details.js');
+const { bytesFromHex, layerRange, formatByteRows } = require('../../web/js/legacy/packet_details.js');
 
 const ipv4 = '00d0ba00000200d0ba000001080045000022000000007f01b8b80a0000010a0000030800000000010001000000000000';
 

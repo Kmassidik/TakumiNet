@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { MenuController, firstItem, lastItem, stepItem } from "../../web/js/mod/ui/menu_nav.js";
-import { AltTracker } from "../../web/js/mod/ui/menu_nav.js";
+import { MenuController, firstItem, lastItem, stepItem } from "../../web/ts/mod/ui/menu_nav.js";
+import { AltTracker } from "../../web/ts/mod/ui/menu_nav.js";
 function setup(menus = [[true, true, false, true], [true], [false, true]]) {
   const log = [];
   const view = {

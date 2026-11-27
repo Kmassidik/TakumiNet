@@ -7,10 +7,10 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'web/js/phone.js'), 'utf8');
+const source = fs.readFileSync(path.join(root, 'web/js/legacy/phone.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/workspace.css'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
-const main = fs.readFileSync(path.join(root, 'web/js/mod/main.js'), 'utf8');
+const main = fs.readFileSync(path.join(root, 'web/ts/mod/main.ts'), 'utf8');
 
 function load(matchMedia, location = { reload() {} }) {
   const context = vm.createContext({ matchMedia, location });
@@ -62,7 +62,7 @@ test('on a phone the page shows only the message', () => {
 });
 
 test('the phone check loads before the engine, and the app does not start on a phone', () => {
-  assert.ok(html.indexOf('/js/phone.js') > 0 && html.indexOf('/js/phone.js') < html.indexOf('/js/engine.js'));
+  assert.ok(html.indexOf('/js/legacy/phone.js') > 0 && html.indexOf('/js/legacy/phone.js') < html.indexOf('/js/legacy/engine.js'));
   assert.match(main, /if \(isPhoneScreen\(\)\) \{[\s\S]*reloadWhenScreenGrows\(\);[\s\S]*\} else \{[\s\S]*boot\(\);/);
   assert.doesNotMatch(main.split('} else {')[0], /serviceWorker|boot\(\)/);
 });

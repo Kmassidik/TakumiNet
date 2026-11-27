@@ -28,7 +28,7 @@ function load() {
     },
     status: (text) => messages.push(text),
   });
-  vm.runInContext(read('web/js/simulation.js'), context);
+  vm.runInContext(read('web/js/legacy/simulation.js'), context);
   return { context, chip, listeners, messages, storage };
 }
 

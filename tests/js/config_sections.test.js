@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'web/js/config_sections.js'), 'utf8');
+const source = fs.readFileSync(path.join(root, 'web/js/legacy/config_sections.js'), 'utf8');
 
 class Element {
   constructor(tag = 'div') {
@@ -237,11 +237,11 @@ test('the pools section lists, adds and removes extra DHCP pools', async () => {
 });
 
 test('the sections are wired into the config tab and the services tab', () => {
-  const tabs = fs.readFileSync(path.join(root, 'web/js/device_tabs.js'), 'utf8');
+  const tabs = fs.readFileSync(path.join(root, 'web/js/legacy/device_tabs.js'), 'utf8');
   assert.match(tabs, /configSections\(box, d\);/);
-  const services = fs.readFileSync(path.join(root, 'web/js/services_tab.js'), 'utf8');
-  assert.match(services, /dhcpPoolsSection\(d, 'services'\)/);
+  const services = fs.readFileSync(path.join(root, 'web/js/legacy/services_tab.js'), 'utf8');
+  assert.match(services, /dhcpPoolsSection\(d, ['"]services['"]\)/);
   const index = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
-  assert.match(index, /\/js\/config_sections\.js/);
-  assert.match(index, /\/js\/browser_pages\.js/);
+  assert.match(index, /\/js\/legacy\/config_sections\.js/);
+  assert.match(index, /\/js\/legacy\/browser_pages\.js/);
 });

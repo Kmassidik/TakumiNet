@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { renderGatewayWindow } from "../../web/js/mod/ui/gateway_window.js";
+import { renderGatewayWindow } from "../../web/ts/mod/ui/gateway_window.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

@@ -7,8 +7,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const realtime = fs.readFileSync(path.join(root, 'web/js/realtime.js'), 'utf8');
-const chrome = fs.readFileSync(path.join(root, 'web/js/chrome.js'), 'utf8');
+const realtime = fs.readFileSync(path.join(root, 'web/js/legacy/realtime.js'), 'utf8');
+const chrome = fs.readFileSync(path.join(root, 'web/js/legacy/chrome.js'), 'utf8');
 
 function modeButton(label) {
   return {

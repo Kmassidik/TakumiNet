@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor } from "../../web/js/mod/ui/palette_groups.js";
+import { CONNECTIONS, DEFAULT_GROUP, GROUP_KINDS, groupForKind, keepsCableMode, startGroup, tilesFor } from "../../web/ts/mod/ui/palette_groups.js";
 var catalog = readFileSync(join(import.meta.dir, "../../src/workspace/palette.rs"), "utf8");
 var rows = [...catalog.matchAll(/\("([^"]+)", "([^"]+)", "([a-z0-9-]+)"\),\n/g)];
 var palette = rows.map((m) => ({ label: m[1], icon: `/art3d/${m[3]}.webp`, kind: m[3], blurb: m[2] }));

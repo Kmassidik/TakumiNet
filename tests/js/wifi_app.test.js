@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'web/js/wifi_app.js'), 'utf8');
+const source = fs.readFileSync(path.join(root, 'web/js/legacy/wifi_app.js'), 'utf8');
 
 class Element {
   constructor(tag) {

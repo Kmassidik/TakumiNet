@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { openModal } from "../../web/js/mod/ui/modal.js";
-import { ModalStack } from "../../web/js/mod/ui/modal_stack.js";
+import { openModal } from "../../web/ts/mod/ui/modal.js";
+import { ModalStack } from "../../web/ts/mod/ui/modal_stack.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

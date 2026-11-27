@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { planGroups } from "../../web/js/mod/canvas/group_scene.js";
-import { buildScene } from "../../web/js/mod/canvas/scene.js";
-import { hitGroup } from "../../web/js/mod/canvas/hit.js";
+import { planGroups } from "../../web/ts/mod/canvas/group_scene.js";
+import { buildScene } from "../../web/ts/mod/canvas/scene.js";
+import { hitGroup } from "../../web/ts/mod/canvas/hit.js";
 var device = (id, x, y) => ({
   id,
   name: id.toUpperCase(),

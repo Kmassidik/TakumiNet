@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { callManagers, renderPhoneWindow } from "../../web/js/mod/ui/phone_window.js";
+import { callManagers, renderPhoneWindow } from "../../web/ts/mod/ui/phone_window.js";
 
 // tests/ts/fake_dom.js
 class FakeElement {

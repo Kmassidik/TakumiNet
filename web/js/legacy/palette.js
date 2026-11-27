@@ -1,0 +1,168 @@
+let paletteGroup = null;
+function leaveCableMode() {
+  cableMode = false;
+  cableFrom = null;
+  cableFromPort = null;
+  document.querySelector(".canvas-wrap").classList.remove("cable-mode", "crosshair");
+  updateCableChip();
+}
+function renderPalette() {
+  const groups = document.getElementById("groups");
+  groups.replaceChildren();
+  const labels = data.paletteGroups.map((g) => g.label);
+  paletteGroup = paletteStartGroup(paletteGroup, labels);
+  data.paletteGroups.forEach((g) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "group-tab" + (g.label === paletteGroup ? " active" : "");
+    b.title = g.label;
+    b.setAttribute("aria-pressed", String(g.label === paletteGroup));
+    const img = document.createElement("img");
+    img.src = g.icon;
+    img.alt = "";
+    b.appendChild(img);
+    const text = document.createElement("span");
+    text.textContent = g.label;
+    b.appendChild(text);
+    b.onclick = () => {
+      paletteGroup = g.label;
+      if (cableMode && !paletteKeepsCableMode(g.label))
+        leaveCableMode();
+      status(g.label);
+      renderPalette();
+    };
+    groups.appendChild(b);
+  });
+  const pal = document.getElementById("palette");
+  pal.replaceChildren();
+  const showConnections = paletteGroup === PALETTE_CONNECTIONS;
+  for (const [kind, label, icon, tip] of showConnections ? CABLE_TYPES : []) {
+    const cable = document.createElement("button");
+    const active = cableMode && cableKind === kind;
+    cable.className = "dev-tile cable-tool" + (active ? " active" : "");
+    cable.setAttribute("aria-pressed", String(active));
+    cable.title = tip + " — click two devices";
+    cable.dataset.kind = kind;
+    const cimg = document.createElement("img");
+    cimg.src = icon3d(`cables/${icon}`);
+    const clabel = document.createElement("span");
+    clabel.textContent = label;
+    cable.appendChild(cimg);
+    cable.appendChild(clabel);
+    const swatch = cableSwatch(kind);
+    if (swatch)
+      cable.appendChild(swatch);
+    cable.onclick = () => {
+      cableMode = !(cableMode && cableKind === kind);
+      cableKind = kind;
+      pduMode = false;
+      cableFrom = null;
+      cableFromPort = null;
+      document.querySelector(".canvas-wrap").classList.toggle("cable-mode", cableMode);
+      updateCableChip();
+      status(cableMode ? `${tip}: click two devices` : "Selection mode");
+      renderPalette();
+      renderTopology();
+    };
+    pal.appendChild(cable);
+  }
+  const bus = document.createElement("button");
+  bus.hidden = !showConnections;
+  bus.className = "dev-tile";
+  bus.title = "Build a bus segment: hub + N computers with addresses";
+  bus.id = "bus-tool";
+  const bimg = document.createElement("img");
+  bimg.src = icon3d("cables/coax");
+  bimg.alt = "Bus";
+  const blabel = document.createElement("span");
+  blabel.textContent = "Bus";
+  bus.appendChild(bimg);
+  bus.appendChild(blabel);
+  bus.onclick = () => ACTIONS["build-bus"]();
+  if (showConnections)
+    pal.appendChild(bus);
+  const meshTool = document.createElement("button");
+  meshTool.id = "mesh-tool";
+  meshTool.className = "dev-tile mesh-tool";
+  meshTool.title = "Create Full Mesh — link every device";
+  const mimg = document.createElement("img");
+  mimg.src = icon3d("devices/multiuser");
+  const mlabel = document.createElement("span");
+  mlabel.textContent = "Mesh";
+  meshTool.appendChild(mimg);
+  meshTool.appendChild(mlabel);
+  meshTool.onclick = () => ACTIONS.mesh(true);
+  if (showConnections)
+    pal.appendChild(meshTool);
+  const noteTool = document.createElement("button");
+  noteTool.id = "note-tool";
+  noteTool.className = "dev-tile note-tool" + (noteMode ? " active" : "");
+  noteTool.setAttribute("aria-pressed", String(noteMode));
+  noteTool.title = "Write a text note on the canvas.";
+  const nimg = document.createElement("img");
+  nimg.src = icon3d("groups/notes");
+  const nlabel = document.createElement("span");
+  nlabel.textContent = "Note";
+  noteTool.appendChild(nimg);
+  noteTool.appendChild(nlabel);
+  noteTool.onclick = () => {
+    if (noteMode) {
+      noteMode = false;
+      status("Selection mode");
+    } else {
+      ACTIONS["add-note"]();
+    }
+    renderPalette();
+  };
+  if (showConnections)
+    pal.appendChild(noteTool);
+  const tiles = paletteTiles(paletteGroup, data.palette);
+  if (!tiles.length && !showConnections) {
+    const empty = document.createElement("p");
+    empty.className = "palette-empty";
+    empty.textContent = "Nothing in this category yet.";
+    pal.appendChild(empty);
+  }
+  for (const p of tiles) {
+    const tile = document.createElement("button");
+    tile.className = "dev-tile";
+    tile.title = p.blurb || `Drag ${p.label} onto the canvas`;
+    tile.draggable = true;
+    const img = document.createElement("img");
+    img.src = p.icon;
+    img.alt = p.label;
+    img.draggable = false;
+    const span = document.createElement("span");
+    span.textContent = p.label;
+    tile.appendChild(img);
+    tile.appendChild(span);
+    tile.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", p.label);
+      e.dataTransfer.effectAllowed = "copy";
+      tile.classList.add("dragging");
+    });
+    tile.addEventListener("dragend", () => tile.classList.remove("dragging"));
+    pal.appendChild(tile);
+  }
+}
+function cableSwatch(kind) {
+  if (typeof cableStyle !== "function" || !document.createElementNS)
+    return null;
+  const style = cableStyle(kind);
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("class", "cable-swatch");
+  svg.setAttribute("viewBox", "0 0 40 6");
+  svg.setAttribute("aria-hidden", "true");
+  const line = document.createElementNS(ns, "line");
+  line.setAttribute("x1", "1");
+  line.setAttribute("y1", "3");
+  line.setAttribute("x2", "39");
+  line.setAttribute("y2", "3");
+  line.setAttribute("stroke", style.color);
+  line.setAttribute("stroke-width", String(style.width));
+  if (style.dash.length)
+    line.setAttribute("stroke-dasharray", style.dash.join(" "));
+  svg.appendChild(line);
+  return svg;
+}
