@@ -157,3 +157,87 @@ fn the_voice_demos_capture_the_call_as_a_sip_event() {
         assert!(sips.iter().all(|e| e.status == "Successful"));
     }
 }
+
+const VOICE_VLAN: u16 = 110;
+
+fn voice_port<'a>(ws: &'a Workspace, id: &str, port: &str) -> &'a crate::workspace::PortCfg {
+    ws.devices
+        .iter()
+        .find(|d| d.id == id)
+        .unwrap()
+        .ports
+        .iter()
+        .find(|p| p.name == port)
+        .unwrap()
+}
+
+#[test]
+fn the_office_phone_ports_carry_a_voice_vlan_with_power() {
+    let mut ws = Workspace::from_tnet(OFFICE).unwrap();
+    assert_eq!(ws.vlan_name("switch0", VOICE_VLAN), "voice");
+    // A phone port carries data untagged and voice tagged: the trunk is the
+    // engine's one honest multi-VLAN port mode (no per-port voice field).
+    for port in ["FastEthernet0/3", "FastEthernet0/4"] {
+        let p = voice_port(&ws, "switch0", port);
+        assert!(p.trunk, "{port} must be a trunk");
+        assert_eq!(p.vlan, 1, "{port} keeps the data VLAN untagged");
+    }
+    let sub = voice_port(&ws, "router0", "GigabitEthernet0/0.110");
+    assert_eq!(sub.dot1q, Some(VOICE_VLAN));
+    assert_eq!(sub.ip, crate::model::parse_ipv4("10.20.110.1"));
+    // Phones run on their cable; the switch spends its PoE budget on them.
+    for phone in ["phone1", "phone2"] {
+        assert_eq!(ws.poe_denied(phone), None, "{phone} must be powered");
+        assert_eq!(crate::workspace::poe_draw("phone"), Some(6.5));
+    }
+    assert_eq!(ws.poe_used("switch0"), 13.0);
+    // The voice path really crosses the tagged VLAN to the call manager.
+    ws.send_pdu("phone1", "server0").unwrap();
+    assert_eq!(ws.call_of(2001).unwrap(), (2001, 2002, "established".into()));
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert!(voice_port(&back, "switch0", "FastEthernet0/3").trunk);
+    assert_eq!(back.poe_used("switch0"), 13.0);
+    assert_eq!(back.vlan_name("switch0", VOICE_VLAN), "voice");
+}
+
+#[test]
+fn the_home_phone_port_carries_a_voice_vlan_and_the_analog_line_does_not() {
+    let mut ws = Workspace::from_tnet(HOME_PHONE).unwrap();
+    assert_eq!(ws.vlan_name("switch0", VOICE_VLAN), "voice");
+    let desk = voice_port(&ws, "switch0", "FastEthernet0/3");
+    assert!(desk.trunk && desk.vlan == 1, "the desk port is data+voice trunk");
+    let sub = voice_port(&ws, "router0", "GigabitEthernet0/0.110");
+    assert_eq!(sub.dot1q, Some(VOICE_VLAN));
+    assert_eq!(sub.ip, crate::model::parse_ipv4("10.30.110.1"));
+    assert_eq!(ws.poe_denied("phone1"), None);
+    assert_eq!(ws.poe_used("switch0"), 6.5);
+    assert!(ws.poe_denied("analog0").is_none(), "analog phone is not a PoE device");
+    assert!(crate::workspace::poe_draw("analogphone").is_none());
+    // Calls work both ways across the tagged VLAN, analog leg included.
+    ws.call(2102, 2101).unwrap();
+    ws.call(2101, 2102).unwrap();
+    let back = Workspace::from_tnet(&ws.to_tnet()).unwrap();
+    assert_eq!(back.poe_used("switch0"), 6.5);
+}
+
+#[test]
+fn cutting_voice_power_or_the_voice_vlan_breaks_the_phone() {
+    let mut ws = Workspace::from_tnet(OFFICE).unwrap();
+    ws.set_port_poe("switch0", "FastEthernet0/3", false).unwrap();
+    assert_eq!(
+        ws.poe_denied("phone1"),
+        Some("power inline never is set on the switch port"),
+        "the phone runs on its cable only"
+    );
+    ws.set_port_poe("switch0", "FastEthernet0/3", true).unwrap();
+    assert_eq!(ws.poe_denied("phone1"), None);
+    // Voice traffic is VLAN-locked: moving the trunk to access VLAN 1 breaks
+    // nothing for untagged data, but the tagged voice path needs the trunk.
+    let mut ws2 = Workspace::from_tnet(OFFICE).unwrap();
+    ws2.set_trunk("switch0", "FastEthernet0/1", false).unwrap();
+    ws2.set_access_vlan("switch0", "FastEthernet0/1", 1).unwrap();
+    assert!(
+        ws2.send_pdu("phone1", "server0").is_err(),
+        "a router without the 802.1Q subinterface path cannot carry VLAN 110"
+    );
+}
