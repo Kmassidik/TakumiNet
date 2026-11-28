@@ -1,0 +1,29 @@
+<takumi version="1">
+  <device id="pc0" kind="pc" model="PC" x="200" y="420" name="LabPc" ip="192.168.70.10" prefix="24"/>
+  <device id="sw0" kind="switch" model="Switch 24" x="440" y="300" name="LabSwitch" ip="" prefix="24"/>
+  <device id="gw0" kind="router" model="Router 300" x="360" y="140" name="GateA" ip="" prefix="24"/>
+  <device id="gw1" kind="router" model="Router 300" x="560" y="140" name="GateB" ip="" prefix="24"/>
+  <device id="srv0" kind="server" model="Server" x="760" y="300" name="FileSrv" ip="10.9.9.5" prefix="24"/>
+  <device id="sw1" kind="switch" model="Switch 24" x="760" y="140" name="ServerSwitch" ip="" prefix="24"/>
+  <link a="pc0" a_port="Fa0" b="sw0" b_port="Fa0/1" kind="eCopper"/>
+  <link a="sw0" a_port="Fa0/2" b="gw0" b_port="Gig0/0" kind="eCopper"/>
+  <link a="sw0" a_port="Fa0/3" b="gw1" b_port="Gig0/0" kind="eCopper"/>
+  <link a="gw0" a_port="Gig0/1" b="sw1" b_port="Fa0/1" kind="eCopper"/>
+  <link a="gw1" a_port="Gig0/1" b="sw1" b_port="Fa0/2" kind="eCopper"/>
+  <link a="sw1" a_port="Fa0/3" b="srv0" b_port="Fa0" kind="eCopper"/>
+  <port id="gw0" name="GigabitEthernet0/0" up="1" ip="192.168.70.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="gw0" name="GigabitEthernet0/1" up="1" ip="10.9.9.2" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="gw1" name="GigabitEthernet0/0" up="1" ip="192.168.70.3" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <port id="gw1" name="GigabitEthernet0/1" up="1" ip="10.9.9.3" prefix="24" vlan="1" trunk="0" dot1q="" bandwidth_kbps="1000000" delay_us="10"/>
+  <net id="pc0" gw="192.168.70.1" dns=""/>
+  <route id="srv0" net="192.168.70.0" prefix="24" via="10.9.9.1" admin_distance="1"/>
+  <lesson id="les-l4-11-preemption" title="The master wants its job back" level="4" minutes="20" goal="Two routers share the gateway 192.168.70.1 under RFC 5798. The backup keeps the gateway only while it hears no adverts from the master: three adverts plus the skew time (256 minus priority)/256 seconds. When the preferred master returns, the higher priority wins the election again and preempts the backup. Shorten the advertisement interval on the master and watch the same cut heal much faster."/>
+  <step n="1" text="On GateA, interface GigabitEthernet0/0: vrrp 1 ip 192.168.70.1 priority 150. On GateB, the same interface: vrrp 1 ip 192.168.70.1 priority 100. The master sends an advert every second; the backup starts a master-down timer of three adverts plus skew." check="c1"/>
+  <step n="2" text="Power GateA off. The last advert ages out. The master-down timer is 3 x 1 s + (256-150)/256 s, about 3.4 s, and then GateB answers for 192.168.70.1. Run the ping again after advancing the clock." check="c2"/>
+  <step n="3" text="Power GateA back on. Its priority 150 beats the sitting master's 100, so the election returns the gateway to GateA at once: the higher priority preempts. The PC never changes its settings." check="c3"/>
+  <step n="4" text="Repeat the cut with a faster timer. On GateA: vrrp 1 timers advertise 200. The master-down timer drops to about 0.9 s (3 x 200 ms + 0.41 s skew). Power GateA off, advance the clock about one second, and the ping lives." check="c4"/>
+  <check id="c1" kind="ping" from="pc0" to="srv0" url="" expect="ok" label="LabPc reaches FileSrv through the shared gateway"/>
+  <check id="c2" kind="ping" from="pc0" to="srv0" url="" expect="ok" label="After the cut and the master-down wait, GateB answers"/>
+  <check id="c3" kind="ping" from="pc0" to="srv0" url="" expect="ok" label="After GateA recovers, its higher priority preempts"/>
+  <check id="c4" kind="ping" from="pc0" to="srv0" url="" expect="ok" label="A 200 ms advert interval heals the same cut faster"/>
+</takumi>

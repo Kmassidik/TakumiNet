@@ -40,6 +40,7 @@ mod fhrp;
 mod dot1x_eap;
 mod qos_police;
 mod l4_five_ghz;
+mod vrrp_preempt_lesson;
 mod vxlan;
 mod ipsec;
 mod arp_delivery;
