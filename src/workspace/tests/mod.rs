@@ -38,6 +38,7 @@ mod snooping;
 mod fhrp;
 mod dot1x_eap;
 mod qos_police;
+mod l4_five_ghz;
 mod vxlan;
 mod ipsec;
 mod arp_delivery;

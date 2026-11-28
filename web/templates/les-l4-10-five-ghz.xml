@@ -1,0 +1,14 @@
+<takumi version="1">
+  <device id="ap0" kind="ap" model="Access Point" x="260" y="200" name="CafeAP" ip="" prefix="24"/>
+  <device id="ap1" kind="ap" model="Access Point" x="260" y="420" name="BarberAP" ip="" prefix="24"/>
+  <device id="lt0" kind="laptop" model="Laptop" x="560" y="200" name="CafeGuest" ip="" prefix="24"/>
+  <device id="lt1" kind="laptop" model="Laptop" x="560" y="420" name="BarberLaptop" ip="" prefix="24"/>
+  <wifiradio dev="ap0" channel="1" band="2.4"/>
+  <wifiradio dev="ap1" channel="3" band="2.4"/>
+  <lesson id="les-l4-10-five-ghz" title="Crowded air, roomier band" level="4" minutes="10" goal="The cafe and the barber share a wall, and their 2.4 GHz radios interfere. IEEE 802.11 gives the 2.4 GHz band only three non-overlapping channels, so move BarberAP to the 5 GHz band where many more channels fit without overlapping."/>
+  <step n="1" text="Open CafeAP, Wireless tab. The Radio row shows channel 1 and warns that BarberAP on channel 3 overlaps."/>
+  <step n="2" text="In 2.4 GHz, IEEE 802.11 fits only channels 1, 6 and 11 without overlap. Two neighbours cannot both spread out here."/>
+  <step n="3" text="The 5 GHz band is much wider: channels 36 to 165 all sit apart, so any two 5 GHz radios leave each other alone."/>
+  <step n="4" text="Open BarberAP and move its radio to the 5 GHz band, channel 36. Then check CafeAP again."/>
+  <check id="c1" kind="overlap" from="ap0" to="" url="" expect="" label="CafeAP no longer overlaps BarberAP"/>
+</takumi>
