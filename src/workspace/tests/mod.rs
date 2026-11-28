@@ -20,6 +20,7 @@ mod notes;
 mod host_firewall;
 mod persistence;
 mod poe;
+mod poe_budget_lesson;
 mod realtime;
 mod routing;
 mod voice;

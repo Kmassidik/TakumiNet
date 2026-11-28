@@ -1,0 +1,34 @@
+<takumi version="1">
+  <device id="pc0" kind="pc" model="PC" x="160" y="420" name="NocPc" ip="10.40.0.10" prefix="24"/>
+  <device id="switch0" kind="switch" model="Switch 24" x="420" y="240" name="ClosetSwitch" ip="" prefix="24"/>
+  <device id="switch1" kind="switch" model="Switch 24" x="700" y="120" name="HallSwitch" ip="" prefix="24"/>
+  <device id="ap0" kind="ap" model="Access Point" x="260" y="120" name="DeskAP1" ip="" prefix="24"/>
+  <device id="ap1" kind="ap" model="Access Point" x="320" y="80" name="DeskAP2" ip="" prefix="24"/>
+  <device id="ap2" kind="ap" model="Access Point" x="380" y="120" name="CafeAP" ip="" prefix="24"/>
+  <device id="ap3" kind="ap" model="Access Point" x="440" y="80" name="LobbyAP" ip="" prefix="24"/>
+  <device id="ap4" kind="ap" model="Access Point" x="500" y="120" name="GarageAP" ip="" prefix="24"/>
+  <device id="ap5" kind="ap" model="Access Point" x="560" y="80" name="YardAP" ip="" prefix="24"/>
+  <device id="ap6" kind="ap" model="Access Point" x="620" y="120" name="HallAP" ip="" prefix="24"/>
+  <device id="phone1" kind="phone" model="IP Phone" x="500" y="360" name="DeskPhone" ip="10.40.0.11" prefix="24"/>
+  <device id="phone2" kind="phone" model="IP Phone" x="620" y="360" name="PrintRoomPhone" ip="10.40.0.12" prefix="24"/>
+  <link a="switch0" a_port="FastEthernet0/24" b="switch1" b_port="FastEthernet0/24" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/1" b="pc0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/2" b="ap0" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/3" b="ap1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/4" b="ap2" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/5" b="ap3" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/6" b="ap4" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/7" b="ap5" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/8" b="ap6" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/9" b="phone1" b_port="Fa0" kind="eCopper"/>
+  <link a="switch0" a_port="FastEthernet0/10" b="phone2" b_port="Fa0" kind="eCopper"/>
+  <poe dev="ap0"/><poe dev="ap1"/><poe dev="ap2"/><poe dev="ap3"/><poe dev="ap4"/><poe dev="ap5"/><poe dev="ap6"/>
+  <poe dev="phone1"/><poe dev="phone2"/>
+  <lesson id="les-l4-09-power-budget" title="The power budget runs out" level="4" minutes="15" goal="ClosetSwitch feeds seven access points and two phones over the cable. IEEE 802.3af gives an access point up to 15.4 W and a phone 6.5 W, and this switch hands out at most 120 W in total. Seven access points plus two phones ask for 120.8 W, so the switch refuses the last phone in port order. Move HallAP over to HallSwitch so every device gets its power again."/>
+  <step n="1" text="Open PrintRoomPhone: it is dark. Ping it from NocPc and the ping fails. Its cable and settings are fine — the problem is power."/>
+  <step n="2" text="IEEE 802.3af delivers up to 12.94 W to a powered device, and the port is budgeted at 15.4 W; phones draw 6.5 W. A switch can only hand out as much power as its budget allows, in total."/>
+  <step n="3" text="ClosetSwitch carries seven access points at 15.4 W each (107.8 W) plus DeskPhone at 6.5 W (114.3 W so far). PrintRoomPhone would push the total to 120.8 W — past the 120 W budget — so ClosetSwitch refuses it, going down the ports in order."/>
+  <step n="4" text="HallSwitch is cabled to ClosetSwitch and has power to spare. Unplug HallAP from ClosetSwitch port 8 and plug it into HallSwitch instead. That frees 15.4 W and PrintRoomPhone comes back."/>
+  <step n="5" text="Open PrintRoomPhone to confirm it has power again, then ping it from NocPc to prove traffic flows."/>
+  <check id="c1" kind="ping" from="pc0" to="phone2" url="" expect="ok" label="NocPc reaches PrintRoomPhone again"/>
+</takumi>
