@@ -268,6 +268,8 @@ const PRECACHE_URLS = Object.freeze([
   '/templates/les-l2-11-rogue-switch.xml',
   '/templates/les-l2-12-rogue-dhcp.xml',
   '/templates/les-l3-10-gateway-fails.xml',
+  '/templates/les-l4-09-power-budget.xml',
+  '/templates/les-l4-10-five-ghz.xml',
   '/templates/les-l4-11-preemption.xml',
   '/templates/les-l2-13-watch-the-wire.xml',
   '/templates/tpl-wiring-closet.xml',

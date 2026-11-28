@@ -15,7 +15,7 @@ docker run --rm --name pt-web -p 3000:3000 takumi
 
 Open **http://127.0.0.1:3000** for the landing page, or **http://127.0.0.1:3000/workspace** to go straight to the workspace. Stop the container with `docker rm -f pt-web`.
 The image contains the native static/development server, the complete web app,
-all 108 templates, original assets, and the committed WebAssembly engine. It
+all 111 templates, original assets, and the committed WebAssembly engine. It
 needs no runtime package installation or external asset service.
 
 For native development instead:
@@ -29,7 +29,7 @@ The server listens on `127.0.0.1:3000` by default. Set `HOST`, `PORT`, or
 
 ## Start a lab or build a network
 
-The opening gallery holds 73 guided lessons and 35 ready-to-run example networks, all `.xml` files. The five starter lessons are:
+The opening gallery holds 76 guided lessons and 35 ready-to-run example networks, all `.xml` files. The five starter lessons are:
 
 | Template | Lab |
 | --- | --- |

@@ -72,7 +72,7 @@ Evidence: engine paths, test suites, live browser checks. No claims of IEEE/Cisc
 |---|---|---|
 | Automated fail-before/pass-after checks | WORKS | every lesson has an engine test |
 | Newest 13 played by clicking | WORKS | F2 round |
-| PoE / VRRP / WiFi-channel lessons | MISSING | features exist, no lesson yet |
+| PoE / VRRP / WiFi-channel lessons | IN PROGRESS | features exist; base lessons shipped (l1-10 PoE deny, l3-10/l4-04 VRRP, l4-08 channels); deeper lessons building |
 
 ## Not modeled
 
@@ -81,6 +81,6 @@ Evidence: engine paths, test suites, live browser checks. No claims of IEEE/Cisc
 - WPA3 handshakes / 802.11r roaming
 - OSPF hellos / STP BPDUs in demo runs (realtime `advance()` only)
 - BGP OPEN/UPDATE packets on the wire (config + route table only)
-- IPsec ESP/IKE on the wire (tunnel is a gate, not encapsulation)
-- VXLAN/VTEP encapsulation (vnet is a membership block-list)
+- ESP payload ciphertext (headers are real: SPI, protocol 50, outer tunnel IPs — payload rides verbatim)
+- VXLAN payload fidelity beyond headers (VNI, UDP 4789, outer VTEP IPs are real; no BUM/multicast emulation — known-unicast only)
 - Vendor OUI names in MAC addresses (made-up prefix by design)
