@@ -47,7 +47,7 @@
   <lesson id="les-l5-04-overlay-network" title="Two tenants on one fabric" level="5" minutes="20" goal="Blue servers see each other across racks and never see green"/>
   <step n="1" text="Two customers share the fabric: blue rents RackA-1 and RackB-1, green rents RackA-2 and RackB-2."/>
   <step n="2" text="Put RackA-1 and RackB-1 in virtual network 100, and RackA-2 and RackB-2 in 200." check="c1"/>
-  <step n="3" text="Ping RackB-1 from RackA-1: same tenant, different racks." check="c2"/>
+  <step n="3" text="Ping RackB-1 from RackA-1: same tenant, different racks. Read the capture at Spine1: the frame shows the tunnel — outer VTEP addresses 10.200.11.1 and 10.200.21.1, UDP port 4789 and the VNI — not the tenants' addresses." check="c2"/>
   <step n="4" text="Ping RackB-2 from RackA-1 and read the refusal: another tenant." check="c3"/>
   <check id="c1" kind="config" from="server0" to="vnet" url="" expect="100" label="RackA-1 is in network 100"/>
   <check id="c2" kind="ping" from="server0" to="server2" url="" expect="ok" label="Blue reaches blue across racks"/>

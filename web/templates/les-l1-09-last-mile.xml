@@ -6,7 +6,7 @@
   <device id="server0" kind="server" model="Server" x="800" y="160" name="IspServer" ip="203.0.113.2" prefix="24"/>
   <link a="pc0" a_port="Fa0" b="homerouter0" b_port="Fa0" kind="eCopper"/>
   <link a="cloud0" a_port="Fa0" b="server0" b_port="Fa0" kind="eCopper"/>
-  <lesson id="les-l1-08-last-mile" title="The last mile into the house" level="1" minutes="12" goal="HomePC reaches IspServer once the TV cable path is cabled and addressed"/>
+  <lesson id="les-l1-09-last-mile" title="The last mile into the house" level="1" minutes="12" goal="HomePC reaches IspServer once the TV cable path is cabled and addressed"/>
   <step n="1" text="The TV cable ends at Modem0, but nothing joins it to the house or the street yet. Run a copper cable from HomeRouter0 to Modem0."/>
   <step n="2" text="Run the coaxial cable from Modem0 to the Internet cloud. The modem only turns the TV line into a network line."/>
   <step n="3" text="Give HomePC the address 203.0.113.10 with prefix 24." check="c1"/>
